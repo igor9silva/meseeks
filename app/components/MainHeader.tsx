@@ -1,5 +1,5 @@
-import { useCanGoBack, useLocation, useRouter } from '@tanstack/react-router';
-import { ArrowLeft, ArrowUp, Share } from 'lucide-react';
+import { useLocation, useRouter } from '@tanstack/react-router';
+import { ArrowLeft, ArrowRight, ArrowUp, Share } from 'lucide-react';
 import { Suspense } from 'react';
 import { cn } from '~/lib/utils';
 
@@ -12,12 +12,12 @@ import { useSplatParams } from '~/hooks/useSplatParams';
 export function MainHeader({ className }: { className?: string }) {
 	//
 	const { history } = useRouter();
-	const canGoBack = useCanGoBack();
 	const { pathname, searchStr } = useLocation();
 	const { open: openCommandDialog } = useCommandMenu();
 	const { taskId } = useSplatParams();
 
 	const goBack = () => history.back();
+	const goForward = () => history.forward();
 	const goUp = () => {
 		toast.error('Not implemented. Should go to parent task, if any.'); // TODO: implement
 	};
@@ -28,8 +28,13 @@ export function MainHeader({ className }: { className?: string }) {
 	return (
 		<header className={cn('flex h-14 items-center justify-between border-b px-2 gap-1', className)}>
 			<div className="flex items-center gap-1">
-				<Button className="p-2" variant="ghost" onClick={goBack} disabled={!canGoBack}>
+				<Button className="p-2" variant="ghost" onClick={goBack}>
 					<ArrowLeft />
+				</Button>
+				<Button className="p-2" variant="ghost" onClick={goForward}>
+					{/* TODO: dynamically enable/disable
+					https://github.com/TanStack/router/discussions/181#discussioncomment-11726923 */}
+					<ArrowRight />
 				</Button>
 				<Button className="p-2" variant="ghost" onClick={goUp}>
 					<ArrowUp />
