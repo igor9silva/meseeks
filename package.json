@@ -42,7 +42,7 @@
 		"@tanstack/start": "^1.85.7",
 		"@types/mdx": "^2.0.13",
 		"@vitejs/plugin-react": "^4.3.4",
-		"ai": "^4.0.22",
+		"ai": "^4.0.36",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "1.2.1",
 		"cmdk": "1.0.0",
@@ -66,7 +66,7 @@
 		"use-stick-to-bottom": "^1.0.42",
 		"vaul": "^1.1.1",
 		"vinxi": "0.4.3",
-		"zod": "^3.23.8",
+		"zod": "3.23.8",
 		"zodex": "^0.18.2"
 	},
 	"devDependencies": {
