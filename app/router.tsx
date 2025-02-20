@@ -20,7 +20,7 @@ export function createRouter() {
 	const convex = new ConvexReactClient(CONVEX_URL, {
 		unsavedChangesWarning: false,
 		verbose: true,
-		// authRefreshTokenLeewaySeconds: 60,
+		// authRefreshTokenLeewaySeconds: 60, // https://discord.com/channels/1019350475847499849/1334908572672331867/1342213434137247764
 	});
 
 	const convexQueryClient = new ConvexQueryClient(convex);
