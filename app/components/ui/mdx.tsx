@@ -1,7 +1,9 @@
 import { toast } from 'sonner';
 import { useMDX } from '~/hooks/useMDX';
 
-import { useState } from 'react';
+import React from 'react';
+
+import { ErrorBoundary } from 'react-error-boundary';
 import { AddBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
@@ -22,6 +24,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { Separator } from '~/components/ui/separator';
+import { useSetupWindowGlobals } from '~/hooks/useSetupWindowGlobals';
 import { cn } from '~/lib/utils';
 
 const components = {
@@ -55,7 +58,7 @@ export default function MDX({
 	onClickFix,
 	errorFallback,
 	className,
-	shouldRenderComponents = false,
+	shouldRenderComponents = true,
 }: {
 	text: string;
 	onClickFix?: (e: React.MouseEvent) => void;
@@ -64,6 +67,8 @@ export default function MDX({
 	shouldRenderComponents?: boolean;
 }) {
 	//
+	useSetupWindowGlobals();
+
 	const { Component, error, isPending } = useMDX(text, shouldRenderComponents);
 
 	if (isPending) return <Loading />;
@@ -73,77 +78,83 @@ export default function MDX({
 
 	return (
 		<div className={cn('whitespace-normal [&>*]:break-normal [&>*]:hyphens-auto h-full', className)}>
-			<Component
-				components={{
-					a: ({ children, href }) => (
-						<a
-							href={href} //
-							className="text-blue-500 hover:underline"
-							target="_blank"
-							rel="noopener"
-						>
-							{children}
-						</a>
-					),
-					code: function CodeComponent({ className, children, ...props }) {
-						//
-						const language = extractLanguage(className);
+			<ErrorBoundary
+				fallbackRender={({ error }) => <MDXError text={text} error={error} onClickFix={onClickFix} />}
+			>
+				<Component
+					components={{
+						a: ({ children, href }) => (
+							<a
+								href={href} //
+								className="text-blue-500 hover:underline"
+								target="_blank"
+								rel="noopener"
+							>
+								{children}
+							</a>
+						),
+						code: function CodeComponent({ className, children, ...props }) {
+							//
+							const language = extractLanguage(className);
 
-						// check if the code is inline (claude randomly added that, thanks!)
-						if (typeof children !== 'string' || children.includes('\n') === false) {
+							// check if the code is inline (claude randomly added that, thanks!)
+							if (typeof children !== 'string' || children.includes('\n') === false) {
+								return (
+									<span
+										className={cn(
+											'bg-muted text-foreground rounded-sm px-1 py-0.5 font-mono text-sm',
+											className,
+										)}
+										{...props}
+									>
+										{children}
+									</span>
+								);
+							}
+
 							return (
-								<span
-									className={cn(
-										'bg-muted text-foreground rounded-sm px-1 py-0.5 font-mono text-sm',
-										className,
-									)}
-									{...props}
-								>
-									{children}
-								</span>
+								<CodeBlock className={className}>
+									<CodeBlockCode code={children as string} language={language} />
+								</CodeBlock>
 							);
-						}
-
-						return (
-							<CodeBlock className={className}>
-								<CodeBlockCode code={children as string} language={language} />
-							</CodeBlock>
-						);
-					},
-					pre: function PreComponent({ children }) {
-						return <>{children}</>;
-					},
-					blockquote: ({ children }) => (
-						<blockquote className="pl-4 border-l-4 border-muted-foreground/20 italic my-4 text-muted-foreground">
-							{children}
-						</blockquote>
-					),
-					table: ({ children }) => <table className="w-full border-collapse my-4">{children}</table>,
-					td: ({ children }) => <td className="border border-border p-2">{children}</td>,
-					th: ({ children }) => (
-						<th className="border border-border p-2 font-bold text-primary">{children}</th>
-					),
-					tr: ({ children }) => <tr className="even:bg-muted/50">{children}</tr>,
-					thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
-					tbody: ({ children }) => <tbody className="">{children}</tbody>,
-					img: ({ src, alt }) => <img src={src} alt={alt} className="rounded-md max-w-full h-auto my-4" />,
-					ul: ({ children }) => <ul className="ml-8 list-disc space-y-1 my-2">{children}</ul>,
-					ol: ({ children }) => <ol className="ml-8 list-decimal space-y-1 my-2">{children}</ol>,
-					li: ({ children }) => <li className="leading-normal">{children}</li>,
-					hr: () => <hr className="my-4 border-t border-border" />,
-					h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-2">{children}</h1>,
-					h2: ({ children }) => <h2 className="text-xl font-bold mt-5 mb-2">{children}</h2>,
-					h3: ({ children }) => <h3 className="text-lg font-bold mt-4 mb-2">{children}</h3>,
-					h4: ({ children }) => <h4 className="text-base font-bold mt-3 mb-2">{children}</h4>,
-					h5: ({ children }) => <h5 className="text-sm font-bold mt-2 mb-1">{children}</h5>,
-					h6: ({ children }) => <h6 className="text-xs font-bold mt-2 mb-1">{children}</h6>,
-					p: ({ children }) => <p className="my-2 md:my-1 leading-relaxed">{children}</p>,
-					strong: ({ children }) => <span className="font-bold">{children}</span>,
-					em: ({ children }) => <span className="italic">{children}</span>,
-					del: ({ children }) => <span className="line-through">{children}</span>,
-					...components,
-				}}
-			/>
+						},
+						pre: function PreComponent({ children }) {
+							return <>{children}</>;
+						},
+						blockquote: ({ children }) => (
+							<blockquote className="pl-4 border-l-4 border-muted-foreground/20 italic my-4 text-muted-foreground">
+								{children}
+							</blockquote>
+						),
+						table: ({ children }) => <table className="w-full border-collapse my-4">{children}</table>,
+						td: ({ children }) => <td className="border border-border p-2">{children}</td>,
+						th: ({ children }) => (
+							<th className="border border-border p-2 font-bold text-primary">{children}</th>
+						),
+						tr: ({ children }) => <tr className="even:bg-muted/50">{children}</tr>,
+						thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
+						tbody: ({ children }) => <tbody className="">{children}</tbody>,
+						img: ({ src, alt }) => (
+							<img src={src} alt={alt} className="rounded-md max-w-full h-auto my-4" />
+						),
+						ul: ({ children }) => <ul className="ml-8 list-disc space-y-1 my-2">{children}</ul>,
+						ol: ({ children }) => <ol className="ml-8 list-decimal space-y-1 my-2">{children}</ol>,
+						li: ({ children }) => <li className="leading-normal">{children}</li>,
+						hr: () => <hr className="my-4 border-t border-border" />,
+						h1: ({ children }) => <h1 className="text-2xl font-bold mt-6 mb-2">{children}</h1>,
+						h2: ({ children }) => <h2 className="text-xl font-bold mt-5 mb-2">{children}</h2>,
+						h3: ({ children }) => <h3 className="text-lg font-bold mt-4 mb-2">{children}</h3>,
+						h4: ({ children }) => <h4 className="text-base font-bold mt-3 mb-2">{children}</h4>,
+						h5: ({ children }) => <h5 className="text-sm font-bold mt-2 mb-1">{children}</h5>,
+						h6: ({ children }) => <h6 className="text-xs font-bold mt-2 mb-1">{children}</h6>,
+						p: ({ children }) => <p className="my-2 md:my-1 leading-relaxed">{children}</p>,
+						strong: ({ children }) => <span className="font-bold">{children}</span>,
+						em: ({ children }) => <span className="italic">{children}</span>,
+						del: ({ children }) => <span className="line-through">{children}</span>,
+						...components,
+					}}
+				/>
+			</ErrorBoundary>
 		</div>
 	);
 }
@@ -158,7 +169,7 @@ function MDXError({
 	onClickFix?: (e: React.MouseEvent) => void;
 }) {
 	//
-	const [shouldShowRaw, setShouldShowRaw] = useState(false);
+	const [shouldShowRaw, setShouldShowRaw] = React.useState(false);
 
 	const handleErrorClick = (e: React.MouseEvent<HTMLPreElement>) => {
 		e.stopPropagation();
