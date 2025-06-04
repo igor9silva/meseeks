@@ -94,7 +94,7 @@ export const availableIntelligences = query({
 					key: 'anthropic/claude-3.5-haiku',
 					name: 'Claude 3.5 Haiku',
 					provider: 'Anthropic',
-					description: 'Grok 3 mini alternative',
+					description: 'Another cost-efficient alternative',
 				},
 			],
 			all: [
