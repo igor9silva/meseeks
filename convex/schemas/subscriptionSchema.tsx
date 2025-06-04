@@ -1,8 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 
-export const subscriptionPlanSchema = z.enum(['pro', 'founder']);
-
 export const subscriptionStatusSchema = z.enum(['pending', 'active']);
 
 export const subscriptionSchema = z.object({

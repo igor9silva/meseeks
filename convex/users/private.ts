@@ -114,6 +114,19 @@ export const _adjustBalance = internalMutation({
 	},
 });
 
+export const _setFounder = internalMutation({
+	args: {
+		userId: zid('users'),
+		isFounder: z.boolean(),
+	},
+	handler: async (ctx, { userId, isFounder }) => {
+		//
+		const user = await _findOne(ctx, { userId });
+		if (!user) throw new Error('User not found');
+
+		await ctx.db.patch(userId, { isFounder });
+	},
+});
 
 export const _findOne = internalQuery({
 	args: {

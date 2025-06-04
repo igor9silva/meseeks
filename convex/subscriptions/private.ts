@@ -1,7 +1,9 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
+import { Id } from '../_generated/dataModel';
 import { internalMutation, internalQuery } from '../lib';
 import { _addSubscriptionCredits } from '../transactions/private';
+import { _setFounder } from '../users/private';
 import { NotFound } from '../utils/errors';
 
 export const _add = internalMutation({
@@ -10,12 +12,15 @@ export const _add = internalMutation({
 		paymentUrl: z.string().url(),
 		paymentId: z.string(),
 	},
-	handler: async (ctx, args) => {
-		// locate the pending subscription by payment ID
-		// mark founders if needed
-		// credit the user's account if the plan grants bonus energy
-			await _addSubscriptionCredits(ctx, {
-				subscriptionId: sub._id,
+	handler: async (ctx, args): Promise<Id<'subscriptions'>> => {
+		//
+		const subscriptionId = await ctx.db.insert('subscriptions', {
+			...args,
+			status: 'pending' as const,
+		});
+
+		return subscriptionId;
+	},
 });
 
 export const _activate = internalMutation({
@@ -23,9 +28,9 @@ export const _activate = internalMutation({
 		checkoutId: z.string(),
 		months: z.number(),
 		credits: z.bigint(),
-		founder: z.boolean().optional(),
+		isFounder: z.boolean().optional(),
 	},
-	handler: async (ctx, { checkoutId, months, credits, founder }) => {
+	handler: async (ctx, { checkoutId, months, credits, isFounder }) => {
 		//
 		const sub = await _findOneByPaymentId(ctx, { paymentId: checkoutId });
 
@@ -37,15 +42,16 @@ export const _activate = internalMutation({
 			validUntil: Date.now() + months * 30 * 24 * 60 * 60 * 1000,
 		});
 
-		if (Boolean(founder)) {
-			await ctx.db.patch(sub.owner, { isFounder: true });
+		if (Boolean(isFounder)) {
+			await _setFounder(ctx, { userId: sub.owner, isFounder: true });
 		}
 
 		if (credits > 0n) {
-			await _addFreeCredits(ctx, {
+			await _addSubscriptionCredits(ctx, {
 				owner: sub.owner,
 				value: { symbol: 'USD', amount: credits },
 				description: 'Subscription credits',
+				subscriptionId: sub._id,
 			});
 		}
 	},
