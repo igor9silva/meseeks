@@ -19,15 +19,7 @@ export const startTopUp = action({
 	},
 	handler: async (ctx, { chain, symbol, amount, description }): Promise<Id<'topUps'>> => {
 		//
-		const currentUser = await ctx.runQuery(api.users.public.current, {});
-
-		const activeSubs = await ctx.runQuery(internal.subscriptions.private._findActive, {
-			owner: currentUser._id,
-		});
-
-		if (activeSubs.length === 0) {
-			throw new Error('Pro subscription required to top up');
-		}
+		const currentUser = await ctx.runQuery(api.users.public.currentIfPro, {});
 
 		console.debug(`Starting top up at Polar '${env.POLAR_SERVER}' environment.`);
 

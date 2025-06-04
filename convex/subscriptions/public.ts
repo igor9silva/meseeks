@@ -19,7 +19,12 @@ export const startSubscription = action({
 		paymentUrl: string;
 	}> => {
 		//
-		const currentUser = await ctx.runQuery(api.users.public.currentIfPro, {});
+		const currentUser = await ctx.runQuery(api.users.public.current, {});
+		const isProSubscriber = await ctx.runQuery(internal.users.private._isProSubscriber, {
+			owner: currentUser._id,
+		});
+
+		if (isProSubscriber) throw new Error('User is already Pro.');
 
 		const polar = new Polar({
 			server: env.POLAR_SERVER,

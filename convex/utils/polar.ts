@@ -41,6 +41,7 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 						);
 						break;
 
+					// TODO: look at .billing_reason to find out it it's a renewal
 					case env.POLAR_SUBSCRIPTION_ID:
 						await activateSubscription(
 							ctx,
