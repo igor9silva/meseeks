@@ -95,3 +95,15 @@ export const _findActive = internalQuery({
 			.then((subs) => subs.filter((s) => (s.validUntil ?? 0) > now));
 	},
 });
+
+export const _isProSubscriber = internalQuery({
+	args: {
+		owner: zid('users'),
+	},
+	handler: async (ctx, { owner }): Promise<boolean> => {
+		//
+		const activeSubscriptions = await _findActive(ctx, { owner });
+
+		return activeSubscriptions.length > 0;
+	},
+});

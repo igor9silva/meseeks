@@ -19,7 +19,7 @@ export const startSubscription = action({
 		paymentUrl: string;
 	}> => {
 		//
-		const currentUser = await ctx.runQuery(api.users.public.current, {});
+		const currentUser = await ctx.runQuery(api.users.public.currentIfPro, {});
 
 		const polar = new Polar({
 			server: env.POLAR_SERVER,
