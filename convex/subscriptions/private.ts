@@ -57,15 +57,6 @@ export const _activate = internalMutation({
 	},
 });
 
-export const _persistPolarEvent = internalMutation({
-	args: {
-		polarEvent: z.any(),
-	},
-	handler: async (ctx, { polarEvent }) => {
-		await ctx.db.insert('polarEvents', polarEvent);
-	},
-});
-
 export const _findOneByPaymentId = internalQuery({
 	args: {
 		paymentId: z.string(),
