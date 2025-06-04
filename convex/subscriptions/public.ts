@@ -1,13 +1,32 @@
 import { Polar } from '@polar-sh/sdk';
+import { z } from 'zod';
 import { api, internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { action, query } from '../lib';
 import { env } from '../schemas/envSchema';
-import { subscriptionPlanSchema } from '../schemas/subscriptionSchema';
 import { current as getCurrentUser } from '../users/public';
-	handler: async (ctx, { plan }): Promise<{ id: Id<'subscriptions'>; paymentUrl: string }> => {
+import { _findActive } from './private';
 
-		return { id: subId, paymentUrl: checkout.url };
+export const startSubscription = action({
+	args: {
+		product: z.enum(['pro', 'founder']),
+	},
+	handler: async (
+		ctx,
+		{ product },
+	): Promise<{
+		id: Id<'subscriptions'>;
+		paymentUrl: string;
+	}> => {
+		//
+		const currentUser = await ctx.runQuery(api.users.public.current, {});
+
+		const polar = new Polar({
+			server: env.POLAR_SERVER,
+			accessToken: env.POLAR_ACCESS_TOKEN,
+		});
+
+		const productId = product === 'founder' ? env.POLAR_FOUNDER_PACK_ID : env.POLAR_SUBSCRIPTION_ID;
 
 		const checkout = await polar.checkouts.create({
 			allowDiscountCodes: false,
@@ -24,7 +43,7 @@ import { current as getCurrentUser } from '../users/public';
 			paymentId: checkout.id,
 		});
 
-		return subId;
+		return { id: subId, paymentUrl: checkout.url };
 	},
 });
 

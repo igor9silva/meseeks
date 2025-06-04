@@ -144,27 +144,37 @@ export const polarWebhook = httpAction(async (ctx, request) => {
 		switch (json.type) {
 			//
 			case 'order.paid':
+				//
 				const paidPayload = webhookPayloadSchema.parse(json);
-				if (paidPayload.data.product_id === env.POLAR_TOP_UP_ID) {
-					await ctx.runMutation(internal.topUps.private._finish, {
-						checkoutId: paidPayload.data.checkout_id,
-						amount: asBigInt({ dollars: paidPayload.data.net_amount / 100 }),
-					});
-				} else if (paidPayload.data.product_id === env.POLAR_SUBSCRIPTION_ID) {
-					await ctx.runMutation(internal.subscriptions.private._activate, {
-						checkoutId: paidPayload.data.checkout_id,
-						months: 1,
-						credits: asBigInt({ dollars: 10 }),
-					});
-				} else if (paidPayload.data.product_id === env.POLAR_FOUNDER_PACK_ID) {
-					await ctx.runMutation(internal.subscriptions.private._activate, {
-						checkoutId: paidPayload.data.checkout_id,
-						months: 24,
-						credits: asBigInt({ dollars: 200 }),
-						founder: true,
-					});
-				} else {
-					console.debug('Unknown product payment', paidPayload.data.product_id);
+
+				switch (paidPayload.data.product_id) {
+					//
+					case env.POLAR_TOP_UP_ID:
+						await ctx.runMutation(internal.topUps.private._finish, {
+							checkoutId: paidPayload.data.checkout_id,
+							amount: asBigInt({ dollars: paidPayload.data.net_amount / 100 }),
+						});
+						break;
+
+					case env.POLAR_SUBSCRIPTION_ID:
+						await ctx.runMutation(internal.subscriptions.private._activate, {
+							checkoutId: paidPayload.data.checkout_id,
+							months: 1,
+							credits: asBigInt({ dollars: 10 }),
+						});
+						break;
+
+					case env.POLAR_FOUNDER_PACK_ID:
+						await ctx.runMutation(internal.subscriptions.private._activate, {
+							checkoutId: paidPayload.data.checkout_id,
+							months: 24,
+							credits: asBigInt({ dollars: 200 }),
+							isFounder: true,
+						});
+						break;
+
+					default:
+						console.debug('Unknown product payment', paidPayload.data.product_id);
 				}
 				break;
 			case 'order.refunded':
