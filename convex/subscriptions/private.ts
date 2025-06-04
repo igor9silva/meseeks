@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
-import { _addFreeCredits } from '../transactions/private';
+import { _addSubscriptionCredits } from '../transactions/private';
 import { NotFound } from '../utils/errors';
 
 export const _add = internalMutation({
@@ -11,14 +11,11 @@ export const _add = internalMutation({
 		paymentId: z.string(),
 	},
 	handler: async (ctx, args) => {
-		//
-		const subscriptionId = await ctx.db.insert('subscriptions', {
-			...args,
-			status: 'pending' as const,
-		});
-
-		return subscriptionId;
-	},
+		// locate the pending subscription by payment ID
+		// mark founders if needed
+		// credit the user's account if the plan grants bonus energy
+			await _addSubscriptionCredits(ctx, {
+				subscriptionId: sub._id,
 });
 
 export const _activate = internalMutation({

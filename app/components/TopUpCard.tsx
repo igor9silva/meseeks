@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
-import { useAction } from 'convex/react';
+import { useAction, useQuery } from 'convex/react';
 import { asBigInt } from 'convex/utils/money';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -15,6 +15,8 @@ export function TopUpCard() {
 	//
 	const navigate = useNavigate();
 	const startTopUp = useAction(api.topUps.public.startTopUp);
+	const startSubscription = useAction(api.subscriptions.public.startSubscription);
+	const activeSubs = useQuery(api.subscriptions.public.findActive, {});
 
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({
@@ -36,13 +38,40 @@ export function TopUpCard() {
 				toast.error('Failed to start top up. We are working on fixing this.');
 			}
 		},
-		onParseError: (error) => {
+		onParseError: () => {
 			toast.error('Minimum top up amount is $10.');
 		},
 	});
 
+	const handleSubscribe = async (plan: 'pro' | 'founder') => {
+		try {
+			const { id, paymentUrl } = await startSubscription({ plan });
+			navigate({ to: '/subscribe/$id', params: { id } });
+			// also open payment url immediately in case navigation fails
+			location.href = paymentUrl;
+		} catch (error) {
+			console.error(error);
+			toast.error('Failed to start subscription.');
+		}
+	};
+
 	// confirm on CMD+Enter
 	const handleKeyDown = useSubmitHotkey();
+
+	if (!activeSubs || activeSubs.length === 0) {
+		return (
+			<Card className="max-h-fit border-none rounded-none prose">
+				<CardContent className="p-4 flex flex-col gap-2">
+					<Button onClick={() => handleSubscribe('pro')} variant="default">
+						Subscribe $20/mo
+					</Button>
+					<Button onClick={() => handleSubscribe('founder')} variant="secondary">
+						Buy Founder Pack $500
+					</Button>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<Card className="max-h-fit border-none rounded-none prose">

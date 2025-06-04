@@ -12,13 +12,6 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TopUpImport } from './routes/top-up'
-import { Route as SubscribeImport } from './routes/subscribe'
-import { Route as SkillsImport } from './routes/skills'
-import { Route as BalanceImport } from './routes/balance'
-import { Route as SplatImport } from './routes/$'
-import { Route as PolarRouteImport } from './routes/polar/route'
-import { Route as TopUpIdImport } from './routes/top-up_.$id'
-import { Route as SubscribeIdImport } from './routes/subscribe_.$id'
 import { Route as SkillsNewImport } from './routes/skills_.new'
 import { Route as SkillsIdImport } from './routes/skills_.$id'
 import { Route as PolarToppedImport } from './routes/polar/topped'
@@ -130,13 +123,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillsImport
       parentRoute: typeof rootRoute
     }
-    '/subscribe': {
-      id: '/subscribe'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof SubscribeImport
-      parentRoute: typeof rootRoute
-    }
     '/top-up': {
       id: '/top-up'
       path: '/top-up'
@@ -184,22 +170,10 @@ declare module '@tanstack/react-router' {
       path: '/top-up/$id'
       fullPath: '/top-up/$id'
       preLoaderRoute: typeof TopUpIdImport
-      parentRoute: typeof rootRoute
-    }
-  }
 }
 
-// Create and export the route tree
-
-interface PolarRouteRouteChildren {
-  PolarSubscribedRoute: typeof PolarSubscribedRoute
-  PolarToppedRoute: typeof PolarToppedRoute
 }
 
-const PolarRouteRouteChildren: PolarRouteRouteChildren = {
-  PolarSubscribedRoute: PolarSubscribedRoute,
-  PolarToppedRoute: PolarToppedRoute,
-}
 
 const PolarRouteRouteWithChildren = PolarRouteRoute._addFileChildren(
   PolarRouteRouteChildren,

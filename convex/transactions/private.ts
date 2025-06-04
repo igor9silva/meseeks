@@ -115,3 +115,30 @@ export const _addRefundTask = internalMutation({
 		return transactionId;
 	},
 });
+
+export const _addSubscriptionCredits = internalMutation({
+	args: {
+		value: valueSchema,
+		subscriptionId: zid('subscriptions'),
+		owner: zid('users'),
+		description: z.string().optional(),
+	},
+	handler: async (ctx, args) => {
+		const transactionId = await ctx.db.insert('transactions', {
+			kind: 'subscription',
+			...args,
+		});
+
+		if (args.value.symbol !== 'USD') throw new Error('Only USD is supported for now');
+
+		await _adjustBalance(ctx, {
+			userId: args.owner,
+			value: {
+				symbol: args.value.symbol,
+				amount: args.value.amount,
+			},
+		});
+
+		return transactionId;
+	},
+});

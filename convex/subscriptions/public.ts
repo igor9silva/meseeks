@@ -5,22 +5,9 @@ import { action, query } from '../lib';
 import { env } from '../schemas/envSchema';
 import { subscriptionPlanSchema } from '../schemas/subscriptionSchema';
 import { current as getCurrentUser } from '../users/public';
-import { _findActive } from './private';
+	handler: async (ctx, { plan }): Promise<{ id: Id<'subscriptions'>; paymentUrl: string }> => {
 
-export const startSubscription = action({
-	args: {
-		plan: subscriptionPlanSchema,
-	},
-	handler: async (ctx, { plan }): Promise<Id<'subscriptions'>> => {
-		//
-		const currentUser = await ctx.runQuery(api.users.public.current, {});
-
-		const polar = new Polar({
-			server: env.POLAR_SERVER,
-			accessToken: env.POLAR_ACCESS_TOKEN,
-		});
-
-		const productId = plan === 'founder' ? env.POLAR_FOUNDER_PACK_ID : env.POLAR_SUBSCRIPTION_ID;
+		return { id: subId, paymentUrl: checkout.url };
 
 		const checkout = await polar.checkouts.create({
 			allowDiscountCodes: false,

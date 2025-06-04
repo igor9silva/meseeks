@@ -2,7 +2,6 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
 import { usePayment } from '~/hooks/usePayment';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -13,9 +12,12 @@ export const Route = createFileRoute('/subscribe_/$id')({
 });
 
 export function RouteComponent() {
-	const { id } = Route.useParams();
-	const query = convexQuery(api.subscriptions.public.findOne, { subscriptionId: id as Id<'subscriptions'> });
-	const { data: sub } = useSuspenseQuery(query);
+	const query = convexQuery(api.subscriptions.public.findActive, {});
+	const { data } = useSuspenseQuery(query);
+	const sub = data[0];
+	if (!sub) {
+		return <div className="p-4">No subscription found.</div>;
+	}
 
 	const { pay, isPending, error } = usePayment(sub);
 
