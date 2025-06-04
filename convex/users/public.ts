@@ -1,8 +1,8 @@
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { query } from '../lib';
 import { env } from '../schemas/envSchema';
-import { _isProSubscriber } from '../subscriptions/private';
 import { _findActiveTasks } from '../tasks/private';
+import { _isProSubscriber } from '../users/private';
 import { _findOne } from './private';
 
 const ALLOWED_DOMAINS = env.ALLOWED_DOMAINS || [];

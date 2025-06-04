@@ -6,6 +6,7 @@ import { MutationCtx } from '../_generated/server';
 import { internalMutation, internalQuery } from '../lib';
 import { env } from '../schemas/envSchema';
 import { tokenSchema } from '../schemas/topUpSchema';
+import { _findActive } from '../subscriptions/private';
 import { _addFreeCredits } from '../transactions/private';
 import { asBigInt } from '../utils/money';
 
@@ -134,5 +135,17 @@ export const _findOne = internalQuery({
 	},
 	handler: async (ctx, { userId }) => {
 		return await ctx.db.get(userId);
+	},
+});
+
+export const _isProSubscriber = internalQuery({
+	args: {
+		owner: zid('users'),
+	},
+	handler: async (ctx, { owner }): Promise<boolean> => {
+		//
+		const activeSubscriptions = await _findActive(ctx, { owner });
+
+		return activeSubscriptions.length > 0;
 	},
 });
