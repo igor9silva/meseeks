@@ -84,17 +84,17 @@ export default defineSchema({
 	),
 
 	transactions: defineTable(
-			zodToConvex(transactionSchema),
+		zodToConvex(transactionSchema),
 	).index(
-			'by_owner', ['owner'],
+		'by_owner', ['owner'],
 	),
 
 	subscriptions: defineTable(
-			zodToConvex(subscriptionSchema),
+		zodToConvex(subscriptionSchema),
 	).index(
-			'by_owner_status', ['owner', 'status'],
+		'by_owner_status', ['owner', 'status'],
 	).index(
-			'by_paymentId', ['paymentId'],
+		'by_paymentId', ['paymentId'],
 	),
 
 	topUps: defineTable(
