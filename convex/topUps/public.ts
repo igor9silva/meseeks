@@ -23,6 +23,10 @@ export const startTopUp = action({
 		//
 		const currentUser = await ctx.runQuery(api.users.public.current, {});
 
+		if (!currentUser.proUntil || currentUser.proUntil < Date.now()) {
+			throw new Error('Pro subscription required to top up');
+		}
+
 		console.debug(`Starting top up at Polar '${env.POLAR_SERVER}' environment.`);
 
 		const polar = new Polar({
@@ -137,10 +141,27 @@ export const polarWebhook = httpAction(async (ctx, request) => {
 			//
 			case 'order.paid':
 				const paidPayload = webhookPayloadSchema.parse(json);
-				await ctx.runMutation(internal.topUps.private._finish, {
-					checkoutId: paidPayload.data.checkout_id,
-					amount: asBigInt({ dollars: paidPayload.data.net_amount / 100 }), // Polar returns cents
-				});
+				if (paidPayload.data.product_id === env.POLAR_TOP_UP_ID) {
+					await ctx.runMutation(internal.topUps.private._finish, {
+						checkoutId: paidPayload.data.checkout_id,
+						amount: asBigInt({ dollars: paidPayload.data.net_amount / 100 }),
+					});
+				} else if (paidPayload.data.product_id === env.POLAR_SUBSCRIPTION_ID) {
+					await ctx.runMutation(internal.subscriptions.private._activate, {
+						checkoutId: paidPayload.data.checkout_id,
+						months: 1,
+						credits: asBigInt({ dollars: 10 }),
+					});
+				} else if (paidPayload.data.product_id === env.POLAR_FOUNDER_PACK_ID) {
+					await ctx.runMutation(internal.subscriptions.private._activate, {
+						checkoutId: paidPayload.data.checkout_id,
+						months: 24,
+						credits: asBigInt({ dollars: 200 }),
+						founder: true,
+					});
+				} else {
+					console.debug('Unknown product payment', paidPayload.data.product_id);
+				}
 				break;
 			case 'order.refunded':
 				const refundedPayload = webhookPayloadSchema.parse(json);

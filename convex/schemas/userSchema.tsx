@@ -14,6 +14,8 @@ export const userSchema = z.object({
 	walletChain: z.enum(['worldchain']).optional(),
 	isReady: z.boolean().default(false),
 	balanceUSD: z.bigint().default(0n),
+	proUntil: z.number().optional(),
+	isFounder: z.boolean().default(false),
 });
 
 export const userPreferencesSchema = z.object({

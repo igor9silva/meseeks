@@ -7,6 +7,7 @@ import { polarEventSchema } from './schemas/polarEventSchema';
 import { skillSchema } from './schemas/skillSchema';
 import { taskSchema } from './schemas/taskSchema';
 import { topUpSchema } from './schemas/topUpSchema';
+import { subscriptionSchema } from './schemas/subscriptionSchema';
 import { transactionSchema } from './schemas/transactionSchema';
 import { userPreferencesSchema, userRequestSchema, userSchema } from './schemas/userSchema';
 
@@ -82,11 +83,19 @@ export default defineSchema({
 		'by_owner_slug', ['owner', 'slug'],
 	),
 
-	transactions: defineTable(
-		zodToConvex(transactionSchema),
-	).index(
-		'by_owner', ['owner'],
-	),
+        transactions: defineTable(
+                zodToConvex(transactionSchema),
+        ).index(
+                'by_owner', ['owner'],
+        ),
+
+        subscriptions: defineTable(
+                zodToConvex(subscriptionSchema),
+        ).index(
+                'by_owner_status', ['owner', 'status'],
+        ).index(
+                'by_paymentId', ['paymentId'],
+        ),
 
 	topUps: defineTable(
 		zodToConvex(topUpSchema),

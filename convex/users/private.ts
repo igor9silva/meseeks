@@ -114,6 +114,25 @@ export const _adjustBalance = internalMutation({
 	},
 });
 
+export const _extendPro = internalMutation({
+	args: {
+		userId: zid('users'),
+		months: z.number(),
+		founder: z.boolean().optional(),
+	},
+	handler: async (ctx, { userId, months, founder }) => {
+		const user = await _findOne(ctx, { userId });
+		if (!user) throw new Error('User not found');
+
+		const base = user.proUntil && user.proUntil > Date.now() ? user.proUntil : Date.now();
+		const extension = months * 30 * 24 * 60 * 60 * 1000;
+		await ctx.db.patch(userId, {
+			proUntil: base + extension,
+			isFounder: user.isFounder || founder,
+		});
+	},
+});
+
 export const _findOne = internalQuery({
 	args: {
 		userId: zid('users'),
