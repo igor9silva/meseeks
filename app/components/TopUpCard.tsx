@@ -1,6 +1,8 @@
+import { convexQuery } from '@convex-dev/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
-import { useAction, useQuery } from 'convex/react';
+import { useAction } from 'convex/react';
 import { asBigInt } from 'convex/utils/money';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -16,7 +18,9 @@ export function TopUpCard() {
 	const navigate = useNavigate();
 	const startTopUp = useAction(api.topUps.public.startTopUp);
 	const startSubscription = useAction(api.subscriptions.public.startSubscription);
-	const activeSubs = useQuery(api.subscriptions.public.findActive, {});
+
+	const activeSubsQuery = convexQuery(api.subscriptions.public.findActive, {});
+	const { data: activeSubs } = useSuspenseQuery(activeSubsQuery);
 
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({
