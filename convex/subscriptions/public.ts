@@ -1,7 +1,6 @@
 import { Polar } from '@polar-sh/sdk';
 import { z } from 'zod';
 import { api, internal } from '../_generated/api';
-import { Id } from '../_generated/dataModel';
 import { action, query } from '../lib';
 import { env } from '../schemas/envSchema';
 import { current as getCurrentUser } from '../users/public';
@@ -11,13 +10,7 @@ export const startSubscription = action({
 	args: {
 		product: z.enum(['pro', 'founder']),
 	},
-	handler: async (
-		ctx,
-		{ product },
-	): Promise<{
-		id: Id<'subscriptions'>;
-		paymentUrl: string;
-	}> => {
+	handler: async (ctx, { product }): Promise<{ paymentUrl: string }> => {
 		//
 		const currentUser = await ctx.runQuery(api.users.public.current, {});
 		const isProSubscriber = await ctx.runQuery(internal.users.private._isProSubscriber, {
@@ -48,7 +41,7 @@ export const startSubscription = action({
 			paymentId: checkout.id,
 		});
 
-		return { id: subId, paymentUrl: checkout.url };
+		return { paymentUrl: checkout.url };
 	},
 });
 

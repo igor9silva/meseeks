@@ -45,9 +45,7 @@ export function TopUpCard() {
 
 	const handleSubscribe = async (product: 'pro' | 'founder') => {
 		try {
-			const { id, paymentUrl } = await startSubscription({ product });
-			navigate({ to: '/subscribe/$id', params: { id } });
-			// also open payment url immediately in case navigation fails
+			const { paymentUrl } = await startSubscription({ product });
 			location.href = paymentUrl;
 		} catch (error) {
 			console.error(error);
