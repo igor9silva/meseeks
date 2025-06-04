@@ -23,7 +23,11 @@ export const startTopUp = action({
 		//
 		const currentUser = await ctx.runQuery(api.users.public.current, {});
 
-		if (!currentUser.proUntil || currentUser.proUntil < Date.now()) {
+		const activeSubs = await ctx.runQuery(internal.subscriptions.private._findActive, {
+			owner: currentUser._id,
+		});
+
+		if (activeSubs.length === 0) {
 			throw new Error('Pro subscription required to top up');
 		}
 

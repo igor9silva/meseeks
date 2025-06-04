@@ -21,6 +21,8 @@ import { Route as SkillsNewImport } from './routes/skills_.new'
 import { Route as SkillsIdImport } from './routes/skills_.$id'
 import { Route as PolarToppedImport } from './routes/polar/topped'
 import { Route as PolarSubscribedImport } from './routes/polar/subscribed'
+import { Route as SubscribeImport } from './routes/subscribe'
+import { Route as SubscribeIdImport } from './routes/subscribe_.$id'
 
 // Create/Update Routes
 
@@ -57,6 +59,18 @@ const PolarRouteRoute = PolarRouteImport.update({
 const TopUpIdRoute = TopUpIdImport.update({
   id: '/top-up_/$id',
   path: '/top-up/$id',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SubscribeRoute = SubscribeImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SubscribeIdRoute = SubscribeIdImport.update({
+  id: '/subscribe_/$id',
+  path: '/subscribe/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -123,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TopUpImport
       parentRoute: typeof rootRoute
     }
+    '/subscribe': {
+      id: '/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof SubscribeImport
+      parentRoute: typeof rootRoute
+    }
     '/polar/subscribed': {
       id: '/polar/subscribed'
       path: '/subscribed'
@@ -187,8 +208,10 @@ export interface FileRoutesByFullPath {
   '/polar/topped': typeof PolarToppedRoute
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
-  '/top-up/$id': typeof TopUpIdRoute
-}
+    '/top-up/$id': typeof TopUpIdRoute
+    '/subscribe': typeof SubscribeRoute
+    '/subscribe/$id': typeof SubscribeIdRoute
+  }
 
 export interface FileRoutesByTo {
   '/polar': typeof PolarRouteRouteWithChildren
@@ -201,6 +224,8 @@ export interface FileRoutesByTo {
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
   '/top-up/$id': typeof TopUpIdRoute
+  '/subscribe': typeof SubscribeRoute
+  '/subscribe/$id': typeof SubscribeIdRoute
 }
 
 export interface FileRoutesById {
@@ -215,6 +240,8 @@ export interface FileRoutesById {
   '/skills_/$id': typeof SkillsIdRoute
   '/skills_/new': typeof SkillsNewRoute
   '/top-up_/$id': typeof TopUpIdRoute
+  '/subscribe': typeof SubscribeRoute
+  '/subscribe_/$id': typeof SubscribeIdRoute
 }
 
 export interface FileRouteTypes {
@@ -230,6 +257,8 @@ export interface FileRouteTypes {
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
+    | '/subscribe'
+    | '/subscribe/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/polar'
@@ -242,6 +271,8 @@ export interface FileRouteTypes {
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
+    | '/subscribe'
+    | '/subscribe/$id'
   id:
     | '__root__'
     | '/polar'
@@ -254,6 +285,8 @@ export interface FileRouteTypes {
     | '/skills_/$id'
     | '/skills_/new'
     | '/top-up_/$id'
+    | '/subscribe'
+    | '/subscribe_/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -266,6 +299,8 @@ export interface RootRouteChildren {
   SkillsIdRoute: typeof SkillsIdRoute
   SkillsNewRoute: typeof SkillsNewRoute
   TopUpIdRoute: typeof TopUpIdRoute
+  SubscribeRoute: typeof SubscribeRoute
+  SubscribeIdRoute: typeof SubscribeIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -277,6 +312,8 @@ const rootRouteChildren: RootRouteChildren = {
   SkillsIdRoute: SkillsIdRoute,
   SkillsNewRoute: SkillsNewRoute,
   TopUpIdRoute: TopUpIdRoute,
+  SubscribeRoute: SubscribeRoute,
+  SubscribeIdRoute: SubscribeIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -297,6 +334,8 @@ export const routeTree = rootRoute
         "/skills_/$id",
         "/skills_/new",
         "/top-up_/$id"
+        ,"/subscribe"
+        ,"/subscribe_/$id"
       ]
     },
     "/polar": {
@@ -334,6 +373,12 @@ export const routeTree = rootRoute
     },
     "/top-up_/$id": {
       "filePath": "top-up_.$id.tsx"
+    },
+    "/subscribe": {
+      "filePath": "subscribe.tsx"
+    },
+    "/subscribe_/$id": {
+      "filePath": "subscribe_.$id.tsx"
     }
   }
 }

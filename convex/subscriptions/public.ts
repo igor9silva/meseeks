@@ -30,13 +30,24 @@ export const startSubscription = action({
 
 		const subId = await ctx.runMutation(internal.subscriptions.private._add, {
 			owner: currentUser._id,
-			author: currentUser._id,
-			plan,
 			paymentUrl: checkout.url,
 			paymentId: checkout.id,
 		});
 
 		return subId;
+	},
+});
+
+export const findOne = query({
+	args: { subscriptionId: z.string() },
+	handler: async (ctx, { subscriptionId }) => {
+		const currentUser = await getCurrentUser(ctx, {});
+		const sub = await ctx.runQuery(internal.subscriptions.private._findOne, {
+			subscriptionId: subscriptionId as Id<'subscriptions'>,
+		});
+		if (!sub) throw new Error('Subscription not found');
+		if (sub.owner !== currentUser._id) throw new Error('Subscription not found');
+		return sub;
 	},
 });
 

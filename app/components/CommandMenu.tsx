@@ -141,6 +141,10 @@ export function CommandMenuDialog() {
 						<BadgeCent className="mr-2" />
 						Top up account
 					</CommandItem>
+					<CommandItem value="/subscribe" keywords={['subscribe']} onSelect={onSelect}>
+						<BadgeCent className="mr-2" />
+						Subscribe
+					</CommandItem>
 					<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
 						<RefreshCcw className="mr-2" />
 						Refresh
