@@ -1,6 +1,6 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt, asDollars } from 'convex/utils/money';
@@ -99,8 +99,6 @@ function LowBalanceWarning({ balance }: { balance: bigint }) {
 
 function TopUpSection({ isSubscribed }: { isSubscribed: boolean }) {
 	//
-	const navigate = useNavigate();
-
 	if (!isSubscribed) {
 		return (
 			<Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
