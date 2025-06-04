@@ -36,7 +36,12 @@ export default function TaskDetail({
 	};
 
 	return (
-		<Card className={cn('whitespace-pre-wrap border-none rounded-none overflow-auto h-full p-4 md:p-0', className)}>
+		<Card
+			className={cn(
+				'whitespace-pre-wrap border-none rounded-none overflow-auto h-full justify-between flex flex-col p-4 md:p-0',
+				className,
+			)}
+		>
 			<CardHeader className="p-0 md:p-4 max-w-full sticky top-0 bg-background/75 z-10">
 				<div className="flex flex-col">
 					<div className="flex flex-row justify-between gap-2 items-center">
@@ -65,7 +70,7 @@ export default function TaskDetail({
 					</span>
 				</div>
 			</CardHeader>
-			<CardContent className="p-0 md:p-4 md:pt-0">
+			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow">
 				<EditableContent
 					key={task.instructions}
 					value={task.instructions ?? ''}
@@ -82,7 +87,8 @@ export default function TaskDetail({
 							)}
 						</div>
 					)}
-					editClassName="min-h-56"
+					viewClassName="w-full h-full"
+					editClassName="h-full"
 				/>
 			</CardContent>
 			{/* {task.summary && (
