@@ -1,7 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
-import { subscriptionPlanSchema } from '../schemas/subscriptionSchema';
 import { _addFreeCredits } from '../transactions/private';
 import { NotFound } from '../utils/errors';
 
@@ -12,10 +11,12 @@ export const _add = internalMutation({
 		paymentId: z.string(),
 	},
 	handler: async (ctx, args) => {
+		//
 		const subscriptionId = await ctx.db.insert('subscriptions', {
 			...args,
 			status: 'pending' as const,
 		});
+
 		return subscriptionId;
 	},
 });
@@ -28,7 +29,9 @@ export const _activate = internalMutation({
 		founder: z.boolean().optional(),
 	},
 	handler: async (ctx, { checkoutId, months, credits, founder }) => {
+		//
 		const sub = await _findOneByPaymentId(ctx, { paymentId: checkoutId });
+
 		if (!sub) throw NotFound();
 		if (sub.status !== 'pending') throw new Error('Subscription not pending');
 
@@ -65,6 +68,7 @@ export const _findOneByPaymentId = internalQuery({
 		paymentId: z.string(),
 	},
 	handler: async (ctx, { paymentId }) => {
+		//
 		return await ctx.db
 			.query('subscriptions')
 			.withIndex('by_paymentId', (q) => q.eq('paymentId', paymentId))
@@ -73,16 +77,23 @@ export const _findOneByPaymentId = internalQuery({
 });
 
 export const _findOne = internalQuery({
-	args: { subscriptionId: zid('subscriptions') },
+	args: {
+		subscriptionId: zid('subscriptions'),
+	},
 	handler: async (ctx, { subscriptionId }) => {
+		//
 		return await ctx.db.get(subscriptionId);
 	},
 });
 
 export const _findActive = internalQuery({
-	args: { owner: zid('users') },
+	args: {
+		owner: zid('users'),
+	},
 	handler: async (ctx, { owner }) => {
+		//
 		const now = Date.now();
+
 		return await ctx.db
 			.query('subscriptions')
 			.withIndex('by_owner_status', (q) => q.eq('owner', owner).eq('status', 'active'))

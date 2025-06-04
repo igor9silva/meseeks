@@ -1,15 +1,18 @@
 import { Polar } from '@polar-sh/sdk';
-import { z } from 'zod';
 import { api, internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { action, query } from '../lib';
 import { env } from '../schemas/envSchema';
 import { subscriptionPlanSchema } from '../schemas/subscriptionSchema';
 import { current as getCurrentUser } from '../users/public';
+import { _findActive } from './private';
 
 export const startSubscription = action({
-	args: { plan: subscriptionPlanSchema },
+	args: {
+		plan: subscriptionPlanSchema,
+	},
 	handler: async (ctx, { plan }): Promise<Id<'subscriptions'>> => {
+		//
 		const currentUser = await ctx.runQuery(api.users.public.current, {});
 
 		const polar = new Polar({
@@ -38,25 +41,12 @@ export const startSubscription = action({
 	},
 });
 
-export const findOne = query({
-	args: { subscriptionId: z.string() },
-	handler: async (ctx, { subscriptionId }) => {
-		const currentUser = await getCurrentUser(ctx, {});
-		const sub = await ctx.runQuery(internal.subscriptions.private._findOne, {
-			subscriptionId: subscriptionId as Id<'subscriptions'>,
-		});
-		if (!sub) throw new Error('Subscription not found');
-		if (sub.owner !== currentUser._id) throw new Error('Subscription not found');
-		return sub;
-	},
-});
-
 export const findActive = query({
 	args: {},
 	handler: async (ctx) => {
+		//
 		const currentUser = await getCurrentUser(ctx, {});
-		return await ctx.runQuery(internal.subscriptions.private._findActive, {
-			owner: currentUser._id,
-		});
+
+		return await _findActive(ctx, { owner: currentUser._id });
 	},
 });
