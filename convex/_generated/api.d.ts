@@ -77,6 +77,7 @@ import type * as users_requests_private from "../users/requests/private.js";
 import type * as users_requests_public from "../users/requests/public.js";
 import type * as utils_errors from "../utils/errors.js";
 import type * as utils_money from "../utils/money.js";
+import type * as utils_polar from "../utils/polar.js";
 import type * as utils_zodToString from "../utils/zodToString.js";
 
 import type {
@@ -162,6 +163,7 @@ declare const fullApi: ApiFromModules<{
   "users/requests/public": typeof users_requests_public;
   "utils/errors": typeof utils_errors;
   "utils/money": typeof utils_money;
+  "utils/polar": typeof utils_polar;
   "utils/zodToString": typeof utils_zodToString;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
