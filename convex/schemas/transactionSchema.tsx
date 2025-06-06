@@ -38,12 +38,21 @@ export const refundTaskTransactionSchema = z.object({
 	description: z.string().optional(),
 });
 
+export const subscriptionTransactionSchema = z.object({
+	kind: z.literal('subscription'),
+	value: valueSchema,
+	subscriptionId: zid('subscriptions'),
+	owner: zid('users'),
+	description: z.string().optional(),
+});
+
 export const transactionSchema = z
 	.union([
 		freeCreditsTransactionSchema, //
 		topUpTransactionSchema,
 		taskCostTransactionSchema,
 		refundTaskTransactionSchema,
+		subscriptionTransactionSchema,
 	])
 	.describe(
 		'A financial transaction. Top ups, pay outs and task/action execution costs.', //

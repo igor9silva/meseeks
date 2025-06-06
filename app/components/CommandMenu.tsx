@@ -13,6 +13,7 @@ import {
 	Circle,
 	CircleCheckBig,
 	CircleX,
+	Github,
 	Inbox,
 	LogOut,
 	RefreshCcw,
@@ -152,6 +153,17 @@ export function CommandMenuDialog() {
 					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 						<Sparkles className="mr-2" />
 						Manage skills
+					</CommandItem>
+					<CommandItem
+						value="github"
+						keywords={['github', 'source', 'code', 'repository']}
+						onSelect={() => {
+							window.open('https://github.com/igor9silva/meseeks', '_blank');
+							close();
+						}}
+					>
+						<Github className="mr-2" />
+						View source code on GitHub
 					</CommandItem>
 					<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
 						<LogOut className="mr-2" />

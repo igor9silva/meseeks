@@ -2,6 +2,7 @@ import { getAuthUserId } from '@convex-dev/auth/server';
 import { query } from '../lib';
 import { env } from '../schemas/envSchema';
 import { _findActiveTasks } from '../tasks/private';
+import { _isProSubscriber } from '../users/private';
 import { _findOne } from './private';
 
 const ALLOWED_DOMAINS = env.ALLOWED_DOMAINS || [];
@@ -22,6 +23,22 @@ export const current = query({
 		if (!isAllowed(email)) throw new Error(`Email ${email} not allowed`);
 
 		return user;
+	},
+});
+
+export const currentIfPro = query({
+	args: {},
+	handler: async (ctx) => {
+		//
+		const currentUser = await current(ctx, {});
+
+		const isProSubscriber = await _isProSubscriber(ctx, {
+			owner: currentUser._id,
+		});
+
+		if (!isProSubscriber) throw new Error('User is not Pro.');
+
+		return currentUser;
 	},
 });
 

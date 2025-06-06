@@ -13,6 +13,8 @@ export function useIsMobile() {
 	React.useEffect(() => {
 // ... rest of the code ...
 ```
+---
+Prettier will remove unused imports on file save, so make sure to always add the imports AFTER using it, otherwise it'll get removed and you'll get stuck on a loop trying to add the import.
 ------------------------------------
 When using tailwind, NEVER use hardcoded values unless it's literally the only option. For example, instead of "min-w-[256px]", prefer to use tailwind conventions such as "min-w-64" *ALWAYS*
 ------------------------------------

@@ -63,11 +63,11 @@ export default function TaskDetail({
 								)}
 							/>
 						</div>
-						<TaskBudget task={task} />
 					</div>
-					<span className="text-sm text-muted-foreground shrink-0">
-						<TimeAgo date={task._creationTime} />
-					</span>
+					<div className="flex items-center gap-0.5 p-2">
+						<TimeAgo date={task._creationTime} suffix="old, " className="text-sm text-muted-foreground" />
+						<TaskBudget task={task} className="text-sm" />
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow">

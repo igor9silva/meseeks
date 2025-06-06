@@ -4,12 +4,15 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt, asDollars } from 'convex/utils/money';
-import { ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
 import { DollarCredits } from '~/components/DollarCredits';
 import { TimeAgo } from '~/components/TimeAgo';
 import { TopUpCard } from '~/components/TopUpCard';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent } from '~/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { useIsPro } from '~/hooks/useIsPro';
 
 export const Route = createFileRoute('/balance')({
 	component: RouteComponent,
@@ -25,8 +28,10 @@ function RouteComponent() {
 	const queryLockedBalance = convexQuery(api.users.public.findLockedBalance, {});
 	const { data: lockedBalance } = useSuspenseQuery(queryLockedBalance);
 
+	const { isPro } = useIsPro();
+
 	return (
-		<div className="flex flex-col gap-2 p-4">
+		<div className="flex flex-col gap-4 p-4">
 			<div className="flex flex-col gap-0">
 				<h1 className="text-2xl font-bold">Balance</h1>
 				<span className="text-sm">
@@ -45,8 +50,11 @@ function RouteComponent() {
 						in active tasks.
 					</span>
 				)}
-				<LowBalanceMessage balance={user.balanceUSD ?? 0n} />
 			</div>
+
+			<LowBalanceWarning balance={user.balanceUSD ?? 0n} />
+			<TopUpSection isPro={isPro} />
+
 			<div className="flex flex-col gap-2 mt-4">
 				<h2 className="text-lg font-bold">Transactions</h2>
 				<div className="space-y-2">
@@ -68,13 +76,47 @@ function RouteComponent() {
 	);
 }
 
-function LowBalanceMessage({ balance }: { balance: bigint }) {
+function LowBalanceWarning({ balance }: { balance: bigint }) {
 	//
 	const MIN_SAFE_BALANCE = asBigInt({ dollars: 1 });
 
+	if (balance >= MIN_SAFE_BALANCE) return null;
+
 	return (
-		<div className="my-3 text-orange-400">
-			{balance < MIN_SAFE_BALANCE && <p>Your funds are low. Top up below.</p>}
+		<Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/20">
+			<CardContent className="flex items-center gap-3 p-4">
+				<AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400 flex-shrink-0" />
+				<div className="text-orange-800 dark:text-orange-200">
+					Your funds are running low. Consider topping up.
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
+
+function TopUpSection({ isPro }: { isPro: boolean }) {
+	//
+	if (!isPro) {
+		return (
+			<Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
+				<CardContent className="flex items-center gap-3 p-4">
+					<AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+					<div className="text-blue-800 dark:text-blue-200 flex items-center justify-between w-full">
+						<div>
+							You must be a <strong>Pro</strong> user to top up your account balance.
+						</div>
+						<Link to="/subscribe">
+							<Button className="ml-4">Go Pro</Button>
+						</Link>
+					</div>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			<h2 className="text-lg font-semibold">Top Up</h2>
 			<TopUpCard />
 		</div>
 	);
