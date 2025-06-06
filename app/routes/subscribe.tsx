@@ -55,7 +55,7 @@ function RouteComponent() {
 				<FounderCard onSubscribe={handleSubscribe} />
 			</div>
 
-			<FaqSection />
+			{/* <FaqSection /> */}
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
