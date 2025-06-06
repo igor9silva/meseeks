@@ -1,7 +1,18 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
-import { Crown, Sparkles, Star, Zap } from 'lucide-react';
+import {
+	BadgeCheck,
+	Crown,
+	Database,
+	DollarSign,
+	Heart,
+	Infinity,
+	MessageCircle,
+	Sparkles,
+	Star,
+	Zap,
+} from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
@@ -55,7 +66,7 @@ function RouteComponent() {
 				<FounderCard onSubscribe={handleSubscribe} />
 			</div>
 
-			{/* <FaqSection /> */}
+			<FaqSection />
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
@@ -79,18 +90,22 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 				<CardDescription className="text-base">
 					Monthly subscription with <span className="font-semibold">credits included</span>.
 				</CardDescription>
-				<div className="text-4xl font-bold mt-4">
-					$20
-					<span className="text-lg font-normal text-muted-foreground">/month</span>
-				</div>
 			</CardHeader>
-			<CardContent className="space-y-6 content-end flex-grow">
+			<div className="flex-grow flex flex-col justify-center px-6 pb-4">
+				<div className="text-center">
+					<div className="text-4xl font-bold">
+						$20
+						<span className="text-lg font-normal text-muted-foreground">/month</span>
+					</div>
+				</div>
+			</div>
+			<CardContent className="space-y-6">
 				<ul className="space-y-3">
-					<FeatureItem text="$10 worth of credits, every month" icon={Star} />
-					<FeatureItem text="Unlimited platform usage" icon={Star} />
-					<FeatureItem text="100GB of file storage" icon={Star} />
-					<FeatureItem text="Access to Pro-managed skills & loops" icon={Star} />
-					<FeatureItem text="Direct channel with developers and founders" icon={Star} />
+					<FeatureItem text="$10 worth of credits, every month" icon={DollarSign} />
+					<FeatureItem text="Unlimited platform usage" icon={Infinity} />
+					<FeatureItem text="100GB of file storage" icon={Database} />
+					<FeatureItem text="Access to Pro-managed skills & loops" icon={Sparkles} />
+					<FeatureItem text="Direct channel with developers and founders" icon={MessageCircle} />
 				</ul>
 			</CardContent>
 			<CardFooter>
@@ -113,16 +128,20 @@ function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder'
 				</div>
 				<CardTitle className="text-2xl">Founder Package</CardTitle>
 				<CardDescription className="text-base">One-time payment to support our research.</CardDescription>
-				<div className="text-4xl font-bold mt-4">$500</div>
-				<span className="text-lg font-normal text-muted-foreground">(limited to 1000 founders)</span>
 			</CardHeader>
+			<div className="flex-grow flex flex-col justify-center px-6 pb-4">
+				<div className="text-center">
+					<div className="text-4xl font-bold">$500</div>
+					<span className="text-lg font-normal text-muted-foreground">(limited to 500 founders)</span>
+				</div>
+			</div>
 			<CardContent className="space-y-6 content-end flex-grow">
 				<ul className="space-y-3">
 					<FeatureItem text="24 months of Pro subscription ($240)" icon={Star} />
-					<FeatureItem text="$200 worth of credits, immediately" icon={Star} />
-					<FeatureItem text="Exclusive [founder] badge" icon={Star} />
-					<FeatureItem text="Early access to new features, forever" icon={Star} />
-					<FeatureItem text="Directly support our open research" icon={Star} />
+					<FeatureItem text="$200 worth of credits, immediately" icon={DollarSign} />
+					<FeatureItem text="Exclusive [founder] badge" icon={BadgeCheck} />
+					<FeatureItem text="Early access to new features, forever" icon={Zap} />
+					<FeatureItem text="Directly support our open research" icon={Heart} />
 				</ul>
 			</CardContent>
 			<CardFooter>
@@ -144,28 +163,28 @@ function FaqSection() {
 	//
 	const faqs = [
 		{
-			question: 'What are credits and how do they work?',
-			answer: 'Credits are used to power AI operations within Meseeks. Each AI request consumes a certain amount of credits based on the complexity and type of operation. Pro subscribers get $10 worth of credits monthly, while Founder package includes $200 credits upfront.',
+			question: 'What are credits and how does topping up work?',
+			answer: 'Credits power AI operations within Meseeks. Pro subscribers get $10 monthly credits that never expire. You can top up additional credits at cost with zero margin from us - $10 gets you exactly $10 worth of credits.',
+		},
+		{
+			question: 'What does "unlimited platform access" include?',
+			answer: 'Full access to all Meseeks features: tasks, actions, compositions, speech-to-text, 100GB storage, and Pro-managed skills & loops. No feature restrictions or usage limits.',
 		},
 		{
 			question: 'Can I cancel my Pro subscription anytime?',
-			answer: "Yes, you can cancel your Pro subscription at any time. Your access will continue until the end of your current billing period, and you'll retain any unused credits.",
-		},
-		{
-			question: 'What happens to my credits if I cancel?',
-			answer: "Any unused credits will remain in your account and can still be used even after cancellation. However, you won't receive new monthly credits unless you resubscribe.",
+			answer: 'Yes, cancel anytime. Your access continues until the current billing period ends, and you keep all unused credits since they never expire.',
 		},
 		{
 			question: 'How does the Founder Package work?',
-			answer: "The Founder Package is a one-time payment that gives you 24 months of Pro access plus $200 in credits. It's designed for early supporters who want long-term access at a discounted rate.",
+			answer: 'One-time $500 payment for 24 months of Pro access (worth $480) plus $200 upfront credits. You get an on-chain founder badge, priority experimental features forever, and direct access to developers. Limited to 1000 founders total.',
 		},
 		{
-			question: 'Can I upgrade or change my plan later?',
-			answer: 'Yes, you can upgrade from Pro to Founder Package at any time. The remaining value from your Pro subscription will be credited towards the Founder Package price.',
+			question: 'What are skills and loops?',
+			answer: 'Skills are specialized AI capabilities that extend Meseeks functionality. Loops are automated workflows. Pro users get access to professionally managed versions maintained by our team.',
 		},
 		{
-			question: 'Is there a free tier available?',
-			answer: 'Currently, Meseeks requires a subscription to access AI capabilities. However, we occasionally offer free trial periods for new users to experience the platform.',
+			question: 'Is there a free alternative?',
+			answer: 'Meseeks is 100% open-source - you can self-host for free forever. Your data stays yours, and you can leave anytime taking every byte with you (and come back hassle-free 😁).',
 		},
 	];
 
