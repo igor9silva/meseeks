@@ -1,11 +1,13 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
+// import { authorSchema } from './authorSchema';
 
 export const componentSchema = z.object({
 	owner: z.union([
 		zid('users'), //
 		z.literal('isPro'),
 	]),
+	// author: authorSchema,
 	body: z.string().describe('MDX'),
 	defaultTaskId: zid('tasks').optional(),
 	slug: z

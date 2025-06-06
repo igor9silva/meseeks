@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query';
-import { Doc } from 'convex/_generated/dataModel';
 
 export class PaymentError extends Error {
 	constructor(
@@ -10,12 +9,11 @@ export class PaymentError extends Error {
 	}
 }
 
-export const usePayment = (topUp: Doc<'topUps'>) => {
+export const usePayment = (record: { paymentUrl: string }) => {
 	//
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: async () => {
-			//
-			location.href = topUp.paymentUrl;
+			location.href = record.paymentUrl;
 		},
 	});
 

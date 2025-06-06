@@ -26,6 +26,7 @@ import type * as schemas_envSchema from "../schemas/envSchema.js";
 import type * as schemas_paginationOptionsSchema from "../schemas/paginationOptionsSchema.js";
 import type * as schemas_polarEventSchema from "../schemas/polarEventSchema.js";
 import type * as schemas_skillSchema from "../schemas/skillSchema.js";
+import type * as schemas_subscriptionSchema from "../schemas/subscriptionSchema.js";
 import type * as schemas_taskSchema from "../schemas/taskSchema.js";
 import type * as schemas_toolSchema from "../schemas/toolSchema.js";
 import type * as schemas_topUpSchema from "../schemas/topUpSchema.js";
@@ -40,6 +41,7 @@ import type * as skills_builtIn_increaseBudget from "../skills/builtIn/increaseB
 import type * as skills_builtIn_index from "../skills/builtIn/index.js";
 import type * as skills_builtIn_moveTask from "../skills/builtIn/moveTask.js";
 import type * as skills_builtIn_multiply from "../skills/builtIn/multiply.js";
+import type * as skills_builtIn_onboardUser from "../skills/builtIn/onboardUser.js";
 import type * as skills_builtIn_reason from "../skills/builtIn/reason.js";
 import type * as skills_builtIn_reopen from "../skills/builtIn/reopen.js";
 import type * as skills_builtIn_requestBudget from "../skills/builtIn/requestBudget.js";
@@ -60,6 +62,8 @@ import type * as skills_defineSkill from "../skills/defineSkill.js";
 import type * as skills_private from "../skills/private.js";
 import type * as skills_public from "../skills/public.js";
 import type * as skills_tools from "../skills/tools.js";
+import type * as subscriptions_private from "../subscriptions/private.js";
+import type * as subscriptions_public from "../subscriptions/public.js";
 import type * as tasks_private from "../tasks/private.js";
 import type * as tasks_public from "../tasks/public.js";
 import type * as topUps_private from "../topUps/private.js";
@@ -74,6 +78,7 @@ import type * as users_requests_private from "../users/requests/private.js";
 import type * as users_requests_public from "../users/requests/public.js";
 import type * as utils_errors from "../utils/errors.js";
 import type * as utils_money from "../utils/money.js";
+import type * as utils_polar from "../utils/polar.js";
 import type * as utils_zodToString from "../utils/zodToString.js";
 
 import type {
@@ -108,6 +113,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/paginationOptionsSchema": typeof schemas_paginationOptionsSchema;
   "schemas/polarEventSchema": typeof schemas_polarEventSchema;
   "schemas/skillSchema": typeof schemas_skillSchema;
+  "schemas/subscriptionSchema": typeof schemas_subscriptionSchema;
   "schemas/taskSchema": typeof schemas_taskSchema;
   "schemas/toolSchema": typeof schemas_toolSchema;
   "schemas/topUpSchema": typeof schemas_topUpSchema;
@@ -122,6 +128,7 @@ declare const fullApi: ApiFromModules<{
   "skills/builtIn/index": typeof skills_builtIn_index;
   "skills/builtIn/moveTask": typeof skills_builtIn_moveTask;
   "skills/builtIn/multiply": typeof skills_builtIn_multiply;
+  "skills/builtIn/onboardUser": typeof skills_builtIn_onboardUser;
   "skills/builtIn/reason": typeof skills_builtIn_reason;
   "skills/builtIn/reopen": typeof skills_builtIn_reopen;
   "skills/builtIn/requestBudget": typeof skills_builtIn_requestBudget;
@@ -142,6 +149,8 @@ declare const fullApi: ApiFromModules<{
   "skills/private": typeof skills_private;
   "skills/public": typeof skills_public;
   "skills/tools": typeof skills_tools;
+  "subscriptions/private": typeof subscriptions_private;
+  "subscriptions/public": typeof subscriptions_public;
   "tasks/private": typeof tasks_private;
   "tasks/public": typeof tasks_public;
   "topUps/private": typeof topUps_private;
@@ -156,6 +165,7 @@ declare const fullApi: ApiFromModules<{
   "users/requests/public": typeof users_requests_public;
   "utils/errors": typeof utils_errors;
   "utils/money": typeof utils_money;
+  "utils/polar": typeof utils_polar;
   "utils/zodToString": typeof utils_zodToString;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

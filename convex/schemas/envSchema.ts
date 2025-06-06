@@ -13,6 +13,7 @@ export const env = createEnv({
 		POLAR_ACCESS_TOKEN: z.string().min(1).describe('Polar Access Token for payment processing.'),
 		POLAR_WEBHOOK_SECRET: z.string().min(1).describe('Polar webhook secret for payment verification.'),
 		POLAR_SUBSCRIPTION_ID: z.string().min(1).describe('Pro subscription product ID.'),
+		POLAR_FOUNDER_PACK_ID: z.string().min(1).describe('Founder pack product ID.'),
 		POLAR_TOP_UP_ID: z.string().min(1).describe('Top up product ID.'),
 		PAYMENT_ETH_ADDRESS_BASE_CHAIN: z.string().min(1).describe('The Base wallet address to receive payments.'),
 

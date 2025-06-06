@@ -5,6 +5,7 @@ import { divide } from './divide';
 import { done } from './done';
 import { increaseBudget } from './increaseBudget';
 import { multiply } from './multiply';
+import { onboardUser } from './onboardUser';
 import { reason } from './reason';
 import { reopen } from './reopen';
 import { requestBudget } from './requestBudget';
@@ -40,6 +41,7 @@ export const _builtInSkills = {
 	requestBudget,
 	discard,
 	requestIteration,
+	onboardUser,
 
 	// skills
 	createSkill,

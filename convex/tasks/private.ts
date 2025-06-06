@@ -136,6 +136,48 @@ export const _add = internalMutation({
 	},
 });
 
+export const _addWithActions = internalMutation({
+	args: {
+		author: authorSchema,
+		owner: zid('users'),
+		title: z.string().optional(),
+		parentId: zid('tasks').optional(),
+		preferredIntelligence: modelsSchema.optional(),
+		skills: z.array(
+			z.object({
+				skillKey: z.string().describe('The key of the skill to use'),
+				args: z.record(z.any()),
+			}),
+		),
+	},
+	handler: async (ctx, { author, owner, title, parentId, preferredIntelligence, skills }) => {
+		//
+		const taskId = await ctx.db.insert('tasks', {
+			author,
+			owner,
+			title,
+			parentId,
+			status: 'idle',
+			isActive: true,
+			budgetUSDC: {
+				total: 0n,
+				available: 0n,
+			},
+			preferredIntelligence,
+		});
+
+		await _addActions(ctx, {
+			taskId,
+			author,
+			owner,
+			depth: 0,
+			skills,
+		});
+
+		return taskId;
+	},
+});
+
 export const _addInboxTask = internalMutation({
 	args: {
 		author: authorSchema,

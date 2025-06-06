@@ -36,7 +36,7 @@ export function TopUpCard() {
 				toast.error('Failed to start top up. We are working on fixing this.');
 			}
 		},
-		onParseError: (error) => {
+		onParseError: () => {
 			toast.error('Minimum top up amount is $10.');
 		},
 	});

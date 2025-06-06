@@ -5,6 +5,7 @@ import { actionSchema } from './schemas/actionSchema';
 import { componentSchema } from './schemas/componentSchema';
 import { polarEventSchema } from './schemas/polarEventSchema';
 import { skillSchema } from './schemas/skillSchema';
+import { subscriptionSchema } from './schemas/subscriptionSchema';
 import { taskSchema } from './schemas/taskSchema';
 import { topUpSchema } from './schemas/topUpSchema';
 import { transactionSchema } from './schemas/transactionSchema';
@@ -86,6 +87,14 @@ export default defineSchema({
 		zodToConvex(transactionSchema),
 	).index(
 		'by_owner', ['owner'],
+	),
+
+	subscriptions: defineTable(
+		zodToConvex(subscriptionSchema),
+	).index(
+		'by_owner_status', ['owner', 'status'],
+	).index(
+		'by_paymentId', ['paymentId'],
 	),
 
 	topUps: defineTable(

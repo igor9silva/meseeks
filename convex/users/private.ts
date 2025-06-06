@@ -6,6 +6,8 @@ import { MutationCtx } from '../_generated/server';
 import { internalMutation, internalQuery } from '../lib';
 import { env } from '../schemas/envSchema';
 import { tokenSchema } from '../schemas/topUpSchema';
+import { _findActive } from '../subscriptions/private';
+import { _addWithActions } from '../tasks/private';
 import { _addFreeCredits } from '../transactions/private';
 import { asBigInt } from '../utils/money';
 
@@ -25,15 +27,18 @@ export const _seedIfNeeded = async (
 		owner: userId,
 		value: {
 			symbol: 'USD',
-			amount: asBigInt({ dollars: 5 }),
+			amount: asBigInt({ dollars: 1 }),
 		},
-		description: 'Welcome $5 for researchers',
+		description: 'Welcome credits',
 	});
 
 	// const inboxTaskId = await _addInboxTask(ctx, {
 	// 	author: userId,
 	// 	owner: userId,
 	// });
+
+	// add welcome messages
+	await _addWelcomeMessages(ctx, userId);
 
 	const markAreReady = () => {
 		// adding a fake delay for fun
@@ -55,6 +60,28 @@ export const _seedIfNeeded = async (
 
 	// await _seedComponentsFromRef(ctx, refUser._id, userId, inboxTaskId);
 	markAreReady();
+};
+
+const _addWelcomeMessages = async (
+	ctx: MutationCtx, //
+	userId: Id<'users'>,
+) => {
+	//
+	await _addWithActions(ctx, {
+		author: userId,
+		owner: userId,
+		title: 'ooh-wee, look at me!',
+		skills: [
+			{
+				skillKey: 'increaseBudget',
+				args: { amount: asBigInt({ dollars: 1 }) },
+			},
+			{
+				skillKey: 'onboardUser',
+				args: {},
+			},
+		],
+	});
 };
 
 // const _seedComponentsFromRef = async (
@@ -114,11 +141,37 @@ export const _adjustBalance = internalMutation({
 	},
 });
 
+export const _setFounder = internalMutation({
+	args: {
+		userId: zid('users'),
+		isFounder: z.boolean(),
+	},
+	handler: async (ctx, { userId, isFounder }) => {
+		//
+		const user = await _findOne(ctx, { userId });
+		if (!user) throw new Error('User not found');
+
+		await ctx.db.patch(userId, { isFounder });
+	},
+});
+
 export const _findOne = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
 	handler: async (ctx, { userId }) => {
 		return await ctx.db.get(userId);
+	},
+});
+
+export const _isProSubscriber = internalQuery({
+	args: {
+		owner: zid('users'),
+	},
+	handler: async (ctx, { owner }): Promise<boolean> => {
+		//
+		const activeSubscriptions = await _findActive(ctx, { owner });
+
+		return activeSubscriptions.length > 0;
 	},
 });
