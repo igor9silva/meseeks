@@ -20,7 +20,7 @@ export const _submitRequest = internalMutation({
 		// if (existingRequest) return;
 		// TODO: for now we are purposefully allowing multiple requests with the same key
 
-		console.info('User requested:', request);
+		console.warn('User requested:', request);
 
 		return await ctx.db.insert('user_requests', request);
 	},

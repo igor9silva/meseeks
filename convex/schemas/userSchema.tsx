@@ -25,6 +25,7 @@ export const userPreferencesSchema = z.object({
 
 export const userRequestKeySchema = z.enum([
 	'share_skills', //
+	'general_question', //
 ]);
 
 export const userRequestSchema = z.object({

@@ -1,7 +1,7 @@
 import { api } from 'convex/_generated/api';
-import { Doc } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { userRequestSchema } from 'convex/schemas/userSchema';
+import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from '~/components/ui/dialog';
 import { Textarea } from '~/components/ui/textarea';
 import { useHandleSubmit } from '~/hooks/useHandleSubmit';
@@ -21,20 +22,13 @@ import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 
 /**
- * Dialog for requesting access to share skills
+ * Dialog for users to ask their own questions when FAQ isn't enough
  */
-export function ShareSkillRequestDialog({
-	skill,
-	open,
-	onOpenChange,
-}: {
-	skill: Doc<'skills'> | null;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-}) {
+export function QuestionDialog({ className }: { className?: string }) {
 	//
 	const [message, setMessage] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [open, setOpen] = useState(false);
 	const submit = useMutation(api.users.requests.public.submitRequest);
 	const submitHotkey = useSubmitHotkey();
 
@@ -51,48 +45,49 @@ export function ShareSkillRequestDialog({
 
 			try {
 				await submit({
-					key: 'share_skills',
+					key: 'general_question',
 					message: data.message.trim(),
 				});
 
-				toast.success('Request submitted');
+				toast.success("Question submitted! We'll get back to you soon.");
 
 				clearForm();
 				setMessage('');
-				onOpenChange(false);
+				setOpen(false);
 				//
 			} catch (error) {
-				console.error('Error submitting request:', error);
-				toast.error('Failed to submit request. Please try again later.');
+				console.error('Error submitting question:', error);
+				toast.error('Failed to submit question. Please try again later.');
 			} finally {
 				setIsSubmitting(false);
 			}
 		},
 	});
 
-	if (!skill) return null;
-
 	const remainingChars = MESSAGE_MAX_LENGTH - message.length;
 	const isOverLimit = remainingChars < 0;
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button variant="outline" size="sm">
+					<MessageCircle className="w-4 h-4 mr-2" />
+					Ask a question
+				</Button>
+			</DialogTrigger>
+			<DialogContent className={className}>
 				<form onSubmit={handleSubmit} onKeyDown={submitHotkey}>
 					<DialogHeader>
-						<DialogTitle>Sharing skills is in limited preview</DialogTitle>
+						<DialogTitle>Ask us anything</DialogTitle>
 						<DialogDescription>
-							Fill below to request access.
-							<br />
-							<br />
-							Sharing skills enable other users to use skills you taught your Meseeks (for free, or for a
-							fee — it's up to you)!
+							We're here to help! Send us your question and{' '}
+							<strong>we'll get back to you as soon as possible</strong>.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">
 						<Textarea
 							name="message"
-							placeholder="Tell us about your research, product, the use cases you have in mind, or anything else."
+							placeholder="What would you like to know about Meseeks?"
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
 							className="min-h-32"
@@ -105,16 +100,11 @@ export function ShareSkillRequestDialog({
 						</div>
 					</div>
 					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-							disabled={isSubmitting}
-						>
+						<Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting || isOverLimit || !message.trim()}>
-							{isSubmitting ? 'Submitting...' : 'Request access'}
+							{isSubmitting ? 'Sending...' : 'Send question'}
 						</Button>
 					</DialogFooter>
 				</form>

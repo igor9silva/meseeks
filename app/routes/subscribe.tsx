@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
+import { QuestionDialog } from '~/components/ui/QuestionDialog';
 import { useIsPro } from '~/hooks/useIsPro';
 
 export const Route = createFileRoute('/subscribe')({
@@ -181,6 +182,11 @@ function FaqSection() {
 					</AccordionItem>
 				))}
 			</Accordion>
+
+			<div className="text-center flex flex-col items-center gap-0.5 pt-8">
+				<p className="text-muted-foreground mb-4">Still have questions? We're here to help!</p>
+				<QuestionDialog />
+			</div>
 		</div>
 	);
 }
