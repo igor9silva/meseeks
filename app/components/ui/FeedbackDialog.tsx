@@ -1,7 +1,6 @@
 import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { userRequestSchema } from 'convex/schemas/userSchema';
-import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -13,7 +12,6 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from '~/components/ui/dialog';
 import { Textarea } from '~/components/ui/textarea';
 import { useHandleSubmit } from '~/hooks/useHandleSubmit';
@@ -22,13 +20,20 @@ import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 
 /**
- * Dialog for users to ask their own questions when FAQ isn't enough
+ * Dialog for users to submit feedback
  */
-export function QuestionDialog({ className }: { className?: string }) {
+export function FeedbackDialog({
+	className,
+	open,
+	onOpenChange,
+}: {
+	className?: string;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+}) {
 	//
 	const [message, setMessage] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [open, setOpen] = useState(false);
 
 	const submit = useMutation(api.users.requests.public.submitRequest);
 	const submitHotkey = useSubmitHotkey();
@@ -46,19 +51,19 @@ export function QuestionDialog({ className }: { className?: string }) {
 
 			try {
 				await submit({
-					key: 'general_question',
+					key: 'feedback',
 					message: data.message.trim(),
 				});
 
-				toast.success("Question submitted! We'll get back to you soon.");
+				toast.success('Feedback submitted! Thanks for helping us improve.');
 
 				clearForm();
 				setMessage('');
-				setOpen(false);
+				onOpenChange(false);
 				//
 			} catch (error) {
-				console.error('Error submitting question:', error);
-				toast.error('Failed to submit question. Please try again later.');
+				console.error('Error submitting feedback:', error);
+				toast.error('Failed to submit feedback. Please try again later.');
 			} finally {
 				setIsSubmitting(false);
 			}
@@ -69,26 +74,19 @@ export function QuestionDialog({ className }: { className?: string }) {
 	const isOverLimit = remainingChars < 0;
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline" size="sm">
-					<MessageCircle className="w-4 h-4 mr-2" />
-					Ask a question
-				</Button>
-			</DialogTrigger>
+		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className={className}>
 				<form onSubmit={handleSubmit} onKeyDown={submitHotkey}>
 					<DialogHeader>
-						<DialogTitle>Ask us anything</DialogTitle>
+						<DialogTitle>Send feedback</DialogTitle>
 						<DialogDescription>
-							We're here to help! Send us your question and{' '}
-							<strong>we'll get back to you as soon as possible</strong>.
+							Help us improve Meseeks! Share your thoughts, report bugs, or suggest new features.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">
 						<Textarea
 							name="message"
-							placeholder="What would you like to know about Meseeks?"
+							placeholder="Tell us what you think..."
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
 							className="min-h-32"
@@ -101,11 +99,16 @@ export function QuestionDialog({ className }: { className?: string }) {
 						</div>
 					</div>
 					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							disabled={isSubmitting}
+						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting || isOverLimit || !message.trim()}>
-							{isSubmitting ? 'Sending...' : 'Send question'}
+							{isSubmitting ? 'Sending...' : 'Send feedback'}
 						</Button>
 					</DialogFooter>
 				</form>

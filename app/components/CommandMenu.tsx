@@ -16,6 +16,7 @@ import {
 	Github,
 	Inbox,
 	LogOut,
+	NotebookPen,
 	RefreshCcw,
 	RotateCcw,
 	Sparkles,
@@ -31,6 +32,7 @@ import {
 	CommandLoading,
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
+import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 
@@ -90,6 +92,7 @@ export function CommandMenuDialog() {
 	const { pathname, searchStr } = useLocation();
 	const navigate = useNavigate();
 
+	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
 
 	useEffect(() => {
@@ -174,6 +177,17 @@ export function CommandMenuDialog() {
 					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
+					<CommandItem
+						value="feedback"
+						keywords={['feedback', 'report', 'bug', 'suggest']}
+						onSelect={() => {
+							close();
+							feedbackDialog.open();
+						}}
+					>
+						<NotebookPen className="mr-2" />
+						Give feedback
+					</CommandItem>
 				</CommandGroup>
 
 				{/* Pinned tasks */}

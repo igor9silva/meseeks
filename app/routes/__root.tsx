@@ -9,13 +9,14 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import * as React from 'react';
 import { CommandMenuDialog } from '~/components/CommandMenu';
-
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
 import { Button } from '~/components/ui/button';
+import { FeedbackDialog } from '~/components/ui/FeedbackDialog';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 
 import appCss from '~/styles/app.css?url';
 
@@ -116,6 +117,18 @@ function Main({ children }: { children: React.ReactNode }) {
 	if (!user.isReady) return <RotatingLoadingMessage />;
 
 	return (
+		<FeedbackDialogProvider>
+			<MainWithFeedback>{children}</MainWithFeedback>
+		</FeedbackDialogProvider>
+	);
+}
+
+function MainWithFeedback({ children }: { children: React.ReactNode }) {
+	//
+	const feedbackDialog = useFeedbackDialog();
+	const toggle = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
+
+	return (
 		<div className="flex h-svh w-full">
 			{/* <div className="hidden md:block">
 				<MainSidebar />
@@ -126,6 +139,7 @@ function Main({ children }: { children: React.ReactNode }) {
 			</main>
 			<Toaster />
 			<CommandMenuDialog />
+			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggle} />
 		</div>
 	);
 }
