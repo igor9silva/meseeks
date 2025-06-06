@@ -54,7 +54,7 @@ function RouteComponent() {
 				<FounderCard onSubscribe={handleSubscribe} />
 			</div>
 
-			<FaqSection />
+			{/* <FaqSection /> */}
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
@@ -69,7 +69,7 @@ function RouteComponent() {
 function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') => Promise<void> }) {
 	//
 	return (
-		<Card className="relative border-2 hover:border-primary/50 transition-colors">
+		<Card className="relative border-2 hover:border-primary/50 transition-colors flex flex-col h-full">
 			<CardHeader className="text-center pb-8">
 				<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
 					<Zap className="w-8 h-8 text-primary" />
@@ -83,7 +83,7 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 					<span className="text-lg font-normal text-muted-foreground">/month</span>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-6">
+			<CardContent className="space-y-6 flex-grow">
 				<ul className="space-y-3">
 					<FeatureItem text="$10 credits included monthly" />
 					<FeatureItem text="Ability to top up additional credits" />
@@ -104,7 +104,7 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') => Promise<void> }) {
 	//
 	return (
-		<Card className="relative border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors">
+		<Card className="relative border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors flex flex-col h-full">
 			<CardHeader className="text-center pb-8">
 				<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
 					<Crown className="w-8 h-8 text-green-600 dark:text-green-400" />
@@ -113,7 +113,7 @@ function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder'
 				<CardDescription className="text-base">One-time payment to support our research.</CardDescription>
 				<div className="text-4xl font-bold mt-4">$500</div>
 			</CardHeader>
-			<CardContent className="space-y-6">
+			<CardContent className="space-y-6 flex-grow">
 				<ul className="space-y-3">
 					<FeatureItem text="24 months of Pro access" />
 					<FeatureItem text="$200 credits included" />
@@ -183,8 +183,8 @@ function FaqSection() {
 				))}
 			</Accordion>
 
-			<div className="text-center flex flex-col items-center gap-0.5 pt-8">
-				<p className="text-muted-foreground mb-4">Still have questions? We're here to help!</p>
+			<div className="text-center flex flex-col items-center gap-1 pt-4">
+				<p className="text-muted-foreground">Still have questions? We're here to help!</p>
 				<QuestionDialog />
 			</div>
 		</div>
