@@ -12,6 +12,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { useIsPro } from '~/hooks/useIsPro';
 
 export const Route = createFileRoute('/balance')({
 	component: RouteComponent,
@@ -27,10 +28,7 @@ function RouteComponent() {
 	const queryLockedBalance = convexQuery(api.users.public.findLockedBalance, {});
 	const { data: lockedBalance } = useSuspenseQuery(queryLockedBalance);
 
-	const activeSubsQuery = convexQuery(api.subscriptions.public.findActive, {});
-	const { data: activeSubs } = useSuspenseQuery(activeSubsQuery);
-
-	const isSubscribed = activeSubs && activeSubs.length > 0;
+	const { isPro } = useIsPro();
 
 	return (
 		<div className="flex flex-col gap-4 p-4">
@@ -55,7 +53,7 @@ function RouteComponent() {
 			</div>
 
 			<LowBalanceWarning balance={user.balanceUSD ?? 0n} />
-			<TopUpSection isSubscribed={isSubscribed} />
+			<TopUpSection isPro={isPro} />
 
 			<div className="flex flex-col gap-2 mt-4">
 				<h2 className="text-lg font-bold">Transactions</h2>
@@ -96,9 +94,9 @@ function LowBalanceWarning({ balance }: { balance: bigint }) {
 	);
 }
 
-function TopUpSection({ isSubscribed }: { isSubscribed: boolean }) {
+function TopUpSection({ isPro }: { isPro: boolean }) {
 	//
-	if (!isSubscribed) {
+	if (!isPro) {
 		return (
 			<Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20">
 				<CardContent className="flex items-center gap-3 p-4">

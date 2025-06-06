@@ -1,5 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
@@ -8,6 +6,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { useIsPro } from '~/hooks/useIsPro';
 
 export const Route = createFileRoute('/subscribe')({
 	component: RouteComponent,
@@ -17,16 +16,14 @@ function RouteComponent() {
 	//
 	const navigate = useNavigate();
 	const startSubscription = useAction(api.subscriptions.public.startSubscription);
-
-	const activeSubsQuery = convexQuery(api.subscriptions.public.findActive, {});
-	const { data: activeSubs } = useSuspenseQuery(activeSubsQuery);
+	const { isPro } = useIsPro();
 
 	// redirect to balance if already subscribed
 	useEffect(() => {
-		if (activeSubs && activeSubs.length > 0) {
+		if (isPro) {
 			navigate({ to: '/balance' });
 		}
-	}, [activeSubs, navigate]);
+	}, [isPro, navigate]);
 
 	const handleSubscribe = async (product: 'pro' | 'founder') => {
 		try {
@@ -39,9 +36,7 @@ function RouteComponent() {
 	};
 
 	// don't render if already subscribed (will redirect)
-	if (activeSubs && activeSubs.length > 0) {
-		return null;
-	}
+	if (isPro) return null;
 
 	return (
 		<div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-background to-muted/20">
