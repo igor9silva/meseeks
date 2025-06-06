@@ -9,6 +9,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { QuestionDialog } from '~/components/ui/QuestionDialog';
 import { useIsPro } from '~/hooks/useIsPro';
+import { cn } from '~/lib/utils';
 
 export const Route = createFileRoute('/subscribe')({
 	component: RouteComponent,
@@ -54,7 +55,7 @@ function RouteComponent() {
 				<FounderCard onSubscribe={handleSubscribe} />
 			</div>
 
-			{/* <FaqSection /> */}
+			<FaqSection />
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
@@ -83,12 +84,13 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 					<span className="text-lg font-normal text-muted-foreground">/month</span>
 				</div>
 			</CardHeader>
-			<CardContent className="space-y-6 flex-grow">
+			<CardContent className="space-y-6 content-end flex-grow">
 				<ul className="space-y-3">
-					<FeatureItem text="$10 credits included monthly" />
-					<FeatureItem text="Ability to top up additional credits" />
-					<FeatureItem text="Priority support" />
-					<FeatureItem text="Full platform access" />
+					<FeatureItem text="$10 worth of credits, every month" icon={Star} />
+					<FeatureItem text="Unlimited platform usage" icon={Star} />
+					<FeatureItem text="100GB of file storage" icon={Star} />
+					<FeatureItem text="Access to Pro-managed skills & loops" icon={Star} />
+					<FeatureItem text="Direct channel with developers and founders" icon={Star} />
 				</ul>
 			</CardContent>
 			<CardFooter>
@@ -112,14 +114,15 @@ function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder'
 				<CardTitle className="text-2xl">Founder Package</CardTitle>
 				<CardDescription className="text-base">One-time payment to support our research.</CardDescription>
 				<div className="text-4xl font-bold mt-4">$500</div>
+				<span className="text-lg font-normal text-muted-foreground">(limited to 1000 founders)</span>
 			</CardHeader>
-			<CardContent className="space-y-6 flex-grow">
+			<CardContent className="space-y-6 content-end flex-grow">
 				<ul className="space-y-3">
-					<FeatureItem text="24 months of Pro access" />
-					<FeatureItem text="$200 credits included" />
-					<FeatureItem text="Founder badge and recognition" />
-					<FeatureItem text="Early access to new features" />
-					<FeatureItem text="Direct channel with developers" />
+					<FeatureItem text="24 months of Pro subscription ($240)" icon={Star} />
+					<FeatureItem text="$200 worth of credits, immediately" icon={Star} />
+					<FeatureItem text="Exclusive [founder] badge" icon={Star} />
+					<FeatureItem text="Early access to new features, forever" icon={Star} />
+					<FeatureItem text="Directly support our open research" icon={Star} />
 				</ul>
 			</CardContent>
 			<CardFooter>
@@ -191,11 +194,18 @@ function FaqSection() {
 	);
 }
 
-function FeatureItem({ text }: { text: string }) {
-	//
+function FeatureItem({
+	text, //
+	icon: Icon,
+	className,
+}: {
+	text: string;
+	icon: React.ComponentType<{ className?: string }>;
+	className?: string;
+}) {
 	return (
-		<li className="flex items-center gap-3">
-			<Star className="w-5 h-5 text-green-500 flex-shrink-0" />
+		<li className={cn('flex items-center gap-3', className)}>
+			<Icon className="w-5 h-5 text-green-500 flex-shrink-0" />
 			<span>{text}</span>
 		</li>
 	);
