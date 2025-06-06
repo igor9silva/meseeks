@@ -43,9 +43,9 @@ function RouteComponent() {
 		<div className="flex flex-col gap-8 my-6 h-full p-4">
 			<div className="text-center space-y-4">
 				<h1 className="text-4xl font-bold tracking-tight">Choose your path</h1>
-				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-					Get access to powerful AI capabilities and unlock the full potential of Meseeks
-				</p>
+				{/* <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					The following offers are available during research preview, and are subject to change.
+				</p> */}
 			</div>
 
 			<div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -54,11 +54,13 @@ function RouteComponent() {
 			</div>
 
 			<FaqSection />
-			{/* 
-			<div className="text-center text-sm text-muted-foreground">
-				<p>All plans include access to our AI capabilities and platform features.</p>
-				<p>Credits are used for AI operations and can be topped up as needed.</p>
-			</div> */}
+
+			<div className="text-center text-sm text-muted-foreground pb-4">
+				<p>
+					This is a <strong>research preview</strong> app. Expect issues.
+				</p>
+				<p>© 2025 isPro. All rights reserved.</p>
+			</div>
 		</div>
 	);
 }
@@ -73,7 +75,7 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 				</div>
 				<CardTitle className="text-2xl">Go Pro</CardTitle>
 				<CardDescription className="text-base">
-					Monthly subscription with <span className="font-semibold">credits included</span>
+					Monthly subscription with <span className="font-semibold">credits included</span>.
 				</CardDescription>
 				<div className="text-4xl font-bold mt-4">
 					$20
@@ -101,18 +103,13 @@ function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') =>
 function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') => Promise<void> }) {
 	//
 	return (
-		<Card className="relative border-2 border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700 transition-colors">
-			<div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-				<span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-					Best Value
-				</span>
-			</div>
+		<Card className="relative border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 transition-colors">
 			<CardHeader className="text-center pb-8">
-				<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
-					<Crown className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+				<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
+					<Crown className="w-8 h-8 text-green-600 dark:text-green-400" />
 				</div>
 				<CardTitle className="text-2xl">Founder Package</CardTitle>
-				<CardDescription className="text-base">One-time payment for early supporters</CardDescription>
+				<CardDescription className="text-base">One-time payment to support our research.</CardDescription>
 				<div className="text-4xl font-bold mt-4">$500</div>
 			</CardHeader>
 			<CardContent className="space-y-6">
@@ -121,7 +118,7 @@ function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder'
 					<FeatureItem text="$200 credits included" />
 					<FeatureItem text="Founder badge and recognition" />
 					<FeatureItem text="Early access to new features" />
-					<FeatureItem text="Direct feedback channel" />
+					<FeatureItem text="Direct channel with developers" />
 				</ul>
 			</CardContent>
 			<CardFooter>
@@ -129,10 +126,10 @@ function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder'
 					onClick={() => onSubscribe('founder')}
 					variant="secondary"
 					size="lg"
-					className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+					className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
 				>
 					<Crown className="w-4 h-4 mr-2" />
-					Get Founder Package
+					Become a Founder
 				</Button>
 			</CardFooter>
 		</Card>
@@ -169,7 +166,7 @@ function FaqSection() {
 	];
 
 	return (
-		<div className="w-full max-w-3xl mx-auto space-y-4 my-2">
+		<div className="w-full max-w-3xl mx-auto space-y-4 mt-2">
 			<div className="text-center mb-6">
 				<h2 className="text-2xl font-bold tracking-tight mb-2">Frequently Asked Questions</h2>
 			</div>

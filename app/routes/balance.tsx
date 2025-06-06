@@ -103,7 +103,7 @@ function TopUpSection({ isPro }: { isPro: boolean }) {
 					<AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
 					<div className="text-blue-800 dark:text-blue-200 flex items-center justify-between w-full">
 						<div>
-							You must be a <strong>Pro subscriber</strong> to top up your account balance.
+							You must be a <strong>Pro</strong> user to top up your account balance.
 						</div>
 						<Link to="/subscribe">
 							<Button className="ml-4">Go Pro</Button>
