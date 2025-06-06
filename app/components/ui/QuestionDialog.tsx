@@ -71,7 +71,7 @@ export function QuestionDialog({ className }: { className?: string }) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant="outline" size="sm">
+				<Button variant="secondary" size="sm">
 					<MessageCircle className="w-4 h-4 mr-2" />
 					Ask a question
 				</Button>
