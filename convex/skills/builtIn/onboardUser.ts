@@ -54,6 +54,14 @@ export const onboardUser = defineSkill({
 			condition: 'any',
 		},
 		{
+			skillKey: 'say',
+			args: {
+				message:
+					'### ⚠️ This is a research preview\n\n- Do not share sensitive, confidential, or personal data with Meseeks. Treat all inputs as potentially public and non‑secure.\n- Maintain your own backups. Do not rely on Meseeks as the sole repository for important information or content.\n- Validate critical outputs. Responses may contain errors, be incomplete, or become outdated quickly. Always verify crucial information independently before acting on it.\n- Use at your own risk. By continuing to use Meseeks during this research phase, you acknowledge these limitations and agree that Meseeks shall not be liable for any loss, damage, or harm arising from your reliance on it.',
+			},
+			condition: 'any',
+		},
+		{
 			skillKey: 'done',
 			args: {
 				message: 'Welcome aboard!',
