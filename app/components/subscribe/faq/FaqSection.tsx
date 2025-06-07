@@ -6,7 +6,7 @@ import { faqs } from './index';
 export function FaqSection() {
 	//
 	return (
-		<div className="w-full max-w-3xl mx-auto space-y-4 mt-2">
+		<div className="w-full max-w-4xl mx-auto space-y-4 mt-2">
 			<div className="text-center mb-6">
 				<h2 className="text-2xl font-bold tracking-tight mb-2">Frequently Asked Questions</h2>
 			</div>

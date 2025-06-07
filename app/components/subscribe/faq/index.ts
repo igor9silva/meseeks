@@ -1,18 +1,19 @@
 import { CancellationFaq } from './CancellationFaq';
-import { CreditsAndTopUpFaq } from './CreditsAndTopUpFaq';
+import { CreditsFaq } from './CreditsFaq';
 import { FaqSection } from './FaqSection';
 import { FounderPackageFaq } from './FounderPackageFaq';
 import { FreeAlternativeFaq } from './FreeAlternativeFaq';
 import { SkillsAndLoopsFaq } from './SkillsAndLoopsFaq';
-import { UnlimitedAccessFaq } from './UnlimitedAccessFaq';
+import { UnlimitedUsageFaq } from './UnlimitedUsageFaq';
 
 const faqs = [
-	CreditsAndTopUpFaq,
-	UnlimitedAccessFaq,
-	CancellationFaq,
-	FounderPackageFaq,
+	CreditsFaq, //
+	UnlimitedUsageFaq,
 	SkillsAndLoopsFaq,
 	FreeAlternativeFaq,
+	FounderPackageFaq,
+	CancellationFaq,
+	// is it safe?
 ];
 
 export { faqs, FaqSection };
