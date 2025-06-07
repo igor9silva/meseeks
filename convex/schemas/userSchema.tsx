@@ -27,6 +27,7 @@ export const userRequestKeySchema = z.enum([
 	'share_skills', //
 	'general_question', //
 	'feedback', //
+	'enterprise_early_access', //
 ]);
 
 export const userRequestSchema = z.object({

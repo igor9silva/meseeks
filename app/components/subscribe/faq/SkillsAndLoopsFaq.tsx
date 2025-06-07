@@ -26,10 +26,10 @@ export const SkillsAndLoopsFaq = {
 			<p>
 				Meseeks is built on top of a <strong>reaction engine</strong>, where each action performed can trigger a
 				re-action. That way you can create a <strong>loop</strong> between skills, and let Meseeks work
-				agentically.
+				autonomously.
 			</p>
 			<p>
-				<strong>Compositions</strong> are things Meseeks can create. Think of them like ChatGPT's canvas with
+				<strong>Compositions</strong> are things Meseeks can create. Think of them like ChatGPT's Canvas with
 				(lots of) steroids.
 			</p>
 			<p>
