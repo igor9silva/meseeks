@@ -309,8 +309,16 @@ async function renderInstructions(
 
 		// find all variables in the format {{variable}}
 		result = result.replace(/\{\{([^{}]+)\}\}/g, (match, variableName) => {
+			//
+			const trimmedVariable = variableName.trim();
+
+			// if variable starts with backslash, treat as escaped literal
+			if (trimmedVariable.startsWith('\\')) {
+				return `{{${trimmedVariable.slice(1)}}}`;
+			}
+
 			// replace with the value
-			return valueForVariable(variableName.trim(), task, action);
+			return valueForVariable(trimmedVariable, task, action);
 		});
 	}
 
