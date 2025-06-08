@@ -421,10 +421,27 @@ function valueForVariable(
 				`I'm the creator of Meseeks (you), the companion app. I'm actively working on improving it.`,
 			].join('\n');
 
-		// case 'input.instructions':
-		// 	return action.args.instructions ?? '<system>no instructions</system>';
-
 		default:
+			// handle input.* variables
+			if (variable.startsWith('input.')) {
+				//
+				const argName = variable.slice(6); // remove 'input.' prefix
+				const value = action.args[argName];
+
+				if (value === undefined) {
+					return `<system>no ${argName}</system>`;
+				}
+
+				// convert value to string representation
+				if (typeof value === 'string') {
+					return value;
+				} else if (typeof value === 'object') {
+					return JSON.stringify(value, null, 2);
+				} else {
+					return String(value);
+				}
+			}
+
 			console.warn(`Unknown variable: ${variable}`);
 			return variable;
 	}

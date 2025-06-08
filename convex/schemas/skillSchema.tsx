@@ -180,7 +180,10 @@ export const instructionVariableSchema = z.union([
 	z.literal('currentDate').describe('The current date and time in ISO 8601 format'),
 	z.literal('userInfo').describe('Information about the user, written by themself'),
 	z.literal('allSkills').describe('A list of all existing skills.'),
-	// z.literal('input.instructions'),
+	z
+		.string()
+		.regex(/^input\..+$/)
+		.describe('Access to action input arguments using input.argName format'),
 ]);
 
 export const decisionConfigSchema = z.object({

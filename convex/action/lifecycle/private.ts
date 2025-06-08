@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { internal } from '../../_generated/api';
 import { Doc, Id } from '../../_generated/dataModel';
 import { ActionCtx, MutationCtx } from '../../_generated/server';
-import { internalAction, internalMutation } from '../../lib';
+import { internalAction, internalMutation, internalQuery } from '../../lib';
 import { _prepareContext, MagicRockContext } from '../../magicRock';
 import { newActionSchema } from '../../schemas/actionSchema';
 import { env } from '../../schemas/envSchema';
@@ -11,11 +11,12 @@ import { skillSchema } from '../../schemas/skillSchema';
 import { tokenSchema } from '../../schemas/topUpSchema';
 import { estimateCostFor } from '../../skills/createAITool';
 import { createReactions } from '../../skills/createReactions';
+import { _findOne as _findOneSkill } from '../../skills/private';
 import { createTool } from '../../skills/tools';
-import { _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
+import { _findOne as _findOneTask, _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
 import { isError, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../utils/errors';
 import { asDollars } from '../../utils/money';
-import { _add, _skipAllPendingReactions } from '../private';
+import { _add, _findOne as _findOneAction, _skipAllPendingReactions } from '../private';
 
 // TODO: if that since we dropped support for sync actions, we can use ActionCtx only, and remove MutationCtx from the arg type
 export const _perform = internalAction({
@@ -25,27 +26,25 @@ export const _perform = internalAction({
 	},
 	handler: async (ctx, { taskId, actionId }) => {
 		//
+		console.debug(`Executing action ${actionId} for task ${taskId}`);
+
+		const { task, action, skill } = await ctx.runQuery(internal.action.lifecycle.private._load, {
+			taskId,
+			actionId,
+		});
+
+		console.debug(
+			`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
+		);
+
 		try {
 			//
-			console.debug(`Executing action ${actionId} for task ${taskId}`);
-
-			// TODO: optimize into a single query
-			const task = await ctx.runQuery(internal.tasks.private._findOne, { taskId });
-			const action = await ctx.runQuery(internal.action.private._findOne, { actionId });
-			const skill = await ctx.runQuery(internal.skills.private._findOne, {
-				key: action.skillKey,
-				owner: task.owner,
-			});
-
-			console.debug(
-				`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
-			);
-
 			// prepare context if needed
 			const context = skill.kind === 'soft' ? await _prepareContext(ctx, task, action, skill) : undefined;
 
 			// check budget
 			const expectedCost = await _ensureWithinBudget(ctx, task, action, skill, context);
+
 			console.debug(`Expected cost ${asDollars({ bigInt: expectedCost, precision: 6 })} USDc.`);
 
 			// if the action is not yet authorized, try auto-approving it
@@ -74,46 +73,41 @@ export const _perform = internalAction({
 			//
 		} catch (error) {
 			//
-			console.info(`action ${actionId} execution failed: ${error}`);
-
-			// TODO: with the new flow we lost the ability to fix itself on errors
-
-			const result = {
-				text: `${error instanceof Error ? error.message : 'Unknown error'}`,
-				reactions: [] as Array<z.infer<typeof newActionSchema>>,
-			};
-
-			// react with `requestBudget` if this is a budget issue
-			if (isError(NOT_ENOUGH_BUDGET_ERROR, error)) {
-				//
-				console.debug(`Lacking budget for action ${actionId}. Requesting more budget.`);
-				const typedError = error as ReturnType<typeof NotEnoughBudget>;
-
-				result.text = typedError.data.message;
-				result.reactions = createReactions(typedError.data.action, [
-					{
-						skillKey: 'requestBudget',
-						args: {
-							estimatedCost: typedError.data.estimatedCost,
-							previousActionKey: typedError.data.previousActionKey,
-						},
-						condition: 'any',
-					},
-				]);
-			}
+			const result = await _handleActionError({ actionId, action, error });
 
 			await _setResolved(ctx, {
 				actionId,
 				taskId,
 				status: 'failed',
 				costs: [],
-				result,
+				result: result ?? { text: 'Max auto-fix attempts reached.', reactions: [] },
 			});
 			//
 		} finally {
 			//
 			await _runNextActionIfNeeded(ctx, taskId);
 		}
+	},
+});
+
+export const _load = internalQuery({
+	args: {
+		taskId: zid('tasks'),
+		actionId: zid('actions'),
+	},
+	handler: async (ctx, { taskId, actionId }) => {
+		//
+		const [task, action] = await Promise.all([
+			_findOneTask(ctx, { taskId }), //
+			_findOneAction(ctx, { actionId }),
+		]);
+
+		const skill = await _findOneSkill(ctx, {
+			key: action.skillKey,
+			owner: task.owner,
+		});
+
+		return { task, action, skill };
 	},
 });
 
@@ -342,6 +336,59 @@ async function _requestHumanApproval(
 ) {
 	//
 	await ctx.runMutation(internal.action.lifecycle.private._requestAuthorization, { actionId, taskId });
+}
+
+async function _handleActionError({
+	actionId,
+	action,
+	error,
+}: {
+	actionId: Id<'actions'>;
+	action: Doc<'actions'>;
+	error: unknown;
+}): Promise<{
+	text: string;
+	reactions: Array<z.infer<typeof newActionSchema>>;
+} | null> {
+	//
+	console.info(`action ${actionId} execution failed: ${error}`);
+
+	const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+	const result = {
+		text: errorMessage,
+		reactions: [] as Array<z.infer<typeof newActionSchema>>,
+	};
+
+	// react with appropriate reactions
+	if (isError(NOT_ENOUGH_BUDGET_ERROR, error)) {
+		//
+		console.debug(`Lacking budget for action ${actionId}. Requesting more budget.`);
+		const typedError = error as ReturnType<typeof NotEnoughBudget>;
+
+		result.text = typedError.data.message;
+		result.reactions = createReactions(typedError.data.action, [
+			{
+				skillKey: 'requestBudget',
+				args: {
+					estimatedCost: typedError.data.estimatedCost,
+					previousActionKey: typedError.data.previousActionKey,
+				},
+			},
+		]);
+		//
+	} else {
+		//
+		// attempt auto-fix
+		result.reactions = createReactions(action, [
+			{
+				skillKey: 'iterate',
+				args: {},
+			},
+		]);
+	}
+
+	return result;
 }
 
 async function _setResolved(

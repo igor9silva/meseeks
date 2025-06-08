@@ -5,13 +5,13 @@ export function createReactions(
 	reactions?: Array<{
 		skillKey: string;
 		args: Record<string, any>;
-		condition: 'owner' | 'companion' | 'any';
+		condition?: 'owner' | 'companion' | 'any';
 	}>,
 ) {
 	return (reactions ?? [])
 		.filter((reaction) => {
 			// prettier-ignore
-			switch (reaction.condition) {
+			switch (reaction.condition ?? 'any') {
 				case 'owner': return action.owner === action.author;
 				case 'companion': return action.owner !== action.author;
 				case 'any': return true;
