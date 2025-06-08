@@ -19,7 +19,7 @@ export const multiply = defineSkill({
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {
-				text: args.numbers.reduce((acc, curr) => acc * curr, 1).toString(),
+				text: `${args.numbers.join(' * ')} = ${args.numbers.reduce((acc, curr) => acc * curr, 1)}`,
 				reactions: execution.skill.knownReactions,
 			};
 		},

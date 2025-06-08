@@ -20,7 +20,7 @@ export const subtract = defineSkill({
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {
-				text: (args.from - args.amount).toString(),
+				text: `${args.from} - ${args.amount} = ${args.from - args.amount}`,
 				reactions: execution.skill.knownReactions,
 			};
 		},

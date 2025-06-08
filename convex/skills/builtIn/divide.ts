@@ -20,7 +20,7 @@ export const divide = defineSkill({
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {
-				text: (args.A / args.B).toString(),
+				text: `${args.A} / ${args.B} = ${args.A / args.B}`,
 				reactions: execution.skill.knownReactions,
 			};
 		},
