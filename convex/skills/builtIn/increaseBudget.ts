@@ -8,18 +8,19 @@ export const increaseBudget = defineSkill({
 	description: 'Increase the budget of the task',
 	parameters: z.object({
 		amount: z.bigint().min(0n).describe('The amount of funds to add, in USDc.'),
+		shouldIterate: z.boolean().optional().default(true).describe('Whether to react with iterate() or not.'),
 	}),
-	knownReactions: [
-		{
-			skillKey: 'iterate',
-			args: {},
-			condition: 'owner',
-		},
-	],
+	knownReactions: [],
 	use:
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
+			const iterate = {
+				skillKey: 'iterate' as const,
+				args: {},
+				condition: 'owner' as const,
+			};
+
 			try {
 				await execution.ctx.runMutation(internal.tasks.private._increaseBudget, {
 					taskId: execution.task._id,
@@ -28,7 +29,7 @@ export const increaseBudget = defineSkill({
 
 				return {
 					text: `budget increased by ${asDollars({ bigInt: args.amount })}`,
-					reactions: execution.skill.knownReactions,
+					reactions: args.shouldIterate ? [iterate] : [],
 				};
 				//
 			} catch (error) {

@@ -15,6 +15,9 @@ export const requestBudget = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			throw new Error(`This task needs more budget to continue. Tap below. \n\n<AddBudgetButton />`);
+			return {
+				text: `This task needs more budget to continue. Tap below. \n\n<AddBudgetButton />`,
+				reactions: [],
+			};
 		},
 });

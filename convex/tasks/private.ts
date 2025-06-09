@@ -123,7 +123,7 @@ export const _add = internalMutation({
 			skills: [
 				{
 					skillKey: 'increaseBudget',
-					args: { amount: initialFunds },
+					args: { amount: initialFunds, shouldIterate: false },
 				},
 				{
 					skillKey: 'say',
@@ -141,6 +141,7 @@ export const _addWithActions = internalMutation({
 		author: authorSchema,
 		owner: zid('users'),
 		title: z.string().optional(),
+		instructions: z.string().optional(),
 		parentId: zid('tasks').optional(),
 		preferredIntelligence: modelsSchema.optional(),
 		skills: z.array(
@@ -150,12 +151,13 @@ export const _addWithActions = internalMutation({
 			}),
 		),
 	},
-	handler: async (ctx, { author, owner, title, parentId, preferredIntelligence, skills }) => {
+	handler: async (ctx, { author, owner, title, instructions, parentId, preferredIntelligence, skills }) => {
 		//
 		const taskId = await ctx.db.insert('tasks', {
 			author,
 			owner,
 			title,
+			instructions,
 			parentId,
 			status: 'idle',
 			isActive: true,

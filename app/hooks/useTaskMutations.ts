@@ -94,14 +94,16 @@ export function useTaskMutations() {
 	const increaseBudget = ({
 		taskId, //
 		amount,
+		shouldIterate,
 	}: {
 		taskId: Id<'tasks'>;
 		amount: bigint;
+		shouldIterate?: boolean;
 	}) => {
 		return act({
 			taskId,
 			skillKey: 'increaseBudget',
-			args: { amount },
+			args: { amount, shouldIterate },
 			shouldReopen: true,
 		});
 	};

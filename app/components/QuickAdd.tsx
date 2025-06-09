@@ -111,9 +111,10 @@ function randomPlaceholder() {
 		"What's going on?",
 		'What troubles you?',
 		'What are you thinking about?',
+		'Siree, look at me!',
 		'What are you feeling?',
 		'What are you trying to achieve?',
-		'ooh-wee, look at me!',
+		'What is my purpose?',
 	];
 
 	return placeholders[Math.floor(Math.random() * placeholders.length)];
