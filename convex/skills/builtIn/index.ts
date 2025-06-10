@@ -4,14 +4,16 @@ import { discard } from './discard';
 import { divide } from './divide';
 import { done } from './done';
 import { increaseBudget } from './increaseBudget';
+import { justSay } from './justSay';
+import { lookAtMe } from './lookAtMe';
 import { multiply } from './multiply';
-import { onboardUser } from './onboardUser';
 import { reason } from './reason';
 import { reopen } from './reopen';
 import { requestBudget } from './requestBudget';
 import { requestIteration } from './requestIteration';
 import { resolve } from './resolve';
 import { say } from './say';
+import { setUserInfo } from './setUserInfo';
 import { stop } from './stop';
 import { subtract } from './subtract';
 import { sum } from './sum';
@@ -32,6 +34,7 @@ export const _builtInSkills = {
 
 	// lifecycle
 	say,
+	justSay, // TODO: this is a workaround to avoid reactions on the onboarding
 	done,
 	stop,
 	reason,
@@ -41,11 +44,14 @@ export const _builtInSkills = {
 	requestBudget,
 	discard,
 	requestIteration,
-	onboardUser,
+	lookAtMe,
 
 	// skills
 	createSkill,
 	updateSkill,
+
+	// user info
+	setUserInfo,
 };
 
 // updateSummary,

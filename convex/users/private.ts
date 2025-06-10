@@ -71,13 +71,30 @@ const _addWelcomeMessages = async (
 		author: userId,
 		owner: userId,
 		title: 'ooh-wee, look at me!',
+		instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
+
+I'd like you to gather details such as:
+- My name and background
+- Where I'm from (birth place, where I grew up, current location)
+- My citizenship/nationality
+- My profession and interests
+- Languages I speak and proficiency levels
+- My social media handles
+- Any other personal information I share that might be helpful for future interactions
+
+Please update my user information each time you learn something new about me, and make sure to never remove information that is still valid when adding new details. Write everything from my perspective, as if I'm describing myself.
+
+I'm also curious about Meseeks and would love to learn more about its capabilities, features, and how it can help me. Feel free to encourage me to ask questions about what Meseeks can do, how it works, or any other aspects I might be interested in exploring.`,
 		skills: [
 			{
 				skillKey: 'increaseBudget',
-				args: { amount: asBigInt({ dollars: 1 }) },
+				args: {
+					amount: asBigInt({ dollars: 1 }),
+					shouldIterate: false,
+				},
 			},
 			{
-				skillKey: 'onboardUser',
+				skillKey: 'lookAtMe',
 				args: {},
 			},
 		],

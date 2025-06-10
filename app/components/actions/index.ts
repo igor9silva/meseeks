@@ -16,6 +16,7 @@ export default {
 	instruct: ThinkingAction,
 	iterate: ThinkingAction,
 	say: SayAction,
+	justSay: SayAction,
 	requestBudget: RequestBudgetAction,
 	increaseBudget: IncreaseBudgetAction,
 	done: DoneAction,

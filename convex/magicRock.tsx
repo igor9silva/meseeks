@@ -302,6 +302,18 @@ async function renderInstructions(
 	// TODO: workaround because we needed an async
 	result = await replaceAllSkillsIfNeeded(ctx, task.owner, result);
 
+	// TODO: make the whole variable replacement async, and remove this workaround
+	let userInfo: string | undefined;
+	if (result.includes('{{userInfo}}')) {
+		const userInfoPreference = await ctx.runQuery(internal.users.preferences.private._getUserPreferece, {
+			userId: task.owner,
+			key: 'userInfo',
+		});
+		userInfo =
+			userInfoPreference?.value ||
+			'<system>No user information available. Use setUserInfo skill to add personal details.</system>';
+	}
+
 	// continue replacing until no more variables to replace
 	while (result !== prevResult) {
 		//
@@ -318,7 +330,7 @@ async function renderInstructions(
 			}
 
 			// replace with the value
-			return valueForVariable(trimmedVariable, task, action);
+			return valueForVariable(trimmedVariable, task, action, userInfo);
 		});
 	}
 
@@ -346,6 +358,7 @@ function valueForVariable(
 	variable: z.infer<typeof instructionVariableSchema>, //
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
+	userInfo?: string,
 ): string {
 	//
 	switch (variable) {
@@ -415,19 +428,11 @@ function valueForVariable(
 		case 'currentDate':
 			return new Date().toISOString();
 
-		case 'userInfo': // TODO: read from preferences
-			const MS_PER_YEAR = 31556952000;
-			const birthdate = new Date('1997-01-22T03:36:00.000-02:00');
-			const age = Math.floor((new Date().getTime() - birthdate.getTime()) / MS_PER_YEAR);
-			return [
-				`I'm Igor Silva, born at ${birthdate.toDateString()} (aged ${age} as of today) in São Paulo, Brazil.`,
-				`Raised in Santos, São Paulo, where I lived until Nov/2023 when I moved to Setúbal, Portugal.`,
-				`I'm both a portuguese and brazilian citizen.`,
-				`I'm a engineer, entrepreneur and investor.`,
-				`I speak English (advanced, preferred), BR Portuguese (native) and a little bit of Spanish.`,
-				`My twitter handle is @igor9silva.`,
-				`I'm the creator of Meseeks (you), the companion app. I'm actively working on improving it.`,
-			].join('\n');
+		case 'userInfo':
+			return (
+				userInfo ||
+				'<system>No user information available. Use setUserInfo skill to add personal details.</system>'
+			);
 
 		default:
 			// handle input.* variables

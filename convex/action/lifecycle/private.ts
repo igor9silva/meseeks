@@ -16,7 +16,7 @@ import { createTool } from '../../skills/tools';
 import { _findOne as _findOneTask, _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
 import { isError, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../utils/errors';
 import { asDollars } from '../../utils/money';
-import { _add, _findOne as _findOneAction, _skipAllPendingReactions } from '../private';
+import { _addMany, _findOne as _findOneAction } from '../private';
 
 // TODO: if that since we dropped support for sync actions, we can use ActionCtx only, and remove MutationCtx from the arg type
 export const _perform = internalAction({
@@ -211,10 +211,16 @@ export const _resolve = internalMutation({
 			await _setTaskStatus(ctx, { taskId, newStatus: 'unread' });
 
 			// schedule all reactions
-			// TODO: optimize using a single mutation
-			await _skipAllPendingReactions(ctx, { taskId, owner: task.owner });
-			// TODO: we should be using _addMany here, skippingReactions should likely be inside _addMany only
-			await Promise.all(result.reactions.map(async (reaction) => _add(ctx, reaction)));
+			await _addMany(ctx, {
+				taskId,
+				owner: task.owner,
+				author: action._id,
+				depth: action.depth,
+				skills: result.reactions.map((reaction) => ({
+					skillKey: reaction.skillKey,
+					args: reaction.args,
+				})),
+			});
 		}
 	},
 });

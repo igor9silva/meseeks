@@ -17,16 +17,18 @@ export type ToolExecution = {
 	skill: Skill<z.AnyZodObject>;
 };
 
-export type Reaction = {
-	skillKey: string;
-	args: Record<string, any>;
-	condition: 'owner' | 'companion' | 'any';
-};
+export const reactionSchema = z.object({
+	skillKey: z.string(),
+	args: z.record(z.any()),
+	condition: z.enum(['owner', 'companion', 'any']).optional(),
+});
+export type Reaction = z.infer<typeof reactionSchema>;
 
-export type ExecutionResult = {
-	text?: string | undefined;
-	reactions: Array<Reaction>;
-};
+export const executionResultSchema = z.object({
+	text: z.string().optional(),
+	reactions: z.array(reactionSchema),
+});
+export type ExecutionResult = z.infer<typeof executionResultSchema>;
 
 // for the types
 export const defineSkill = <T extends z.AnyZodObject>(skill: Skill<T>) => skill;
