@@ -33,14 +33,15 @@ export function TaskItem({
 	};
 
 	return (
-		<div className={cn('flex items-center justify-between gap-2 p-2 align-middle', className)}>
-			<div className="flex items-center gap-2">
+		<div className={cn('flex items-center justify-between gap-2 p-2 align-middle min-w-0', className)}>
+			<div className="flex items-center gap-2 min-w-0 flex-1">
 				<div
 					onClick={(e) => {
 						//
 						e.preventDefault();
 						e.stopPropagation();
 					}}
+					className="flex-shrink-0"
 				>
 					<Checkbox
 						id={`task-list-checkbox-${task._id}`}
@@ -48,11 +49,11 @@ export function TaskItem({
 						onCheckedChange={handleCheckboxChange}
 					/>
 				</div>
-				<div>
-					<div className="flex items-center gap-2">
+				<div className="min-w-0 flex-1">
+					<div className="flex items-center gap-2 min-w-0">
 						<h3
 							className={cn(
-								'font-semibold leading-none tracking-tight whitespace-pre-wrap break-normal hyphens-auto',
+								'font-semibold leading-none tracking-tight break-words overflow-wrap-anywhere min-w-0 flex-1',
 								!task.isActive && 'line-through',
 								!task.title && 'text-muted-foreground',
 							)}
@@ -61,7 +62,7 @@ export function TaskItem({
 						</h3>
 						<TaskStatusIndicator task={task} />
 					</div>
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-2 min-w-0">
 						<TimeAgo date={task._creationTime} suffix="old" className="text-sm text-muted-foreground" />
 						<Separator orientation="vertical" className="h-4 bg-primary" />
 						<TaskBudget

@@ -50,7 +50,7 @@ export function TaskListAndDetail({
 			className={cn('overflow-hidden', className)}
 		>
 			<ResizablePanel id="list" order={0} defaultSize={selectedSubtaskId ? preferredWidthPercent : 100}>
-				<div className="overflow-auto h-full">
+				<div className="overflow-auto h-full min-w-0">
 					{subtasks.length === 0 && <QuickAdd />}
 					{subtasks.map((task) => (
 						<Link
@@ -58,6 +58,7 @@ export function TaskListAndDetail({
 							to="/$"
 							search={{ selectedSubtaskId: selectedSubtaskId === task._id ? undefined : task._id }}
 							resetScroll={false}
+							className="block min-w-0"
 						>
 							<TaskItem className={cn(selectedSubtaskId === task._id && 'bg-muted')} task={task} />
 						</Link>
