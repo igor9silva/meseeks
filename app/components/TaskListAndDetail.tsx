@@ -56,7 +56,12 @@ export function TaskListAndDetail({
 						<Link
 							key={task._id}
 							to="/$"
-							search={{ selectedSubtaskId: selectedSubtaskId === task._id ? undefined : task._id }}
+							search={
+								isMobile
+									? undefined
+									: { selectedSubtaskId: selectedSubtaskId === task._id ? undefined : task._id }
+							}
+							params={isMobile ? { _splat: `chat/${task._id}` } : undefined}
 							resetScroll={false}
 							className="block min-w-0"
 						>
