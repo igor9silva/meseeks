@@ -99,6 +99,11 @@ export const availableIntelligences = query({
 			],
 			all: [
 				{
+					key: 'groq/qwen3-32b',
+					name: 'Qwen 32B',
+					provider: 'Groq',
+				},
+				{
 					key: 'anthropic/claude-4-opus',
 					name: 'Claude 4 Opus',
 					provider: 'Anthropic',

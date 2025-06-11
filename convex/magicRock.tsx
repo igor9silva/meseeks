@@ -142,11 +142,15 @@ function languageModelFrom(
 		'xai/grok-3-mini': xai('grok-3-mini'),
 
 		// Groq
-		'groq/llama-4-scout': groq('meta-llama/llama-4-scout-17b-16e-instruct'),
-		'groq/llama-4-maverick': groq('meta-llama/llama-4-maverick-17b-128e-instruct'),
+		// 'groq/llama-4-scout': groq('meta-llama/llama-4-scout-17b-16e-instruct'),
+		// 'groq/llama-4-maverick': groq('meta-llama/llama-4-maverick-17b-128e-instruct'),
+		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
 
 		// DeepSeek
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
+
+		// Cerebras
+		// 'cerebras/qwen3-32b': cerebras('qwen-3-32b'),
 
 		// DeepInfra
 		// 'deepinfra/deepseek-v3': deepinfra('deepseek-ai/DeepSeek-V3-0324'),

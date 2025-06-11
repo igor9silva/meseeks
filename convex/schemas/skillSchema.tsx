@@ -78,11 +78,15 @@ export const modelsSchema = z.enum([
 	'xai/grok-3-mini',
 
 	// Groq
-	'groq/llama-4-scout',
-	'groq/llama-4-maverick',
+	// 'groq/llama-4-scout',
+	// 'groq/llama-4-maverick',
+	'groq/qwen3-32b',
 
 	// DeepSeek
 	'deepseek/deepseek-v3',
+
+	// Cerebras
+	// 'cerebras/qwen3-32b',
 
 	// DeepInfra
 	// 'deepinfra/deepseek-v3',
@@ -140,15 +144,20 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 			return pricePerMillionTokens({ input: 0.3, output: 0.5 });
 
 		// Groq
-		case 'groq/llama-4-scout':
-			return pricePerMillionTokens({ input: 0.11, output: 0.34 });
-		case 'groq/llama-4-maverick':
-			return pricePerMillionTokens({ input: 0.2, output: 0.6 });
+		// case 'groq/llama-4-scout':
+		// 	return pricePerMillionTokens({ input: 0.11, output: 0.34 });
+		// case 'groq/llama-4-maverick':
+		// 	return pricePerMillionTokens({ input: 0.2, output: 0.6 });
+		case 'groq/qwen3-32b':
+			return pricePerMillionTokens({ input: 0.29, output: 0.59 });
 
 		// DeepSeek
 		case 'deepseek/deepseek-v3':
 			return pricePerMillionTokens({ input: 0.27, output: 1.1 });
 
+		// Cerebras
+		// case 'cerebras/qwen3-32b':
+		// 	return pricePerMillionTokens({ input: 0, output: 0 });
 		// DeepInfra
 		// case 'deepinfra/deepseek-v3':
 		// 	return pricePerMillionTokens({ input: 0.4, output: 0.89 });
