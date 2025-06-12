@@ -56,7 +56,11 @@ export function TaskItem({
 						<TaskStatusIndicator task={task} />
 					</div>
 					<div className="flex items-center gap-2 min-w-0">
-						<TimeAgo date={task._creationTime} suffix="old" className="text-sm text-muted-foreground" />
+						<TimeAgo
+							date={task._creationTime}
+							suffix="old"
+							className="text-sm text-muted-foreground truncate"
+						/>
 						<Separator orientation="vertical" className="h-4 bg-primary" />
 						<TaskBudget
 							task={task}
