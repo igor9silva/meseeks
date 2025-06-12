@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
 import { useEffect } from 'react';
@@ -29,6 +30,8 @@ export function SubscribePage({ route }: { route: typeof Route }) {
 			toast.error('Failed to start subscription.');
 		}
 	};
+
+	track('subscribe', { isPro });
 
 	// don't render if already subscribed (will redirect)
 	if (isPro) return null;

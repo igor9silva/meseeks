@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { zid } from 'convex-helpers/server/zod';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
@@ -32,6 +33,11 @@ export default function MDXPage() {
 	// prepend the taskId to the body so that MDX can read it
 	const taskId = params.taskId || page.defaultTaskId || 'inbox';
 	const body = `export const taskId = '${taskId}';\n\n${page.body}`;
+
+	track('$', {
+		slug,
+		taskId,
+	});
 
 	return <MDX text={body} shouldRenderComponents={true} />;
 }

@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt, asDollars } from 'convex/utils/money';
@@ -29,6 +30,11 @@ function RouteComponent() {
 	const { data: lockedBalance } = useSuspenseQuery(queryLockedBalance);
 
 	const { isPro } = useIsPro();
+
+	track('balance', {
+		balance: asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 10 }),
+		lockedBalance: asDollars({ bigInt: lockedBalance, precision: 10 }),
+	});
 
 	return (
 		<div className="flex flex-col gap-4 p-4">

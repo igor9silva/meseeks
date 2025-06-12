@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { BasicError } from '~/components/BasicError';
@@ -19,6 +20,10 @@ export default function RouteComponent() {
 	const { id } = Route.useParams();
 	const query = convexQuery(api.skills.public.findOne, { skillId: id as Id<'skills'> });
 	const { data: skill } = useSuspenseQuery(query);
+
+	track('skills/$id', {
+		skillId: id,
+	});
 
 	return (
 		<div className="m-4">

@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { UnifiedSkillForm } from '~/components/skills/UnifiedSkillForm';
 import { CardDescription, CardTitle } from '~/components/ui/card';
 
@@ -8,6 +9,8 @@ export const Route = createFileRoute('/skills_/new')({
 
 export default function RouteComponent() {
 	//
+	track('skills/new', {});
+
 	return (
 		<div className="m-6">
 			<div className="flex flex-row items-center justify-between my-4">

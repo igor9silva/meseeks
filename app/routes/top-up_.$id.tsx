@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
@@ -39,6 +40,10 @@ export function RouteComponent({ className }: { className?: string }) {
 			</div>
 		);
 	}
+
+	track('top-up/$id', {
+		topUpId: id,
+	});
 
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none', className)}>

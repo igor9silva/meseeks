@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { Doc } from 'convex/_generated/dataModel';
 import { useState } from 'react';
 import { ShareSkillRequestDialog } from '~/components/skills/ShareSkillRequestDialog';
@@ -15,6 +16,8 @@ export default function RouteComponent() {
 	const [selectedSkill, setSelectedSkill] = useState<Doc<'skills'> | null>(null);
 
 	const handleShareSkill = (skill: Doc<'skills'>) => setSelectedSkill(skill);
+
+	track('skills', {});
 
 	return (
 		<div className="m-4">

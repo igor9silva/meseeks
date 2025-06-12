@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { TopUpCard } from '~/components/TopUpCard';
 import { TopUpItem } from '~/components/TopUpItem';
@@ -13,6 +14,10 @@ export function RouteComponent() {
 	//
 	const query = convexQuery(api.topUps.public.findAllWaiting, {});
 	const { data: waitingTopUps } = useSuspenseQuery(query);
+
+	track('top-up', {
+		waitingTopUps: waitingTopUps.length,
+	});
 
 	if (waitingTopUps.length > 0) {
 		return (
