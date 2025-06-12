@@ -60,7 +60,7 @@ export function TaskListAndDetail({
 									? undefined
 									: { selectedSubtaskId: selectedSubtaskId === task._id ? undefined : task._id }
 							}
-							params={isMobile ? { _splat: `chat/${task._id}` } : undefined}
+							params={isMobile ? { _splat: `task/${task._id}` } : undefined}
 							resetScroll={false}
 							className="block min-w-0"
 						>

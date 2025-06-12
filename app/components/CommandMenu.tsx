@@ -213,7 +213,7 @@ export function CommandMenuDialog() {
 						return (
 							<CommandItem
 								key={task._id}
-								value={`/chat/${task._id}`}
+								value={`/task/${task._id}`}
 								keywords={[task.title ?? 'Untitled task']}
 								onSelect={onSelect}
 							>

@@ -49,7 +49,7 @@ export function QuickAdd({ className }: { className?: string }) {
 					preferredIntelligence: intelligence,
 				});
 
-				navigate({ to: '/$', params: { _splat: `/chat/${taskId}` } });
+				navigate({ to: '/$', params: { _splat: `/task/${taskId}` } });
 				//
 			} catch (error: unknown) {
 				//

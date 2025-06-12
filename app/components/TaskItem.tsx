@@ -80,7 +80,7 @@ export function TaskItem({
 				className="justify-end [&_svg]:size-5 flex-shrink-0 hover:bg-transparent"
 				onClick={(e) => {
 					e.preventDefault();
-					navigate({ to: '/$', params: { _splat: `/chat/${task._id}` } });
+					navigate({ to: '/$', params: { _splat: `/task/${task._id}` } });
 				}}
 			>
 				<ArrowRight />

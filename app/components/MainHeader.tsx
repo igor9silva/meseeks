@@ -82,7 +82,7 @@ export function MainHeader({ className }: { className?: string }) {
 							className="[&_svg]:size-5"
 							onClick={(e) => {
 								e.preventDefault();
-								navigate({ to: '/$', params: { _splat: `/chat/${search.selectedSubtaskId}` } });
+								navigate({ to: '/$', params: { _splat: `/task/${search.selectedSubtaskId}` } });
 							}}
 							tooltipContent="Chat with selected task"
 						>

@@ -169,7 +169,7 @@ function TransactionItem({
 					{taskId && (
 						<Link
 							to="/$"
-							params={{ _splat: `/chat/${taskId}` }}
+							params={{ _splat: `/task/${taskId}` }}
 							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
 							See task
