@@ -31,12 +31,11 @@ export function TaskListAndDetail({
 	const isMobile = useIsMobile();
 	const direction = isMobile ? 'vertical' : 'horizontal';
 
-	const { getInboxWidthPercent, setInboxWidthPercent } = usePreferences({ defaultValue: 30 });
+	const { getInboxWidthPercent, setInboxWidthPercent } = usePreferences({ defaultValue: 20 });
 
 	const { getPanelSize, handleLayout } = useResizablePanelGroup({
 		getValue: getInboxWidthPercent,
 		setValue: setInboxWidthPercent,
-		defaultValue: 30,
 	});
 
 	const preferredWidthPercent = getPanelSize();
@@ -49,7 +48,7 @@ export function TaskListAndDetail({
 			}}
 			className={cn('overflow-hidden', className)}
 		>
-			<ResizablePanel id="list" order={0} defaultSize={selectedSubtaskId ? preferredWidthPercent : 100}>
+			<ResizablePanel id="list" order={0} defaultSize={selectedSubtaskId ? preferredWidthPercent : undefined}>
 				<div className="overflow-auto h-full min-w-0">
 					{subtasks.length === 0 && <QuickAdd />}
 					{subtasks.map((task) => (

@@ -12,7 +12,7 @@ export function TaskDetailAndConversation({
 	list,
 	detail,
 	className,
-	defaultListSize = 50,
+	defaultListSize = 75,
 	widthBreakpoint = DEFAULT_MD_BREAKPOINT,
 	heightBreakpoint = MIN_HEIGHT_FOR_CONVERSATION,
 }: {
@@ -52,7 +52,7 @@ export function TaskDetailAndConversation({
 				className={cn('overflow-hidden', className)}
 				onLayout={handleLayout}
 			>
-				<ResizablePanel id="list" order={0} defaultSize={shouldRenderDetailPanel ? panelSize : 100}>
+				<ResizablePanel id="list" order={0} defaultSize={shouldRenderDetailPanel ? panelSize : undefined}>
 					{/* the content of the first panel depends on the layout direction */}
 					{direction === 'vertical' ? list : detail}
 				</ResizablePanel>
