@@ -7,7 +7,7 @@ import { cn } from '~/lib/utils';
 const classMap: Record<z.infer<typeof taskStatusSchema>, string> = {
 	idle: 'hidden',
 	unread: 'bg-blue-500',
-	acting: 'bg-green-500 animate-pulse-blur',
+	acting: 'hidden',
 	blocked: 'bg-orange-700',
 	done: 'hidden',
 	discarded: 'hidden',

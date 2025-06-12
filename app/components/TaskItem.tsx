@@ -7,6 +7,7 @@ import { TimeAgo } from '~/components/TimeAgo';
 import { Button } from '~/components/ui/button';
 import { Checkbox } from '~/components/ui/checkbox';
 import { Separator } from '~/components/ui/separator';
+import { TextShimmer } from '~/components/ui/text-shimmer';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
@@ -51,15 +52,7 @@ export function TaskItem({
 				</div>
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2 min-w-0">
-						<h3
-							className={cn(
-								'font-semibold leading-none tracking-tight break-words overflow-wrap-anywhere min-w-0 flex-1',
-								!task.isActive && 'line-through',
-								!task.title && 'text-muted-foreground',
-							)}
-						>
-							{task.title || 'Untitled task'}
-						</h3>
+						<TaskTitle task={task} />
 						<TaskStatusIndicator task={task} />
 					</div>
 					<div className="flex items-center gap-2 min-w-0">
@@ -87,4 +80,21 @@ export function TaskItem({
 			</Button>
 		</div>
 	);
+}
+
+function TaskTitle({ task }: { task: Doc<'tasks'> }) {
+	//
+	const title = task.title || 'Untitled task';
+
+	const classes = cn(
+		'text-base font-semibold leading-none tracking-tight break-words overflow-wrap-anywhere truncate',
+		!task.isActive && 'line-through',
+		!task.title && 'text-muted-foreground',
+	);
+
+	if (task.status === 'acting') {
+		return <TextShimmer className={classes} text={title} />;
+	}
+
+	return <h3 className={classes}>{title}</h3>;
 }

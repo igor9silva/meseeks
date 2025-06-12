@@ -48,8 +48,13 @@ export function TaskListAndDetail({
 			}}
 			className={cn('overflow-hidden', className)}
 		>
-			<ResizablePanel id="list" order={0} defaultSize={selectedSubtaskId ? preferredWidthPercent : undefined}>
-				<div className="overflow-auto h-full min-w-0">
+			<ResizablePanel
+				id="list"
+				order={0}
+				defaultSize={selectedSubtaskId ? preferredWidthPercent : undefined}
+				minSize={25}
+			>
+				<div className="overflow-auto h-full">
 					{subtasks.length === 0 && <QuickAdd />}
 					{subtasks.map((task) => (
 						<Link
