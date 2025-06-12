@@ -4,7 +4,8 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const setUserInfo = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Update the user information stored in preferences',
+	description:
+		'Update the user information stored in preferences. Use this when the user explicitly asks you to remember something.',
 	parameters: z.object({
 		userInfo: z.string().describe('The updated user information as a text string'),
 	}),
