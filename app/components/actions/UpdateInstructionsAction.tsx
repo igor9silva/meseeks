@@ -33,10 +33,14 @@ export function UpdateInstructionsAction(props: {
 
 		case 'running':
 			return (
-				<SimpleMessage running text={`✍️ Updating instructions`} isAuthorCurrentUser={isAuthorCurrentUser} />
+				<SimpleMessage
+					running
+					text={`✍️ Updating task instructions`}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+				/>
 			);
 
 		case 'succeeded':
-			return <SimpleMessage text={`Updated instructions.`} isAuthorCurrentUser={isAuthorCurrentUser} />;
+			return <SimpleMessage text={`Updated task instructions.`} isAuthorCurrentUser={isAuthorCurrentUser} />;
 	}
 }

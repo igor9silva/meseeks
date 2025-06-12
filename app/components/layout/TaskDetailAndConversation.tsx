@@ -56,13 +56,18 @@ export function TaskDetailAndConversation({
 				className={cn('overflow-hidden', className)}
 				onLayout={handleLayout}
 			>
-				<ResizablePanel id="list" order={0} defaultSize={shouldRenderDetailPanel ? panelSize : undefined}>
+				<ResizablePanel
+					id="list"
+					order={0}
+					defaultSize={shouldRenderDetailPanel ? panelSize : undefined}
+					minSize={10}
+				>
 					{/* the content of the first panel depends on the layout direction */}
 					{direction === 'vertical' ? list : detail}
 				</ResizablePanel>
 				{shouldRenderDetailPanel && <ResizableHandle withHandle />}
 				{shouldRenderDetailPanel && (
-					<ResizablePanel id="detail" order={1} defaultSize={100 - panelSize}>
+					<ResizablePanel id="detail" order={1} defaultSize={100 - panelSize} minSize={10}>
 						{/* the content of the second panel depends on the layout direction */}
 						{direction === 'vertical' ? detail : list}
 					</ResizablePanel>

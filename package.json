@@ -73,7 +73,7 @@
 		"convex": "^1.17.3",
 		"convex-helpers": "^0.1.65",
 		"date-fns": "^4.1.0",
-		"lucide-react": "^0.456.0",
+		"lucide-react": "^0.514.0",
 		"motion": "^11.13.1",
 		"prism-react-renderer": "^2.4.0",
 		"react": "^18.3.1",

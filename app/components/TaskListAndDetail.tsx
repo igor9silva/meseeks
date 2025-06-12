@@ -76,7 +76,7 @@ export function TaskListAndDetail({
 			</ResizablePanel>
 			{selectedSubtaskId && <ResizableHandle withHandle />}
 			{selectedSubtaskId && (
-				<ResizablePanel id="detail" order={1} defaultSize={100 - preferredWidthPercent}>
+				<ResizablePanel id="detail" order={1} defaultSize={100 - preferredWidthPercent} minSize={25}>
 					<TaskDetailAndConversation
 						list={<TaskDetail taskId={selectedSubtaskId} />}
 						detail={<TaskConversation taskId={selectedSubtaskId} />}

@@ -23,11 +23,11 @@ export function TaskDetailAndChat({
 		<Suspense fallback={<Loading />}>
 			<ErrorBoundary fallback={<BasicError text="Not found (or something else went wrong)." />}>
 				<ResizablePanelGroup direction="vertical" className="overflow-hidden">
-					<ResizablePanel id="details" order={0} defaultSize={detailInitialSize}>
+					<ResizablePanel id="details" order={0} defaultSize={detailInitialSize} minSize={25}>
 						{<TaskDetail className={className} taskId={taskId} showExpand={showExpand} />}
 					</ResizablePanel>
 					<ResizableHandle withHandle />
-					<ResizablePanel id="substasks" order={1} defaultSize={100 - detailInitialSize}>
+					<ResizablePanel id="substasks" order={1} defaultSize={100 - detailInitialSize} minSize={25}>
 						{/* {<SubtaskList taskId={taskId} />} */}
 						<TaskConversation taskId={taskId} />
 					</ResizablePanel>
