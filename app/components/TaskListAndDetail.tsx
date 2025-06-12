@@ -31,7 +31,7 @@ export function TaskListAndDetail({
 	const isMobile = useIsMobile();
 	const direction = isMobile ? 'vertical' : 'horizontal';
 
-	const { getInboxWidthPercent, setInboxWidthPercent } = usePreferences({ defaultValue: 20 });
+	const { getInboxWidthPercent, setInboxWidthPercent } = usePreferences({ defaultValue: 25 });
 
 	const { getPanelSize, handleLayout } = useResizablePanelGroup({
 		getValue: getInboxWidthPercent,

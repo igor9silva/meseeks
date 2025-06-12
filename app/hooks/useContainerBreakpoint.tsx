@@ -17,7 +17,15 @@ export function useContainerBreakpoint(
 	breakpoint: number,
 ): boolean {
 	//
-	const [isBelowBreakpoint, setIsBelowBreakpoint] = useState(false);
+	// defaults to using window, so the very first render has a meaningful value
+	const [isBelowBreakpoint, setIsBelowBreakpoint] = useState(() => {
+		//
+		if (typeof window === 'undefined') return false;
+
+		const size = dimension === 'width' ? window.innerWidth : window.innerHeight;
+
+		return size < breakpoint;
+	});
 
 	useEffect(() => {
 		//
@@ -52,21 +60,15 @@ export function useContainerBreakpoint(
 		observer.observe(element);
 
 		// initial check
-		let initialSize: number;
-
-		if (element.getBoundingClientRect) {
-			initialSize =
-				dimension === 'width' ? element.getBoundingClientRect().width : element.getBoundingClientRect().height;
-		} else {
-			// fallback for older browsers or different environments
-			initialSize = dimension === 'width' ? element.offsetWidth : element.offsetHeight;
-		}
+		const initialSize =
+			dimension === 'width' ? element.getBoundingClientRect().width : element.getBoundingClientRect().height;
 
 		setIsBelowBreakpoint(initialSize < breakpoint);
 
 		return () => {
 			observer.disconnect();
 		};
+		//
 	}, [containerRef, dimension, breakpoint]);
 
 	return isBelowBreakpoint;

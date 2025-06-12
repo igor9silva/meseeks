@@ -12,7 +12,7 @@ export function TaskDetailAndConversation({
 	list,
 	detail,
 	className,
-	defaultListSize = 75,
+	defaultListSize = 70,
 	widthBreakpoint = DEFAULT_MD_BREAKPOINT,
 	heightBreakpoint = MIN_HEIGHT_FOR_CONVERSATION,
 }: {
@@ -33,14 +33,18 @@ export function TaskDetailAndConversation({
 	// render if there is detail data AND the container height is sufficient
 	const shouldRenderDetailPanel = Boolean(detail) && !isBelowHeightBreakpoint;
 
-	const { getTaskDetailWidthPercent, setTaskDetailWidthPercent } = usePreferences({
-		defaultValue: defaultListSize,
+	const {
+		getTaskDetailWidthPercentDesktop: getWidthDesktop,
+		setTaskDetailWidthPercentDesktop: setWidthDesktop,
+		getTaskDetailWidthPercentMobile: getWidthMobile,
+		setTaskDetailWidthPercentMobile: setWidthMobile,
+	} = usePreferences({
+		defaultValue: isBelowWidthBreakpoint ? 20 : defaultListSize,
 	});
 
 	const { getPanelSize, handleLayout } = useResizablePanelGroup({
-		getValue: getTaskDetailWidthPercent,
-		setValue: setTaskDetailWidthPercent,
-		defaultValue: defaultListSize,
+		getValue: isBelowWidthBreakpoint ? getWidthMobile : getWidthDesktop,
+		setValue: isBelowWidthBreakpoint ? setWidthMobile : setWidthDesktop,
 	});
 
 	const panelSize = getPanelSize() ?? defaultListSize;
