@@ -149,16 +149,27 @@ export function DebugAction({
 					</div>
 				)}
 
-				{action.result?.text && (
+				{action.result && (
 					<div>
 						<h3 className="font-medium mb-1">Result</h3>
 						<div className="bg-muted rounded-md border p-2 overflow-auto min-h-[32px] max-h-64">
 							<div className="font-mono">
-								{typeof action.result.text === 'string' ? (
-									<StructuredValue value={action.result.text} />
-								) : (
-									<StructuredValue value={null} />
+								{action.result.text && (
+									<div className="mb-2">
+										<div className="text-xs text-muted-foreground mb-1">Text:</div>
+										<StructuredValue value={action.result.text} />
+									</div>
 								)}
+								{action.result.reactions && action.result.reactions.length > 0 && (
+									<div>
+										<div className="text-xs text-muted-foreground mb-1">Reactions:</div>
+										<StructuredValue value={action.result.reactions} />
+									</div>
+								)}
+								{!action.result.text &&
+									(!action.result.reactions || action.result.reactions.length === 0) && (
+										<StructuredValue value={action.result} />
+									)}
 							</div>
 						</div>
 					</div>

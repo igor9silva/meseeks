@@ -120,6 +120,32 @@ export function useTaskMutations() {
 		});
 	};
 
+	const scheduleIteration = ({
+		taskId,
+		scheduleType,
+		scheduledAt,
+		cronExpression,
+		timeZone,
+	}: {
+		taskId: Id<'tasks'>;
+		scheduleType: 'one-time' | 'recurring';
+		scheduledAt?: string;
+		cronExpression?: string;
+		timeZone: string;
+	}) => {
+		return act({
+			taskId,
+			skillKey: 'schedule',
+			args: {
+				scheduleType,
+				scheduledAt,
+				cronExpression,
+				timeZone,
+				skillKey: 'iterate',
+			},
+		});
+	};
+
 	const approveAction = ({
 		taskId, //
 		actionId,
@@ -177,6 +203,7 @@ export function useTaskMutations() {
 		reopen,
 		increaseBudget,
 		requestIteration,
+		scheduleIteration,
 		approveAction,
 		rejectAction,
 		approveBlockingAction,

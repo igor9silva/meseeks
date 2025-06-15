@@ -1,4 +1,5 @@
 import { askForClarification } from './askForClarification';
+import { cancelSchedule } from './cancelSchedule';
 import { createSkill } from './createSkill';
 import { discard } from './discard';
 import { divide } from './divide';
@@ -13,6 +14,7 @@ import { requestBudget } from './requestBudget';
 import { requestIteration } from './requestIteration';
 import { resolve } from './resolve';
 import { say } from './say';
+import { schedule } from './schedule';
 import { setUserInfo } from './setUserInfo';
 import { stop } from './stop';
 import { subtract } from './subtract';
@@ -45,6 +47,10 @@ export const _builtInSkills = {
 	discard,
 	requestIteration,
 	lookAtMe,
+
+	// scheduling
+	schedule,
+	cancelSchedule,
 
 	// skills
 	createSkill,

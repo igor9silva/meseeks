@@ -186,6 +186,7 @@ export const instructionVariableSchema = z.union([
 	z.literal('task.budgetUSDC.total'),
 	z.literal('task.budgetUSDC.spent'),
 	z.literal('task.budgetUSDC.available'),
+	z.literal('taskSchedules').describe('List of active schedules for the current task, in a XML-like format'),
 	z.literal('currentDate').describe('The current date and time in ISO 8601 format'),
 	z.literal('userInfo').describe('Information about the user, written by themself'),
 	z.literal('allSkills').describe('A list of all existing skills.'),

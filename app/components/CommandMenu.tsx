@@ -10,6 +10,8 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/utils/money';
 import {
 	BadgeCent,
+	CalendarClock,
+	CalendarIcon,
 	Circle,
 	CircleCheckBig,
 	CircleX,
@@ -32,7 +34,9 @@ import {
 	CommandLoading,
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
+import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
+import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 
@@ -157,6 +161,10 @@ export function CommandMenuDialog() {
 						<Sparkles className="mr-2" />
 						Manage skills
 					</CommandItem>
+					<CommandItem value="/schedules" keywords={['schedules', 'manage', 'schedule']} onSelect={onSelect}>
+						<CalendarIcon className="mr-2" />
+						See schedules
+					</CommandItem>
 					<CommandItem
 						value="github"
 						keywords={['github', 'source', 'code', 'repository']}
@@ -177,6 +185,7 @@ export function CommandMenuDialog() {
 					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
 					<CommandItem
 						value="feedback"
 						keywords={['feedback', 'report', 'bug', 'suggest']}
@@ -336,6 +345,28 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 		<CommandItem keywords={['budget', 'add', 'increase']} onSelect={handleSelect}>
 			<CircleCheckBig className="mr-2" />
 			Add budget
+		</CommandItem>
+	);
+}
+
+function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
+	//
+	const { close } = useCommandMenu();
+	const scheduleDialog = useScheduleDialog();
+
+	const { task } = useCurrentTask();
+	if (!task || !task.isActive) return null;
+
+	const handleSelect = () => {
+		//
+		scheduleDialog.open(taskId);
+		close();
+	};
+
+	return (
+		<CommandItem keywords={['schedule', 'iteration', 'current']} onSelect={handleSelect}>
+			<CalendarClock className="mr-2" />
+			Schedule iteration
 		</CommandItem>
 	);
 }

@@ -1,3 +1,4 @@
+import { CancelScheduleAction } from '~/components/actions/CancelScheduleAction';
 import { DiscardAction } from '~/components/actions/DiscardAction';
 import { DoneAction } from '~/components/actions/DoneAction';
 import { IncreaseBudgetAction } from '~/components/actions/IncreaseBudgetAction';
@@ -6,6 +7,7 @@ import { ReasonAction } from '~/components/actions/ReasonAction';
 import { RequestBudgetAction } from '~/components/actions/RequestBudgetAction';
 import { ResolveAction } from '~/components/actions/ResolveAction';
 import { SayAction } from '~/components/actions/SayAction';
+import { ScheduleAction } from '~/components/actions/ScheduleAction';
 import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
 import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
 import { SearchWebAction } from '~/components/actions/SearchWebAction';
@@ -28,6 +30,8 @@ export default {
 	scrapeLink: ScrapeLinkAction,
 	searchPlaces: SearchPlacesAction,
 	reason: ReasonAction,
+	schedule: ScheduleAction,
+	cancelSchedule: CancelScheduleAction,
 	//
 	createSkill: LearnAction,
 	updateSkill: LearnAction,

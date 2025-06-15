@@ -2,6 +2,7 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { _addMany as _addActions } from '../action/private';
 import { internalMutation, internalQuery } from '../lib';
+import { _cancelAllForTask } from '../schedules/private';
 import { authorSchema } from '../schemas/authorSchema';
 import { modelsSchema } from '../schemas/skillSchema';
 import { taskStatusSchema } from '../schemas/taskSchema';
@@ -395,6 +396,12 @@ export const _setStatus = internalMutation({
 			// remove funds from the task
 			if (task.budgetUSDC.available > 0n) {
 				await _removeFunds(ctx, { taskId, amount: task.budgetUSDC.available });
+			}
+
+			// cancel all active schedules for this task
+			const cancelledCount = await _cancelAllForTask(ctx, { taskId });
+			if (cancelledCount > 0) {
+				console.debug(`Cancelled ${cancelledCount} schedule(s) for task ${taskId} (status: ${newStatus})`);
 			}
 		}
 

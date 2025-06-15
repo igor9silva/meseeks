@@ -31,7 +31,7 @@ export const updateInstructions = defineSkill({
 
 			await execution.ctx.runMutation(internal.tasks.private._updateInstructions, {
 				taskId: execution.task._id,
-				title: isTitleTruncated ? args.title?.slice(0, MAX_TITLE_LENGTH) + '...' : args.title,
+				title: isTitleTruncated ? args.title?.slice(0, MAX_TITLE_LENGTH).trim() + '...' : args.title,
 				instructions: args.instructions,
 			});
 

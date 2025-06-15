@@ -14,7 +14,7 @@ import { createReactions } from '../../skills/createReactions';
 import { _findOne as _findOneSkill } from '../../skills/private';
 import { createTool } from '../../skills/tools';
 import { _findOne as _findOneTask, _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
-import { isError, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../utils/errors';
+import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../utils/errors';
 import { asDollars } from '../../utils/money';
 import { _addMany, _findOne as _findOneAction } from '../private';
 
@@ -359,10 +359,8 @@ async function _handleActionError({
 	//
 	console.info(`action ${actionId} execution failed: ${error}`);
 
-	const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
 	const result = {
-		text: errorMessage,
+		text: messageFrom(error),
 		reactions: [] as Array<z.infer<typeof newActionSchema>>,
 	};
 

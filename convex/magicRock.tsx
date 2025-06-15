@@ -306,17 +306,9 @@ async function renderInstructions(
 	// TODO: workaround because we needed an async
 	result = await replaceAllSkillsIfNeeded(ctx, task.owner, result);
 
-	// TODO: make the whole variable replacement async, and remove this workaround
-	let userInfo: string | undefined;
-	if (result.includes('{{userInfo}}')) {
-		const userInfoPreference = await ctx.runQuery(internal.users.preferences.private._getUserPreferece, {
-			userId: task.owner,
-			key: 'userInfo',
-		});
-		userInfo =
-			userInfoPreference?.value ||
-			'<system>No user information available. Use setUserInfo skill to add personal details.</system>';
-	}
+	// Handle async variables
+	const userInfo = await getUserInfoIfNeeded(ctx, task.owner, result);
+	const taskSchedules = await getTaskSchedulesIfNeeded(ctx, task._id, result);
 
 	// continue replacing until no more variables to replace
 	while (result !== prevResult) {
@@ -334,7 +326,7 @@ async function renderInstructions(
 			}
 
 			// replace with the value
-			return valueForVariable(trimmedVariable, task, action, userInfo);
+			return valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules);
 		});
 	}
 
@@ -363,6 +355,7 @@ function valueForVariable(
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 	userInfo?: string,
+	taskSchedules?: string,
 ): string {
 	//
 	switch (variable) {
@@ -429,6 +422,9 @@ function valueForVariable(
 		case 'task.budgetUSDC.available':
 			return asDollars({ bigInt: task.budgetUSDC.available, precision: 10 });
 
+		case 'taskSchedules':
+			return taskSchedules ?? '<system>No active schedules for this task.</system>';
+
 		case 'currentDate':
 			return new Date().toISOString();
 
@@ -461,6 +457,68 @@ function valueForVariable(
 
 			console.warn(`Unknown variable: ${variable}`);
 			return variable;
+	}
+}
+
+async function getUserInfoIfNeeded(
+	ctx: ActionCtx | MutationCtx,
+	userId: Id<'users'>,
+	text: string,
+): Promise<string | undefined> {
+	//
+	if (!text.includes('{{userInfo}}')) return undefined;
+
+	const userInfoPreference = await ctx.runQuery(internal.users.preferences.private._getUserPreferece, {
+		userId,
+		key: 'userInfo',
+	});
+
+	return (
+		userInfoPreference?.value ||
+		'<system>No user information available. Use setUserInfo skill to add personal details.</system>'
+	);
+}
+
+async function getTaskSchedulesIfNeeded(
+	ctx: ActionCtx | MutationCtx,
+	taskId: Id<'tasks'>,
+	text: string,
+): Promise<string | undefined> {
+	//
+	if (!text.includes('{{taskSchedules}}')) return undefined;
+
+	try {
+		const schedules = await ctx.runQuery(internal.schedules.private._listByTask, {
+			taskId,
+		});
+
+		if (schedules.length === 0) {
+			return '<system>No active schedules for this task.</system>';
+		}
+
+		return schedules
+			.map((schedule) => {
+				const nextRun = new Date(schedule.nextRunAt).toISOString();
+				const type = schedule.scheduleType === 'one-time' ? 'One-time' : 'Recurring';
+				const details =
+					schedule.scheduleType === 'one-time'
+						? `at ${nextRun}`
+						: `cron: ${schedule.cronExpression}, next: ${nextRun}`;
+
+				return [
+					`<schedule>`,
+					`<id>${schedule._id}</id>`,
+					`<type>${type}</type>`,
+					`<skillKey>${schedule.skillKey}</skillKey>`,
+					`<details>${details}</details>`,
+					`<timezone>${schedule.timeZone}</timezone>`,
+					`</schedule>`,
+				].join('');
+			})
+			.join('');
+	} catch (error) {
+		console.error('Failed to fetch task schedules:', error);
+		return '<system>Error loading schedules.</system>';
 	}
 }
 

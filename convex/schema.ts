@@ -4,6 +4,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { actionSchema } from './schemas/actionSchema';
 import { componentSchema } from './schemas/componentSchema';
 import { polarEventSchema } from './schemas/polarEventSchema';
+import { scheduleSchema } from './schemas/scheduleSchema';
 import { skillSchema } from './schemas/skillSchema';
 import { subscriptionSchema } from './schemas/subscriptionSchema';
 import { taskSchema } from './schemas/taskSchema';
@@ -67,6 +68,14 @@ export default defineSchema({
 		'by_task', ['taskId'],
 	).index(
 		'by_task_status', ['taskId', 'status'],
+	),
+
+	schedules: defineTable(
+		zodToConvex(scheduleSchema),
+	).index(
+		'by_task', ['taskId'],
+	).index(
+		'by_owner', ['owner'],
 	),
 
 	skills: defineTable(

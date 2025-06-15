@@ -9,6 +9,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import * as React from 'react';
 import { CommandMenuDialog } from '~/components/CommandMenu';
+import { ScheduleIterationDialog } from '~/components/dialogs/ScheduleIterationDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
@@ -17,6 +18,7 @@ import { FeedbackDialog } from '~/components/ui/FeedbackDialog';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
+import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 
 import appCss from '~/styles/app.css?url';
 
@@ -118,7 +120,9 @@ function Main({ children }: { children: React.ReactNode }) {
 
 	return (
 		<FeedbackDialogProvider>
-			<MainWithFeedback>{children}</MainWithFeedback>
+			<ScheduleDialogProvider>
+				<MainWithFeedback>{children}</MainWithFeedback>
+			</ScheduleDialogProvider>
 		</FeedbackDialogProvider>
 	);
 }
@@ -126,7 +130,9 @@ function Main({ children }: { children: React.ReactNode }) {
 function MainWithFeedback({ children }: { children: React.ReactNode }) {
 	//
 	const feedbackDialog = useFeedbackDialog();
-	const toggle = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
+	const scheduleDialog = useScheduleDialog();
+	const toggleFeedback = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
+	const toggleSchedule = (isOpen: boolean) => (isOpen ? undefined : scheduleDialog.close());
 
 	return (
 		<div className="flex h-svh w-full">
@@ -139,7 +145,14 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 			</main>
 			<Toaster />
 			<CommandMenuDialog />
-			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggle} />
+			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
+			{scheduleDialog.taskId && (
+				<ScheduleIterationDialog
+					taskId={scheduleDialog.taskId}
+					open={scheduleDialog.isOpen}
+					onOpenChange={toggleSchedule}
+				/>
+			)}
 		</div>
 	);
 }

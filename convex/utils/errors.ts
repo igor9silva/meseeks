@@ -34,3 +34,15 @@ export const NotEnoughBudget = (
 	});
 
 export const isError = (key: string, error: unknown) => error instanceof ConvexError && error.data.code === key;
+export const messageFrom = (error: unknown, defaultMessage?: string) => {
+	//
+	if (error instanceof ConvexError) {
+		return error.data.message;
+	}
+
+	if (error instanceof Error) {
+		return error.message;
+	}
+
+	return defaultMessage ?? 'Unknown error';
+};
