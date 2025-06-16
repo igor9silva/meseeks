@@ -1,5 +1,7 @@
 .vercel
 .vinxi
+.nitro
+.tanstack
 app.config.timestamp_*.js
 node_modules
 
