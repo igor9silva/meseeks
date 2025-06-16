@@ -10,7 +10,7 @@ import { type RefCallback, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
-import { AddBudgetButton } from '~/components/AddBudgetButton';
+import { AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { DebugAction } from '~/components/DebugAction';
 import { Loading } from '~/components/Loading';
 import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
@@ -100,7 +100,7 @@ export function TaskConversation({
 								<Archive className="h-4 w-4" />
 								Discard
 							</Button>
-							<AddBudgetButton variant="ghost" />
+							<AddCustomBudgetButton variant="ghost" text="Add Budget" />
 						</>
 					) : (
 						<>

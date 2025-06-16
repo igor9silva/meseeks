@@ -4,7 +4,7 @@ import { useMDX } from '~/hooks/useMDX';
 import React from 'react';
 
 import { ErrorBoundary } from 'react-error-boundary';
-import { AddBudgetButton } from '~/components/AddBudgetButton';
+import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
 import { Grid } from '~/components/layout/Grid';
@@ -29,6 +29,7 @@ import { cn } from '~/lib/utils';
 
 const components = {
 	AddBudgetButton,
+	AddCustomBudgetButton,
 	Balance,
 	Separator,
 	Button,
