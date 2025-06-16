@@ -1,5 +1,5 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
-import { asDollars } from 'convex/utils/money';
+import { asDollars } from 'convex/lib/money';
 import { useEffect, useState } from 'react';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';

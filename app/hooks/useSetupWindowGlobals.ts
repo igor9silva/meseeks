@@ -1,4 +1,4 @@
-import { asDollars } from 'convex/utils/money';
+import { asDollars } from 'convex/lib/money';
 import React from 'react';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useTask } from '~/hooks/useTask';

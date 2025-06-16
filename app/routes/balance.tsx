@@ -4,7 +4,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
-import { asBigInt, asDollars } from 'convex/utils/money';
+import { asBigInt, asDollars } from 'convex/lib/money';
 import { AlertTriangle, ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
 import { DollarCredits } from '~/components/DollarCredits';
 import { TimeAgo } from '~/components/TimeAgo';

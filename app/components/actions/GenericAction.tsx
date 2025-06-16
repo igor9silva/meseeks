@@ -2,7 +2,7 @@ import { Doc, Id } from 'convex/_generated/dataModel';
 import { useMemo } from 'react';
 import { cn } from '~/lib/utils';
 
-import { asDollars } from 'convex/utils/money';
+import { asDollars } from 'convex/lib/money';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import MDX from '~/components/ui/mdx';

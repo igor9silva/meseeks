@@ -1,5 +1,5 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
-import { asDollars } from 'convex/utils/money';
+import { asDollars } from 'convex/lib/money';
 
 import { GenericAction } from '~/components/actions/GenericAction';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';

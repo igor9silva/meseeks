@@ -8,7 +8,7 @@ import { useMutation } from 'convex/react';
 import { usePayment } from '~/hooks/usePayment';
 import { cn } from '~/lib/utils';
 
-import { asDollars } from 'convex/utils/money';
+import { asDollars } from 'convex/lib/money';
 import { BasicError } from '~/components/BasicError';
 import { topUpStatusColors } from '~/components/TopUpItem';
 import { Badge } from '~/components/ui/badge';

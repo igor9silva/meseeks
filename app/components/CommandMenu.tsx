@@ -7,7 +7,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuthActions } from '@convex-dev/auth/react';
-import { asBigInt } from 'convex/utils/money';
+import { asBigInt } from 'convex/lib/money';
 import {
 	BadgeCent,
 	CalendarClock,

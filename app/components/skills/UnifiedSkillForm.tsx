@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Doc } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/utils/money';
+import { asBigInt } from 'convex/lib/money';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';

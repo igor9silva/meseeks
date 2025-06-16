@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
+import { asDollars } from 'convex/lib/money';
 import { pricingFor } from 'convex/schemas/skillSchema';
-import { asDollars } from 'convex/utils/money';
 import { Share } from 'lucide-react';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';

@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
+import { asBigInt } from 'convex/lib/money';
 import { useAction } from 'convex/react';
-import { asBigInt } from 'convex/utils/money';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { DollarCredits } from '~/components/DollarCredits';
