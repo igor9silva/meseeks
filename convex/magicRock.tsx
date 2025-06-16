@@ -9,12 +9,12 @@ import { z } from 'zod';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
+import { asDollars } from './lib/money';
 import { env } from './schemas/envSchema';
 import type { instructionVariableSchema, modelsSchema, softSkillSchema } from './schemas/skillSchema';
 import type { AITool } from './schemas/toolSchema';
 import { modelFrom } from './skills/createAITool';
 import { _toolsForMagicRock } from './skills/tools';
-import { asDollars } from './utils/money';
 
 // >be human
 // >dig shiny rocks from ground

@@ -4,6 +4,8 @@ import { internal } from '../../_generated/api';
 import { Doc, Id } from '../../_generated/dataModel';
 import { ActionCtx, MutationCtx } from '../../_generated/server';
 import { internalAction, internalMutation, internalQuery } from '../../lib';
+import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../lib/errors';
+import { asDollars } from '../../lib/money';
 import { _prepareContext, MagicRockContext } from '../../magicRock';
 import { newActionSchema } from '../../schemas/actionSchema';
 import { env } from '../../schemas/envSchema';
@@ -14,8 +16,6 @@ import { createReactions } from '../../skills/createReactions';
 import { _findOne as _findOneSkill } from '../../skills/private';
 import { createTool } from '../../skills/tools';
 import { _findOne as _findOneTask, _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
-import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../utils/errors';
-import { asDollars } from '../../utils/money';
 import { _addMany, _findOne as _findOneAction } from '../private';
 
 // TODO: if that since we dropped support for sync actions, we can use ActionCtx only, and remove MutationCtx from the arg type

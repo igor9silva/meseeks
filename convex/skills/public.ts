@@ -2,9 +2,9 @@ import { zid } from 'convex-helpers/server/zod';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
+import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
-import { zodToString } from '../utils/zodToString';
 import { _builtInSkills } from './builtIn';
 import { _create, _findAllByOwner, _update } from './private';
 

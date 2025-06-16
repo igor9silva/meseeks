@@ -2,13 +2,13 @@ import { tool, type CoreMessage, type ToolSet } from 'ai';
 import type { z } from 'zod';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../_generated/server';
+import { asDollars } from '../lib/money';
+import { stringToZod } from '../lib/zodToString';
 import { _askMagicRock, type MagicRockContext } from '../magicRock';
 import type { newActionSchema } from '../schemas/actionSchema';
 import { env } from '../schemas/envSchema';
 import { pricingFor, type modelsSchema, type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
 import type { AITool } from '../schemas/toolSchema';
-import { asDollars } from '../utils/money';
-import { stringToZod } from '../utils/zodToString';
 
 export function createAITool(
 	ctx: ActionCtx | MutationCtx,

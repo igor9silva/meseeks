@@ -1,11 +1,11 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { authorSchema } from '../schemas/authorSchema';
 import { polarEventSchema } from '../schemas/polarEventSchema';
 import { blockchainSchema, tokenSchema, topUpAmountSchema, walletAddressSchema } from '../schemas/topUpSchema';
 import { _addTopUp } from '../transactions/private';
-import { NotFound } from '../utils/errors';
 
 export const _add = internalMutation({
 	args: {

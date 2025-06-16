@@ -2,10 +2,10 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { Doc } from '../_generated/dataModel';
 import { ActionCtx, MutationCtx } from '../_generated/server';
+import { stringToZod } from '../lib/zodToString';
 import { env } from '../schemas/envSchema';
 import { hardSkillSchema } from '../schemas/skillSchema';
 import { AITool } from '../schemas/toolSchema';
-import { stringToZod } from '../utils/zodToString';
 import { createReactions } from './createReactions';
 
 export function createHTTPTool(

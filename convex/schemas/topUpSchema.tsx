@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { asBigInt } from '../utils/money';
+import { asBigInt } from '../lib/money';
 import { authorSchema } from './authorSchema';
 
 export const blockchainSchema = z.enum([

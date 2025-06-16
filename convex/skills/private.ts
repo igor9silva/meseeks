@@ -1,9 +1,9 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
+import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema, skillOwnerSchema } from '../schemas/skillSchema';
 import { _getUserPreferece, _setUserPreference } from '../users/preferences/private';
-import { zodToString } from '../utils/zodToString';
 import { _builtInSkills } from './builtIn/index';
 
 // all global skills + all user-defined skills

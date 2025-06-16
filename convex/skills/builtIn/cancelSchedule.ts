@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
 import { Id } from '../../_generated/dataModel';
-import { messageFrom } from '../../utils/errors';
+import { messageFrom } from '../../lib/errors';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const cancelSchedule = defineSkill({

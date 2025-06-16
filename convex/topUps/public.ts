@@ -4,10 +4,10 @@ import { z } from 'zod';
 import { api, internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { action, mutation, query } from '../lib';
+import { asDollars, asNumber } from '../lib/money';
 import { env } from '../schemas/envSchema';
 import { blockchainSchema, tokenSchema, topUpAmountSchema } from '../schemas/topUpSchema';
 import { current as getCurrentUser } from '../users/public';
-import { asDollars, asNumber } from '../utils/money';
 import { _findAllByStatus, _findAllWaiting, _findOne } from './private';
 
 export const startTopUp = action({

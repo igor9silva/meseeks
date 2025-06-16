@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
-import { asDollars } from '../../utils/money';
+import { asDollars } from '../../lib/money';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const increaseBudget = defineSkill({

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { asBigInt } from '../../utils/money';
+import { asBigInt } from '../../lib/money';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const requestBudget = defineSkill({

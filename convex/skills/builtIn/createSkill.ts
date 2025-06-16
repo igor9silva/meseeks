@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
+import { asBigInt } from '../../lib/money';
+import { stringToZod } from '../../lib/zodToString';
 import {
 	decisionConfigSchema,
 	httpConfigSchema,
 	newSkillSchema,
 	simplifiedSkillSchema,
 } from '../../schemas/skillSchema';
-import { asBigInt } from '../../utils/money';
-import { stringToZod } from '../../utils/zodToString';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 const DEFAULT_PRE_APPROVED_COST = asBigInt({ dollars: 0.2 });

@@ -3,9 +3,9 @@ import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
+import { asBigInt } from '../lib/money';
 import { modelsSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
-import { asBigInt } from '../utils/money';
 import { _add, _markAsRead, _setPreferredIntelligence } from './private';
 
 export const findAll = query({

@@ -15,6 +15,11 @@ import type * as auth from "../auth.js";
 import type * as components_private from "../components/private.js";
 import type * as components_public from "../components/public.js";
 import type * as http from "../http.js";
+import type * as lib_date from "../lib/date.js";
+import type * as lib_errors from "../lib/errors.js";
+import type * as lib_money from "../lib/money.js";
+import type * as lib_polar from "../lib/polar.js";
+import type * as lib_zodToString from "../lib/zodToString.js";
 import type * as lib from "../lib.js";
 import type * as magicRock_public from "../magicRock/public.js";
 import type * as magicRock from "../magicRock.js";
@@ -85,10 +90,6 @@ import type * as users_private from "../users/private.js";
 import type * as users_public from "../users/public.js";
 import type * as users_requests_private from "../users/requests/private.js";
 import type * as users_requests_public from "../users/requests/public.js";
-import type * as utils_errors from "../utils/errors.js";
-import type * as utils_money from "../utils/money.js";
-import type * as utils_polar from "../utils/polar.js";
-import type * as utils_zodToString from "../utils/zodToString.js";
 
 import type {
   ApiFromModules,
@@ -111,6 +112,11 @@ declare const fullApi: ApiFromModules<{
   "components/private": typeof components_private;
   "components/public": typeof components_public;
   http: typeof http;
+  "lib/date": typeof lib_date;
+  "lib/errors": typeof lib_errors;
+  "lib/money": typeof lib_money;
+  "lib/polar": typeof lib_polar;
+  "lib/zodToString": typeof lib_zodToString;
   lib: typeof lib;
   "magicRock/public": typeof magicRock_public;
   magicRock: typeof magicRock;
@@ -181,10 +187,6 @@ declare const fullApi: ApiFromModules<{
   "users/public": typeof users_public;
   "users/requests/private": typeof users_requests_private;
   "users/requests/public": typeof users_requests_public;
-  "utils/errors": typeof utils_errors;
-  "utils/money": typeof utils_money;
-  "utils/polar": typeof utils_polar;
-  "utils/zodToString": typeof utils_zodToString;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

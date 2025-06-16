@@ -2,9 +2,9 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { _addSubscriptionCredits } from '../transactions/private';
 import { _setFounder } from '../users/private';
-import { NotFound } from '../utils/errors';
 
 export const _add = internalMutation({
 	args: {

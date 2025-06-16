@@ -1,6 +1,6 @@
-import { format, isToday, isTomorrow } from 'date-fns';
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
+import { formatScheduledTime } from '../../lib/date';
 import { computeNextRun } from '../../schedules/cron';
 import { timeZoneSchema } from '../../schemas/scheduleSchema';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
@@ -69,7 +69,7 @@ export const schedule = defineSkill({
 					scheduledTimestamp = new Date(args.scheduledAt!);
 				}
 
-				const description = formatScheduledTime(scheduledTimestamp);
+				const description = formatScheduledTime(scheduledTimestamp, args.timeZone);
 				return {
 					text: `📅 Scheduled to iterate ${description}`,
 					reactions: execution.skill.knownReactions,
@@ -81,24 +81,10 @@ export const schedule = defineSkill({
 				return {
 					text: [
 						`📅 Scheduled to iterate recurrently (rule ${args.cronExpression}).`,
-						`Next run will be ${formatScheduledTime(nextRun)}`,
+						`Next run will be ${formatScheduledTime(nextRun, args.timeZone)}`,
 					].join(' '),
 					reactions: execution.skill.knownReactions,
 				};
 			}
 		},
 });
-
-// Helper function to format dates in a human-readable way
-function formatScheduledTime(date: Date): string {
-	//
-	if (isToday(date)) {
-		return `today at ${format(date, 'h:mm a')}`;
-	}
-
-	if (isTomorrow(date)) {
-		return `tomorrow at ${format(date, 'h:mm a')}`;
-	}
-
-	return `at ${date.toLocaleString()}`;
-}

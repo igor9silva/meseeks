@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
+import { asBigInt } from '../../lib/money';
 import { newSkillSchema, simplifiedSkillSchema } from '../../schemas/skillSchema';
-import { asBigInt } from '../../utils/money';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 import { createConfig, ensureInputSchemaIsValid } from './createSkill';
 
