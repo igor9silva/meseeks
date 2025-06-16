@@ -71,7 +71,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "1.2.1",
 		"cmdk": "^1.0.4",
-		"convex": "^1.17.3",
+		"convex": "1.17.3",
 		"convex-helpers": "^0.1.65",
 		"cron-parser": "^5.3.0",
 		"date-fns": "^4.1.0",
