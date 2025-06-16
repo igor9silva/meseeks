@@ -22,7 +22,7 @@ export const Route = createFileRoute('/$')({
 	validateSearch: searchSchema,
 });
 
-export default function MDXPage() {
+function MDXPage() {
 	//
 	const params = useSplatParams();
 

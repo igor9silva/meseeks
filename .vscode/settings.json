@@ -21,9 +21,9 @@
 
 	"terminal.integrated.env.osx": {
 		"COMPOSER_NO_INTERACTION": "1"
-	},
+	}
 
-	"terminal.integrated.defaultProfile.linux": "zsh",
-	"terminal.integrated.defaultProfile.osx": "zsh",
-	"terminal.integrated.shellIntegration.enabled": false
+	// "terminal.integrated.defaultProfile.linux": "zsh",
+	// "terminal.integrated.defaultProfile.osx": "zsh",
+	// "terminal.integrated.shellIntegration.enabled": false
 }

@@ -3,7 +3,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 
 export default {
 	darkMode: 'selector',
-	content: ['app/**/*.{ts,tsx}'],
+	content: ['src/**/*.{ts,tsx}'],
 	theme: {
 		container: {
 			center: true,

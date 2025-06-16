@@ -38,6 +38,7 @@ export function createRouter() {
 	const router = routerWithQueryClient(
 		createTanStackRouter({
 			routeTree,
+			scrollRestoration: true,
 			defaultViewTransition: true,
 			defaultPreload: 'intent',
 			defaultPreloadDelay: 50, // 50ms is the default, just making it explicit here
