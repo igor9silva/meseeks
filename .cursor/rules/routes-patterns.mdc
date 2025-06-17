@@ -1,0 +1,351 @@
+---
+description: 
+globs: src/routes/**/*.tsx,src/routes/**/*.ts
+alwaysApply: false
+---
+# TanStack Router Routing Concepts
+
+TanStack Router supports a number of powerful routing concepts that allow you to build complex and dynamic routing systems with ease.
+
+## Anatomy of a Route
+
+All routes (other than the Root Route) are configured using the `createFileRoute` function, which provides type safety when using file-based routing:
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/posts')({
+  component: PostsComponent,
+})
+```
+
+The `createFileRoute` function takes a single argument: the file-route's path as a string. This path is automatically written and managed by the router via the TanStack Router Bundler Plugin or Router CLI.
+
+## The Root Route
+
+The root route is the top-most route in the entire tree and encapsulates all other routes as children.
+
+- It has **no path**
+- It is **always** matched
+- Its component is **always** rendered
+
+To create a root route:
+
+```tsx
+// Standard root route
+import { createRootRoute } from '@tanstack/react-router'
+
+export const Route = createRootRoute()
+
+// Root route with Context
+import { createRootRouteWithContext } from '@tanstack/react-router'
+import type { QueryClient } from '@tanstack/react-query'
+
+export interface MyRouterContext {
+  queryClient: QueryClient
+}
+export const Route = createRootRouteWithContext<MyRouterContext>()
+```
+
+## Basic Routes
+
+Basic routes match URL path segments and render their associated components. Each route file corresponds to a URL path:
+
+```
+routes/
+├── index.tsx      // matches "/"
+├── about.tsx      // matches "/about"
+├── posts.tsx      // matches "/posts"
+```
+
+## Index Routes
+
+Index routes are routes that render when their parent route is matched exactly. They are named `index.tsx`:
+
+```
+routes/
+├── index.tsx           // matches "/"
+├── posts/
+│   ├── index.tsx       // matches "/posts"
+│   ├── new.tsx         // matches "/posts/new"
+```
+
+## Dynamic Route Segments
+
+Dynamic route segments are denoted by a `$` prefix and can capture path parameters:
+
+```
+routes/
+├── posts.$postId.tsx          // matches "/posts/123", "/posts/abc", etc.
+├── users.$userId.edit.tsx     // matches "/users/123/edit"
+```
+
+Access dynamic parameters in your component:
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/posts/$postId')({
+  component: PostComponent,
+})
+
+function PostComponent() {
+  const { postId } = Route.useParams()
+  return <div>Post ID: {postId}</div>
+}
+```
+
+## Splat / Catch-All Routes
+
+Splat routes (using `$`) capture all remaining path segments:
+
+```
+routes/
+├── $.tsx               // matches any unmatched route
+├── files.$.tsx         // matches "/files/any/path/here"
+```
+
+## Layout Routes
+
+Layout routes wrap child routes with shared UI. They match URL segments and render an `<Outlet />` for child content:
+
+```
+routes/
+├── posts.tsx              // Layout component
+├── posts.index.tsx        // Child route
+├── posts.new.tsx          // Child route
+├── posts.$postId.tsx      // Child route
+```
+
+Layout route example:
+
+```tsx
+import { Outlet, createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/posts')({
+  component: PostsLayoutComponent,
+})
+
+function PostsLayoutComponent() {
+  return (
+    <div>
+      <h1>Posts Section</h1>
+      <Outlet /> {/* Child routes render here */}
+    </div>
+  )
+}
+```
+
+| URL Path        | Component                           |
+|-----------------|-------------------------------------|
+| `/posts`        | `<PostsLayout><PostsIndex>`        |
+| `/posts/new`    | `<PostsLayout><PostsNew>`          |
+| `/posts/123`    | `<PostsLayout><PostsDetail>`       |
+
+## Pathless Layout Routes
+
+Pathless layout routes are prefixed with an underscore (`_`) and provide layout without adding to the URL:
+
+```
+routes/
+├── _pathlessLayout.tsx
+├── _pathlessLayout.a.tsx
+├── _pathlessLayout.b.tsx
+```
+
+Pathless layout example:
+
+```tsx
+import { Outlet, createFileRoute } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/_pathlessLayout')({
+  component: PathlessLayoutComponent,
+})
+
+function PathlessLayoutComponent() {
+  return (
+    <div>
+      <h1>Pathless layout</h1>
+      <Outlet />
+    </div>
+  )
+}
+```
+
+| URL Path | Component                    |
+|----------|------------------------------|
+| `/`      | `<Index>`                   |
+| `/a`     | `<PathlessLayout><A>`       |
+| `/b`     | `<PathlessLayout><B>`       |
+
+**Note**: Pathless layout routes cannot contain dynamic route segments in their path.
+
+## Non-Nested Routes
+
+Non-nested routes can be created by suffixing a parent file route segment with an underscore (`_`) to "un-nest" a route from its parents:
+
+```
+routes/
+├── posts.tsx
+├── posts.$postId.tsx
+├── posts_.$postId.edit.tsx    // Un-nested from posts
+```
+
+| URL Path        | Component                  |
+|-----------------|----------------------------|
+| `/posts`        | `<Posts>`                  |
+| `/posts/123`    | `<Posts><Post>`           |
+| `/posts/123/edit` | `<PostEditor>` (standalone) |
+
+The `posts_.$postId.edit.tsx` route does not share the posts prefix and renders independently.
+
+## Excluding Files and Folders from Routes
+
+Files and folders can be excluded from route generation with a `-` prefix:
+
+```
+routes/
+├── posts.tsx
+├── -posts-table.tsx         // ignored
+├── -components/             // ignored
+│   ├── header.tsx          // ignored
+│   ├── footer.tsx          // ignored
+```
+
+You can import from excluded files:
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { PostsTable } from './-posts-table'
+import { PostsHeader } from './-components/header'
+
+export const Route = createFileRoute('/posts')({
+  component: PostComponent,
+})
+
+function PostComponent() {
+  return (
+    <div>
+      <PostsHeader />
+      <PostsTable />
+    </div>
+  )
+}
+```
+
+## Pathless Route Group Directories
+
+Pathless route group directories use `()` for purely organizational purposes without affecting the route tree:
+
+```
+routes/
+├── index.tsx
+├── (app)/
+│   ├── dashboard.tsx        // matches "/dashboard"
+│   ├── settings.tsx         // matches "/settings"
+├── (auth)/
+│   ├── login.tsx           // matches "/login"
+│   ├── register.tsx        // matches "/register"
+```
+
+The parentheses groups are purely organizational and don't affect the URL structure.
+
+## Route Configuration Options
+
+Routes can be configured with various options:
+
+```tsx
+export const Route = createFileRoute('/posts/$postId')({
+  // Component to render
+  component: PostComponent,
+  
+  // Data loading
+  loader: async ({ params }) => {
+    return fetchPost(params.postId)
+  },
+  
+  // Search param validation
+  validateSearch: (search) => ({
+    page: Number(search?.page) || 1,
+  }),
+  
+  // Before load hook
+  beforeLoad: async ({ context, location }) => {
+    // Authentication checks, etc.
+  },
+  
+  // Pending component while loading
+  pendingComponent: () => <div>Loading post...</div>,
+  
+  // Error component
+  errorComponent: ({ error }) => <div>Error: {error.message}</div>,
+  
+  // Not found component
+  notFoundComponent: () => <div>Post not found</div>,
+})
+```
+
+## Route Hooks
+
+Use route-specific hooks to access route data:
+
+```tsx
+function PostComponent() {
+  const { postId } = Route.useParams()      // Path parameters
+  const search = Route.useSearch()          // Search parameters
+  const data = Route.useLoaderData()        // Loader data
+  const navigate = Route.useNavigate()      // Navigation function
+}
+```
+
+## Best Practices
+
+1. **File Organization**: Keep related routes in folders with clear hierarchies
+2. **Layout Routes**: Use layout routes for shared UI components
+3. **Dynamic Segments**: Use descriptive parameter names (`$postId` not `$id`)
+4. **Error Handling**: Always provide error and not-found components
+5. **Loading States**: Use pending components for better UX
+6. **Type Safety**: Leverage TypeScript for route parameters and search params
+7. **Data Loading**: Use loaders for data fetching and validation
+8. **Route Guards**: Implement authentication checks in `beforeLoad`
+
+## Common Patterns
+
+### Protected Routes
+```tsx
+export const Route = createFileRoute('/admin/dashboard')({
+  beforeLoad: async ({ context }) => {
+    if (!context.user?.isAdmin) {
+      throw new Error('Unauthorized')
+    }
+  },
+  component: AdminDashboard,
+})
+```
+
+### Search Param Validation
+```tsx
+const searchSchema = z.object({
+  page: z.number().min(1).default(1),
+  filter: z.string().optional(),
+})
+
+export const Route = createFileRoute('/posts')({
+  validateSearch: searchSchema,
+  component: PostsList,
+})
+```
+
+### Nested Data Loading
+```tsx
+export const Route = createFileRoute('/posts/$postId')({
+  loader: async ({ params, context }) => {
+    const [post, comments] = await Promise.all([
+      fetchPost(params.postId),
+      fetchComments(params.postId),
+    ])
+    return { post, comments }
+  },
+  component: PostDetail,
+})
+```

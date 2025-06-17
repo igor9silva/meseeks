@@ -1,0 +1,48 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Global Project Standards
+
+## Package Manager & Runtime
+- **ALWAYS** use `bun` instead of npm, yarn, pnpm
+- Use `bunx` instead of `npx` 
+- For TypeScript checking: `bunx tsc --noEmit`
+
+## Project Stack
+- **TanStack Router** (NOT Next.js)
+- **Convex** for backend
+- **Tailwind** + **shadcn-like** components
+- **TanStack** for forms and validation
+- **Sonner** for toasts/notifications
+
+## Code Style & Formatting
+- Add blank comment lines for function readability (prettier workaround):
+  ```ts
+  export function useIsMobile() {
+    //
+    const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
+  }
+  ```
+- **DO NOT** remove existing comments - user reviews manually
+- **DO NOT** mess with indentation
+- Prefer `Boolean()` over `!!` for readability
+- Prefer `const` over `let`
+- **Everything must be type-safe** - `any` is STRICTLY FORBIDDEN (explicit or implicit!)
+- Comment style: lowercase (no capitalization)
+- One-liner validation preferred: `if (!element) return;` (unless it can't fit on a single line, then use {})
+
+## Performance
+- Prefer `array.concat()` over spread syntax
+- Avoid unnecessary re-renders
+
+## Error Handling
+- Avoid Sentry-specific filters
+
+## Logging
+- use `console.error` for possibly fatal stuff, unhlanded errors (trigger a max priority admin notification)
+- use `console.warn` for things that won't break the app, but should never happen (trigger a normal admin notification)
+- use `console.info` for things we what to see on the logs ALL THE TIME
+- use `console.debug` for things we what to see during a debug session (won't be recorded unless someone manually increases the LOG_LEVEL variable on the server)
+	- since it's flagged, we can use as much as we want

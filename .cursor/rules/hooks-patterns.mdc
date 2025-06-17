@@ -1,0 +1,6 @@
+---
+description: 
+globs: src/hooks/**/*.ts,src/hooks/**/*.tsx
+alwaysApply: false
+---
+1 file per hook.

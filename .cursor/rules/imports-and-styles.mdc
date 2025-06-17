@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Import Management & Styling
+
+## Import Management  
+- **CRITICAL**: Add imports AFTER first usage to prevent prettier removal
+- Import specific React hooks: `import { useEffect, useState } from 'react'`
+- Never import entire React library unless necessary
+
+## Tailwind Usage
+- **NEVER** use hardcoded values like `min-w-[256px]`
+- **ALWAYS** prefer Tailwind conventions: `min-w-64`
+- Follow shadcn patterns for component styling
+
+## Boolean Naming
+- All booleans: `isSomething`, `hasSomething`, `shouldDoSomething` (yes/no question format)
+
+## Ternary Operators
+- Only use ternary when it fits on single line
+- If its too big, find a better abstraction
+	- Break large conditions into a variable
+	- Break large JSX blocks into it's own component
+	- Break large code blocks within JSX to it's own helper function
+	- ...
+
+## Component Organization
+- **PascalCase** for component files (except for primitives within the ~/components/ui dir)
+- Main component FIRST in file
+- Helper components AFTER main component
+- Prefer `array.concat()` over spread operator for performance

@@ -1,0 +1,10 @@
+---
+description: 
+globs: src/lib/**/*.ts,src/lib/**/*.tsx
+alwaysApply: false
+---
+# Library & Utilities Patterns
+Generally shared stuff that isn't a hook nor a component.
+Make sure everything is validated using zod, performant and WELL WRITTEN AND READABLE.
+
+Follow the convetions of other files on this directory. We don't have a strict pattern/standard yet, so aim to improve the whole directory orgazation and maintainability of the whole thing on every iteration. Document here.

@@ -1,0 +1,197 @@
+---
+description: 
+globs: src/**/*.tsx,src/**/*.ts
+alwaysApply: false
+---
+# React Frontend Patterns
+
+## Component Organization
+
+### File Structure
+```
+components/
+├── ui/           # Primite components (mostly shadcn/ui)
+├── layout/       # Layout primitives components
+├── actions/      # Action components
+└── *.tsx         # Shared and feature components
+
+When we have many connected components that will hardly be used alone, it's preferrable to have it's own dir. e.g.
+	~/components/skills for /skills route-related components
+	~/components/subscribe for /subscribe route-related components
+```
+
+### Component Files
+- **PascalCase** for all component files: `TaskDetail.tsx` (except for primitives within the ~/components/ui dir)
+- Main component FIRST in file
+- Helper components AFTER main component
+
+```ts
+export function TaskDetail({ taskId }: { taskId: Id<'tasks'> }) {
+  //
+  // main component logic
+}
+
+function TaskDetailHeader({ title }: { title: string }) {
+  //
+  // helper component AFTER main
+}
+```
+
+## React Patterns
+
+### Hook Imports
+```ts
+// GOOD - specific imports
+import { useState, useEffect, useCallback } from 'react';
+
+// BAD - entire library
+import * as React from 'react';
+```
+
+### State Management
+```ts
+// Boolean naming convention
+const [isLoading, setIsLoading] = useState(false);
+const [hasError, setHasError] = useState(false);
+const [shouldShowDialog, setShouldShowDialog] = useState(false);
+```
+
+### Event Handlers
+```ts
+// Prefer descriptive names
+const handleSubmit = useCallback(() => {}, []);
+const handleTaskUpdate = useCallback(() => {}, []);
+const handleDialogClose = useCallback(() => {}, []);
+```
+
+## TanStack Patterns
+
+### Router
+Use react-router exports to navigate.
+```ts
+// Use typed routes
+import { Link, useNavigate } from '@tanstack/react-router';
+
+const navigate = useNavigate();
+const taskId = 'example';
+
+return (
+	<>
+		<div onClick={navigate({ to: '/tasks/$taskId', params: { taskId: taskId } })}>
+			Example task
+		</div>
+		<Link to="/tasks">Tasks</Link>
+	</>
+);
+```
+
+### Query/Mutations
+- Suspese Queries (preferred) will suspend to the closest <Suspense> boundary and throw to the closest <ErrorBoundary>
+- Regular queries must handle it's own pending and error states
+- We use TanStack with Convex, so must always use appropriate Convex stuff
+
+```ts
+// Convex integration
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from 'convex/react';
+import { convexQuery } from '@convex-dev/react-query';
+import { api } from 'convex/_generated/api';
+```
+
+## UI Component Patterns
+
+### Responsive Design
+```ts
+// Use Tailwind breakpoints
+className="flex flex-col md:flex-row gap-4"
+```
+
+## Form Handling
+
+### Validation
+```ts
+// Use ALWAYS Zod for ANY KIND of validation
+import { z } from 'zod';
+
+const taskSchema = z.object({
+  title: z.string().min(1, 'Title required'),
+  description: z.string().optional(),
+});
+```
+
+## Error Handling
+
+### Error Boundaries
+(we havent really a decent standard yet, so find references of error handling and improve it on every iteration)
+```ts
+import { ErrorBoundary } from 'react-error-boundary';
+
+function ErrorFallback({ error }: { error: Error }) {
+  //
+  return <div>Something went wrong: {error.message}</div>;
+}
+
+// Usage
+<ErrorBoundary FallbackComponent={ErrorFallback}>
+  <Component />
+</ErrorBoundary>
+```
+
+### Toast Notifications
+```ts
+import { toast } from 'sonner';
+
+// Success states
+toast.success('Task updated successfully');
+
+// Error states  
+toast.error('Failed to update task');
+
+// Loading states
+toast.loading('Updating task...');
+```
+
+## Performance
+
+### Memoization
+```ts
+// Wrap expensive calculations
+const expensiveValue = useMemo(() => {
+  return heavyComputation(data);
+}, [data]);
+
+// Stable callbacks for child components
+const handleClick = useCallback(() => {
+  // handler logic
+}, [dependency]);
+```
+
+## Accessibility
+
+### ARIA Labels
+```ts
+<button aria-label="Close dialog" onClick={onClose}>
+  <X className="h-4 w-4" />
+</button>
+```
+
+### Keyboard Navigation
+Being keyboard-friendly is an important goal of this project. Look for references, improve our standards and document here.
+
+## Anti-Patterns
+
+### Avoid Ternaries in JSX
+```ts
+// BAD
+return isLoading ? <Loading /> : hasError ? <Error /> : <Content />;
+
+// GOOD
+const shouldShowLoading = isLoading;
+const shouldShowError = hasError && !isLoading;
+const shouldShowContent = !isLoading && !hasError;
+
+if (shouldShowLoading) return <Loading />;
+if (shouldShowError) return <Error />;
+
+return <Content />;
+```
