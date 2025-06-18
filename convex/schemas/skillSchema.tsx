@@ -71,7 +71,7 @@ export const modelsSchema = z.enum([
 	// Google
 	'google/gemini-2.5-pro',
 	'google/gemini-2.5-flash',
-	'google/gemini-2.0-flash-lite',
+	'google/gemini-2.5-flash-lite',
 
 	// xAI
 	'xai/grok-3',
@@ -134,7 +134,7 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 			return pricePerMillionTokens({ input: 2.5, output: 15 });
 		case 'google/gemini-2.5-flash':
 			return pricePerMillionTokens({ input: 0.1, output: 0.6 });
-		case 'google/gemini-2.0-flash-lite':
+		case 'google/gemini-2.5-flash-lite':
 			return pricePerMillionTokens({ input: 0.075, output: 0.3 });
 
 		// xAI

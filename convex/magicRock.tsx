@@ -133,9 +133,9 @@ function languageModelFrom(
 		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
 
 		// Google
-		'google/gemini-2.5-pro': google('gemini-2.5-pro-preview-06-05', googleConfig), // TODO: experimental model
-		'google/gemini-2.5-flash': google('gemini-2.5-flash-preview-05-20', googleConfig), // TODO: experimental model
-		'google/gemini-2.0-flash-lite': google('gemini-2.0-flash-lite', googleConfig),
+		'google/gemini-2.5-pro': google('gemini-2.5-pro', googleConfig),
+		'google/gemini-2.5-flash': google('gemini-2.5-flash', googleConfig),
+		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite-preview-06-17', googleConfig), // TODO: experimental model
 
 		// xAI
 		'xai/grok-3': xai('grok-3'),
