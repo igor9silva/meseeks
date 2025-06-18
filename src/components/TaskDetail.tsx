@@ -2,14 +2,20 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { useState } from 'react';
 import { TimeAgo } from '~/components/TimeAgo';
+import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
+import { Separator } from '~/components/ui/separator';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { EditableContent } from './EditableContent';
+import { MonacoDemo } from './MonacoDemo';
+import { MonacoEditableContent } from './MonacoEditor';
+import { MonacoErrorBoundary } from './MonacoErrorBoundary';
 import { TaskBudget } from './TaskBudget';
 
 export default function TaskDetail({
@@ -25,6 +31,12 @@ export default function TaskDetail({
 	const { data: task } = useSuspenseQuery(query);
 	const { updateInstructions, resolve, reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
+	const [useMonaco, setUseMonaco] = useState(false);
+	const [showDemo, setShowDemo] = useState(false);
+	const [showDiff, setShowDiff] = useState(false);
+
+	// store original instructions for diff comparison
+	const [originalInstructions] = useState(task.instructions ?? '');
 
 	const handleCheckboxChange = (hasChecked: boolean) => {
 		//
@@ -34,6 +46,20 @@ export default function TaskDetail({
 		// Execute the actual mutation
 		hasChecked ? resolve({ taskId: task._id }) : reopen({ taskId: task._id });
 	};
+
+	if (showDemo) {
+		return (
+			<div>
+				<div className="flex items-center gap-2 p-4">
+					<Button variant="outline" onClick={() => setShowDemo(false)}>
+						← Back to Task
+					</Button>
+					<h2 className="text-xl font-semibold">Monaco Editor Demo</h2>
+				</div>
+				<MonacoDemo />
+			</div>
+		);
+	}
 
 	return (
 		<Card
@@ -65,32 +91,96 @@ export default function TaskDetail({
 							/>
 						</div>
 					</div>
-					<div className="flex items-center gap-0.5 p-2">
+					<div className="flex items-center gap-2 p-2">
 						<TimeAgo date={task._creationTime} suffix="old, " className="text-sm text-muted-foreground" />
 						<TaskBudget task={task} className="text-sm" />
+						<Separator orientation="vertical" className="h-4" />
+						<div className="flex gap-1">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setUseMonaco(!useMonaco)}
+								className="text-xs"
+							>
+								{useMonaco ? 'Simple' : 'Monaco'}
+							</Button>
+							{useMonaco && (
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setShowDiff(!showDiff)}
+									className="text-xs"
+								>
+									{showDiff ? 'Edit' : 'Diff'}
+								</Button>
+							)}
+							<Button variant="outline" size="sm" onClick={() => setShowDemo(true)} className="text-xs">
+								Demo
+							</Button>
+						</div>
 					</div>
 				</div>
 			</CardHeader>
 			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow">
-				<EditableContent
-					key={task.instructions}
-					value={task.instructions ?? ''}
-					onSave={(newInstructions) =>
-						updateInstructions({ taskId: task._id, instructions: newInstructions })
-					}
-					multiline
-					asView={({ value, enterEditMode, className, isEmpty }) => (
-						<div className={cn(className)}>
-							{isEmpty ? (
-								<div className="text-muted-foreground text-sm">No instructions.</div>
-							) : (
-								<MDX text={value} onClickFix={enterEditMode} />
+				{useMonaco ? (
+					<MonacoErrorBoundary
+						fallback={
+							<div className="p-4 border rounded-lg bg-muted/20">
+								<p className="text-sm text-muted-foreground mb-2">Monaco Editor failed to load.</p>
+								<Button size="sm" onClick={() => setUseMonaco(false)}>
+									Switch to Simple Editor
+								</Button>
+							</div>
+						}
+					>
+						<MonacoEditableContent
+							key={task.instructions}
+							value={task.instructions ?? ''}
+							onSave={(newInstructions) =>
+								updateInstructions({ taskId: task._id, instructions: newInstructions })
+							}
+							language="markdown"
+							showDiff={showDiff}
+							originalValue={originalInstructions}
+							asView={({ value, enterEditMode, className, isEmpty }) => (
+								<div className={cn(className)}>
+									{isEmpty ? (
+										<div className="text-muted-foreground text-sm">No instructions.</div>
+									) : (
+										<MDX text={value} onClickFix={enterEditMode} />
+									)}
+								</div>
 							)}
-						</div>
-					)}
-					viewClassName="w-full h-full"
-					editClassName="h-full"
-				/>
+							viewClassName="w-full h-full"
+							editClassName="h-full"
+							options={{
+								wordWrap: 'on',
+								lineNumbers: showDiff ? 'on' : 'off',
+								minimap: { enabled: showDiff },
+							}}
+						/>
+					</MonacoErrorBoundary>
+				) : (
+					<EditableContent
+						key={task.instructions}
+						value={task.instructions ?? ''}
+						onSave={(newInstructions) =>
+							updateInstructions({ taskId: task._id, instructions: newInstructions })
+						}
+						multiline
+						asView={({ value, enterEditMode, className, isEmpty }) => (
+							<div className={cn(className)}>
+								{isEmpty ? (
+									<div className="text-muted-foreground text-sm">No instructions.</div>
+								) : (
+									<MDX text={value} onClickFix={enterEditMode} />
+								)}
+							</div>
+						)}
+						viewClassName="w-full h-full"
+						editClassName="h-full"
+					/>
+				)}
 			</CardContent>
 			{/* {task.summary && (
 				<>
