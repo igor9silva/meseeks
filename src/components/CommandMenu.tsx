@@ -34,7 +34,6 @@ import {
 	CommandLoading,
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
-import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
@@ -354,8 +353,8 @@ function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useCommandMenu();
 	const scheduleDialog = useScheduleDialog();
 
-	const { task } = useCurrentTask();
-	if (!task || !task.isActive) return null;
+	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
 		//
