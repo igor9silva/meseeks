@@ -388,7 +388,7 @@ function NewTaskCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 		navigate({
 			to: '/$',
 			params: { _splat: '/new' },
-			search: search ? { newTaskText: search } : {},
+			search: search ? { q: search } : {},
 		});
 
 		close();

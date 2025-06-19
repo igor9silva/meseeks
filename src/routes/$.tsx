@@ -11,7 +11,7 @@ import { useSplatParams } from '~/hooks/useSplatParams';
 
 const searchSchema = z.object({
 	selectedSubtaskId: zid('tasks').optional(),
-	newTaskText: z.string().optional(),
+	q: z.string().optional(),
 	isBudgetDrawerOpen: z.boolean().optional(),
 	debug: z.boolean().optional(),
 });

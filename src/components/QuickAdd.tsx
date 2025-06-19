@@ -25,7 +25,7 @@ export function QuickAdd({ className }: { className?: string }) {
 	const addTask = useMutation(api.tasks.public.add);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-	const { newTaskText } = useSearch({ strict: false });
+	const { q } = useSearch({ strict: false });
 
 	useEffect(() => {
 		textareaRef.current?.focus();
@@ -83,7 +83,7 @@ export function QuickAdd({ className }: { className?: string }) {
 							name="message"
 							placeholder={randomPlaceholder()}
 							required
-							defaultValue={newTaskText}
+							defaultValue={q}
 							className="min-h-32 resize-none text-base"
 						/>
 					</div>
