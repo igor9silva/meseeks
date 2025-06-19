@@ -56,6 +56,10 @@ export const env = createEnv({
 			.pipe(z.array(z.string()))
 			.describe('Comma-separated list of allowed domains to sign in with.'),
 
+		WEB_PUSH_VAPID_PUBLIC_KEY: z.string().min(1).describe('VAPID public key for web push notifications.'),
+		WEB_PUSH_VAPID_PRIVATE_KEY: z.string().min(1).describe('VAPID private key for web push notifications.'),
+		WEB_PUSH_CONTACT_EMAIL: z.string().email().describe('Contact email for web push notifications.'),
+
 		ALLOWED_EMAILS: z
 			.string()
 			.min(1)

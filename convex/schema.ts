@@ -11,6 +11,7 @@ import { taskSchema } from './schemas/taskSchema';
 import { topUpSchema } from './schemas/topUpSchema';
 import { transactionSchema } from './schemas/transactionSchema';
 import { userPreferencesSchema, userRequestSchema, userSchema } from './schemas/userSchema';
+import { webPushSubscriptionSchema } from './schemas/webPushSubscriptionSchema';
 
 // prettier-ignore
 export default defineSchema({
@@ -37,6 +38,14 @@ export default defineSchema({
 		zodToConvex(userRequestSchema),
 	).index(
 		'by_owner_key', ['owner', 'key'],
+	),
+
+	webPushSubscriptions: defineTable(
+		zodToConvex(webPushSubscriptionSchema),
+	).index(
+		'by_user', ['userId'],
+	).index(
+		'by_endpoint', ['subscription.endpoint'],
 	),
 
 	tasks: defineTable(

@@ -13,6 +13,7 @@ import { Route as TopUpRouteImport } from './routes/top-up'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SchedulesRouteImport } from './routes/schedules'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as BalanceRouteImport } from './routes/balance'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as PolarRouteRouteImport } from './routes/polar/route'
@@ -40,6 +41,11 @@ const SkillsRoute = SkillsRouteImport.update({
 const SchedulesRoute = SchedulesRouteImport.update({
   id: '/schedules',
   path: '/schedules',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BalanceRoute = BalanceRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/balance': typeof BalanceRoute
+  '/notifications': typeof NotificationsRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/balance': typeof BalanceRoute
+  '/notifications': typeof NotificationsRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/balance': typeof BalanceRoute
+  '/notifications': typeof NotificationsRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/polar'
     | '/$'
     | '/balance'
+    | '/notifications'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/polar'
     | '/$'
     | '/balance'
+    | '/notifications'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/polar'
     | '/$'
     | '/balance'
+    | '/notifications'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   PolarRouteRoute: typeof PolarRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
   BalanceRoute: typeof BalanceRoute
+  NotificationsRoute: typeof NotificationsRoute
   SchedulesRoute: typeof SchedulesRoute
   SkillsRoute: typeof SkillsRoute
   SubscribeRoute: typeof SubscribeRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/schedules'
       fullPath: '/schedules'
       preLoaderRoute: typeof SchedulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/balance': {
@@ -291,6 +311,7 @@ const rootRouteChildren: RootRouteChildren = {
   PolarRouteRoute: PolarRouteRouteWithChildren,
   SplatRoute: SplatRoute,
   BalanceRoute: BalanceRoute,
+  NotificationsRoute: NotificationsRoute,
   SchedulesRoute: SchedulesRoute,
   SkillsRoute: SkillsRoute,
   SubscribeRoute: SubscribeRoute,

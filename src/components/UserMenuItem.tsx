@@ -81,8 +81,10 @@ export function UserMenuItem() {
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Bell />
-								Notifications
+								<Link to="/notifications">
+									<Bell />
+									Notifications
+								</Link>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />

@@ -388,11 +388,13 @@ export const _setStatus = internalMutation({
 	},
 	handler: async (ctx, { taskId, newStatus }) => {
 		//
+		const task = await _findOne(ctx, { taskId });
+		if (!task) throw new Error('Task not found');
+
+		const oldStatus = task.status;
+
 		if (newStatus === 'done' || newStatus === 'discarded') {
 			//
-			const task = await _findOne(ctx, { taskId });
-			if (!task) throw new Error('Task not found');
-
 			// remove funds from the task
 			if (task.budgetUSDC.available > 0n) {
 				await _removeFunds(ctx, { taskId, amount: task.budgetUSDC.available });
@@ -403,6 +405,13 @@ export const _setStatus = internalMutation({
 			if (cancelledCount > 0) {
 				console.debug(`Cancelled ${cancelledCount} schedule(s) for task ${taskId} (status: ${newStatus})`);
 			}
+		}
+
+		// TODO: send push notification if status changed to unread or blocked
+		if (oldStatus !== newStatus && (newStatus === 'unread' || newStatus === 'blocked')) {
+			console.debug(
+				`Task ${taskId} status changed from ${oldStatus} to ${newStatus}, will add notification once API is generated`,
+			);
 		}
 
 		return await ctx.db.patch(taskId, {

@@ -7,7 +7,9 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import * as React from 'react';
+import { Suspense } from 'react';
 import { CommandMenuDialog } from '~/components/CommandMenu';
+// import { GlobalTaskNotifications } from '~/components/GlobalTaskNotifications';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
@@ -119,6 +121,10 @@ function Main({ children }: { children: React.ReactNode }) {
 	return (
 		<FeedbackDialogProvider>
 			<ScheduleDialogProvider>
+				<Suspense fallback={<Loading />}>
+					{/* TODO: Re-enable once API is generated */}
+					{/* <GlobalTaskNotifications /> */}
+				</Suspense>
 				<MainWithFeedback>{children}</MainWithFeedback>
 			</ScheduleDialogProvider>
 		</FeedbackDialogProvider>

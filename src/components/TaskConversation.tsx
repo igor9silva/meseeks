@@ -19,6 +19,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
+// import { useTaskNotifications } from '~/hooks/useTaskNotifications';
 import { cn } from '~/lib/utils';
 
 const PAGE_SIZE = 35;
@@ -41,6 +42,10 @@ export function TaskConversation({
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
 
 	const user = useCurrentUser();
+
+	// Monitor task status changes for notifications
+	// TODO: monitor task for notifications once API is generated
+	// useTaskNotifications(task);
 
 	const {
 		results: actions,

@@ -42,6 +42,7 @@ import type * as schemas_toolSchema from "../schemas/toolSchema.js";
 import type * as schemas_topUpSchema from "../schemas/topUpSchema.js";
 import type * as schemas_transactionSchema from "../schemas/transactionSchema.js";
 import type * as schemas_userSchema from "../schemas/userSchema.js";
+import type * as schemas_webPushSubscriptionSchema from "../schemas/webPushSubscriptionSchema.js";
 import type * as skills_builtIn_askForClarification from "../skills/builtIn/askForClarification.js";
 import type * as skills_builtIn_cancelSchedule from "../skills/builtIn/cancelSchedule.js";
 import type * as skills_builtIn_createSkill from "../skills/builtIn/createSkill.js";
@@ -90,6 +91,9 @@ import type * as users_private from "../users/private.js";
 import type * as users_public from "../users/public.js";
 import type * as users_requests_private from "../users/requests/private.js";
 import type * as users_requests_public from "../users/requests/public.js";
+import type * as webPushSubscriptions_notifications from "../webPushSubscriptions/notifications.js";
+import type * as webPushSubscriptions_private from "../webPushSubscriptions/private.js";
+import type * as webPushSubscriptions_public from "../webPushSubscriptions/public.js";
 
 import type {
   ApiFromModules,
@@ -139,6 +143,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/topUpSchema": typeof schemas_topUpSchema;
   "schemas/transactionSchema": typeof schemas_transactionSchema;
   "schemas/userSchema": typeof schemas_userSchema;
+  "schemas/webPushSubscriptionSchema": typeof schemas_webPushSubscriptionSchema;
   "skills/builtIn/askForClarification": typeof skills_builtIn_askForClarification;
   "skills/builtIn/cancelSchedule": typeof skills_builtIn_cancelSchedule;
   "skills/builtIn/createSkill": typeof skills_builtIn_createSkill;
@@ -187,6 +192,9 @@ declare const fullApi: ApiFromModules<{
   "users/public": typeof users_public;
   "users/requests/private": typeof users_requests_private;
   "users/requests/public": typeof users_requests_public;
+  "webPushSubscriptions/notifications": typeof webPushSubscriptions_notifications;
+  "webPushSubscriptions/private": typeof webPushSubscriptions_private;
+  "webPushSubscriptions/public": typeof webPushSubscriptions_public;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
