@@ -18,8 +18,8 @@ export function createRouter() {
 	if (!CONVEX_URL) throw new Error('missing VITE_CONVEX_URL envar');
 
 	const convex = new ConvexReactClient(CONVEX_URL, {
-		unsavedChangesWarning: false,
-		verbose: true,
+		verbose: false,
+		unsavedChangesWarning: true,
 		authRefreshTokenLeewaySeconds: 60,
 	});
 

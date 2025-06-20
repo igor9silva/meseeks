@@ -90,6 +90,8 @@ export const env = createEnv({
 			.describe('The default context size.')
 			.default('40'),
 
+		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
+
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
 	},
 

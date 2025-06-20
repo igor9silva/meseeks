@@ -1,6 +1,7 @@
 import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 type RecordingStatus = 'idle' | 'recording' | 'transcribing';
 
@@ -10,99 +11,70 @@ interface UseVoiceRecordingProps {
 
 export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecordingProps) {
 	//
-	const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
-	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-	const audioChunksRef = useRef<Blob[]>([]);
+	const transcribeAction = useAction(api.magicRock.public.transcribe);
+
 	const streamRef = useRef<MediaStream | null>(null);
-	const transcribe = useAction(api.magicRock.public.transcribeAudio);
-
 	const currentStatusRef = useRef<RecordingStatus>('idle');
+	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-	const updateRecordingStatus = useCallback((newStatus: RecordingStatus) => {
+	const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
+
+	const updateStatus = useCallback((status: RecordingStatus) => {
 		//
-		currentStatusRef.current = newStatus;
-		setRecordingStatus(newStatus);
-		//
+		currentStatusRef.current = status;
+		setRecordingStatus(status);
 	}, []);
-
-	const handleAudioTranscription = async (blob: Blob) => {
-		//
-		if (currentStatusRef.current === 'idle') return;
-
-		updateRecordingStatus('transcribing');
-
-		try {
-			const text = await transcribe({ audio: await blob.arrayBuffer() });
-
-			if (currentStatusRef.current === 'transcribing') {
-				onTranscriptionComplete(text);
-			}
-			//
-		} catch (error) {
-			console.error('Error transcribing audio:', error);
-			// TODO: handle error in the UI
-		} finally {
-			updateRecordingStatus('idle');
-		}
-	};
 
 	const startRecording = useCallback(async () => {
 		//
 		try {
-			// Check if MediaRecorder is available
-			if (typeof MediaRecorder === 'undefined') {
-				console.error('MediaRecorder is not available in this browser');
-				alert('Your browser does not support audio recording.'); // TODO: better UI handling
-				return;
-			}
-
-			console.debug('Requesting microphone access...');
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 			streamRef.current = stream;
-			console.debug('Microphone access granted!');
 
-			mediaRecorderRef.current = new MediaRecorder(stream);
-			audioChunksRef.current = [];
+			const mediaRecorder = new MediaRecorder(stream);
+			mediaRecorderRef.current = mediaRecorder;
 
-			mediaRecorderRef.current.addEventListener('start', () => {
-				updateRecordingStatus('recording');
-			});
+			const chunks: Blob[] = [];
 
-			mediaRecorderRef.current.addEventListener('dataavailable', (event) => {
+			mediaRecorder.ondataavailable = (event) => {
 				if (event.data.size > 0) {
-					audioChunksRef.current.push(event.data);
+					chunks.push(event.data);
 				}
-			});
+			};
 
-			mediaRecorderRef.current.addEventListener('stop', () => {
+			mediaRecorder.onstop = async () => {
 				//
-				if (currentStatusRef.current === 'idle') return;
+				const audio = new Blob(chunks);
 
-				// Combine chunks into a single blob
-				const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+				if (currentStatusRef.current === 'recording') {
+					//
+					updateStatus('transcribing');
 
-				// Process the audio
-				handleAudioTranscription(blob);
-			});
+					try {
+						const text = await transcribeAction({ audio: await audio.arrayBuffer() });
+						onTranscriptionComplete(text);
+					} catch (error) {
+						console.error('Error transcribing audio:', error);
+						toast.error('Failed to transcribe audio. Please try again.');
+					} finally {
+						updateStatus('idle');
+					}
+				}
+			};
 
-			mediaRecorderRef.current.addEventListener('error', (error) => {
-				console.error('Error in MediaRecorder:', error);
-				updateRecordingStatus('idle');
-				// TODO: handle error in the UI
-			});
-
-			mediaRecorderRef.current.start();
+			mediaRecorder.start();
+			updateStatus('recording');
 			//
 		} catch (error) {
 			console.error('Error starting recording:', error);
-			updateRecordingStatus('idle');
-			// TODO: handle error in the UI
+			toast.error('Unable to access microphone. Please check your browser permissions.');
 		}
-	}, [updateRecordingStatus]);
+		//
+	}, [transcribeAction, onTranscriptionComplete, updateStatus]);
 
 	const stopRecording = useCallback(() => {
 		//
-		if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+		if (mediaRecorderRef.current && currentStatusRef.current === 'recording') {
 			mediaRecorderRef.current.stop();
 		}
 
@@ -110,14 +82,12 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 			streamRef.current.getTracks().forEach((track) => track.stop());
 			streamRef.current = null;
 		}
-		//
 	}, []);
 
 	const cancelRecording = useCallback(() => {
-		//
-		updateRecordingStatus('idle');
+		updateStatus('idle');
 
-		if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+		if (mediaRecorderRef.current) {
 			mediaRecorderRef.current.stop();
 		}
 
@@ -125,27 +95,12 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 			streamRef.current.getTracks().forEach((track) => track.stop());
 			streamRef.current = null;
 		}
-		//
-	}, [updateRecordingStatus]);
-
-	useEffect(() => {
-		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop());
-		}
-	}, []);
+	}, [updateStatus]);
 
 	return {
 		recordingStatus,
 		startRecording,
-		stopRecording: () => {
-			//
-			if (currentStatusRef.current === 'transcribing') {
-				// important to ignore transcribing result
-				updateRecordingStatus('idle');
-			}
-
-			stopRecording();
-		},
+		stopRecording,
 		cancelRecording,
 	};
 }

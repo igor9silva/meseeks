@@ -1,40 +1,46 @@
-import { groq } from '@ai-sdk/groq';
-import { experimental_transcribe as transcribe } from 'ai';
-import { z } from 'zod';
-import { api } from '../_generated/api';
-import { action } from '../lib';
+// TODO: move back to AI SDK when possible
+// We moved away from AI SDK's transcribe() after finding out it was forcing
+// file type to audio/wav, breaking transcription. We spent too many hours on that already.
 
-export const transcribeAudio = action({
+import { getAuthUserId } from '@convex-dev/auth/server';
+import { z } from 'zod';
+import { action } from '../lib';
+import { env } from '../schemas/envSchema';
+
+export const transcribe = action({
 	args: {
 		audio: z.instanceof(ArrayBuffer),
 	},
-	handler: async (ctx, args) => {
+	handler: async (ctx, { audio }) => {
 		//
-		const user = await ctx.runQuery(api.users.public.current, {});
-		if (!user) throw new Error('User not found');
+		const userId = await getAuthUserId(ctx);
+		if (!userId) throw new Error('Unauthorized');
 
-		const {
-			text, //
-			segments,
-			durationInSeconds,
-			language,
-			warnings,
-			providerMetadata,
-			responses,
-		} = await transcribe({
-			model: groq.transcription('whisper-large-v3'),
-			// model: openai.transcription('gpt-4o-transcribe'),
-			audio: args.audio,
+		const audioBlob = new Blob([audio]);
+		const file = new File([audioBlob], 'recording.webm');
+
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('model', 'whisper-large-v3');
+		formData.append('response_format', 'json');
+
+		const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${env.GROQ_API_KEY}`,
+			},
+			body: formData,
 		});
 
-		console.debug('Transcribing. text:', text);
-		console.debug('Transcribing. segments:', segments);
-		console.debug('Transcribing. durationInSeconds:', durationInSeconds);
-		console.debug('Transcribing. language:', language);
-		console.debug('Transcribing. warnings:', warnings);
-		console.debug('Transcribing. providerMetadata:', providerMetadata);
-		console.debug('Transcribing. responses:', responses);
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error('Groq transcription failed:', { status: response.status, error: errorText });
+			throw new Error(`Transcription failed: ${response.status}`);
+		}
 
-		return text;
+		const json = await response.json();
+		const result = z.object({ text: z.string() }).parse(json);
+
+		return result.text;
 	},
 });

@@ -70,7 +70,6 @@ export function IdleState({
 						onClick={startRecording}
 						tooltip="Transcribe voice"
 						variant="secondary"
-						className="hidden" // TODO: temporary hidden
 					/>
 					<ActionButton
 						icon={<ArrowUp className="size-5" />}

@@ -19,12 +19,25 @@ alwaysApply: false
 
 ## API Design Patterns
 
+### Function Imports
+- **CRITICAL**: Import `query`, `mutation`, `action` from `../lib` - NEVER from `_generated/server`
+- **CRITICAL**: Import `internalQuery`, `internalMutation`, `internalAction` from `../lib` - NEVER from `_generated/server`
+- The lib.ts file provides Zod-enhanced versions with proper validation
+
+```ts
+// CORRECT
+import { action, query, mutation } from '../lib';
+import { internalAction, internalQuery, internalMutation } from '../lib';
+
+// WRONG - NEVER DO THIS
+import { action, query, mutation } from '../_generated/server';
+```
+
 ### Public Functions
 - Use descriptive names without underscores
 - Always validate args with Zod schemas
 - *****MUST INCLUDE authentication/authorization checks*****
 - Export for client consumption
-- Import query, mutation and action from lib.ts
 
 ```ts
 export const findAll = query({
@@ -109,3 +122,8 @@ export const ensureTaskOwner = async (
 - No `any` types allowed (NOR IMPLICIT NOR EXPLICIT)
 - DO NOT EVER do any "type hacks"
 - If you are unable to implement a trully type-safe solution, its preferable to STOP AND ASK FOR HELP then to write a not-actually-type-safe solution.
+
+## Environment Varibles
+- All server side EnvVars are set directly into Convex via CLI
+- to use an EnvVar, *ALWAYS* `import { env } from './schemas/envSchema'`
+- NEVER use process.env directly
