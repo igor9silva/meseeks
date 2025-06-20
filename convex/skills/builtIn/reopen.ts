@@ -6,13 +6,7 @@ export const reopen = defineSkill({
 	preApprovedCost: 'none',
 	description: 'Re-open a task that was previously marked as done.',
 	parameters: z.object({}),
-	knownReactions: [
-		{
-			skillKey: 'instruct',
-			args: {},
-			condition: 'owner',
-		},
-	],
+	knownReactions: [],
 	use:
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
