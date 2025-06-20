@@ -330,13 +330,17 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
 		//
-		navigate({ to: '.', search: (prev) => ({ ...prev, isBudgetDrawerOpen: true }) });
+		navigate({
+			to: location.pathname,
+			search: (prev) => ({ ...prev, isBudgetDrawerOpen: true }),
+		});
 		close();
 	};
 
