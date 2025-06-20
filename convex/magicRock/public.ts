@@ -41,6 +41,6 @@ export const transcribe = action({
 		const json = await response.json();
 		const result = z.object({ text: z.string() }).parse(json);
 
-		return result.text;
+		return result.text.trim();
 	},
 });

@@ -9,15 +9,20 @@ import { cn } from '~/lib/utils';
 
 import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'convex/lib/errors';
 import { modelsSchema } from 'convex/schemas/skillSchema';
+import { Mic } from 'lucide-react';
 import { KeyboardShortcutIndicator } from '~/components/ActionComposer/KeyboardShortcutIndicator';
+import { RecordingState } from '~/components/ActionComposer/RecordingState';
+import { TranscribingState } from '~/components/ActionComposer/TranscribingState';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
+import { ActionButton } from '~/components/ui/action-button';
 import { BudgetSelector } from '~/components/ui/budget-selector';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
-import { Textarea } from '~/components/ui/textarea';
+import { TooltipProvider } from '~/components/ui/tooltip';
 import { useHandleSubmit } from '~/hooks/useHandleSubmit';
-import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
+import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
 export function QuickAdd({ className }: { className?: string }) {
 	//
@@ -27,24 +32,41 @@ export function QuickAdd({ className }: { className?: string }) {
 
 	const { q } = useSearch({ strict: false });
 
+	const [message, setMessage] = useState(q || '');
+	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
+
+	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
+		onTranscriptionComplete: setMessage,
+	});
+
+	const handleStartRecording = async () => {
+		try {
+			await startRecording();
+		} catch (error) {
+			console.error('Failed to start voice recording:', error);
+		}
+	};
+
 	useEffect(() => {
 		textareaRef.current?.focus();
 	}, []);
 
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({
-			message: z.string().min(1, 'Message is required'),
 			initialFunds: z.coerce.number().min(0).max(100000).default(0.2),
 		}),
 		shouldAlwaysClearForm: false,
-		handler: async ({ message, initialFunds }) => {
+		handler: async ({ initialFunds }) => {
 			//
-			console.debug('QuickAdd', message, initialFunds);
+			if (!message.trim()) {
+				toast.error('Message is required');
+				return;
+			}
 
 			try {
 				//
 				const taskId = await addTask({
-					message,
+					message: message.trim(),
 					initialFunds: asBigInt({ dollars: initialFunds }),
 					preferredIntelligence: intelligence,
 				});
@@ -68,25 +90,63 @@ export function QuickAdd({ className }: { className?: string }) {
 		},
 	});
 
-	// confirm on CMD+Enter
-	const handleKeyDown = useSubmitHotkey();
+	const showVoiceInterface = recordingStatus !== 'idle';
+	const isEmpty = !message.trim();
 
-	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
+	// Handle CMD+Enter shortcut like ActionComposer
+	useKeyboardShortcut({
+		global: false, // Only when this component is focused
+		combo: { withCommand: true, key: 'Enter' },
+		callback: () => {
+			if (recordingStatus === 'idle' && !isEmpty) {
+				const form = document.querySelector('form');
+				if (form) form.requestSubmit();
+			}
+		},
+	});
 
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none p-4', className)}>
 			<CardContent className="p-0">
-				<form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-col gap-6">
-					<div className="flex flex-col gap-2">
-						<Textarea
-							ref={textareaRef}
-							name="message"
-							placeholder={randomPlaceholder()}
-							required
-							defaultValue={q}
-							className="min-h-32 resize-none text-base"
-						/>
+				<TooltipProvider>
+					<div
+						className={cn(
+							'bg-sidebar rounded-3xl border p-2 shadow-xs flex flex-col mb-6',
+							showVoiceInterface && 'flex-row',
+						)}
+					>
+						{'recording' === recordingStatus && (
+							<RecordingState stopRecording={stopRecording} cancelRecording={cancelRecording} />
+						)}
+
+						{'transcribing' === recordingStatus && <TranscribingState cancelRecording={cancelRecording} />}
+
+						{'idle' === recordingStatus && (
+							<>
+								<div className="flex flex-grow items-center justify-center px-3">
+									<textarea
+										ref={textareaRef}
+										value={message}
+										onChange={(e) => setMessage(e.target.value)}
+										placeholder={randomPlaceholder()}
+										className="text-primary min-h-14 py-2 w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+									/>
+								</div>
+
+								<div className="flex items-center justify-end gap-2 px-3 pt-2">
+									<ActionButton
+										icon={<Mic className="size-5" />}
+										onClick={handleStartRecording}
+										tooltip="Transcribe voice"
+										variant="secondary"
+									/>
+								</div>
+							</>
+						)}
 					</div>
+				</TooltipProvider>
+
+				<form onSubmit={handleSubmit} className="flex flex-col gap-6">
 					<div className="flex flex-col md:flex-row gap-2 w-full">
 						<BudgetSelector name="initialFunds" className="flex-1" />
 						<div className="flex items-center gap-2 flex-1">
@@ -94,7 +154,7 @@ export function QuickAdd({ className }: { className?: string }) {
 							<SkillsLink />
 						</div>
 					</div>
-					<Button variant="default" type="submit" size="lg">
+					<Button variant="default" type="submit" size="lg" disabled={isEmpty}>
 						Seek
 						<KeyboardShortcutIndicator keySymbol="⏎" className="bg-muted text-muted-foreground" />
 					</Button>
