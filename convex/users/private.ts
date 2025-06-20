@@ -27,7 +27,7 @@ export const _seedIfNeeded = async (
 		owner: userId,
 		value: {
 			symbol: 'USD',
-			amount: asBigInt({ dollars: 1 }),
+			amount: asBigInt({ dollars: 2 }),
 		},
 		description: 'Welcome credits',
 	});
