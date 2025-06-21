@@ -368,7 +368,7 @@ function valueForVariable(
 				`<createdAt>{{task.createdAt}}</createdAt>`,
 				`<lastUpdatedAt>{{task.lastUpdatedAt}}</lastUpdatedAt>`,
 				`<lastSummarizedAt>{{task.lastSummarizedAt}}</lastSummarizedAt>`,
-				`<budgetUSDC>{{task.budgetUSDC}}</budgetUSDC>`,
+				`<budgetEnergy>{{task.budgetEnergy}}</budgetEnergy>`,
 				`<instructions>{{task.instructions}}</instructions>`,
 				// `<summary>{{task.summary}}</summary>`,
 				// `<parent>${task.parent}</parent>`,
@@ -403,24 +403,24 @@ function valueForVariable(
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';
 
-		case 'task.budgetUSDC':
+		case 'task.budgetEnergy':
 			return [
-				`<total alt="Total money user has budgeted for this task, in USDc">{{task.budgetUSDC.total}}</total>`,
-				`<spent alt="Amount already spent from the budget, in USDc">{{task.budgetUSDC.spent}}</spent>`,
-				`<available alt="Remaining money available to resolve this task, in USDc">{{task.budgetUSDC.available}}</available>`,
+				`<total alt="Total energy user has budgeted for this task">{{task.budgetEnergy.total}}</total>`,
+				`<spent alt="Amount already spent from the budget">{{task.budgetEnergy.spent}}</spent>`,
+				`<available alt="Remaining energy available to resolve this task">{{task.budgetEnergy.available}}</available>`,
 			].join('');
 
-		case 'task.budgetUSDC.total':
-			return asDollars({ bigInt: task.budgetUSDC.total, precision: 10 });
+		case 'task.budgetEnergy.total':
+			return asDollars({ bigInt: task.budgetEnergy.total, precision: 10 });
 
-		case 'task.budgetUSDC.spent':
+		case 'task.budgetEnergy.spent':
 			return asDollars({
-				bigInt: task.budgetUSDC.total - task.budgetUSDC.available,
+				bigInt: task.budgetEnergy.total - task.budgetEnergy.available,
 				precision: 10,
 			});
 
-		case 'task.budgetUSDC.available':
-			return asDollars({ bigInt: task.budgetUSDC.available, precision: 10 });
+		case 'task.budgetEnergy.available':
+			return asDollars({ bigInt: task.budgetEnergy.available, precision: 10 });
 
 		case 'taskSchedules':
 			return taskSchedules ?? '<system>No active schedules for this task.</system>';

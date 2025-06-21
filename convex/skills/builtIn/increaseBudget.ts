@@ -7,7 +7,7 @@ export const increaseBudget = defineSkill({
 	preApprovedCost: 'none',
 	description: 'Increase the budget of the task',
 	parameters: z.object({
-		amount: z.bigint().min(0n).describe('The amount of funds to add, in USDc.'),
+		amount: z.bigint().min(0n).describe('The amount of funds to add, in energy.'),
 		shouldIterate: z.boolean().optional().default(true).describe('Whether to react with iterate() or not.'),
 	}),
 	knownReactions: [],

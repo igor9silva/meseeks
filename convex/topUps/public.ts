@@ -42,9 +42,7 @@ export const startTopUp = action({
 			author: currentUser._id,
 			owner: currentUser._id,
 			to: env.PAYMENT_ETH_ADDRESS_BASE_CHAIN,
-			description:
-				description ||
-				`Add ${asDollars({ bigInt: amount })} US Dollar-equivalent credits to your account balance.`,
+			description: description || `Add ${asDollars({ bigInt: amount })} energy to your account balance.`,
 			chain,
 			symbol,
 			amount,

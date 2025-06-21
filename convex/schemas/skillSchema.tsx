@@ -182,10 +182,10 @@ export const instructionVariableSchema = z.union([
 	z.literal('task.instructions'),
 	// z.literal('task.summary'),
 	z.literal('task.parent'),
-	z.literal('task.budgetUSDC').describe('The full task budget structure, in a XML-like format'),
-	z.literal('task.budgetUSDC.total'),
-	z.literal('task.budgetUSDC.spent'),
-	z.literal('task.budgetUSDC.available'),
+	z.literal('task.budgetEnergy').describe('The full task budget structure, in a XML-like format'),
+	z.literal('task.budgetEnergy.total'),
+	z.literal('task.budgetEnergy.spent'),
+	z.literal('task.budgetEnergy.available'),
 	z.literal('taskSchedules').describe('List of active schedules for the current task, in a XML-like format'),
 	z.literal('currentDate').describe('The current date and time in ISO 8601 format'),
 	z.literal('userInfo').describe('Information about the user, written by themself'),
@@ -298,7 +298,7 @@ export const hardSkillSchema = coreSkillSchema.extend({
 		.bigint() //
 		.min(asBigInt({ dollars: 0 }))
 		.max(asBigInt({ dollars: 1000 }))
-		.describe('The cost to use this skill, in USDc.'),
+		.describe('The cost to use this skill, in energy.'),
 	config: httpConfigSchema,
 });
 
@@ -307,7 +307,7 @@ export const softSkillSchema = coreSkillSchema.extend({
 	cost: z
 		.literal('dynamic')
 		.describe(
-			'The cost to use this skill, in USDc. Dynamic cost means it will be known during usage. Budget is still accounted before execution.',
+			'The cost to use this skill, in energy. Dynamic cost means it will be known during usage. Budget is still accounted before execution.',
 		),
 	config: decisionConfigSchema,
 });
