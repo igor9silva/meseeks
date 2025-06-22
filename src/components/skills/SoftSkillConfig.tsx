@@ -22,7 +22,7 @@ export interface SoftSkillConfigProps {
 }
 
 export function SoftSkillConfig({
-	model = 'groq/llama-4-maverick',
+	model = 'anthropic/claude-4-sonnet',
 	onModelChange = () => {},
 	temperature = 0.7,
 	onTemperatureChange = () => {},
@@ -37,9 +37,13 @@ export function SoftSkillConfig({
 
 	// Model options for the combobox
 	const modelOptions: ComboboxOption[] = [
-		{ value: 'groq/llama-4-maverick', label: 'Llama 4 Maverick (Primary)' },
-		{ value: 'openai/gpt-4o', label: 'GPT-4o' },
-		{ value: 'anthropic/claude-3-opus', label: 'Claude 3 Opus' },
+		{ value: 'anthropic/claude-4-sonnet', label: 'Claude 4 Sonnet (Default)' },
+		{ value: 'xai/grok-3-mini', label: 'Grok 3 Mini' },
+		{ value: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku' },
+		{ value: 'anthropic/claude-4-opus', label: 'Claude 4 Opus' },
+		{ value: 'openai/gpt-4.1', label: 'GPT-4.1' },
+		{ value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+		{ value: 'deepseek/deepseek-v3', label: 'DeepSeek V3' },
 	];
 
 	const handleAddAvailableSkill = () => {

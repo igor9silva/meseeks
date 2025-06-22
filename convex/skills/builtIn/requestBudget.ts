@@ -16,7 +16,7 @@ export const requestBudget = defineSkill({
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {
-				text: `This task needs more budget to continue.\n\n<div className="flex flex-row gap-2"><AddBudgetButton variant="secondary" amount={0.2} /><AddBudgetButton variant="secondary" amount={1} /><AddCustomBudgetButton variant="secondary" text="Any other amount" /></div>`,
+				text: `This task needs more budget to continue.\n\n<div className="flex flex-row gap-2"><AddBudgetButton variant="secondary" amount={0.2} /><AddBudgetButton variant="secondary" amount={1} /><AddCustomBudgetButton variant="secondary" text="Any amount" /></div>`,
 				reactions: [],
 			};
 		},

@@ -76,7 +76,7 @@ export const availableIntelligences = query({
 	handler: async (ctx) => {
 		// TODO: make this list dynamic
 		return {
-			default: 'grok/grok-3-mini',
+			default: 'anthropic/claude-4-sonnet',
 			recommended: [
 				{
 					key: 'anthropic/claude-4-sonnet',
@@ -88,20 +88,20 @@ export const availableIntelligences = query({
 					key: 'grok/grok-3-mini',
 					name: 'Grok 3 Mini',
 					provider: 'xAI',
-					description: 'Best value (recommended for most tasks)',
+					description: 'Best value',
 				},
-				{
-					key: 'anthropic/claude-3.5-haiku',
-					name: 'Claude 3.5 Haiku',
-					provider: 'Anthropic',
-					description: 'Another cost-efficient alternative',
-				},
-			],
-			all: [
 				{
 					key: 'groq/qwen3-32b',
 					name: 'Qwen 32B',
 					provider: 'Groq',
+					description: 'Cheap and fast',
+				},
+			],
+			all: [
+				{
+					key: 'anthropic/claude-3.5-haiku',
+					name: 'Claude 3.5 Haiku',
+					provider: 'Anthropic',
 				},
 				{
 					key: 'anthropic/claude-4-opus',
