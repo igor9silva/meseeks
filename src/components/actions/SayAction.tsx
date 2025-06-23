@@ -1,6 +1,7 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
+import { CopyButton } from '~/components/CopyButton';
 import { Message, MessageContent } from '~/components/ui/message';
 
 export function SayAction({
@@ -20,14 +21,20 @@ export function SayAction({
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={className}>
-			<MessageContent
-				isMDX={true}
-				text={action.args['message']}
-				className={cn({
-					'bg-primary text-primary-foreground p-2': isAuthorCurrentUser,
-					'bg-secondary text-secondary-foreground p-2': !isAuthorCurrentUser,
-				})}
-			/>
+			<div className="relative group">
+				<MessageContent
+					isMDX={true}
+					text={action.args['message']}
+					className={cn({
+						'bg-primary text-primary-foreground p-2': isAuthorCurrentUser,
+						'bg-secondary text-secondary-foreground p-2': !isAuthorCurrentUser,
+					})}
+				/>
+				<CopyButton
+					textToCopy={action.args['message']}
+					className="absolute top-1 right-1 opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+				/>
+			</div>
 		</Message>
 	);
 }
