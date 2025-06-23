@@ -141,7 +141,7 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 				<MainHeader className="mt-0" />
 				<div className="flex-1 overflow-auto">{children}</div>
 			</main>
-			<Toaster />
+			<Toaster position="top-right" richColors />
 			<CommandMenuDialog />
 			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
 			{scheduleDialog.taskId && (
