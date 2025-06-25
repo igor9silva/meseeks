@@ -70,7 +70,7 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 		if (isAuthorCurrentUser) {
 			switch (action.status) {
 				case 'succeeded':
-					return 'Performed byw';
+					return 'Performed by';
 				case 'skipped':
 					return 'Scheduled by';
 				case 'failed':
@@ -636,16 +636,20 @@ function ActionRow({
 								<span className="text-sm">{action.skillKey} </span>
 								<span className="text-muted-foreground text-xs">({action.depth})</span>
 							</div>
-							<code
-								className="text-xs text-muted-foreground hover:text-foreground cursor-pointer block"
-								onClick={(e) => {
-									e.stopPropagation();
-									copyToClipboard(action._id);
-								}}
-								title="Click to copy ID"
-							>
-								{action._id}
-							</code>
+							<div className="flex items-center gap-2">
+								<code
+									className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+									onClick={(e) => {
+										e.stopPropagation();
+										copyToClipboard(action._id);
+										toast.success('Copied action ID to clipboard');
+									}}
+									title="Click to copy ID"
+								>
+									{action._id}
+								</code>
+								<div className="flex-1" />
+							</div>
 						</div>
 					</div>
 
@@ -704,7 +708,7 @@ function ActionRow({
 							<ResultSection result={action.result} />
 							<CostSection action={action} />
 
-							<Suspense fallback={<Loading className="h-20" />}>
+							<Suspense fallback={<Loading />}>
 								<ActionDetailsContent action={action} />
 							</Suspense>
 						</div>
@@ -762,7 +766,10 @@ export function DebugAction({
 			<ActionRow
 				action={action}
 				isExpanded={isExpanded}
-				onToggle={() => setIsExpanded(!isExpanded)}
+				onToggle={() => {
+					console.log('Toggle clicked, current state:', isExpanded);
+					setIsExpanded(!isExpanded);
+				}}
 				isAuthorCurrentUser={isAuthorCurrentUser}
 			/>
 		</div>
