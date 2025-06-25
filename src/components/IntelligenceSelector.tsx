@@ -17,7 +17,6 @@ import {
 } from '~/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import { Skeleton } from '~/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { cn } from '~/lib/utils';
 
 // TODO: display the model cost
@@ -34,23 +33,9 @@ export const IntelligenceSelector = forwardRef<
 >(({ value, onChange, className }, ref) => {
 	//
 	return (
-		<div className={cn('flex items-center gap-2', className)}>
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className="flex-shrink-0">
-							<Brain className="h-4 w-4 text-muted-foreground" />
-						</div>
-					</TooltipTrigger>
-					<TooltipContent side="bottom">
-						<p>The intelligence to power this task</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-			<Suspense fallback={<Skeleton className="w-60 h-8" />}>
-				<IntelligenceCombobox value={value} onChange={onChange} ref={ref} />
-			</Suspense>
-		</div>
+		<Suspense fallback={<Skeleton className="w-60 h-8" />}>
+			<IntelligenceCombobox value={value} onChange={onChange} ref={ref} className={className} />
+		</Suspense>
 	);
 });
 
@@ -119,10 +104,14 @@ const IntelligenceCombobox = forwardRef<
 				>
 					{selectedOption ? (
 						<div className="flex items-center gap-2 truncate">
+							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
 							<span className="truncate">{selectedOption.name}</span>
 						</div>
 					) : (
-						'Select intelligence...'
+						<div className="flex items-center gap-2">
+							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+							<span>Select intelligence...</span>
+						</div>
 					)}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 				</Button>
