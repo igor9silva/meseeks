@@ -40,7 +40,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 	const { q } = useSearch({ strict: false });
 
 	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
-	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.2);
+	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.5);
 
 	const {
 		textareaRef,
