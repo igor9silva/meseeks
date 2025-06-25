@@ -65,31 +65,57 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 		toast.success('Copied ID to clipboard');
 	};
 
+	// Get status-specific text
+	const getStatusText = () => {
+		if (isAuthorCurrentUser) {
+			switch (action.status) {
+				case 'succeeded':
+					return 'Performed byw';
+				case 'skipped':
+					return 'Scheduled by';
+				case 'failed':
+					return 'Attempted to perform by';
+				case 'running':
+					return 'Performing by';
+				default:
+					return 'Performed by';
+			}
+		} else {
+			switch (action.status) {
+				case 'succeeded':
+					return 'Performed as a reaction from';
+				case 'skipped':
+					return 'Scheduled as a reaction from';
+				case 'failed':
+					return 'Attempted to perform as a reaction from';
+				case 'running':
+					return 'Performing as a reaction from';
+				case 'pending authorization':
+					return 'Pending authorization as a reaction from';
+				default:
+					return 'Performed as a reaction from';
+			}
+		}
+	};
+
+	// Get additional status suffix
+	const getStatusSuffix = () => {
+		if (action.status === 'skipped') {
+			`, but skipped.`;
+		}
+		return '';
+	};
+
 	return (
 		<div className="text-xs text-muted-foreground">
-			{isAuthorCurrentUser ? (
-				<>
-					Performed by{' '}
-					<code
-						className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
-						onClick={handleClick}
-					>
-						you
-					</code>
-					.
-				</>
-			) : (
-				<>
-					Performed as a reaction from{' '}
-					<code
-						className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
-						onClick={handleClick}
-					>
-						{action.author}
-					</code>
-					.
-				</>
-			)}
+			{getStatusText()}{' '}
+			<code
+				className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
+				onClick={handleClick}
+			>
+				{isAuthorCurrentUser ? 'you' : action.author}
+			</code>
+			{action.status === 'skipped' ? ', but skipped.' : '.'}
 		</div>
 	);
 }
