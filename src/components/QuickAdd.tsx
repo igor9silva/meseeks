@@ -26,6 +26,15 @@ import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
 export function QuickAdd({ className }: { className?: string }) {
 	//
+	return (
+		<div className="h-full flex flex-col justify-end items-center md:justify-center">
+			<QuickAddContent className="w-full max-w- max-w-5xl" />
+		</div>
+	);
+}
+
+export function QuickAddContent({ className }: { className?: string }) {
+	//
 	const navigate = useNavigate();
 	const addTask = useMutation(api.tasks.public.add);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);

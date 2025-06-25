@@ -11,8 +11,13 @@ export function Balance({ className }: { className?: string }) {
 	const navigate = useNavigate();
 
 	return (
-		<Button className={cn('p-2', className)} variant="ghost" onClick={() => navigate({ to: '/balance' })}>
-			<Wallet className="size-3" />
+		<Button
+			className={cn('hidden md:flex p-2 [&_svg]:size-5', className)}
+			variant="ghost"
+			size="lg"
+			onClick={() => navigate({ to: '/balance' })}
+		>
+			<Wallet />
 			{asDollars({ bigInt: user.balanceUSD ?? 0n })}
 		</Button>
 	);
