@@ -1,5 +1,6 @@
 import { tool, type CoreMessage, type ToolSet } from 'ai';
 import type { z } from 'zod';
+import { internal } from '../_generated/api';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../_generated/server';
 import { asDollars } from '../lib/money';
@@ -7,7 +8,7 @@ import { stringToZod } from '../lib/zodToString';
 import { _askMagicRock, type MagicRockContext } from '../magicRock';
 import type { newActionSchema } from '../schemas/actionSchema';
 import { env } from '../schemas/envSchema';
-import { pricingFor, type modelsSchema, type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
+import { modelsSchema, pricingFor, type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
 import type { AITool } from '../schemas/toolSchema';
 
 export function createAITool(
@@ -106,6 +107,21 @@ export function createAITool(
 			}
 
 			if (warnings?.length) console.warn('Decision skill warnings', warnings);
+
+			await _persistDetails({
+				ctx,
+				action,
+				skill,
+				task,
+				model: modelFrom(skill.config.model, task.preferredIntelligence),
+				context,
+				finishReason,
+				text,
+				toolCalls,
+				usage,
+				warnings,
+				providerMetadata,
+			});
 
 			return {
 				result: {
@@ -232,7 +248,75 @@ export function modelFrom(
 	taskPreferredIntelligence?: z.infer<typeof modelsSchema>,
 ): z.infer<typeof modelsSchema> {
 	//
-	if (skillModel === 'auto') return taskPreferredIntelligence ?? 'anthropic/claude-3.5-haiku';
+	if (skillModel === 'auto') return taskPreferredIntelligence ?? modelsSchema.parse(env.DEFAULT_MODEL);
 
 	return skillModel;
+}
+
+async function _persistDetails({
+	ctx,
+	action,
+	skill,
+	task,
+	model,
+	context,
+	finishReason,
+	text,
+	toolCalls,
+	usage,
+	warnings,
+	providerMetadata,
+}: {
+	ctx: ActionCtx | MutationCtx;
+	action: Doc<'actions'>;
+	skill: z.infer<typeof softSkillSchema>;
+	task: Doc<'tasks'>;
+	model: z.infer<typeof modelsSchema>;
+	context?: MagicRockContext;
+	finishReason?: string;
+	text?: string;
+	toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>;
+	usage: { promptTokens: number; completionTokens: number };
+	warnings?: unknown[];
+	providerMetadata?: Record<string, unknown>;
+}) {
+	//
+	// Extract provider from model string (e.g., "anthropic/claude-4-sonnet" -> "anthropic")
+	const provider = model.split('/')[0] || 'unknown';
+
+	await ctx.runMutation(internal.action_details.private._persist, {
+		details: {
+			actionId: action._id,
+			skillKind: 'soft' as const,
+			skillKey: skill.key,
+			skillDescription: skill.description,
+			llm: {
+				model,
+				provider,
+				temperature: context?.temperature ?? 0.7,
+				maxTokens: context?.maxTokens,
+				systemInstructions: context?.system || '',
+				historyLength: Array.isArray(context?.messages) ? context?.messages.length : 0,
+				availableTools: context?.tools ? Object.keys(context?.tools) : [],
+				finishReason: finishReason || 'unknown',
+				text,
+				toolCalls: toolCalls.map((call) => ({
+					toolName: call.toolName,
+					args: call.args,
+				})),
+				usage: {
+					input: {
+						total: usage.promptTokens,
+						cached: 0, // TODO: extract from providerMetadata if available
+					},
+					output: {
+						total: usage.completionTokens,
+						cached: 0, // TODO: extract from providerMetadata if available
+					},
+				},
+				warnings,
+				providerMetadata,
+			},
+		},
+	});
 }

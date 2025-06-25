@@ -1,8 +1,8 @@
 import { tool } from 'ai';
-import { Doc } from '../_generated/dataModel';
-import { ActionCtx, MutationCtx } from '../_generated/server';
-import { AITool } from '../schemas/toolSchema';
-import { _builtInSkills } from './builtIn/index';
+import type { Doc } from '../_generated/dataModel';
+import type { ActionCtx, MutationCtx } from '../_generated/server';
+import type { AITool } from '../schemas/toolSchema';
+import type { _builtInSkills } from './builtIn/index';
 import { createReactions } from './createReactions';
 
 export function createBuiltInTool(

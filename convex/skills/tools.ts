@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { internal } from '../_generated/api';
-import { Doc } from '../_generated/dataModel';
-import { ActionCtx, MutationCtx } from '../_generated/server';
-import { MagicRockContext } from '../magicRock';
-import { skillSchema } from '../schemas/skillSchema';
+import type { Doc } from '../_generated/dataModel';
+import type { ActionCtx, MutationCtx } from '../_generated/server';
+import type { MagicRockContext } from '../magicRock';
+import type { skillSchema } from '../schemas/skillSchema';
 import { _builtInSkills } from './builtIn/index';
 import { createAITool } from './createAITool';
 import { createBuiltInTool } from './createBuiltInTool';

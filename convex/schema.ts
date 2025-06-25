@@ -1,6 +1,7 @@
 import { authTables } from '@convex-dev/auth/server';
 import { zodToConvex } from 'convex-helpers/server/zod';
 import { defineSchema, defineTable } from 'convex/server';
+import { actionDetailSchema } from './schemas/actionDetailSchema';
 import { actionSchema } from './schemas/actionSchema';
 import { componentSchema } from './schemas/componentSchema';
 import { polarEventSchema } from './schemas/polarEventSchema';
@@ -68,6 +69,12 @@ export default defineSchema({
 		'by_task', ['taskId'],
 	).index(
 		'by_task_status', ['taskId', 'status'],
+	),
+
+	action_details: defineTable(
+		zodToConvex(actionDetailSchema),
+	).index(
+		'by_action', ['actionId'],
 	),
 
 	schedules: defineTable(

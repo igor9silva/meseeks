@@ -11,6 +11,8 @@
 import type * as action_lifecycle_private from "../action/lifecycle/private.js";
 import type * as action_private from "../action/private.js";
 import type * as action_public from "../action/public.js";
+import type * as action_details_private from "../action_details/private.js";
+import type * as action_details_public from "../action_details/public.js";
 import type * as auth from "../auth.js";
 import type * as components_private from "../components/private.js";
 import type * as components_public from "../components/public.js";
@@ -28,6 +30,7 @@ import type * as schedules_cron from "../schedules/cron.js";
 import type * as schedules_lifecycle from "../schedules/lifecycle.js";
 import type * as schedules_private from "../schedules/private.js";
 import type * as schedules_public from "../schedules/public.js";
+import type * as schemas_actionDetailSchema from "../schemas/actionDetailSchema.js";
 import type * as schemas_actionSchema from "../schemas/actionSchema.js";
 import type * as schemas_authorSchema from "../schemas/authorSchema.js";
 import type * as schemas_componentSchema from "../schemas/componentSchema.js";
@@ -108,6 +111,8 @@ declare const fullApi: ApiFromModules<{
   "action/lifecycle/private": typeof action_lifecycle_private;
   "action/private": typeof action_private;
   "action/public": typeof action_public;
+  "action_details/private": typeof action_details_private;
+  "action_details/public": typeof action_details_public;
   auth: typeof auth;
   "components/private": typeof components_private;
   "components/public": typeof components_public;
@@ -125,6 +130,7 @@ declare const fullApi: ApiFromModules<{
   "schedules/lifecycle": typeof schedules_lifecycle;
   "schedules/private": typeof schedules_private;
   "schedules/public": typeof schedules_public;
+  "schemas/actionDetailSchema": typeof schemas_actionDetailSchema;
   "schemas/actionSchema": typeof schemas_actionSchema;
   "schemas/authorSchema": typeof schemas_authorSchema;
   "schemas/componentSchema": typeof schemas_componentSchema;

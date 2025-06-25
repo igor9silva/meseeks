@@ -1,8 +1,9 @@
 import { zid } from 'convex-helpers/server/zod';
-import { Id } from '../_generated/dataModel';
-import { MutationCtx, QueryCtx } from '../_generated/server';
+import type { Id } from '../_generated/dataModel';
+import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
 import { zodToString } from '../lib/zodToString';
+import { env } from '../schemas/envSchema';
 import { builtInSkillSchema, newSkillSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
 import { _builtInSkills } from './builtIn';
@@ -76,7 +77,7 @@ export const availableIntelligences = query({
 	handler: async (ctx) => {
 		// TODO: make this list dynamic
 		return {
-			default: 'anthropic/claude-4-sonnet',
+			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
 					key: 'anthropic/claude-4-sonnet',

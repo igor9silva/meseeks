@@ -1,11 +1,12 @@
 import { tool } from 'ai';
-import { z } from 'zod';
-import { Doc } from '../_generated/dataModel';
-import { ActionCtx, MutationCtx } from '../_generated/server';
+import type { z } from 'zod';
+import { internal } from '../_generated/api';
+import type { Doc } from '../_generated/dataModel';
+import type { ActionCtx, MutationCtx } from '../_generated/server';
 import { stringToZod } from '../lib/zodToString';
 import { env } from '../schemas/envSchema';
-import { hardSkillSchema } from '../schemas/skillSchema';
-import { AITool } from '../schemas/toolSchema';
+import type { hardSkillSchema } from '../schemas/skillSchema';
+import type { AITool } from '../schemas/toolSchema';
 import { createReactions } from './createReactions';
 
 export function createHTTPTool(
@@ -52,13 +53,16 @@ export function createHTTPTool(
 				//
 			}, config.body?.template ?? {});
 
+			const requestBody = Object.keys(bodyData).length > 0 ? JSON.stringify(bodyData) : undefined;
+			const requestBodySize = requestBody ? new Blob([requestBody]).size : undefined;
+
 			console.debug('requesting', config.method, url.toString());
 
 			// make the request
 			const response = await fetch(url.toString(), {
 				method: config.method,
 				headers,
-				body: Object.keys(bodyData).length > 0 ? JSON.stringify(bodyData) : undefined,
+				body: requestBody,
 			});
 
 			console.debug('Response', response.status, response.statusText);
@@ -66,6 +70,17 @@ export function createHTTPTool(
 			// treat everything as text and let the LLM do its magic
 			const text = await response.text();
 			console.debug('Result', text);
+
+			await _persistDetails({
+				ctx,
+				action,
+				skill,
+				config,
+				url,
+				requestBodySize,
+				response,
+				responseText: text,
+			});
 
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${response.statusText}. Body: ${text}`);
@@ -90,5 +105,71 @@ export function createHTTPTool(
 				],
 			};
 		},
+	});
+}
+
+async function _persistDetails({
+	ctx,
+	action,
+	skill,
+	config,
+	url,
+	requestBodySize,
+	response,
+	responseText,
+}: {
+	ctx: ActionCtx | MutationCtx;
+	action: Doc<'actions'>;
+	skill: z.infer<typeof hardSkillSchema>;
+	config: z.infer<typeof hardSkillSchema>['config'];
+	url: URL;
+	requestBodySize?: number;
+	response: Response;
+	responseText?: string;
+}) {
+	//
+	// capture response details for debugging
+	const responseBodySize = responseText ? new Blob([responseText]).size : undefined;
+
+	// Store full response body but truncate based on env setting for safety within Convex's 1MB document limit
+	let responseBody: string | undefined;
+
+	if (responseText) {
+		if (responseText.length <= env.MAX_HTTP_RESPONSE_BODY_BYTES) {
+			responseBody = responseText;
+		} else {
+			// Truncate and add a note about truncation
+			const truncated = responseText.substring(0, env.MAX_HTTP_RESPONSE_BODY_BYTES);
+			responseBody = `${truncated}\n\n[Response truncated at ${Math.round(env.MAX_HTTP_RESPONSE_BODY_BYTES / 1024)}KiB for Convex document size limit]`;
+		}
+	}
+
+	// response headers are generally safe to persist (no API keys usually)
+	const responseHeaders: Record<string, string> = {};
+	response.headers.forEach((value, key) => {
+		responseHeaders[key] = value;
+	});
+
+	console.debug('Attempting to persist HTTP action details for action:', action._id);
+
+	const actionDetail = {
+		actionId: action._id,
+		skillKind: 'hard' as const,
+		skillKey: skill.key,
+		skillDescription: skill.description,
+		http: {
+			method: config.method,
+			url: url.toString(),
+			requestBodySize,
+			statusCode: response.status,
+			statusText: response.statusText,
+			responseBodySize,
+			responseBody,
+			responseHeaders,
+		},
+	};
+
+	await ctx.runMutation(internal.action_details.private._persist, {
+		details: actionDetail,
 	});
 }
