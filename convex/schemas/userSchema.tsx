@@ -34,4 +34,5 @@ export const userRequestSchema = z.object({
 	owner: zid('users'),
 	key: userRequestKeySchema,
 	message: z.string().min(1).max(1000),
+	context: z.record(z.any()).optional(),
 });

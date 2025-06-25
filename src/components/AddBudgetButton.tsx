@@ -11,7 +11,7 @@ export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; te
 		<Link to="." search={(prev) => ({ ...prev, isBudgetDrawerOpen: true })} className="no-underline">
 			<Button size="sm" variant={props.variant ?? 'default'} className="flex items-center gap-1">
 				<DollarSign className="h-4 w-4" />
-				{props.text ?? 'Add Budget'}
+				{props.text ?? 'Add budget'}
 			</Button>
 		</Link>
 	);

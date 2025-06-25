@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import { api } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
+import type { Id } from 'convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -9,7 +9,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/lib/money';
 import {
-	BadgeCent,
 	CalendarClock,
 	CalendarIcon,
 	Circle,
@@ -136,25 +135,46 @@ export function CommandMenuDialog() {
 			<DialogTitle className="hidden">Global command menu</DialogTitle>
 			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
 			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
-			<CommandList>
+			<CommandList className="max-h-[500px]">
 				{/* Quick actions */}
 				<CommandGroup heading="Quick actions">
 					<NewTaskCommandItem shouldUseSearch={shouldFilter} />
-					<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
-						<Inbox className="mr-2" />
-						Go to Inbox
-					</CommandItem>
-					<CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
-						<BadgeCent className="mr-2" />
-						Top up account
+					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
+					<CommandItem
+						value="feedback"
+						keywords={['feedback', 'report', 'bug', 'suggest']}
+						onSelect={() => {
+							close();
+							feedbackDialog.open();
+						}}
+					>
+						<NotebookPen className="mr-2" />
+						Give feedback
 					</CommandItem>
 					<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
 						<RefreshCcw className="mr-2" />
 						Refresh
 					</CommandItem>
+				</CommandGroup>
+
+				{/* Shortcuts - these are navigation items */}
+				<CommandGroup heading="Shortcuts">
+					<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
+						<Inbox className="mr-2" />
+						Go to Inbox
+					</CommandItem>
+					{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
+						<BadgeCent className="mr-2" />
+						Top up account
+					</CommandItem> */}
 					<CommandItem value="/balance" keywords={['balance']} onSelect={onSelect}>
 						<Wallet className="mr-2" />
-						Balance
+						Balance & top-up
 					</CommandItem>
 					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 						<Sparkles className="mr-2" />
@@ -179,40 +199,7 @@ export function CommandMenuDialog() {
 						<LogOut className="mr-2" />
 						Sign out
 					</CommandItem>
-					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
-					<CommandItem
-						value="feedback"
-						keywords={['feedback', 'report', 'bug', 'suggest']}
-						onSelect={() => {
-							close();
-							feedbackDialog.open();
-						}}
-					>
-						<NotebookPen className="mr-2" />
-						Give feedback
-					</CommandItem>
 				</CommandGroup>
-
-				{/* Pinned tasks */}
-				{/* <CommandGroup heading="Pinned tasks">
-					<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
-						<Inbox className="mr-2" />
-						Go to Inbox
-					</CommandItem>
-					{/* <CommandItem
-						value="/list/kh70vk1fpyg3mkf0jg1wmeerg9768ngv"
-						keywords={['finances']}
-						onSelect={onSelect}
-					>
-						<DollarSign className="mr-2" />
-						Finances
-					</CommandItem>
-				</CommandGroup> */}
 
 				{/* All tasks */}
 				<CommandGroup heading="Tasks">

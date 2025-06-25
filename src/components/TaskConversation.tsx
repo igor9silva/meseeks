@@ -182,7 +182,7 @@ export function TaskConversation({
 			>
 				<DrawerContent>
 					<DrawerHeader>
-						<DrawerTitle>Add Budget</DrawerTitle>
+						<DrawerTitle>Add budget</DrawerTitle>
 					</DrawerHeader>
 					<div className="px-4 pb-4">
 						<BudgetSelector value={selectedBudget} onChange={setSelectedBudget} className="w-full" />
