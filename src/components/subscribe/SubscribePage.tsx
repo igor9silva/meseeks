@@ -22,6 +22,7 @@ export function SubscribePage({ route }: { route: typeof Route }) {
 	}, [isPro, navigate]);
 
 	const handleSubscribe = async (product: 'pro' | 'founder') => {
+		track('tap_subscribe', { product });
 		try {
 			const { paymentUrl } = await startSubscription({ product });
 			location.href = paymentUrl;
