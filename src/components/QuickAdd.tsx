@@ -38,6 +38,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 	const navigate = useNavigate();
 	const addTask = useMutation(api.tasks.public.add);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
 	const { q } = useSearch({ strict: false });
 
@@ -114,6 +115,20 @@ export function QuickAddContent({ className }: { className?: string }) {
 		},
 	});
 
+	// global focus shortcut (CMD+I)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: 'i' },
+		callback: () => textareaRef.current?.focus(),
+	});
+
+	// intelligence selector shortcut (CMD+/)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: '/' },
+		callback: () => intelligenceSelectorRef.current?.click(),
+	});
+
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none p-4', className)}>
 			<CardContent className="p-0">
@@ -159,7 +174,12 @@ export function QuickAddContent({ className }: { className?: string }) {
 					<div className="flex flex-col md:flex-row gap-2 w-full">
 						<BudgetSelector name="initialFunds" className="flex-1" />
 						<div className="flex items-center gap-2 flex-1">
-							<IntelligenceSelector value={intelligence} onChange={setIntelligence} className="flex-1" />
+							<IntelligenceSelector
+								value={intelligence}
+								onChange={setIntelligence}
+								className="flex-1"
+								ref={intelligenceSelectorRef}
+							/>
 							<SkillsLink />
 						</div>
 					</div>

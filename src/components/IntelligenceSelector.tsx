@@ -3,7 +3,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
-import { Suspense, useState } from 'react';
+import { forwardRef, Suspense, useState } from 'react';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
 import {
@@ -24,15 +24,14 @@ import { cn } from '~/lib/utils';
 
 type IntelligenceKey = z.infer<typeof modelsSchema>;
 
-export function IntelligenceSelector({
-	value,
-	onChange,
-	className,
-}: {
-	value?: IntelligenceKey;
-	onChange: (value: IntelligenceKey) => void;
-	className?: string;
-}) {
+export const IntelligenceSelector = forwardRef<
+	HTMLButtonElement,
+	{
+		value?: IntelligenceKey;
+		onChange: (value: IntelligenceKey) => void;
+		className?: string;
+	}
+>(({ value, onChange, className }, ref) => {
 	//
 	return (
 		<div className={cn('flex items-center gap-2', className)}>
@@ -49,11 +48,13 @@ export function IntelligenceSelector({
 				</Tooltip>
 			</TooltipProvider>
 			<Suspense fallback={<Skeleton className="w-60 h-8" />}>
-				<IntelligenceCombobox value={value} onChange={onChange} />
+				<IntelligenceCombobox value={value} onChange={onChange} ref={ref} />
 			</Suspense>
 		</div>
 	);
-}
+});
+
+IntelligenceSelector.displayName = 'IntelligenceSelector';
 
 // Define interface for intelligence options from the API
 interface IntelligenceOption {
@@ -71,15 +72,14 @@ function hasDescription(intelligence: IntelligenceOption): intelligence is Recom
 	return 'description' in intelligence && Boolean((intelligence as RecommendedIntelligenceOption).description);
 }
 
-function IntelligenceCombobox({
-	value,
-	onChange,
-	className,
-}: {
-	value?: IntelligenceKey;
-	onChange: (value: IntelligenceKey) => void;
-	className?: string;
-}) {
+const IntelligenceCombobox = forwardRef<
+	HTMLButtonElement,
+	{
+		value?: IntelligenceKey;
+		onChange: (value: IntelligenceKey) => void;
+		className?: string;
+	}
+>(({ value, onChange, className }, ref) => {
 	//
 	const query = convexQuery(api.skills.public.availableIntelligences, {});
 	const { data: intelligences } = useSuspenseQuery(query);
@@ -104,6 +104,7 @@ function IntelligenceCombobox({
 		<Popover open={open} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button
+					ref={ref}
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
@@ -186,4 +187,6 @@ function IntelligenceCombobox({
 			</PopoverContent>
 		</Popover>
 	);
-}
+});
+
+IntelligenceCombobox.displayName = 'IntelligenceCombobox';

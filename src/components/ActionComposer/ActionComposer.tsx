@@ -1,5 +1,5 @@
 import { Doc } from 'convex/_generated/dataModel';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
@@ -27,6 +27,8 @@ export function ActionComposer({
 		onChange: handleMessageChange,
 		setValue: setMessage,
 	} = useExpandingTextarea();
+
+	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
 	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);
 	const isActing = useMemo(() => task.status === 'acting' && isEmpty, [task.status, isEmpty]);
@@ -82,6 +84,13 @@ export function ActionComposer({
 		},
 	});
 
+	// intelligence selector shortcut (CMD+/)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: '/' },
+		callback: () => intelligenceSelectorRef.current?.click(),
+	});
+
 	return (
 		<TooltipProvider>
 			<div
@@ -111,6 +120,7 @@ export function ActionComposer({
 						isActing={isActing}
 						isBlocked={isBlocked}
 						isComposing={isComposing}
+						intelligenceSelectorRef={intelligenceSelectorRef}
 					/>
 				)}
 			</div>
