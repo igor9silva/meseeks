@@ -146,7 +146,12 @@ export function TaskConversation({
 				</Link>
 			</div>
 			<StickToBottom mass={1} initial="instant" resize="instant" className="flex-1 overflow-auto">
-				<StickToBottomContent actions={actions} status={status} loadMore={loadMore}>
+				<StickToBottomContent
+					actions={actions}
+					status={status}
+					loadMore={loadMore}
+					className={debug ? 'gap-0' : 'gap-2'}
+				>
 					{reversedActions.map((action) =>
 						debug ? (
 							<DebugAction
@@ -204,11 +209,13 @@ function StickToBottomContent({
 	status,
 	loadMore,
 	children,
+	className,
 }: {
 	actions: Doc<'actions'>[];
 	status: 'CanLoadMore' | 'LoadingMore' | 'Exhausted' | 'LoadingFirstPage';
 	loadMore: (n: number) => void;
 	children: React.ReactNode;
+	className?: string;
 }) {
 	//
 	const { isAtBottom, scrollToBottom, scrollRef } = useStickToBottomContext();
@@ -262,7 +269,7 @@ function StickToBottomContent({
 						<Loading className="h-6 w-fit" />
 					</div>
 				)}
-				<div className="flex flex-col flex-grow justify-end gap-2">{children}</div>
+				<div className={cn('flex flex-col flex-grow justify-end', className)}>{children}</div>
 				<div className="sticky bottom-2 flex flex-col">
 					<ScrollToBottom />
 				</div>
