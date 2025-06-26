@@ -1,10 +1,8 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { Link, useSearch } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
-import { cn } from '~/lib/utils';
-
 import { QuickAdd } from '~/components/QuickAdd';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
@@ -14,19 +12,21 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/componen
 import { useIsMobile } from '~/hooks/useIsMobile';
 import { usePreferences } from '~/hooks/usePreferences';
 import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
+import { cn } from '~/lib/utils';
 
-export function TaskListAndDetail({
-	taskId, //
+export function Task({
+	taskId,
+	parentTaskId = 'inbox',
 	className,
 }: {
-	taskId: Id<'tasks'> | 'inbox';
+	taskId: Id<'tasks'>;
+	parentTaskId?: Id<'tasks'> | 'inbox';
 	className?: string;
 }) {
-	const args = taskId === 'inbox' ? {} : { parentId: taskId };
+	//
+	const args = parentTaskId === 'inbox' ? {} : { parentId: parentTaskId };
 	const query = convexQuery(api.tasks.public.findAll, args);
 	const { data: subtasks } = useSuspenseQuery(query);
-
-	const { selectedSubtaskId } = useSearch({ strict: false });
 
 	const isMobile = useIsMobile();
 	const direction = isMobile ? 'vertical' : 'horizontal';
@@ -41,48 +41,30 @@ export function TaskListAndDetail({
 	const preferredWidthPercent = getPanelSize();
 
 	return (
-		<ResizablePanelGroup
-			direction={direction}
-			onLayout={(sizes) => {
-				if (selectedSubtaskId) handleLayout(sizes);
-			}}
-			className={cn('overflow-hidden', className)}
-		>
-			<ResizablePanel
-				id="list"
-				order={0}
-				defaultSize={selectedSubtaskId ? preferredWidthPercent : undefined}
-				minSize={25}
-			>
+		<ResizablePanelGroup direction={direction} onLayout={handleLayout} className={cn('overflow-hidden', className)}>
+			<ResizablePanel id="list" order={0} defaultSize={preferredWidthPercent} minSize={25}>
 				<div className="overflow-auto h-full">
 					{subtasks.length === 0 && <QuickAdd />}
 					{subtasks.map((task) => (
 						<Link
 							key={task._id}
 							to="/$"
-							search={
-								isMobile
-									? undefined
-									: { selectedSubtaskId: selectedSubtaskId === task._id ? undefined : task._id }
-							}
-							params={isMobile ? { _splat: `task/${task._id}` } : undefined}
+							params={{ _splat: `/task/${task._id}` }}
 							resetScroll={false}
 							className="block min-w-0"
 						>
-							<TaskItem className={cn(selectedSubtaskId === task._id && 'bg-muted')} task={task} />
+							<TaskItem className={cn(taskId === task._id && 'bg-muted')} task={task} />
 						</Link>
 					))}
 				</div>
 			</ResizablePanel>
-			{selectedSubtaskId && <ResizableHandle withHandle />}
-			{selectedSubtaskId && (
-				<ResizablePanel id="detail" order={1} defaultSize={100 - preferredWidthPercent} minSize={25}>
-					<TaskDetailAndConversation
-						list={<TaskDetail taskId={selectedSubtaskId} />}
-						detail={<TaskConversation taskId={selectedSubtaskId} />}
-					/>
-				</ResizablePanel>
-			)}
+			<ResizableHandle withHandle />
+			<ResizablePanel id="detail" order={1} defaultSize={100 - preferredWidthPercent} minSize={25}>
+				<TaskDetailAndConversation
+					list={<TaskDetail taskId={taskId} />}
+					detail={<TaskConversation taskId={taskId} />}
+				/>
+			</ResizablePanel>
 		</ResizablePanelGroup>
 	);
 }

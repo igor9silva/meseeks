@@ -9,6 +9,7 @@ import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
 import { Grid } from '~/components/layout/Grid';
 import { ListAndDetail } from '~/components/layout/ListAndDetail';
+import { Task } from '~/components/layout/Task';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { TwoColumn } from '~/components/layout/TwoColumn';
 import { Loading } from '~/components/Loading';
@@ -17,7 +18,6 @@ import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndChat } from '~/components/TaskDetailAndChat';
 import { TaskDetailAndSubstasks } from '~/components/TaskDetailAndSubstasks';
-import { TaskListAndDetail } from '~/components/TaskListAndDetail';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
@@ -46,9 +46,9 @@ const components = {
 	TaskDetail,
 	Grid,
 	QuickAdd,
-	TaskListAndDetail,
 	ListAndDetail,
 	TaskDetailAndConversation,
+	Task,
 	ScrollArea,
 	EasterEgg,
 	TopUpCard,

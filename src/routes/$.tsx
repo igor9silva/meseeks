@@ -2,7 +2,6 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { zid } from 'convex-helpers/server/zod';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
 import { BasicError } from '~/components/BasicError';
@@ -10,7 +9,6 @@ import MDX from '~/components/ui/mdx';
 import { useSplatParams } from '~/hooks/useSplatParams';
 
 const searchSchema = z.object({
-	selectedSubtaskId: zid('tasks').optional(),
 	q: z.string().optional(),
 	isBudgetDrawerOpen: z.boolean().optional(),
 	debug: z.boolean().optional(),
