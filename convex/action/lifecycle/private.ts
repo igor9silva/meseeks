@@ -215,7 +215,7 @@ export const _resolve = internalMutation({
 				taskId,
 				owner: task.owner,
 				author: action._id,
-				depth: action.depth,
+				depth: action.depth + 1,
 				skills: result.reactions.map((reaction) => ({
 					skillKey: reaction.skillKey,
 					args: reaction.args,
