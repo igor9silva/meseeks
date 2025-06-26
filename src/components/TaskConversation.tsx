@@ -5,7 +5,7 @@ import { api } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation, usePaginatedQuery } from 'convex/react';
-import { Archive, CheckCircle, ChevronDown, CodeXml, RotateCcw } from 'lucide-react';
+import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
 import { type RefCallback, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
@@ -27,9 +27,13 @@ const NEAR_TOP_THRESHOLD = 200; // px
 export function TaskConversation({
 	taskId, //
 	className,
+	onToggleList,
+	isTaskListVisible = true,
 }: {
 	taskId: Id<'tasks'>;
 	className?: string;
+	onToggleList?: () => void;
+	isTaskListVisible?: boolean;
 }) {
 	const navigate = useNavigate();
 
@@ -80,6 +84,21 @@ export function TaskConversation({
 		<div className={cn('flex flex-col h-full p-2 gap-2', className)}>
 			<div className="flex justify-between items-center bg-background/75">
 				<div className="flex gap-2">
+					{onToggleList && (
+						<Button
+							size="sm"
+							variant="ghost"
+							onClick={onToggleList}
+							className="flex items-center gap-1"
+							title={isTaskListVisible ? 'Hide task list' : 'Show task list'}
+						>
+							{isTaskListVisible ? (
+								<PanelLeftClose className="h-4 w-4" />
+							) : (
+								<PanelLeftOpen className="h-4 w-4" />
+							)}
+						</Button>
+					)}
 					{task.isActive ? (
 						<>
 							<Button

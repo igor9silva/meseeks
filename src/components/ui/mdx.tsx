@@ -7,6 +7,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
+import { Inbox } from '~/components/Inbox';
 import { Grid } from '~/components/layout/Grid';
 import { ListAndDetail } from '~/components/layout/ListAndDetail';
 import { Task } from '~/components/layout/Task';
@@ -48,6 +49,7 @@ const components = {
 	QuickAdd,
 	ListAndDetail,
 	TaskDetailAndConversation,
+	Inbox,
 	Task,
 	ScrollArea,
 	EasterEgg,
