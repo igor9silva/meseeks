@@ -179,12 +179,12 @@ function StructuredValue({ value, depth = 0 }: { value: any; depth?: number }) {
 		if (value.length === 0) return <span className="text-muted-foreground">[]</span>;
 
 		return (
-			<div className="ml-2">
+			<div>
 				<span>[</span>
-				<div className="ml-4">
+				<div>
 					{value.map((item, index) => (
 						<div key={index} className="flex gap-1">
-							<StructuredValue value={item} depth={depth + 1} />
+							<StructuredValue value={item} depth={depth} />
 							{index < value.length - 1 && <span>,</span>}
 						</div>
 					))}
@@ -199,18 +199,16 @@ function StructuredValue({ value, depth = 0 }: { value: any; depth?: number }) {
 		if (entries.length === 0) return <span className="text-muted-foreground">{'{}'}</span>;
 
 		return (
-			<div className="ml-2">
-				<span>{'{'}</span>
-				<div className="ml-4">
+			<div>
+				<div>
 					{entries.map(([key, val], index) => (
 						<div key={key} className="flex gap-1">
 							<span className="font-semibold text-blue-400">{key}:</span>{' '}
-							<StructuredValue value={val} depth={depth + 1} />
+							<StructuredValue value={val} depth={depth} />
 							{index < entries.length - 1 && <span>,</span>}
 						</div>
 					))}
 				</div>
-				<span>{'}'}</span>
 			</div>
 		);
 	}

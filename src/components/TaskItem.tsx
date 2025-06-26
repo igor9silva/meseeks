@@ -1,10 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { ArrowRight } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Button } from '~/components/ui/button';
 import { Checkbox } from '~/components/ui/checkbox';
 import { Separator } from '~/components/ui/separator';
 import { TextShimmer } from '~/components/ui/text-shimmer';
@@ -71,7 +69,7 @@ export function TaskItem({
 					</div>
 				</div>
 			</div>
-			<Button
+			{/* <Button
 				variant="ghost"
 				size="icon"
 				className="justify-end [&_svg]:size-5 flex-shrink-0 hover:bg-transparent"
@@ -81,7 +79,7 @@ export function TaskItem({
 				}}
 			>
 				<ArrowRight />
-			</Button>
+			</Button> */}
 		</div>
 	);
 }

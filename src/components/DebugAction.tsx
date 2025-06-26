@@ -6,6 +6,7 @@ import { asDollars } from 'convex/lib/money';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { CopyButton } from '~/components/CopyButton';
 import { Loading } from '~/components/Loading';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';
@@ -580,12 +581,26 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 }
 
 // Action details with suspense loading
-function ActionDetailsContent({ action }: { action: Doc<'actions'> }) {
+function ActionDetailsContent({
+	action,
+	onDataLoaded,
+}: {
+	action: Doc<'actions'>;
+	onDataLoaded?: (data: any) => void;
+}) {
 	//
 	const query = convexQuery(api.action_details.public.findByAction, {
 		actionId: action._id,
 	});
 	const { data: actionDetails } = useSuspenseQuery(query);
+
+	// Pass the data back to parent component
+	useEffect(() => {
+		//
+		if (actionDetails && onDataLoaded) {
+			onDataLoaded(actionDetails);
+		}
+	}, [actionDetails, onDataLoaded]);
 
 	if (!actionDetails) return null;
 
@@ -596,6 +611,27 @@ function ActionDetailsContent({ action }: { action: Doc<'actions'> }) {
 		</>
 	);
 }
+
+// Serialize action and details to JSON
+const serializeActionToJSON = (action: Doc<'actions'>, actionDetails?: any) => {
+	//
+	const serializable = {
+		...action,
+		// Convert bigint values to strings for JSON serialization
+		estimatedCost: action.estimatedCost ? action.estimatedCost.toString() : null,
+		costs:
+			'costs' in action
+				? (action as any).costs?.map((cost: any) => ({
+						...cost,
+						amount: cost.amount.toString(),
+					}))
+				: undefined,
+		// Add action details if available
+		details: actionDetails || null,
+	};
+
+	return JSON.stringify(serializable, null, 2);
+};
 
 // Main action row component
 function ActionRow({
@@ -611,6 +647,7 @@ function ActionRow({
 }) {
 	//
 	const statusDot = getStatusDot(action.status);
+	const [actionDetails, setActionDetails] = useState<any>(null);
 
 	// Calculate total actual cost
 	const isResolvedAction = action.status === 'succeeded' || action.status === 'skipped' || action.status === 'failed';
@@ -618,6 +655,11 @@ function ActionRow({
 		isResolvedAction && 'costs' in action && (action as any).costs && (action as any).costs.length > 0
 			? (action as any).costs.reduce((sum: bigint, cost: any) => sum + cost.amount, 0n)
 			: action.estimatedCost || 0n;
+
+	const handleDataLoaded = (data: any) => {
+		//
+		setActionDetails(data);
+	};
 
 	return (
 		<TooltipProvider>
@@ -695,6 +737,12 @@ function ActionRow({
 								</TooltipContent>
 							</Tooltip>
 						</div>
+
+						<CopyButton
+							textToCopy={serializeActionToJSON(action, actionDetails)}
+							tooltipText="Copy as JSON"
+							className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+						/>
 					</div>
 				</div>
 
@@ -709,7 +757,7 @@ function ActionRow({
 							<CostSection action={action} />
 
 							<Suspense fallback={<Loading />}>
-								<ActionDetailsContent action={action} />
+								<ActionDetailsContent action={action} onDataLoaded={handleDataLoaded} />
 							</Suspense>
 						</div>
 					</div>

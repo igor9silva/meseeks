@@ -4,6 +4,7 @@ import { useMDX } from '~/hooks/useMDX';
 import React from 'react';
 
 import { ErrorBoundary } from 'react-error-boundary';
+import { ActionTest } from '~/components/ActionTest';
 import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
@@ -54,6 +55,7 @@ const components = {
 	ScrollArea,
 	EasterEgg,
 	TopUpCard,
+	ActionTest,
 };
 
 export default function MDX({
