@@ -2,7 +2,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation } from 'convex/react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { cn } from '~/lib/utils';
@@ -53,6 +53,8 @@ export function QuickAddContent({ className }: { className?: string }) {
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
 		onTranscriptionComplete: setMessage,
 	});
+
+	const placeholder = useMemo(randomPlaceholder, []);
 
 	const handleStartRecording = async () => {
 		try {
@@ -145,7 +147,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 										ref={textareaRef}
 										value={message}
 										onChange={handleMessageChange}
-										placeholder={randomPlaceholder()}
+										placeholder={placeholder}
 										className="text-primary min-h-20 py-2 w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
 									/>
 								</div>
