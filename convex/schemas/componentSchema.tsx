@@ -8,7 +8,7 @@ export const componentSchema = z.object({
 		z.literal('isPro'),
 	]),
 	// author: authorSchema,
-	body: z.string().describe('MDX'),
+	body: z.string().max(1000).describe('MDX'),
 	defaultTaskId: zid('tasks').optional(),
 	slug: z
 		.string()
