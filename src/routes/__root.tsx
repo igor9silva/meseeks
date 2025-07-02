@@ -18,6 +18,7 @@ import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
+import { seo } from '~/lib/seo';
 
 import appCss from '~/styles/app.css?url';
 
@@ -37,6 +38,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					'viewport-fit=cover',
 				].join(','),
 			},
+			...seo({
+				title: 'Meseeks',
+				description: `AI platform to scale your decisions. Be free. Open source, data and business. Currently in research preview.`,
+				image: 'og.png',
+			}),
 		],
 		links: [
 			{ rel: 'stylesheet', href: appCss },
