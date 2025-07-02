@@ -304,6 +304,7 @@ async function renderInstructions(
 
 	// TODO: workaround because we needed an async
 	result = await replaceAllSkillsIfNeeded(ctx, task.owner, result);
+	result = await replaceActiveTasksIfNeeded(ctx, task.owner, result);
 
 	// Handle async variables
 	const userInfo = await getUserInfoIfNeeded(ctx, task.owner, result);
@@ -360,6 +361,35 @@ async function replaceAllSkillsIfNeeded(
 	const variable = list.map((i) => `- *${i.key}*: ${i.description}`).join('\n');
 
 	return text.replace('{{allSkills}}', variable);
+}
+
+async function replaceActiveTasksIfNeeded(
+	ctx: ActionCtx | MutationCtx, //
+	userId: Id<'users'>,
+	text: string,
+): Promise<string> {
+	//
+	if (!text.includes('{{activeTasks}}')) return text;
+
+	const limit = env.ACTIVE_TASKS_RENDER_LIMIT;
+	const activeTasks = await ctx.runQuery(internal.tasks.private._findActiveTasks, {
+		owner: userId,
+		limit,
+	});
+
+	// Sort by total budget (highest first)
+	const sortedTasks = activeTasks.sort((a, b) => Number(b.budgetUSDC.total - a.budgetUSDC.total));
+
+	const variable = sortedTasks
+		.map((task) => {
+			const title = task.title || 'Untitled';
+			const totalBudget = asDollars({ bigInt: task.budgetUSDC.total, precision: 2 });
+			const createdAt = dateOrNever(task._creationTime);
+			return `- *${title}* (${totalBudget} USDC, created: ${createdAt})`;
+		})
+		.join('\n');
+
+	return text.replace('{{activeTasks}}', variable || '<system>No active tasks found.</system>');
 }
 
 function valueForVariable(
@@ -447,7 +477,7 @@ function valueForVariable(
 			);
 
 		default:
-			// handle input.* variables
+			// input.* variables
 			if (variable.startsWith('input.')) {
 				//
 				const argName = variable.slice(6); // remove 'input.' prefix

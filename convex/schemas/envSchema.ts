@@ -105,6 +105,13 @@ export const env = createEnv({
 			.describe('Default AI model to use when no preference is set.')
 			.default('anthropic/claude-4-sonnet'),
 
+		ACTIVE_TASKS_RENDER_LIMIT: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number())
+			.describe('Maximum number of active tasks to show in activeTasks variable.')
+			.default('20'),
+
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
 	},
 
