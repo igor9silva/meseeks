@@ -41,7 +41,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			...seo({
 				title: 'Meseeks',
 				description: `AI platform to scale your decisions. Be free. Open source, data and business. Currently in research preview.`,
-				image: 'og.png',
+				image: '/og.webp',
 			}),
 		],
 		links: [
