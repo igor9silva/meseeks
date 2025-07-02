@@ -123,18 +123,18 @@ export function TaskConversation({
 						</>
 					) : (
 						<>
-							<Button size="sm" onClick={() => handleReopenTask(0.2)} className="flex items-center gap-1">
+							<Button size="sm" onClick={() => handleReopenTask(0.5)} className="flex items-center gap-1">
 								<RotateCcw className="h-4 w-4" />
-								Reopen with $0.20
+								Reopen with $0.50
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => handleReopenTask(1)}
+								onClick={() => handleReopenTask(2)}
 								className="flex items-center gap-1"
 							>
 								<RotateCcw className="h-4 w-4" />
-								Reopen with $1.00
+								Reopen with $2.00
 							</Button>
 							<Button
 								variant="outline"

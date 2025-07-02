@@ -138,7 +138,6 @@ export function CommandMenuDialog() {
 			<CommandList className="max-h-[500px]">
 				{/* Quick actions */}
 				<CommandGroup heading="Quick actions">
-					<NewTaskCommandItem shouldUseSearch={shouldFilter} />
 					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
@@ -168,6 +167,7 @@ export function CommandMenuDialog() {
 						<Inbox className="mr-2" />
 						Go to Inbox
 					</CommandItem>
+					<NewTaskCommandItem shouldUseSearch={shouldFilter} />
 					{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
 						<BadgeCent className="mr-2" />
 						Top up account
@@ -279,14 +279,14 @@ function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 	const handleSelect = () => {
 		//
-		increaseBudget({ taskId: currentTask._id, amount: asBigInt({ dollars: 0.2 }) });
+		increaseBudget({ taskId: currentTask._id, amount: asBigInt({ dollars: 0.5 }) });
 		close();
 	};
 
 	return (
 		<CommandItem keywords={['reopen', 'current']} onSelect={handleSelect}>
 			<RotateCcw className="mr-2" />
-			Reopen with $0.20 of budget
+			Reopen with $0.50 of budget
 		</CommandItem>
 	);
 }
