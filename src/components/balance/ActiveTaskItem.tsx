@@ -26,14 +26,12 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 					<DollarSign className="size-4 text-emerald-600 dark:text-emerald-400" />
 				</div>
 				<div className="flex flex-col gap-0.5 flex-1 min-w-0">
-					<div className="flex items-center gap-2">
-						<h3 className={`font-medium truncate text-sm ${!task.title ? 'text-muted-foreground' : ''}`}>
-							{task.title || 'Untitled task'}
-						</h3>
-						<span className="text-xs text-muted-foreground flex-shrink-0">
-							<TimeAgo date={task._creationTime} />
-						</span>
-					</div>
+					<h3 className={`font-medium truncate text-sm ${!task.title ? 'text-muted-foreground' : ''}`}>
+						{task.title || 'Untitled task'}
+					</h3>
+					<span className="text-xs text-muted-foreground">
+						<TimeAgo date={task._creationTime} />
+					</span>
 				</div>
 			</div>
 			<div className="flex items-center gap-2 flex-shrink-0">

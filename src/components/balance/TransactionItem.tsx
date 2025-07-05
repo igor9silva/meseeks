@@ -13,7 +13,7 @@ interface TransactionItemProps {
 export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 	//
 	return (
-		<div className="flex items-center justify-between rounded-lg border bg-card p-4 transition-all hover:shadow-sm">
+		<div className="flex items-center justify-between gap-1 rounded-lg border bg-card p-4 transition-all hover:shadow-sm">
 			<div className="flex items-center gap-3">
 				<div
 					className={`flex h-10 w-10 items-center justify-center rounded-full ${getTransactionBgColor(transaction)}`}
@@ -54,7 +54,8 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 							params={{ _splat: `/task/${taskId}` }}
 							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
-							See task
+							<span className="hidden md:block">See task</span>
+							<span className="md:hidden">Task</span>
 							<ExternalLink className="size-3" />
 						</Link>
 					)}
