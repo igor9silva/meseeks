@@ -5,8 +5,10 @@ export function EnergyCredits({ className }: { className?: string }) {
 	return (
 		<TooltipProvider>
 			<Tooltip>
-				<TooltipTrigger className={className}>energy</TooltipTrigger>
-				<TooltipContent>US Dollar-equivalent credits</TooltipContent>
+				<TooltipTrigger className={className}>⚡</TooltipTrigger>
+				<TooltipContent>
+					<strong>Energy</strong>, US Dollar-equivalent credits.
+				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);

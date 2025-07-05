@@ -16,8 +16,8 @@ export function TaskBudget({
 	showColors?: boolean;
 }) {
 	//
-	const available = task.budgetUSDC.available;
-	const total = task.budgetUSDC.total;
+	const available = task.energyBudget.available;
+	const total = task.energyBudget.total;
 	const spent = total - available;
 	const percentSpent = total > 0n ? Number((spent * 100n) / total) : 0;
 
@@ -94,14 +94,14 @@ function TooltipActive(props: {
 	return (
 		<div className="text-base space-y-1">
 			<p>
-				Available <strong>{asDollars({ bigInt: available, precision: 6 })} energy</strong>
+				Available <strong>{asDollars({ bigInt: available, precision: 6 })} ⚡</strong>
 			</p>
 			<p>
-				Spent <strong>{asDollars({ bigInt: spent, precision: 6 })} energy</strong> ({percentSpent.toFixed(1)}
+				Spent <strong>{asDollars({ bigInt: spent, precision: 6 })} ⚡</strong> ({percentSpent.toFixed(1)}
 				%)
 			</p>
 			<p>
-				Total added <strong>{asDollars({ bigInt: total, precision: 6 })} energy</strong>
+				Total added <strong>{asDollars({ bigInt: total, precision: 6 })} ⚡</strong>
 			</p>
 		</div>
 	);
@@ -110,7 +110,7 @@ function TooltipActive(props: {
 function TooltipClosed({ spent }: { spent: bigint }) {
 	return (
 		<p className="text-base">
-			Total spent <strong>{asDollars({ bigInt: spent, precision: 6 })} energy</strong>
+			Total spent <strong>{asDollars({ bigInt: spent, precision: 6 })} ⚡</strong>
 		</p>
 	);
 }

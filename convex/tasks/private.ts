@@ -105,10 +105,6 @@ export const _add = internalMutation({
 			parentId,
 			status: 'idle',
 			isActive: true,
-			budgetUSDC: {
-				total: 0n,
-				available: 0n,
-			},
 			energyBudget: {
 				total: 0n,
 				available: 0n,
@@ -166,10 +162,6 @@ export const _addWithActions = internalMutation({
 			parentId,
 			status: 'idle',
 			isActive: true,
-			budgetUSDC: {
-				total: 0n,
-				available: 0n,
-			},
 			energyBudget: {
 				total: 0n,
 				available: 0n,
@@ -202,10 +194,6 @@ export const _addInboxTask = internalMutation({
 			title: 'Look at me!',
 			status: 'idle',
 			isActive: true,
-			budgetUSDC: {
-				total: 0n,
-				available: 0n,
-			},
 			energyBudget: {
 				total: 0n,
 				available: 0n,
@@ -406,8 +394,8 @@ export const _setStatus = internalMutation({
 			if (!task) throw new Error('Task not found');
 
 			// remove funds from the task
-			if (task.budgetUSDC.available > 0n) {
-				await _removeFunds(ctx, { taskId, amount: task.budgetUSDC.available });
+			if (task.energyBudget.available > 0n) {
+				await _removeFunds(ctx, { taskId, amount: task.energyBudget.available });
 			}
 
 			// cancel all active schedules for this task
@@ -465,7 +453,7 @@ export const _useFunds = internalMutation({
 
 		console.debug(`using ${asDollars({ bigInt: amount })} from task ${taskId}`);
 
-		if (task.budgetUSDC.available < amount) {
+		if (task.energyBudget.available < amount) {
 			//
 			console.warn(
 				'Insufficient funds on task',
@@ -473,24 +461,20 @@ export const _useFunds = internalMutation({
 				'cost',
 				asDollars({ bigInt: amount }),
 				'available',
-				asDollars({ bigInt: task.budgetUSDC.available }),
+				asDollars({ bigInt: task.energyBudget.available }),
 				'missing',
-				asDollars({ bigInt: amount - task.budgetUSDC.available }),
+				asDollars({ bigInt: amount - task.energyBudget.available }),
 				'Will use all available funds',
 			);
 
-			amount = task.budgetUSDC.available;
+			amount = task.energyBudget.available;
 		}
 
 		// update the task balance
 		await ctx.db.patch(taskId, {
-			budgetUSDC: {
-				total: task.budgetUSDC.total,
-				available: task.budgetUSDC.available - amount,
-			},
 			energyBudget: {
-				total: task.budgetUSDC.total,
-				available: task.budgetUSDC.available - amount,
+				total: task.energyBudget.total,
+				available: task.energyBudget.available - amount,
 			},
 		});
 	},
@@ -534,13 +518,9 @@ export const _increaseBudget = internalMutation({
 
 		// update the task balance
 		await ctx.db.patch(taskId, {
-			budgetUSDC: {
-				total: task.budgetUSDC.total + amount,
-				available: task.budgetUSDC.available + amount,
-			},
 			energyBudget: {
-				total: task.budgetUSDC.total + amount,
-				available: task.budgetUSDC.available + amount,
+				total: task.energyBudget.total + amount,
+				available: task.energyBudget.available + amount,
 			},
 		});
 	},
@@ -566,13 +546,9 @@ export const _removeFunds = internalMutation({
 
 		// update the task balance
 		await ctx.db.patch(taskId, {
-			budgetUSDC: {
-				total: task.budgetUSDC.total - amount,
-				available: task.budgetUSDC.available - amount,
-			},
 			energyBudget: {
-				total: task.budgetUSDC.total - amount,
-				available: task.budgetUSDC.available - amount,
+				total: task.energyBudget.total - amount,
+				available: task.energyBudget.available - amount,
 			},
 		});
 	},
