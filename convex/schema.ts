@@ -103,6 +103,11 @@ export default defineSchema({
 		zodToConvex(transactionSchema),
 	).index(
 		'by_owner', ['owner'],
+	).searchIndex(
+		'search_transactions', {
+			searchField: 'description',
+			filterFields: ['owner', 'kind'],
+		}
 	),
 
 	subscriptions: defineTable(

@@ -1,4 +1,6 @@
-import { query } from '../_generated/server';
+import { z } from 'zod';
+import { query } from '../lib';
+import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
 import { current as getCurrentUser } from '../users/public';
 
 export const findAll = query({
@@ -12,5 +14,33 @@ export const findAll = query({
 			.withIndex('by_owner', (q) => q.eq('owner', currentUser._id))
 			.order('desc')
 			.collect();
+	},
+});
+
+export const findAllPaginated = query({
+	args: {
+		paginationOpts: paginationOptionsSchema,
+		search: z.string().optional(),
+	},
+	handler: async (ctx, { paginationOpts, search }) => {
+		//
+		const currentUser = await getCurrentUser(ctx, {});
+
+		// Use search index if search term is provided
+		if (search && search.trim()) {
+			return await ctx.db
+				.query('transactions')
+				.withSearchIndex('search_transactions', (q) =>
+					q.search('description', search.trim()).eq('owner', currentUser._id),
+				)
+				.paginate(paginationOpts);
+		}
+
+		// Default query without search
+		return await ctx.db
+			.query('transactions')
+			.withIndex('by_owner', (q) => q.eq('owner', currentUser._id))
+			.order('desc')
+			.paginate(paginationOpts);
 	},
 });

@@ -4,6 +4,7 @@ import { Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
 import { asBigInt } from '../lib/money';
+import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
 import { modelsSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
 import { _add, _markAsRead, _setPreferredIntelligence } from './private';
@@ -35,6 +36,34 @@ export const findAll = query({
 		]);
 
 		return active.concat(inactive);
+	},
+});
+
+export const findAllPaginated = query({
+	args: {
+		paginationOpts: paginationOptionsSchema,
+	},
+	handler: async (ctx, { paginationOpts }) => {
+		//
+		const currentUser = await getCurrentUser(ctx, {});
+
+		const dbQuery = ctx.db
+			.query('tasks')
+			.withIndex('by_owner_isActive', (q) => q.eq('owner', currentUser._id).eq('isActive', true));
+
+		const result = await dbQuery.order('desc').paginate(paginationOpts);
+
+		// sort by available budget (descending)
+		const sortedPage = result.page.sort((a, b) => {
+			const aAvailable = a.energyBudget.available;
+			const bAvailable = b.energyBudget.available;
+			return Number(bAvailable - aAvailable); // Descending order
+		});
+
+		return {
+			...result,
+			page: sortedPage,
+		};
 	},
 });
 
