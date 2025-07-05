@@ -385,7 +385,7 @@ async function replaceActiveTasksIfNeeded(
 			const title = task.title || 'Untitled';
 			const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
 			const createdAt = dateOrNever(task._creationTime);
-			return `- *${title}* (${totalBudget} USDC, created: ${createdAt})`;
+			return `- *${title}* (${totalBudget} energy (US-Dollar equivalent), created: ${createdAt})`;
 		})
 		.join('\n');
 
