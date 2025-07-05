@@ -22,6 +22,7 @@ export const transcribe = action({
 		const formData = new FormData();
 		formData.append('file', file);
 		formData.append('model', 'whisper-large-v3');
+		formData.append('prompt', "You're transcribing audio for a companion called Meseeks.");
 		formData.append('response_format', 'json');
 
 		const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
