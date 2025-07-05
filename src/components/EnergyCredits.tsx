@@ -6,7 +6,7 @@ export function EnergyCredits({ className }: { className?: string }) {
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger className={className}>energy</TooltipTrigger>
-				<TooltipContent>Energy units for AI tasks</TooltipContent>
+				<TooltipContent>US Dollar-equivalent credits</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
