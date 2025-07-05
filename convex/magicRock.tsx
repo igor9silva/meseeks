@@ -378,12 +378,12 @@ async function replaceActiveTasksIfNeeded(
 	});
 
 	// Sort by total budget (highest first)
-	const sortedTasks = activeTasks.sort((a, b) => Number(b.budgetUSDC.total - a.budgetUSDC.total));
+	const sortedTasks = activeTasks.sort((a, b) => Number(b.energyBudget.total - a.energyBudget.total));
 
 	const variable = sortedTasks
 		.map((task) => {
 			const title = task.title || 'Untitled';
-			const totalBudget = asDollars({ bigInt: task.budgetUSDC.total, precision: 2 });
+			const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
 			const createdAt = dateOrNever(task._creationTime);
 			return `- *${title}* (${totalBudget} USDC, created: ${createdAt})`;
 		})
@@ -410,7 +410,7 @@ function valueForVariable(
 				`<createdAt>{{task.createdAt}}</createdAt>`,
 				`<lastUpdatedAt>{{task.lastUpdatedAt}}</lastUpdatedAt>`,
 				`<lastSummarizedAt>{{task.lastSummarizedAt}}</lastSummarizedAt>`,
-				`<budgetUSDC>{{task.budgetUSDC}}</budgetUSDC>`,
+				`<energyBudget>{{task.energyBudget}}</energyBudget>`,
 				`<instructions>{{task.instructions}}</instructions>`,
 				// `<summary>{{task.summary}}</summary>`,
 				// `<parent>${task.parent}</parent>`,
@@ -445,24 +445,24 @@ function valueForVariable(
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';
 
-		case 'task.budgetUSDC':
+		case 'task.energyBudget':
 			return [
-				`<total alt="Total energy user has budgeted for this task">{{task.budgetUSDC.total}}</total>`,
-				`<spent alt="Amount already spent from the budget">{{task.budgetUSDC.spent}}</spent>`,
-				`<available alt="Remaining energy available to resolve this task">{{task.budgetUSDC.available}}</available>`,
+				`<total alt="Total energy user has budgeted for this task">{{task.energyBudget.total}}</total>`,
+				`<spent alt="Amount already spent from the budget">{{task.energyBudget.spent}}</spent>`,
+				`<available alt="Remaining energy available to resolve this task">{{task.energyBudget.available}}</available>`,
 			].join('');
 
-		case 'task.budgetUSDC.total':
-			return asDollars({ bigInt: task.budgetUSDC.total, precision: 10 });
+		case 'task.energyBudget.total':
+			return asDollars({ bigInt: task.energyBudget.total, precision: 10 });
 
-		case 'task.budgetUSDC.spent':
+		case 'task.energyBudget.spent':
 			return asDollars({
-				bigInt: task.budgetUSDC.total - task.budgetUSDC.available,
+				bigInt: task.energyBudget.total - task.energyBudget.available,
 				precision: 10,
 			});
 
-		case 'task.budgetUSDC.available':
-			return asDollars({ bigInt: task.budgetUSDC.available, precision: 10 });
+		case 'task.energyBudget.available':
+			return asDollars({ bigInt: task.energyBudget.available, precision: 10 });
 
 		case 'taskSchedules':
 			return taskSchedules ?? '<system>No active schedules for this task.</system>';

@@ -16,8 +16,8 @@ export function TaskBudget({
 	showColors?: boolean;
 }) {
 	//
-	const available = task.budgetUSDC.available;
-	const total = task.budgetUSDC.total;
+	const available = task.energyBudget.available;
+	const total = task.energyBudget.total;
 	const spent = total - available;
 	const percentSpent = total > 0n ? Number((spent * 100n) / total) : 0;
 
