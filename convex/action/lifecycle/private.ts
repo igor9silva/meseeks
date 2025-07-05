@@ -267,7 +267,7 @@ async function _ensureWithinBudget(
 	//
 	const estimatedCost = await _estimateAndPersistCost(ctx, action, task, skill, context);
 
-	if (estimatedCost > task.budgetEnergy.available) {
+	if (estimatedCost > task.budgetUSDC.available) {
 		throw NotEnoughBudget(
 			`Not enough budget. Estimated cost: ${asDollars({ bigInt: estimatedCost })}.`,
 			action,

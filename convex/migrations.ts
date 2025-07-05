@@ -10,14 +10,14 @@ export const fillDepth = migrations.define({
 	migrateOne: async (_ctx, doc) => ({ depth: 0 }),
 });
 
-export const renameBudgetUSDCToBudgetEnergy = migrations.define({
+export const fillEnergyBudget = migrations.define({
 	table: 'tasks',
 	migrateOne: async (_ctx, doc) => {
 		// Check if the task has the old budgetUSDC field
 		if ('budgetUSDC' in doc && doc.budgetUSDC) {
 			return {
-				budgetEnergy: doc.budgetUSDC,
-				budgetUSDC: undefined, // Remove the old field
+				energyBudget: doc.budgetUSDC,
+				// budgetUSDC: undefined, // Remove the old field
 			};
 		}
 		// If it already has budgetEnergy or no budget field, no change needed
@@ -26,4 +26,4 @@ export const renameBudgetUSDCToBudgetEnergy = migrations.define({
 });
 
 export const runFillDepth = migrations.runner(internal.migrations.fillDepth);
-export const runRenameBudgetUSDCToBudgetEnergy = migrations.runner(internal.migrations.renameBudgetUSDCToBudgetEnergy);
+export const runFillEnergyBudget = migrations.runner(internal.migrations.fillEnergyBudget);

@@ -410,7 +410,7 @@ function valueForVariable(
 				`<createdAt>{{task.createdAt}}</createdAt>`,
 				`<lastUpdatedAt>{{task.lastUpdatedAt}}</lastUpdatedAt>`,
 				`<lastSummarizedAt>{{task.lastSummarizedAt}}</lastSummarizedAt>`,
-				`<budgetEnergy>{{task.budgetEnergy}}</budgetEnergy>`,
+				`<budgetUSDC>{{task.budgetUSDC}}</budgetUSDC>`,
 				`<instructions>{{task.instructions}}</instructions>`,
 				// `<summary>{{task.summary}}</summary>`,
 				// `<parent>${task.parent}</parent>`,
@@ -445,24 +445,24 @@ function valueForVariable(
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';
 
-		case 'task.budgetEnergy':
+		case 'task.budgetUSDC':
 			return [
-				`<total alt="Total energy user has budgeted for this task">{{task.budgetEnergy.total}}</total>`,
-				`<spent alt="Amount already spent from the budget">{{task.budgetEnergy.spent}}</spent>`,
-				`<available alt="Remaining energy available to resolve this task">{{task.budgetEnergy.available}}</available>`,
+				`<total alt="Total energy user has budgeted for this task">{{task.budgetUSDC.total}}</total>`,
+				`<spent alt="Amount already spent from the budget">{{task.budgetUSDC.spent}}</spent>`,
+				`<available alt="Remaining energy available to resolve this task">{{task.budgetUSDC.available}}</available>`,
 			].join('');
 
-		case 'task.budgetEnergy.total':
-			return asDollars({ bigInt: task.budgetEnergy.total, precision: 10 });
+		case 'task.budgetUSDC.total':
+			return asDollars({ bigInt: task.budgetUSDC.total, precision: 10 });
 
-		case 'task.budgetEnergy.spent':
+		case 'task.budgetUSDC.spent':
 			return asDollars({
-				bigInt: task.budgetEnergy.total - task.budgetEnergy.available,
+				bigInt: task.budgetUSDC.total - task.budgetUSDC.available,
 				precision: 10,
 			});
 
-		case 'task.budgetEnergy.available':
-			return asDollars({ bigInt: task.budgetEnergy.available, precision: 10 });
+		case 'task.budgetUSDC.available':
+			return asDollars({ bigInt: task.budgetUSDC.available, precision: 10 });
 
 		case 'taskSchedules':
 			return taskSchedules ?? '<system>No active schedules for this task.</system>';
