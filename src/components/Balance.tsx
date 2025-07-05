@@ -12,13 +12,13 @@ export function Balance({ className }: { className?: string }) {
 
 	return (
 		<Button
-			className={cn('hidden md:flex p-2 [&_svg]:size-5', className)}
+			className={cn('p-2 [&_svg]:size-5', className)}
 			variant="ghost"
 			size="lg"
 			onClick={() => navigate({ to: '/balance' })}
 		>
 			<Wallet />
-			{asDollars({ bigInt: user.balanceUSD ?? 0n })}
+			<span className="hidden md:block">{asDollars({ bigInt: user.balanceUSD ?? 0n })}</span>
 		</Button>
 	);
 }
