@@ -159,13 +159,13 @@ function TransactionItem({
 						<Tooltip>
 							<TooltipTrigger>
 								{asDollars({ bigInt: transaction.value.amount })}
-								<span className="ml-1">energy</span>
+								<span className="ml-1">⚡</span>
 							</TooltipTrigger>
 							<TooltipContent>
 								<span className="font-semibold">
 									{asDollars({ bigInt: transaction.value.amount, precision: 6 })}
 								</span>{' '}
-								US Dollar-equivalent credits
+								<strong>Energy</strong>, US Dollar-equivalent credits.
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
