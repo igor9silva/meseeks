@@ -165,7 +165,7 @@ function TransactionItem({
 								<span className="font-semibold">
 									{asDollars({ bigInt: transaction.value.amount, precision: 6 })}
 								</span>{' '}
-								Energy units for AI tasks
+								US Dollar-equivalent credits
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
