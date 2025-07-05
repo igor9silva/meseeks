@@ -9,8 +9,15 @@
 	"editor.formatOnPaste": true,
 
 	// ignore node_modules on auto-complete
+	"files.watcherExclude": {
+		"**/routeTree.gen.ts": true
+	},
+	"files.readonlyInclude": {
+		"**/routeTree.gen.ts": true
+	},
 	"search.exclude": {
-		"**/node_modules": true
+		"**/node_modules": true,
+		"**/routeTree.gen.ts": true
 	},
 	"files.exclude": {
 		"**/node_modules": true

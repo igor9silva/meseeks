@@ -1,4 +1,4 @@
-import { type DialogProps } from '@radix-ui/react-dialog';
+import type { DialogProps } from '@radix-ui/react-dialog';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { Command as CommandPrimitive } from 'cmdk';
 import * as React from 'react';
@@ -31,7 +31,7 @@ const CommandDialog = ({
 }) => {
 	return (
 		<Dialog {...props}>
-			<DialogContent className="overflow-hidden p-0">
+			<DialogContent className="overflow-hidden p-0 max-w-2xl">
 				<Command
 					loop
 					shouldFilter={shouldFilter}
@@ -70,7 +70,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<CommandPrimitive.List
 		ref={ref}
-		className={cn('max-h-[300px] overflow-y-auto overflow-x-hidden', className)}
+		className={cn('max-h-[70%] overflow-y-auto overflow-x-hidden', className)}
 		{...props}
 	/>
 ));

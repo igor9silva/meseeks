@@ -8,8 +8,9 @@ export const submitRequest = mutation({
 	args: {
 		key: userRequestKeySchema,
 		message: z.string().min(1).max(1000),
+		context: z.record(z.any()).optional(),
 	},
-	handler: async (ctx, { key, message }) => {
+	handler: async (ctx, { key, message, context }) => {
 		//
 		const user = await getCurrentUser(ctx, {});
 
@@ -17,6 +18,7 @@ export const submitRequest = mutation({
 			owner: user._id,
 			key,
 			message,
+			context,
 		});
 	},
 });

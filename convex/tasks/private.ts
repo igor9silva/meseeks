@@ -70,17 +70,17 @@ export const _findOne = internalQuery({
 export const _findActiveTasks = internalQuery({
 	args: {
 		owner: zid('users'),
+		limit: z.number().min(1).max(100).optional(),
 	},
-	handler: async (ctx, { owner }) => {
+	handler: async (ctx, { owner, limit }) => {
 		//
-		return await ctx.db
-			.query('tasks')
-			.withIndex('by_owner_isActive', (q) =>
-				q
-					.eq('owner', owner) //
-					.eq('isActive', true),
-			)
-			.collect();
+		const query = ctx.db.query('tasks').withIndex('by_owner_isActive', (q) =>
+			q
+				.eq('owner', owner) //
+				.eq('isActive', true),
+		);
+
+		return limit ? await query.take(limit) : await query.collect();
 	},
 });
 

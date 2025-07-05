@@ -4,11 +4,14 @@ import { useMDX } from '~/hooks/useMDX';
 import React from 'react';
 
 import { ErrorBoundary } from 'react-error-boundary';
+import { ActionTest } from '~/components/ActionTest';
 import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
+import { Inbox } from '~/components/Inbox';
 import { Grid } from '~/components/layout/Grid';
 import { ListAndDetail } from '~/components/layout/ListAndDetail';
+import { Task } from '~/components/layout/Task';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { TwoColumn } from '~/components/layout/TwoColumn';
 import { Loading } from '~/components/Loading';
@@ -17,7 +20,6 @@ import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndChat } from '~/components/TaskDetailAndChat';
 import { TaskDetailAndSubstasks } from '~/components/TaskDetailAndSubstasks';
-import { TaskListAndDetail } from '~/components/TaskListAndDetail';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
@@ -46,12 +48,14 @@ const components = {
 	TaskDetail,
 	Grid,
 	QuickAdd,
-	TaskListAndDetail,
 	ListAndDetail,
 	TaskDetailAndConversation,
+	Inbox,
+	Task,
 	ScrollArea,
 	EasterEgg,
 	TopUpCard,
+	ActionTest,
 };
 
 export default function MDX({
@@ -78,7 +82,7 @@ export default function MDX({
 	if (!Component) throw new Error('No component found');
 
 	return (
-		<div className={cn('whitespace-normal [&>*]:break-normal [&>*]:hyphens-auto h-full', className)}>
+		<div className={cn('whitespace-normal [&>*]:break-normal [&>*]:hyphens-none h-full', className)}>
 			<ErrorBoundary
 				fallbackRender={({ error }) => <MDXError text={text} error={error} onClickFix={onClickFix} />}
 			>

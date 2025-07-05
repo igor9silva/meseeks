@@ -1,15 +1,15 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
-import { Doc, Id } from '../../_generated/dataModel';
-import { ActionCtx, MutationCtx } from '../../_generated/server';
+import type { Doc, Id } from '../../_generated/dataModel';
+import type { ActionCtx, MutationCtx } from '../../_generated/server';
 import { internalAction, internalMutation, internalQuery } from '../../lib';
 import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../lib/errors';
 import { asDollars } from '../../lib/money';
-import { _prepareContext, MagicRockContext } from '../../magicRock';
+import { _prepareContext, type MagicRockContext } from '../../magicRock';
 import { newActionSchema } from '../../schemas/actionSchema';
 import { env } from '../../schemas/envSchema';
-import { skillSchema } from '../../schemas/skillSchema';
+import type { skillSchema } from '../../schemas/skillSchema';
 import { tokenSchema } from '../../schemas/topUpSchema';
 import { estimateCostFor } from '../../skills/createAITool';
 import { createReactions } from '../../skills/createReactions';
@@ -215,7 +215,7 @@ export const _resolve = internalMutation({
 				taskId,
 				owner: task.owner,
 				author: action._id,
-				depth: action.depth,
+				depth: action.depth + 1,
 				skills: result.reactions.map((reaction) => ({
 					skillKey: reaction.skillKey,
 					args: reaction.args,

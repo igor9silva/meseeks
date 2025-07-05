@@ -301,36 +301,49 @@ async function renderInstructions(
 ) {
 	//
 	let result = skill.config.instructions;
-	let prevResult = '';
 
 	// TODO: workaround because we needed an async
 	result = await replaceAllSkillsIfNeeded(ctx, task.owner, result);
+	result = await replaceActiveTasksIfNeeded(ctx, task.owner, result);
 
 	// Handle async variables
 	const userInfo = await getUserInfoIfNeeded(ctx, task.owner, result);
 	const taskSchedules = await getTaskSchedulesIfNeeded(ctx, task._id, result);
 
-	// continue replacing until no more variables to replace
-	while (result !== prevResult) {
-		//
-		prevResult = result;
-
-		// find all variables in the format {{variable}}
-		result = result.replace(/\{\{([^{}]+)\}\}/g, (match, variableName) => {
-			//
-			const trimmedVariable = variableName.trim();
-
-			// if variable starts with backslash, treat as escaped literal
-			if (trimmedVariable.startsWith('\\')) {
-				return `{{${trimmedVariable.slice(1)}}}`;
-			}
-
-			// replace with the value
-			return valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules);
-		});
-	}
+	// Single-pass parsing that handles both escaped and normal variables correctly
+	result = parseAndReplaceVariables(result, task, action, userInfo, taskSchedules);
 
 	return result;
+}
+
+function parseAndReplaceVariables(
+	text: string,
+	task: Doc<'tasks'>,
+	action: Doc<'actions'>,
+	userInfo?: string,
+	taskSchedules?: string,
+): string {
+	//
+	// Use a single regex that captures all {{...}} patterns and distinguishes escaped from normal
+	return text.replace(/\{\{(\\?)([^{}]+)\}\}/g, (match, backslash, variableName) => {
+		//
+		// If there's a backslash, it's escaped - return the literal {{variable}}
+		if (backslash) {
+			return `{{${variableName}}}`;
+		}
+
+		// Normal variable - replace with value
+		const trimmedVariable = variableName.trim();
+		const replacedValue = valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules);
+
+		// If the replacement contains {{}} patterns, we need to process them recursively
+		// but only if they're different from the original to avoid infinite loops
+		if (replacedValue !== match && replacedValue.includes('{{')) {
+			return parseAndReplaceVariables(replacedValue, task, action, userInfo, taskSchedules);
+		}
+
+		return replacedValue;
+	});
 }
 
 async function replaceAllSkillsIfNeeded(
@@ -348,6 +361,35 @@ async function replaceAllSkillsIfNeeded(
 	const variable = list.map((i) => `- *${i.key}*: ${i.description}`).join('\n');
 
 	return text.replace('{{allSkills}}', variable);
+}
+
+async function replaceActiveTasksIfNeeded(
+	ctx: ActionCtx | MutationCtx, //
+	userId: Id<'users'>,
+	text: string,
+): Promise<string> {
+	//
+	if (!text.includes('{{activeTasks}}')) return text;
+
+	const limit = env.ACTIVE_TASKS_RENDER_LIMIT;
+	const activeTasks = await ctx.runQuery(internal.tasks.private._findActiveTasks, {
+		owner: userId,
+		limit,
+	});
+
+	// Sort by total budget (highest first)
+	const sortedTasks = activeTasks.sort((a, b) => Number(b.budgetUSDC.total - a.budgetUSDC.total));
+
+	const variable = sortedTasks
+		.map((task) => {
+			const title = task.title || 'Untitled';
+			const totalBudget = asDollars({ bigInt: task.budgetUSDC.total, precision: 2 });
+			const createdAt = dateOrNever(task._creationTime);
+			return `- *${title}* (${totalBudget} USDC, created: ${createdAt})`;
+		})
+		.join('\n');
+
+	return text.replace('{{activeTasks}}', variable || '<system>No active tasks found.</system>');
 }
 
 function valueForVariable(
@@ -435,7 +477,7 @@ function valueForVariable(
 			);
 
 		default:
-			// handle input.* variables
+			// input.* variables
 			if (variable.startsWith('input.')) {
 				//
 				const argName = variable.slice(6); // remove 'input.' prefix
@@ -456,6 +498,7 @@ function valueForVariable(
 			}
 
 			console.warn(`Unknown variable: ${variable}`);
+
 			return variable;
 	}
 }

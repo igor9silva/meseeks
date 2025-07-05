@@ -14,7 +14,9 @@ export function FaqSection() {
 			<Accordion type="multiple" className="w-full">
 				{faqs.map((faq, index) => (
 					<AccordionItem key={index} value={`item-${index}`} className="border rounded-lg mb-2 px-4">
-						<AccordionTrigger className="text-left hover:no-underline">{faq.question}</AccordionTrigger>
+						<AccordionTrigger className="text-left hover:no-underline font-bold">
+							{faq.question}
+						</AccordionTrigger>
 						<AccordionContent>{faq.answer}</AccordionContent>
 					</AccordionItem>
 				))}

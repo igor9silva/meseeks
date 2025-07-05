@@ -190,6 +190,7 @@ export const instructionVariableSchema = z.union([
 	z.literal('currentDate').describe('The current date and time in ISO 8601 format'),
 	z.literal('userInfo').describe('Information about the user, written by themself'),
 	z.literal('allSkills').describe('A list of all existing skills.'),
+	z.literal('activeTasks').describe('A list of all active tasks ordered by total budget (highest first).'),
 	z
 		.string()
 		.regex(/^input\..+$/)

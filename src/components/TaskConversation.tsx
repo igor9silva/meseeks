@@ -5,7 +5,7 @@ import { api } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation, usePaginatedQuery } from 'convex/react';
-import { Archive, CheckCircle, ChevronDown, CodeXml, RotateCcw } from 'lucide-react';
+import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
 import { type RefCallback, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
@@ -27,9 +27,13 @@ const NEAR_TOP_THRESHOLD = 200; // px
 export function TaskConversation({
 	taskId, //
 	className,
+	onToggleList,
+	isTaskListVisible = true,
 }: {
 	taskId: Id<'tasks'>;
 	className?: string;
+	onToggleList?: () => void;
+	isTaskListVisible?: boolean;
 }) {
 	const navigate = useNavigate();
 
@@ -80,6 +84,21 @@ export function TaskConversation({
 		<div className={cn('flex flex-col h-full p-2 gap-2', className)}>
 			<div className="flex justify-between items-center bg-background/75">
 				<div className="flex gap-2">
+					{onToggleList && (
+						<Button
+							size="sm"
+							variant="ghost"
+							onClick={onToggleList}
+							className="flex items-center gap-1"
+							title={isTaskListVisible ? 'Hide task list' : 'Show task list'}
+						>
+							{isTaskListVisible ? (
+								<PanelLeftClose className="h-4 w-4" />
+							) : (
+								<PanelLeftOpen className="h-4 w-4" />
+							)}
+						</Button>
+					)}
 					{task.isActive ? (
 						<>
 							<Button
@@ -104,18 +123,18 @@ export function TaskConversation({
 						</>
 					) : (
 						<>
-							<Button size="sm" onClick={() => handleReopenTask(0.2)} className="flex items-center gap-1">
+							<Button size="sm" onClick={() => handleReopenTask(0.5)} className="flex items-center gap-1">
 								<RotateCcw className="h-4 w-4" />
-								Reopen with $0.20
+								Reopen with $0.50
 							</Button>
 							<Button
 								variant="outline"
 								size="sm"
-								onClick={() => handleReopenTask(1)}
+								onClick={() => handleReopenTask(2)}
 								className="flex items-center gap-1"
 							>
 								<RotateCcw className="h-4 w-4" />
-								Reopen with $1.00
+								Reopen with $2.00
 							</Button>
 							<Button
 								variant="outline"
@@ -146,7 +165,12 @@ export function TaskConversation({
 				</Link>
 			</div>
 			<StickToBottom mass={1} initial="instant" resize="instant" className="flex-1 overflow-auto">
-				<StickToBottomContent actions={actions} status={status} loadMore={loadMore}>
+				<StickToBottomContent
+					actions={actions}
+					status={status}
+					loadMore={loadMore}
+					className={debug ? 'gap-0' : 'gap-2'}
+				>
 					{reversedActions.map((action) =>
 						debug ? (
 							<DebugAction
@@ -182,7 +206,7 @@ export function TaskConversation({
 			>
 				<DrawerContent>
 					<DrawerHeader>
-						<DrawerTitle>Add Budget</DrawerTitle>
+						<DrawerTitle>Add budget</DrawerTitle>
 					</DrawerHeader>
 					<div className="px-4 pb-4">
 						<BudgetSelector value={selectedBudget} onChange={setSelectedBudget} className="w-full" />
@@ -204,11 +228,13 @@ function StickToBottomContent({
 	status,
 	loadMore,
 	children,
+	className,
 }: {
 	actions: Doc<'actions'>[];
 	status: 'CanLoadMore' | 'LoadingMore' | 'Exhausted' | 'LoadingFirstPage';
 	loadMore: (n: number) => void;
 	children: React.ReactNode;
+	className?: string;
 }) {
 	//
 	const { isAtBottom, scrollToBottom, scrollRef } = useStickToBottomContext();
@@ -262,7 +288,7 @@ function StickToBottomContent({
 						<Loading className="h-6 w-fit" />
 					</div>
 				)}
-				<div className="flex flex-col flex-grow justify-end gap-2">{children}</div>
+				<div className={cn('flex flex-col flex-grow justify-end', className)}>{children}</div>
 				<div className="sticky bottom-2 flex flex-col">
 					<ScrollToBottom />
 				</div>

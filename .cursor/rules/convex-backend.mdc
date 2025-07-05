@@ -5,6 +5,9 @@ alwaysApply: false
 ---
 # Convex Backend Patterns
 
+## IMPORTANT
+- DO NOT ever use `bunx convex deploy` as this deploy direct to PRODUCTION
+
 ## File Organization Pattern
 - **public.ts**: Client-callable functions (queries, mutations, actions)
 - **private.ts**: Internal functions with underscore prefix (`_functionName`)

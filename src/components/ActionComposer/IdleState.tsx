@@ -20,6 +20,7 @@ interface IdleStateProps {
 	isBlocked: boolean;
 	isActing: boolean;
 	isComposing: boolean;
+	intelligenceSelectorRef: React.RefObject<HTMLButtonElement>;
 }
 
 export function IdleState({
@@ -33,6 +34,7 @@ export function IdleState({
 	isBlocked,
 	isActing,
 	isComposing,
+	intelligenceSelectorRef,
 }: IdleStateProps) {
 	//
 	const { setPreferredIntelligence } = useTaskMutations();
@@ -54,7 +56,11 @@ export function IdleState({
 
 			<div className="flex items-center justify-between gap-2 px-3 pt-2">
 				<div className="flex items-center gap-2 flex-shrink-0">
-					<IntelligenceSelector value={task.preferredIntelligence} onChange={handleIntelligenceChange} />
+					<IntelligenceSelector
+						value={task.preferredIntelligence}
+						onChange={handleIntelligenceChange}
+						ref={intelligenceSelectorRef}
+					/>
 					<SkillsLink />
 				</div>
 

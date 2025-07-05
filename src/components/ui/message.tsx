@@ -61,7 +61,7 @@ const MessageContent = ({
 			shouldRenderComponents={shouldRenderComponents}
 			text={text}
 			className={cn(
-				'rounded-lg text-foreground max-w-full md:max-w-[95%] break-normal hyphens-auto whitespace-normal',
+				'rounded-lg text-foreground max-w-full md:max-w-[95%] break-normal hyphens-none whitespace-normal',
 				className,
 			)}
 			{...props}
@@ -137,7 +137,7 @@ const FailedMessage = ({
 				<MessageContent className="text-sm text-muted-foreground text-left" text={text} />
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<pre className="text-sm text-muted-foreground text-left whitespace-pre-wrap break-normal hyphens-auto">
+				<pre className="text-sm text-muted-foreground text-left whitespace-pre-wrap break-normal hyphens-none">
 					{error}
 				</pre>
 			</CollapsibleContent>

@@ -27,16 +27,23 @@ export const env = createEnv({
 		CHAR_PER_TOKEN: z
 			.string()
 			.min(1)
-			.transform((s) => parseInt(s, 10))
+			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The number of characters per token to account for in cost prediction.'),
 
 		COST_PREDICTION_MARGIN: z
 			.string()
 			.min(1)
-			.transform((s) => parseInt(s, 10))
+			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The cost prediction margin, in percentage (e.g. "50" for 50%).'),
+
+		MAX_HTTP_RESPONSE_BODY_BYTES: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number())
+			.describe('Maximum HTTP response body size to store in action details (in bytes).')
+			.default('819200'), // 800KiB in bytes
 
 		AUTH_GOOGLE_ID: z.string().min(1).describe('Google OAuth client ID.'),
 		AUTH_GOOGLE_SECRET: z.string().min(1).describe('Google OAuth client secret.'),
@@ -69,7 +76,7 @@ export const env = createEnv({
 			.string()
 			.min(1)
 			// transform to number
-			.transform((s) => parseInt(s, 10))
+			.transform((s) => Number.parseInt(s, 10))
 			// make sure transform worked
 			.pipe(z.number())
 			.describe('JWT session duration in milliseconds.'),
@@ -78,19 +85,32 @@ export const env = createEnv({
 
 		MAX_CONSECUTIVE_COMPANION_ACTIONS: z
 			.string()
-			.transform((s) => parseInt(s, 10))
+			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The maximum number of consecutive companion actions.')
 			.default('20'),
 
 		DEFAULT_CONTEXT_SIZE: z
 			.string()
-			.transform((s) => parseInt(s, 10))
+			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The default context size.')
 			.default('40'),
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
+
+		DEFAULT_MODEL: z
+			.string()
+			.min(1)
+			.describe('Default AI model to use when no preference is set.')
+			.default('anthropic/claude-4-sonnet'),
+
+		ACTIVE_TASKS_RENDER_LIMIT: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number())
+			.describe('Maximum number of active tasks to show in activeTasks variable.')
+			.default('20'),
 
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
 	},

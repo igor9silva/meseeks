@@ -1,6 +1,5 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowLeft, Inbox, Share, SquarePen } from 'lucide-react';
-import { Suspense } from 'react';
+import { ArrowLeft, Inbox, SquarePen } from 'lucide-react';
 import { cn } from '~/lib/utils';
 
 import { convexQuery } from '@convex-dev/react-query';
@@ -34,31 +33,32 @@ export function MainHeader({ className }: { className?: string }) {
 	return (
 		<TooltipProvider>
 			<header
-				className={cn(
-					'flex h-14 items-center justify-between border-t md:border-b px-0 md:px-2 gap-1',
-					className,
-				)}
+				className={cn('flex h-14 items-center justify-between border-t md:border-b px-0 px-2 gap-1', className)}
 			>
 				<div className="flex items-center gap-1">
 					{/* TODO: dynamically enable/disable
 					https://github.com/TanStack/router/discussions/181#discussioncomment-11726923 */}
-					<TooltipButton className="p-2" variant="ghost" onClick={goBack} tooltipContent="Go back">
+					<TooltipButton
+						className="p-2 [&_svg]:size-5"
+						variant="ghost"
+						size="lg"
+						onClick={goBack}
+						tooltipContent="Go back"
+					>
 						<ArrowLeft />
 					</TooltipButton>
-					<TooltipButton className="p-2" variant="ghost" onClick={goUp} tooltipContent="Inbox">
+					<TooltipButton
+						className="p-2 [&_svg]:size-5"
+						variant="ghost"
+						size="lg"
+						onClick={goUp}
+						tooltipContent="Inbox"
+					>
 						<Inbox />
 					</TooltipButton>
 				</div>
 
 				<div className="w-1/2 flex gap-1">
-					<TooltipButton
-						className="p-2"
-						variant="ghost"
-						onClick={() => navigate({ to: '/$', params: { _splat: '/new' } })}
-						tooltipContent="New task"
-					>
-						<SquarePen />
-					</TooltipButton>
 					<Button
 						variant="outline"
 						onClick={openCommandDialog}
@@ -72,9 +72,9 @@ export function MainHeader({ className }: { className?: string }) {
 							<span className="text-base">⌘</span>K
 						</kbd>
 					</Button>
-					<TooltipButton className="p-2" variant="ghost" onClick={share} tooltipContent="Share this task">
+					{/* <TooltipButton className="p-2" variant="ghost" onClick={share} tooltipContent="Share this task">
 						<Share />
-					</TooltipButton>
+					</TooltipButton> */}
 					{/* {search.selectedSubtaskId && (
 						<TooltipButton
 							variant="ghost"
@@ -93,13 +93,22 @@ export function MainHeader({ className }: { className?: string }) {
 
 				<div className="flex gap-1">
 					<Balance />
-					{taskId && (
+					<TooltipButton
+						className="p-2 [&_svg]:size-5"
+						variant="ghost"
+						size="lg"
+						onClick={() => navigate({ to: '/$', params: { _splat: '/new' } })}
+						tooltipContent="New task"
+					>
+						<SquarePen />
+					</TooltipButton>
+					{/* {taskId && (
 						<Suspense fallback={null}>
 							<div className="flex items-center p-1">
 								<TaskStatusIndicatorProvider taskId={taskId} />
 							</div>
 						</Suspense>
-					)}
+					)} */}
 				</div>
 			</header>
 		</TooltipProvider>

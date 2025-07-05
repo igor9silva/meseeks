@@ -1,3 +1,4 @@
+import { useLocation } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { userRequestSchema } from 'convex/schemas/userSchema';
@@ -14,7 +15,9 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog';
 import { Textarea } from '~/components/ui/textarea';
+import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useHandleSubmit } from '~/hooks/useHandleSubmit';
+import { useSplatParams } from '~/hooks/useSplatParams';
 import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
@@ -38,6 +41,29 @@ export function FeedbackDialog({
 	const submit = useMutation(api.users.requests.public.submitRequest);
 	const submitHotkey = useSubmitHotkey();
 
+	const { pathname, searchStr } = useLocation();
+	const { taskId } = useSplatParams();
+	const user = useCurrentUser();
+
+	const gatherContext = () => {
+		return {
+			timestamp: new Date().toISOString(),
+			currentPath: pathname + searchStr,
+			currentTaskId: taskId || null,
+			userAgent: navigator.userAgent,
+			viewportSize: {
+				width: window.innerWidth,
+				height: window.innerHeight,
+			},
+			devicePixelRatio: window.devicePixelRatio,
+			userInfo: {
+				id: user._id,
+				email: user.email,
+				isFounder: user.isFounder,
+			},
+		};
+	};
+
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({
 			message: userRequestSchema.shape.message,
@@ -53,6 +79,7 @@ export function FeedbackDialog({
 				await submit({
 					key: 'feedback',
 					message: data.message.trim(),
+					context: gatherContext(),
 				});
 
 				toast.success('Feedback submitted! Thanks for helping us improve.');

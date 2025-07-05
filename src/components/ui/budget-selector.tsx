@@ -3,7 +3,6 @@ import { Slider } from '~/components/ui/slider';
 
 export const BUDGET_STEPS = [
 	0, //
-	0.1,
 	0.2,
 	0.5,
 	1,
@@ -29,7 +28,7 @@ type BudgetSelectorProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'on
 
 export const BudgetSelector = React.forwardRef<HTMLInputElement, BudgetSelectorProps>(
 	(
-		{ value, defaultValue = 0.2, onChange, name, className, ...props }, //
+		{ value, defaultValue = 0.5, onChange, name, className, ...props }, //
 		ref,
 	) => {
 		//

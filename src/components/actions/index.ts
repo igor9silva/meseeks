@@ -11,6 +11,7 @@ import { ScheduleAction } from '~/components/actions/ScheduleAction';
 import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
 import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
 import { SearchWebAction } from '~/components/actions/SearchWebAction';
+import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
 
@@ -32,6 +33,7 @@ export default {
 	reason: ReasonAction,
 	schedule: ScheduleAction,
 	cancelSchedule: CancelScheduleAction,
+	setUserInfo: SetUserInfoAction,
 	//
 	createSkill: LearnAction,
 	updateSkill: LearnAction,
