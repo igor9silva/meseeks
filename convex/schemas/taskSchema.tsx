@@ -15,10 +15,10 @@ export const taskStatusSchema = z.enum([
 export const taskBudgetSchema = z.object({
 	total: z
 		.bigint() //
-		.describe('The total amount of money the user has budgeted for this task.'),
+		.describe('The total amount of energy the user has budgeted for this task.'),
 	available: z
 		.bigint() //
-		.describe('The remaining/available amount of money available to spend on this task (total - spent).'),
+		.describe('The remaining/available amount of energy available to spend on this task (total - spent).'),
 });
 
 export const taskSchema = z
@@ -37,7 +37,8 @@ export const taskSchema = z
 		lastUpdatedAt: z.number().optional().describe('The last time the task instructions were reviewed/updated.'),
 		lastSummarizedAt: z.number().optional().describe('The last time the task activity was summarized.'),
 		// lastReadAction: zid('actions').optional().describe('The last action that was "read" by the user.'),
-		budgetUSDC: taskBudgetSchema,
+		budgetUSDC: taskBudgetSchema, //.optional(),
+		energyBudget: taskBudgetSchema.optional(),
 		embeddingId: zid('taskEmbeddings').optional(),
 		preferredIntelligence: modelsSchema.optional().describe('The preferred intelligence to use for this task.'),
 	})

@@ -61,7 +61,7 @@ export function GenericAction({
 							<div className="text-md font-medium">{action.skillKey}()</div>
 							{typeof action.estimatedCost === 'bigint' && (
 								<div className="text-sm text-muted-foreground">
-									Expected cost: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })} USDc
+									Expected cost: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })} energy
 								</div>
 							)}
 						</div>

@@ -109,6 +109,10 @@ export const _add = internalMutation({
 				total: 0n,
 				available: 0n,
 			},
+			energyBudget: {
+				total: 0n,
+				available: 0n,
+			},
 			preferredIntelligence,
 		});
 
@@ -166,6 +170,10 @@ export const _addWithActions = internalMutation({
 				total: 0n,
 				available: 0n,
 			},
+			energyBudget: {
+				total: 0n,
+				available: 0n,
+			},
 			preferredIntelligence,
 		});
 
@@ -195,6 +203,10 @@ export const _addInboxTask = internalMutation({
 			status: 'idle',
 			isActive: true,
 			budgetUSDC: {
+				total: 0n,
+				available: 0n,
+			},
+			energyBudget: {
 				total: 0n,
 				available: 0n,
 			},
@@ -476,6 +488,10 @@ export const _useFunds = internalMutation({
 				total: task.budgetUSDC.total,
 				available: task.budgetUSDC.available - amount,
 			},
+			energyBudget: {
+				total: task.budgetUSDC.total,
+				available: task.budgetUSDC.available - amount,
+			},
 		});
 	},
 });
@@ -522,6 +538,10 @@ export const _increaseBudget = internalMutation({
 				total: task.budgetUSDC.total + amount,
 				available: task.budgetUSDC.available + amount,
 			},
+			energyBudget: {
+				total: task.budgetUSDC.total + amount,
+				available: task.budgetUSDC.available + amount,
+			},
 		});
 	},
 });
@@ -547,6 +567,10 @@ export const _removeFunds = internalMutation({
 		// update the task balance
 		await ctx.db.patch(taskId, {
 			budgetUSDC: {
+				total: task.budgetUSDC.total - amount,
+				available: task.budgetUSDC.available - amount,
+			},
+			energyBudget: {
 				total: task.budgetUSDC.total - amount,
 				available: task.budgetUSDC.available - amount,
 			},

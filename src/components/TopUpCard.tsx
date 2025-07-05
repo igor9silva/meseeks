@@ -4,7 +4,7 @@ import { asBigInt } from 'convex/lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { DollarCredits } from '~/components/DollarCredits';
+import { EnergyCredits } from '~/components/EnergyCredits';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
@@ -48,7 +48,7 @@ export function TopUpCard() {
 		<Card className="max-h-fit border-none rounded-none prose">
 			<CardContent className="p-0">
 				<form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-row items-center gap-2">
-					<DollarCredits className="font-semibold" />
+					<EnergyCredits className="font-semibold" />
 					<Input type="string" name="amount" placeholder="Amount" required defaultValue={50} />
 					<Button variant="default" type="submit">
 						Top up

@@ -1,11 +1,11 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 
-export function DollarCredits({ className }: { className?: string }) {
+export function EnergyCredits({ className }: { className?: string }) {
 	//
 	return (
 		<TooltipProvider>
 			<Tooltip>
-				<TooltipTrigger className={className}>USDc</TooltipTrigger>
+				<TooltipTrigger className={className}>energy</TooltipTrigger>
 				<TooltipContent>US Dollar-equivalent credits</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>

@@ -6,7 +6,7 @@ import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt, asDollars } from 'convex/lib/money';
 import { AlertTriangle, ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
-import { DollarCredits } from '~/components/DollarCredits';
+import { EnergyCredits } from '~/components/EnergyCredits';
 import { TimeAgo } from '~/components/TimeAgo';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Button } from '~/components/ui/button';
@@ -43,7 +43,7 @@ function RouteComponent() {
 				<span className="text-sm">
 					Your current non-locked balance is{' '}
 					<span className="font-bold">
-						{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })} <DollarCredits />
+						{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })} <EnergyCredits />
 					</span>
 					.
 				</span>
@@ -51,7 +51,7 @@ function RouteComponent() {
 					<span className="text-sm">
 						Other{' '}
 						<span className="font-bold">
-							{asDollars({ bigInt: lockedBalance, precision: 6 })} <DollarCredits /> are locked
+							{asDollars({ bigInt: lockedBalance, precision: 6 })} <EnergyCredits /> are locked
 						</span>{' '}
 						in active tasks.
 					</span>
@@ -159,7 +159,7 @@ function TransactionItem({
 						<Tooltip>
 							<TooltipTrigger>
 								{asDollars({ bigInt: transaction.value.amount })}
-								<span className="ml-1">USDc</span>
+								<span className="ml-1">energy</span>
 							</TooltipTrigger>
 							<TooltipContent>
 								<span className="font-semibold">
