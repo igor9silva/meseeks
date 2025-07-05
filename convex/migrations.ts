@@ -1,5 +1,5 @@
 import { Migrations } from '@convex-dev/migrations';
-import { components, internal } from './_generated/api.js';
+import { components } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
@@ -25,13 +25,5 @@ export const migrations = new Migrations<DataModel>(components.migrations);
 // 	},
 // });
 
-export const removeBudgetUSDC = migrations.define({
-	table: 'tasks',
-	migrateOne: async (_ctx, doc) => {
-		return { budgetUSDC: undefined };
-	},
-});
-
 // export const runFillDepth = migrations.runner(internal.migrations.fillDepth);
 // export const runFillEnergyBudget = migrations.runner(internal.migrations.fillEnergyBudget);
-export const runRemoveBudgetUSDC = migrations.runner(internal.migrations.removeBudgetUSDC);

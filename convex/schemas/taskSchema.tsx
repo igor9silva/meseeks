@@ -37,7 +37,6 @@ export const taskSchema = z
 		lastUpdatedAt: z.number().optional().describe('The last time the task instructions were reviewed/updated.'),
 		lastSummarizedAt: z.number().optional().describe('The last time the task activity was summarized.'),
 		// lastReadAction: zid('actions').optional().describe('The last action that was "read" by the user.'),
-		budgetUSDC: taskBudgetSchema.optional(),
 		energyBudget: taskBudgetSchema,
 		embeddingId: zid('taskEmbeddings').optional(),
 		preferredIntelligence: modelsSchema.optional().describe('The preferred intelligence to use for this task.'),
