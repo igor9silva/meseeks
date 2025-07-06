@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { modelsSchema } from 'convex/schemas/skillSchema';
-import { ArrowUp, Mic } from 'lucide-react';
+import { ArrowUp, Mic, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
@@ -17,9 +17,11 @@ interface IdleStateProps {
 	isEmpty: boolean;
 	startRecording: () => void;
 	handleSubmit: () => void;
+	handleRequestIteration: () => void;
 	isBlocked: boolean;
 	isActing: boolean;
 	isComposing: boolean;
+	canRequestIteration: boolean;
 	intelligenceSelectorRef: React.RefObject<HTMLButtonElement>;
 }
 
@@ -31,9 +33,11 @@ export function IdleState({
 	isEmpty,
 	startRecording,
 	handleSubmit,
+	handleRequestIteration,
 	isBlocked,
 	isActing,
 	isComposing,
+	canRequestIteration,
 	intelligenceSelectorRef,
 }: IdleStateProps) {
 	//
@@ -50,7 +54,7 @@ export function IdleState({
 					value={message}
 					onChange={handleMessageChange}
 					placeholder="What's next?"
-					className="text-primary min-h-14 py-2 w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+					className="text-primary py-2 w-full resize-none border-none bg-transparent shadow-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
 				/>
 			</div>
 
@@ -69,6 +73,7 @@ export function IdleState({
 					{isActing && <KeyboardShortcutIndicator keySymbol="⌫" text="to stop" />}
 					{isBlocked && <KeyboardShortcutIndicator keySymbol="⏎" text="to authorize" />}
 					{isComposing && <KeyboardShortcutIndicator keySymbol="⏎" text="to act" />}
+					{canRequestIteration && <KeyboardShortcutIndicator keySymbol="⏎" text="to iterate" />}
 
 					{/* Action buttons */}
 					<ActionButton
@@ -77,12 +82,20 @@ export function IdleState({
 						tooltip="Transcribe voice"
 						variant="secondary"
 					/>
-					<ActionButton
-						icon={<ArrowUp className="size-5" />}
-						onClick={handleSubmit}
-						disabled={isEmpty}
-						tooltip="Act"
-					/>
+					{canRequestIteration ? (
+						<ActionButton
+							icon={<Sparkles className="size-5" />}
+							onClick={handleRequestIteration}
+							tooltip="Request AI iteration"
+						/>
+					) : (
+						<ActionButton
+							icon={<ArrowUp className="size-5" />}
+							onClick={handleSubmit}
+							disabled={isEmpty}
+							tooltip="Act"
+						/>
+					)}
 				</div>
 			</div>
 		</>

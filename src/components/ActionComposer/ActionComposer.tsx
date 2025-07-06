@@ -26,13 +26,14 @@ export function ActionComposer({
 		isEmpty,
 		onChange: handleMessageChange,
 		setValue: setMessage,
-	} = useExpandingTextarea();
+	} = useExpandingTextarea({ singleLineHeight: 40 });
 
 	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
+	const isComposing = !isEmpty;
 	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);
 	const isActing = useMemo(() => task.status === 'acting' && isEmpty, [task.status, isEmpty]);
-	const isComposing = !isEmpty;
+	const canRequestIteration = useMemo(() => isEmpty && !isBlocked && !isActing, [isEmpty, isBlocked, isActing]);
 
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
 		onTranscriptionComplete: setMessage,
@@ -45,6 +46,10 @@ export function ActionComposer({
 		say({ message, taskId: task._id });
 		setMessage('');
 		onSubmit?.(message);
+	};
+
+	const handleRequestIteration = () => {
+		requestIteration({ taskId: task._id });
 	};
 
 	// global focus shortcut (CMD+I)
@@ -117,9 +122,11 @@ export function ActionComposer({
 						isEmpty={isEmpty}
 						startRecording={startRecording}
 						handleSubmit={handleSubmit}
+						handleRequestIteration={handleRequestIteration}
 						isActing={isActing}
 						isBlocked={isBlocked}
 						isComposing={isComposing}
+						canRequestIteration={canRequestIteration}
 						intelligenceSelectorRef={intelligenceSelectorRef}
 					/>
 				)}

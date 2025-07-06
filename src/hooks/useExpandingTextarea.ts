@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+interface UseExpandingTextareaOptions {
+	//
+	maxHeight?: number;
+	initialValue?: string;
+	singleLineHeight?: number;
+}
+
 interface UseExpandingTextareaResult {
 	//
 	textareaRef: React.RefObject<HTMLTextAreaElement>;
@@ -10,8 +17,9 @@ interface UseExpandingTextareaResult {
 	adjustHeight: () => void;
 }
 
-export function useExpandingTextarea(initialValue = '', maxHeight = 240): UseExpandingTextareaResult {
+export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}): UseExpandingTextareaResult {
 	//
+	const { initialValue = '', maxHeight = 240, singleLineHeight = 40 } = options;
 	const [value, setValue] = useState(initialValue);
 	const [isEmpty, setIsEmpty] = useState(!initialValue.trim());
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -21,9 +29,17 @@ export function useExpandingTextarea(initialValue = '', maxHeight = 240): UseExp
 		if (!textareaRef.current) return;
 
 		textareaRef.current.style.height = 'auto';
-		textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, maxHeight)}px`;
+
+		// Use single line height by default, expand only when content overflows
+		textareaRef.current.style.height = `${singleLineHeight}px`;
+
+		// If content overflows single line height, expand to accommodate it
+		const needsExpansion = textareaRef.current.scrollHeight > singleLineHeight + 5;
+		const newHeight = needsExpansion ? Math.min(textareaRef.current.scrollHeight, maxHeight) : singleLineHeight;
+
+		textareaRef.current.style.height = `${newHeight}px`;
 		//
-	}, [maxHeight]);
+	}, [maxHeight, singleLineHeight]);
 
 	const onChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
