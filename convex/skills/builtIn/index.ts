@@ -1,6 +1,7 @@
 import { askForClarification } from './askForClarification';
 import { cancelSchedule } from './cancelSchedule';
 import { createSkill } from './createSkill';
+import { decreaseBudget } from './decreaseBudget';
 import { discard } from './discard';
 import { divide } from './divide';
 import { done } from './done';
@@ -42,6 +43,7 @@ export const _builtInSkills = {
 	reason,
 	reopen,
 	increaseBudget,
+	decreaseBudget,
 	resolve,
 	requestBudget,
 	discard,

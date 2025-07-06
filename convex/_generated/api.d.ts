@@ -48,6 +48,7 @@ import type * as schemas_userSchema from "../schemas/userSchema.js";
 import type * as skills_builtIn_askForClarification from "../skills/builtIn/askForClarification.js";
 import type * as skills_builtIn_cancelSchedule from "../skills/builtIn/cancelSchedule.js";
 import type * as skills_builtIn_createSkill from "../skills/builtIn/createSkill.js";
+import type * as skills_builtIn_decreaseBudget from "../skills/builtIn/decreaseBudget.js";
 import type * as skills_builtIn_discard from "../skills/builtIn/discard.js";
 import type * as skills_builtIn_divide from "../skills/builtIn/divide.js";
 import type * as skills_builtIn_done from "../skills/builtIn/done.js";
@@ -148,6 +149,7 @@ declare const fullApi: ApiFromModules<{
   "skills/builtIn/askForClarification": typeof skills_builtIn_askForClarification;
   "skills/builtIn/cancelSchedule": typeof skills_builtIn_cancelSchedule;
   "skills/builtIn/createSkill": typeof skills_builtIn_createSkill;
+  "skills/builtIn/decreaseBudget": typeof skills_builtIn_decreaseBudget;
   "skills/builtIn/discard": typeof skills_builtIn_discard;
   "skills/builtIn/divide": typeof skills_builtIn_divide;
   "skills/builtIn/done": typeof skills_builtIn_done;

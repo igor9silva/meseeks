@@ -108,6 +108,21 @@ export function useTaskMutations() {
 		});
 	};
 
+	const decreaseBudget = ({
+		taskId, //
+		amount,
+	}: {
+		taskId: Id<'tasks'>;
+		amount: bigint;
+	}) => {
+		return act({
+			taskId,
+			skillKey: 'decreaseBudget',
+			args: { amount },
+			shouldReopen: false,
+		});
+	};
+
 	const requestIteration = ({
 		taskId, //
 	}: {
@@ -202,6 +217,7 @@ export function useTaskMutations() {
 		discard,
 		reopen,
 		increaseBudget,
+		decreaseBudget,
 		requestIteration,
 		scheduleIteration,
 		approveAction,

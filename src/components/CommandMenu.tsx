@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/lib/money';
 import {
+	BrushCleaning,
 	CalendarClock,
 	CalendarIcon,
 	Circle,
@@ -141,6 +142,7 @@ export function CommandMenuDialog() {
 					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
+					{currentTaskId && <DecreaseBudgetCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
 					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
@@ -335,6 +337,28 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 		<CommandItem keywords={['budget', 'add', 'increase']} onSelect={handleSelect}>
 			<CircleCheckBig className="mr-2" />
 			Add budget
+		</CommandItem>
+	);
+}
+
+function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
+	//
+	const { close } = useCommandMenu();
+	const { decreaseBudget } = useTaskMutations();
+
+	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	if (!currentTask || !currentTask.isActive || currentTask.energyBudget.available <= 0n) return null;
+
+	const handleSelect = () => {
+		//
+		decreaseBudget({ taskId: currentTask._id, amount: currentTask.energyBudget.available });
+		close();
+	};
+
+	return (
+		<CommandItem keywords={['budget', 'decrease', 'reduce', 'clear']} onSelect={handleSelect}>
+			<BrushCleaning className="mr-2" />
+			Clear budget (remove all remaining)
 		</CommandItem>
 	);
 }
