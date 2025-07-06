@@ -90,7 +90,7 @@ function Success({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAu
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
-			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+			<Collapsible open={isOpen} onOpenChange={setIsOpen} className="min-w-0 w-full">
 				<CollapsibleTrigger className="flex gap-0 items-center">
 					<MessageContent
 						className="text-sm text-muted-foreground text-left"
@@ -105,7 +105,7 @@ function Success({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAu
 						{isOpen ? <ChevronUp /> : <ChevronDown />}
 					</Button>
 				</CollapsibleTrigger>
-				<CollapsibleContent>
+				<CollapsibleContent className="min-w-0 overflow-x-auto">
 					<SimpleMessage text={data.markdown} isAuthorCurrentUser={isAuthorCurrentUser} />
 				</CollapsibleContent>
 			</Collapsible>
