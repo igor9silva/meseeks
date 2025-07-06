@@ -48,7 +48,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 		isEmpty,
 		onChange: handleMessageChange,
 		setValue: setMessage,
-	} = useExpandingTextarea(q || '');
+	} = useExpandingTextarea({ initialValue: q || '' });
 
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
 		onTranscriptionComplete: setMessage,
