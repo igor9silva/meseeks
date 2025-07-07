@@ -57,7 +57,13 @@ export function createAITool(
 				depth: action.depth + 1,
 			});
 
-			switch (finishReason) {
+			let reason = finishReason;
+			if (toolCalls.length > 0 && reason !== 'tool-calls') {
+				reason = 'tool-calls';
+				console.warn('Has tool calls but finish reason is not `tool-calls`', toolCalls);
+			}
+
+			switch (reason) {
 				//
 				case 'tool-calls':
 					//
@@ -90,13 +96,7 @@ export function createAITool(
 					break;
 
 				// prettier-ignore
-				case 'stop': 
-					if (toolCalls.length > 0) {
-						console.warn('Tool calls but finish reason is `stop`', toolCalls);
-					} else {
-						say(text);
-					}
-					break;
+				case 'stop': say(text); break;
 
 				// prettier-ignore
 				case 'error': say(text); break;
@@ -109,7 +109,7 @@ export function createAITool(
 				case 'length': say(`Max length hit: ${warnings}`); break;
 
 				// prettier-ignore
-				default: throw new Error(`Unknown finish reason: ${finishReason}`);
+				default: throw new Error(`Unknown finish reason: ${reason}`);
 			}
 
 			if (warnings?.length) console.warn('Decision skill warnings', warnings);
@@ -121,7 +121,7 @@ export function createAITool(
 				task,
 				model: modelFrom(skill.config.model, task.preferredIntelligence),
 				context,
-				finishReason,
+				finishReason: reason,
 				text,
 				toolCalls,
 				usage,
