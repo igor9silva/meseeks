@@ -10,13 +10,17 @@ export function TranscribingState({ cancelRecording }: { cancelRecording: () => 
 				<TextShimmer text="Transcribing voice..." size="lg" />
 			</div>
 
-			<div className="flex items-end justify-between gap-2 px-3 pt-2">
-				<ActionButton
-					icon={<X className="size-5" />}
-					onClick={cancelRecording}
-					tooltip="Cancel transcription"
-					variant="destructive"
-				/>
+			<div className="flex items-center justify-between gap-2 px-1 pt-2">
+				<div className="flex items-center gap-2">{/* Empty div to maintain layout consistency */}</div>
+
+				<div className="flex items-center gap-2">
+					<ActionButton
+						icon={<X className="size-5" />}
+						onClick={cancelRecording}
+						tooltip="Cancel transcription"
+						variant="destructive"
+					/>
+				</div>
 			</div>
 		</>
 	);

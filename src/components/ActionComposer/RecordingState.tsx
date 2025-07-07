@@ -16,8 +16,8 @@ export function RecordingState({
 				<TextShimmer text="Recording voice..." size="lg" />
 			</div>
 
-			<div className="flex items-center justify-between gap-2 px-3 pt-2">
-				<div className="flex-shrink-0">{/* Empty div to maintain layout consistency */}</div>
+			<div className="flex items-center justify-between gap-2 px-1 pt-2">
+				<div className="flex items-center gap-2">{/* Empty div to maintain layout consistency */}</div>
 
 				<div className="flex items-center gap-2">
 					<ActionButton
