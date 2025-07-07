@@ -86,7 +86,7 @@ export const availableIntelligences = query({
 					description: 'Best overall',
 				},
 				{
-					key: 'grok/grok-3-mini',
+					key: 'xai/grok-3-mini',
 					name: 'Grok 3 Mini',
 					provider: 'xAI',
 					description: 'Best value',
@@ -142,11 +142,6 @@ export const availableIntelligences = query({
 				{
 					key: 'xai/grok-3',
 					name: 'Grok 3',
-					provider: 'xAI',
-				},
-				{
-					key: 'xai/grok-3-mini',
-					name: 'Grok 3 Mini',
 					provider: 'xAI',
 				},
 				{

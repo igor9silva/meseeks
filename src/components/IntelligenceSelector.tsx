@@ -78,6 +78,8 @@ const IntelligenceCombobox = forwardRef<
 			setOpen(false);
 			setSelected(parsed.data);
 			onChange(parsed.data);
+		} else {
+			console.error('Invalid intelligence key', key);
 		}
 	};
 

@@ -90,7 +90,13 @@ export function createAITool(
 					break;
 
 				// prettier-ignore
-				case 'stop': say(text); break;
+				case 'stop': 
+					if (toolCalls.length > 0) {
+						console.warn('Tool calls but finish reason is `stop`', toolCalls);
+					} else {
+						say(text);
+					}
+					break;
 
 				// prettier-ignore
 				case 'error': say(text); break;
