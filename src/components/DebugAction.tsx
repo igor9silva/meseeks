@@ -44,6 +44,83 @@ const getStatusDot = (status: string) => {
 	return statusMap[status] || 'bg-gray-500';
 };
 
+// Approval display component
+function ApprovalSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+	//
+	const hasApprovalInfo = action.approvedAt || action.approvedBy;
+
+	if (!hasApprovalInfo) return null;
+	// if (action.status === 'skipped') return null;
+
+	const handleApprovedAtClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (action.approvedAt) {
+			copyToClipboard(new Date(action.approvedAt).toISOString());
+			toast.success('Copied approval timestamp to clipboard');
+		}
+	};
+
+	const handleApprovedByClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		if (action.approvedBy && action.approvedBy !== 'auto') {
+			copyToClipboard(action.approvedBy);
+			toast.success('Copied approver ID to clipboard');
+		}
+	};
+
+	const getApprovalStatusText = () => {
+		return 'Approved';
+	};
+
+	const isApprovedByCurrentUser = action.approvedBy === action.owner;
+	const isAutoApproval = action.approvedBy === 'auto';
+	const isClickable = action.approvedBy && !isAutoApproval;
+
+	return (
+		<div className="text-xs text-muted-foreground">
+			{getApprovalStatusText()}{' '}
+			{action.approvedBy && (
+				<>
+					{isAutoApproval ? (
+						<span>automatically</span>
+					) : (
+						<code
+							className={
+								isClickable
+									? 'hover:text-foreground cursor-pointer underline-offset-2 hover:underline'
+									: ''
+							}
+							onClick={isClickable ? handleApprovedByClick : undefined}
+						>
+							by {isApprovedByCurrentUser ? 'you' : action.approvedBy}
+						</code>
+					)}
+					{action.approvedAt && ' '}
+				</>
+			)}
+			{action.approvedAt && (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span
+							className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
+							onClick={handleApprovedAtClick}
+						>
+							<TimeAgo date={action.approvedAt} />
+						</span>
+					</TooltipTrigger>
+					<TooltipContent side="top" className="max-w-sm">
+						<div className="space-y-1">
+							<div className="font-mono text-xs">{new Date(action.approvedAt).toISOString()}</div>
+							<div className="text-xs">{formatLocalDate(action.approvedAt)}</div>
+						</div>
+					</TooltipContent>
+				</Tooltip>
+			)}
+			.
+		</div>
+	);
+}
+
 // Author display component
 function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
 	//
@@ -746,6 +823,7 @@ function ActionRow({
 					<div className="bg-muted/30 border-t">
 						<div className="p-4 space-y-4">
 							<AuthorSection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
+							<ApprovalSection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
 
 							<ArgumentsSection args={action.args} />
 							<ResultSection result={action.result} />
