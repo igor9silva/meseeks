@@ -13,7 +13,7 @@ interface TransactionItemProps {
 export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 	//
 	return (
-		<div className="flex items-center justify-between gap-1 rounded-lg border bg-card p-4 transition-all hover:shadow-sm">
+		<div className="flex items-center justify-between gap-1 rounded-xl border bg-card p-3 transition-all hover:shadow-sm">
 			<div className="flex items-center gap-3">
 				<div
 					className={`flex h-10 w-10 items-center justify-center rounded-full ${getTransactionBgColor(transaction)}`}

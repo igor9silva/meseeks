@@ -13,7 +13,7 @@ export function TopUpItem({ topUp }: { topUp: Doc<'topUps'> }) {
 	//
 
 	return (
-		<li className="rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+		<li className="rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
 			<Link to="/top-up/$id" params={{ id: topUp._id }} className="text-primary hover:underline font-medium">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex flex-col min-w-0">

@@ -149,7 +149,7 @@ export function SoftSkillConfig({
 					</div>
 
 					{availableSkills.length > 0 ? (
-						<ScrollArea className="h-32 border rounded-md p-4">
+						<ScrollArea className="h-32 border rounded-xl p-4">
 							<div className="flex flex-wrap gap-2">
 								{availableSkills.map((skill) => (
 									<Badge key={skill} variant="secondary" className="flex items-center gap-1">
@@ -168,7 +168,7 @@ export function SoftSkillConfig({
 							</div>
 						</ScrollArea>
 					) : (
-						<div className="text-center p-4 border rounded-md text-muted-foreground">
+						<div className="text-center p-4 border rounded-xl text-muted-foreground">
 							No skills connected
 						</div>
 					)}

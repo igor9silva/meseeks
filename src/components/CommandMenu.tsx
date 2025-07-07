@@ -174,7 +174,11 @@ export function CommandMenuDialog() {
 						<BadgeCent className="mr-2" />
 						Top up account
 					</CommandItem> */}
-					<CommandItem value="/balance" keywords={['balance']} onSelect={onSelect}>
+					<CommandItem
+						value="/balance"
+						keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy']}
+						onSelect={onSelect}
+					>
 						<Wallet className="mr-2" />
 						Balance & top-up
 					</CommandItem>

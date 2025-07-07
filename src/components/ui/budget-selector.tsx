@@ -46,9 +46,9 @@ export const BudgetSelector = React.forwardRef<HTMLInputElement, BudgetSelectorP
 
 		return (
 			<div className={`flex flex-row gap-2 ${className}`}>
-				<div className="flex flex-col flex-shrink-0">
-					<p className="text-sm text-muted-foreground">Spend up to</p>
-					<p className="text-sm font-medium">{currentValue.toFixed(2)} ⚡</p>
+				<div className="flex flex-col flex-shrink-0 items-end">
+					<p className="text-sm text-muted-foreground">Max. energy</p>
+					<p className="text-sm font-medium">⚡ {currentValue.toFixed(2)}</p>
 				</div>
 				<input type="hidden" ref={ref} name={name} value={currentValue} {...props} />
 				<Slider

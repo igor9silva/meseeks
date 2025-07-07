@@ -58,8 +58,8 @@ export function IdleState({
 				/>
 			</div>
 
-			<div className="flex items-center justify-between gap-2 px-3 pt-2">
-				<div className="flex items-center gap-2 flex-shrink-0">
+			<div className="flex items-center justify-between gap-2 px-1 pt-2">
+				<div className="flex items-center gap-2">
 					<IntelligenceSelector
 						value={task.preferredIntelligence}
 						onChange={handleIntelligenceChange}

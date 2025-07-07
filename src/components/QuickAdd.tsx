@@ -142,7 +142,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 
 						{'idle' === recordingStatus && (
 							<>
-								<div className="flex items-center justify-center px-3">
+								<div className="flex items-center justify-center">
 									<textarea
 										ref={textareaRef}
 										value={message}
@@ -152,7 +152,7 @@ export function QuickAddContent({ className }: { className?: string }) {
 									/>
 								</div>
 
-								<div className="flex flex-col md:flex-row gap-2 px-3 pt-2">
+								<div className="flex flex-col md:flex-row gap-2 pt-2">
 									{/* Budget selector - takes available space */}
 									<div className="flex items-center gap-2 flex-1 md:min-w-0">
 										<BudgetSelector
@@ -164,11 +164,12 @@ export function QuickAddContent({ className }: { className?: string }) {
 
 									{/* Other controls and action buttons */}
 									<div className="flex items-center justify-between md:justify-end gap-2 flex-shrink-0">
-										<div className="flex items-center gap-2">
+										<div className="flex items-center gap-2 min-w-0">
 											<IntelligenceSelector
 												value={intelligence}
 												onChange={setIntelligence}
 												ref={intelligenceSelectorRef}
+												className="min-w-0 flex-shrink"
 											/>
 											<SkillsLink />
 										</div>

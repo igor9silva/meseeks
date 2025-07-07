@@ -63,7 +63,7 @@ export function RouteComponent({ className }: { className?: string }) {
 					</div>
 
 					{/* Amount Section */}
-					<div className="flex flex-col gap-2 p-4 bg-muted rounded-lg">
+					<div className="flex flex-col gap-2 p-4 bg-muted rounded-xl">
 						<div className="flex items-center justify-between">
 							<span className="text-sm sm:text-base font-medium text-muted-foreground">
 								{topUp.symbol}

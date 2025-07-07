@@ -51,12 +51,12 @@ export function GenericAction({
 		>
 			<div
 				className={cn('max-w-full', {
-					'bg-green-700/30 animate-pulse rounded-lg p-2': action.status === 'running',
-					// 'bg-red-700/30 rounded-lg p-2': action.status === 'failed',
+					'bg-green-700/30 animate-pulse rounded-xl p-2': action.status === 'running',
+					// 'bg-red-700/30 rounded-xl p-2': action.status === 'failed',
 				})}
 			>
 				{action.status === 'pending authorization' ? (
-					<div className="flex flex-col gap-2 p-2 rounded-lg bg-muted">
+					<div className="flex flex-col gap-2 p-2 rounded-xl bg-muted">
 						<div className="flex flex-col">
 							<div className="text-md font-medium">{action.skillKey}()</div>
 							{typeof action.estimatedCost === 'bigint' && (
@@ -99,9 +99,9 @@ export function GenericAction({
 								costs={action.costs}
 								// reactions={action.reactions ?? []}
 								className={cn({
-									'bg-primary text-primary-foreground rounded-lg border border-border p-2':
+									'bg-primary text-primary-foreground rounded-xl border border-border p-2':
 										isAuthorCurrentUser && action.skillKey === 'say',
-									'bg-muted rounded-lg p-2': isAuthorCurrentUser && action.skillKey !== 'say',
+									'bg-muted rounded-xl p-2': isAuthorCurrentUser && action.skillKey !== 'say',
 								})}
 							/>
 						) : (

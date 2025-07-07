@@ -446,7 +446,7 @@ export function HardSkillConfig({
 							))}
 						</div>
 					) : (
-						<div className="text-center p-4 border rounded-md text-muted-foreground mt-2">
+						<div className="text-center p-4 border rounded-xl text-muted-foreground mt-2">
 							No reactions defined
 						</div>
 					)}

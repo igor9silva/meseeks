@@ -140,7 +140,7 @@ export default function MDX({
 						thead: ({ children }) => <thead className="bg-muted">{children}</thead>,
 						tbody: ({ children }) => <tbody className="">{children}</tbody>,
 						img: ({ src, alt }) => (
-							<img src={src} alt={alt} className="rounded-md max-w-full h-auto my-4" />
+							<img src={src} alt={alt} className="rounded-xl max-w-full h-auto my-4" />
 						),
 						ul: ({ children }) => <ul className="ml-8 list-disc space-y-1 my-2">{children}</ul>,
 						ol: ({ children }) => <ol className="ml-8 list-decimal space-y-1 my-2">{children}</ol>,

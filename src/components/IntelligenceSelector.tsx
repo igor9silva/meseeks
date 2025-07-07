@@ -90,7 +90,7 @@ const IntelligenceCombobox = forwardRef<
 					role="combobox"
 					aria-expanded={open}
 					className={cn(
-						'w-full justify-between rounded-md px-3 py-2 text-sm',
+						'w-full justify-between rounded-xl px-3 py-2 text-sm',
 						'flex h-9 items-center shadow-sm ring-offset-background',
 						'border border-input bg-transparent focus:outline-none',
 						'focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
@@ -101,12 +101,12 @@ const IntelligenceCombobox = forwardRef<
 					{selectedOption ? (
 						<div className="flex items-center gap-2 truncate">
 							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-							<span className="truncate">{selectedOption.name}</span>
+							<span className="truncate hidden md:inline">{selectedOption.name}</span>
 						</div>
 					) : (
 						<div className="flex items-center gap-2">
 							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-							<span>Select intelligence...</span>
+							<span className="hidden md:inline">Select intelligence...</span>
 						</div>
 					)}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
