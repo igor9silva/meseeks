@@ -128,7 +128,7 @@ export function CommandMenuDialog() {
 				//
 				const result = defaultFilter?.(value, search, keywords) ?? 0;
 
-				if (value === '/new') return result + 0.0000001; // make sure new task is always included
+				if (value === '/seek') return result + 0.0000001; // make sure new task is always included
 
 				return result;
 			}}
@@ -169,7 +169,11 @@ export function CommandMenuDialog() {
 						<Inbox className="mr-2" />
 						Go to Inbox
 					</CommandItem>
-					<NewTaskCommandItem shouldUseSearch={shouldFilter} />
+					<CommandItem value="/new" keywords={['new', 'task']} onSelect={onSelect}>
+						<SquarePen className="mr-2" />
+						New task
+					</CommandItem>
+					<SeekCommandItem shouldUseSearch={shouldFilter} />
 					{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
 						<BadgeCent className="mr-2" />
 						Top up account
@@ -389,7 +393,7 @@ function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	);
 }
 
-function NewTaskCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
+function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 	//
 	const { close } = useCommandMenu();
 	const navigate = useNavigate();
@@ -413,10 +417,13 @@ function NewTaskCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 		//
 	}, [navigate, close, search]);
 
+	// Only show this item when there's actually a search term
+	if (!search) return null;
+
 	return (
-		<CommandItem value="/new" keywords={['new', 'task', search]} onSelect={handleSelect}>
+		<CommandItem value={`/seek`} keywords={['seek', 'search', search]} onSelect={handleSelect}>
 			<SquarePen className="mr-2" />
-			{search ? `Seek for "${search}"` : 'New task'}
+			{`Seek for "${search}"`}
 		</CommandItem>
 	);
 }
