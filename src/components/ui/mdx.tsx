@@ -91,7 +91,7 @@ export default function MDX({
 						a: ({ children, href }) => (
 							<a
 								href={href} //
-								className="text-blue-500 hover:underline"
+								className="text-blue-500 hover:underline break-all overflow-wrap-anywhere"
 								target="_blank"
 								rel="noopener"
 							>
