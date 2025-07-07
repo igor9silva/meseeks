@@ -116,21 +116,27 @@ export const _add = internalMutation({
 		// also, should we have a `createTask` action? to make it explicit?
 		// instead: no explicit createTask(), you just act() and a new task is created if not provided
 
+		const skills = [
+			...(initialFunds && initialFunds > 0n
+				? [
+						{
+							skillKey: 'increaseBudget',
+							args: { amount: initialFunds, shouldIterate: false },
+						},
+					]
+				: []),
+			{
+				skillKey: 'say',
+				args: { message },
+			},
+		];
+
 		await _addActions(ctx, {
 			taskId,
 			author,
 			owner,
 			depth: 0,
-			skills: [
-				{
-					skillKey: 'increaseBudget',
-					args: { amount: initialFunds, shouldIterate: false },
-				},
-				{
-					skillKey: 'say',
-					args: { message },
-				},
-			],
+			skills,
 		});
 
 		return taskId;
