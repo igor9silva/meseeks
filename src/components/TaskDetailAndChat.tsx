@@ -1,4 +1,3 @@
-import { Id } from 'convex/_generated/dataModel';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -9,12 +8,10 @@ import TaskDetail from '~/components/TaskDetail';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
 
 export function TaskDetailAndChat({
-	taskId,
 	className, //
 	showExpand = false,
 	detailInitialSize = 50,
 }: {
-	taskId: Id<'tasks'>;
 	className?: string;
 	showExpand?: boolean;
 	detailInitialSize?: number;
@@ -24,12 +21,12 @@ export function TaskDetailAndChat({
 			<ErrorBoundary fallback={<BasicError text="Not found (or something else went wrong)." />}>
 				<ResizablePanelGroup direction="vertical" className="overflow-hidden">
 					<ResizablePanel id="details" order={0} defaultSize={detailInitialSize} minSize={25}>
-						{<TaskDetail className={className} taskId={taskId} showExpand={showExpand} />}
+						{<TaskDetail className={className} showExpand={showExpand} />}
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel id="substasks" order={1} defaultSize={100 - detailInitialSize} minSize={25}>
 						{/* {<SubtaskList taskId={taskId} />} */}
-						<TaskConversation taskId={taskId} />
+						<TaskConversation />
 					</ResizablePanel>
 				</ResizablePanelGroup>
 			</ErrorBoundary>

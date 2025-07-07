@@ -1,10 +1,10 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { Suspense } from 'react';
 
+import { Loading } from '~/components/Loading';
 import { TaskItem } from '~/components/TaskItem';
+import { useSubtasks } from '~/hooks/query/useSubtasks';
 import { cn } from '~/lib/utils';
 
 export function SubtaskList({
@@ -14,8 +14,21 @@ export function SubtaskList({
 	taskId: Id<'tasks'>;
 	className?: string;
 }) {
-	const query = convexQuery(api.tasks.public.findAll, { parentId: taskId });
-	const { data: subtasks } = useSuspenseQuery(query);
+	return (
+		<Suspense fallback={<Loading />}>
+			<SubtaskListContent taskId={taskId} className={className} />
+		</Suspense>
+	);
+}
+
+function SubtaskListContent({
+	taskId, //
+	className,
+}: {
+	taskId: Id<'tasks'>;
+	className?: string;
+}) {
+	const { subtasks } = useSubtasks(taskId);
 
 	if (subtasks.length === 0) {
 		return <div className="flex flex-col items-center justify-center h-full w-full">No subtasks.</div>;

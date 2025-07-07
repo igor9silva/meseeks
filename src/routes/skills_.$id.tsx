@@ -1,13 +1,11 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { BasicError } from '~/components/BasicError';
 import { UnifiedSkillForm } from '~/components/skills/UnifiedSkillForm';
 import { CardDescription, CardTitle } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
+import { useSkill } from '~/hooks/query/useSkills';
 
 export const Route = createFileRoute('/skills_/$id')({
 	component: RouteComponent,
@@ -18,8 +16,7 @@ export const Route = createFileRoute('/skills_/$id')({
 export default function RouteComponent() {
 	//
 	const { id } = Route.useParams();
-	const query = convexQuery(api.skills.public.findOne, { skillId: id as Id<'skills'> });
-	const { data: skill } = useSuspenseQuery(query);
+	const { skill } = useSkill(id as Id<'skills'>);
 
 	track('skills/$id', {
 		skillId: id,

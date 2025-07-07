@@ -1,5 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { Doc } from 'convex/_generated/dataModel';
@@ -19,6 +17,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog';
+import { useSchedules } from '~/hooks/query/useSchedules';
 
 export const Route = createFileRoute('/schedules')({
 	component: SchedulesPage,
@@ -28,8 +27,7 @@ type ScheduleWithTask = Doc<'schedules'> & { taskTitle: string };
 
 function SchedulesPage() {
 	//
-	const schedulesQuery = convexQuery(api.schedules.public.listByOwner, {});
-	const { data: schedules } = useSuspenseQuery(schedulesQuery);
+	const { schedules } = useSchedules();
 
 	if (schedules.length === 0) {
 		return (

@@ -1,6 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asDollars } from 'convex/lib/money';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -12,6 +9,7 @@ import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { useActionDetails } from '~/hooks/query/useActionDetails';
 import { cn } from '~/lib/utils';
 
 // Copy to clipboard helper
@@ -589,10 +587,7 @@ function ActionDetailsContent({
 	onDataLoaded?: (data: any) => void;
 }) {
 	//
-	const query = convexQuery(api.action_details.public.findByAction, {
-		actionId: action._id,
-	});
-	const { data: actionDetails } = useSuspenseQuery(query);
+	const { actionDetails } = useActionDetails(action._id);
 
 	// Pass the data back to parent component
 	useEffect(() => {

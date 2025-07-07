@@ -28,16 +28,22 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 		//
 		if (!textareaRef.current) return;
 
-		textareaRef.current.style.height = 'auto';
-
-		// Use single line height by default, expand only when content overflows
+		// Temporarily set to single line height to measure if content fits
 		textareaRef.current.style.height = `${singleLineHeight}px`;
 
-		// If content overflows single line height, expand to accommodate it
+		// Check if content overflows single line height
 		const needsExpansion = textareaRef.current.scrollHeight > singleLineHeight + 5;
-		const newHeight = needsExpansion ? Math.min(textareaRef.current.scrollHeight, maxHeight) : singleLineHeight;
 
-		textareaRef.current.style.height = `${newHeight}px`;
+		if (needsExpansion) {
+			// Set to auto briefly to get the natural scroll height
+			textareaRef.current.style.height = 'auto';
+			const naturalHeight = textareaRef.current.scrollHeight;
+			const newHeight = Math.min(naturalHeight, maxHeight);
+			textareaRef.current.style.height = `${newHeight}px`;
+		} else {
+			// Content fits in single line, keep single line height
+			textareaRef.current.style.height = `${singleLineHeight}px`;
+		}
 		//
 	}, [maxHeight, singleLineHeight]);
 
@@ -59,12 +65,14 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 		adjustHeight();
 	}, [value, adjustHeight]);
 
-	// Focus on first render
+	// Set initial height and focus on first render
 	useEffect(() => {
 		if (textareaRef.current) {
+			// Set initial height immediately to prevent flicker
+			textareaRef.current.style.height = `${singleLineHeight}px`;
 			textareaRef.current.focus();
 		}
-	}, []);
+	}, [singleLineHeight]);
 
 	return {
 		textareaRef,

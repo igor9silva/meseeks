@@ -94,6 +94,7 @@ export function ActionTest({ className }: { className?: string }) {
 			status: newStatus,
 		};
 
+		// @ts-expect-error
 		setParsedAction(updatedAction);
 		setActionJSON(JSON.stringify(updatedAction, null, 2));
 	};
@@ -169,6 +170,7 @@ export function ActionTest({ className }: { className?: string }) {
 
 								<div className="border rounded-lg p-4 bg-background">
 									<Action
+										// @ts-expect-error
 										action={parsedAction}
 										initialRenderDate={new Date(Date.now() - 1000)} // 1 second ago
 										isAuthorCurrentUser={false}
@@ -182,6 +184,7 @@ export function ActionTest({ className }: { className?: string }) {
 
 								<div className="border rounded-lg p-4 bg-background">
 									<Action
+										// @ts-expect-error
 										action={parsedAction}
 										initialRenderDate={new Date(Date.now() - 1000)} // 1 second ago
 										isAuthorCurrentUser={true}

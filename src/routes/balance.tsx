@@ -1,8 +1,5 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { api } from 'convex/_generated/api';
 import { asDollars } from 'convex/lib/money';
 import { useCallback, useRef } from 'react';
 import { z } from 'zod';
@@ -12,6 +9,7 @@ import { TopUpSection } from '~/components/balance/TopUpSection';
 import { TransactionsTab } from '~/components/balance/TransactionsTab';
 import { EnergyCredits } from '~/components/EnergyCredits';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { useLockedBalance } from '~/hooks/query/useTransactions';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useIsPro } from '~/hooks/useIsPro';
 
@@ -30,9 +28,7 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const { tab } = Route.useSearch();
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-	const queryLockedBalance = convexQuery(api.users.public.findLockedBalance, {});
-	const { data: lockedBalance } = useSuspenseQuery(queryLockedBalance);
+	const { lockedBalance } = useLockedBalance();
 
 	const { isPro } = useIsPro();
 
@@ -85,7 +81,7 @@ function RouteComponent() {
 			<Tabs value={currentTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
-					<TabsTrigger value="active-tasks">Active Tasks</TabsTrigger>
+					<TabsTrigger value="active-tasks">Tasks locking energy</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="transactions" className="flex-1 mt-4">

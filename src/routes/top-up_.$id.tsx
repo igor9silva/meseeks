@@ -1,5 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { api } from 'convex/_generated/api';
@@ -14,6 +12,7 @@ import { topUpStatusColors } from '~/components/TopUpItem';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardFooter } from '~/components/ui/card';
+import { useTopUp } from '~/hooks/query/useTopUps';
 
 export const Route = createFileRoute('/top-up_/$id')({
 	component: RouteComponent,
@@ -22,11 +21,7 @@ export const Route = createFileRoute('/top-up_/$id')({
 export function RouteComponent({ className }: { className?: string }) {
 	//
 	const { id } = Route.useParams();
-
-	const query = convexQuery(api.topUps.public.findOne, {
-		topUpId: id as Id<'topUps'>,
-	});
-	const { data: topUp } = useSuspenseQuery(query);
+	const { topUp } = useTopUp(id as Id<'topUps'>);
 
 	const discard = useMutation(api.topUps.public.discard);
 

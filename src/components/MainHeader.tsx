@@ -2,9 +2,6 @@ import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { ArrowLeft, Inbox, SquarePen } from 'lucide-react';
 import { cn } from '~/lib/utils';
 
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { Balance } from '~/components/Balance';
@@ -13,6 +10,7 @@ import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '~/components/ui/button';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { TooltipButton } from '~/components/ui/TooltipButton';
+import { useTask } from '~/hooks/query/useTask';
 import { useSplatParams } from '~/hooks/useSplatParams';
 
 export function MainHeader({ className }: { className?: string }) {
@@ -121,8 +119,7 @@ function TaskStatusIndicatorProvider({
 	taskId: Id<'tasks'>;
 }) {
 	//
-	const query = convexQuery(api.tasks.public.findOne, { taskId });
-	const { data: task } = useSuspenseQuery(query);
+	const { task } = useTask(taskId);
 
 	return <TaskStatusIndicator className="" task={task} />;
 }

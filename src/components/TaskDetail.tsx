@@ -1,11 +1,8 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
+import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
@@ -13,16 +10,13 @@ import { EditableContent } from './EditableContent';
 import { TaskBudget } from './TaskBudget';
 
 export default function TaskDetail({
-	taskId,
 	className, //
 	showExpand = false,
 }: {
-	taskId: Id<'tasks'>;
 	className?: string;
 	showExpand?: boolean;
 }) {
-	const query = convexQuery(api.tasks.public.findOne, { taskId });
-	const { data: task } = useSuspenseQuery(query);
+	const { task } = useCurrentTask();
 	const { updateInstructions, resolve, reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 

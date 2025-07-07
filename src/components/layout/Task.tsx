@@ -1,33 +1,36 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { Suspense } from 'react';
+import { Loading } from '~/components/Loading';
 import { QuickAdd } from '~/components/QuickAdd';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskItem } from '~/components/TaskItem';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
+import { useSubtasks } from '~/hooks/query/useSubtasks';
+import { useCurrentTaskId } from '~/hooks/useCurrentTask';
 import { useIsMobile } from '~/hooks/useIsMobile';
 import { usePreferences } from '~/hooks/usePreferences';
 import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
 import { cn } from '~/lib/utils';
 
-export function Task({
-	taskId,
-	parentTaskId = 'inbox',
-	className,
-}: {
-	taskId: Id<'tasks'>;
+interface TaskProps {
 	parentTaskId?: Id<'tasks'> | 'inbox';
 	className?: string;
-}) {
-	//
-	const args = parentTaskId === 'inbox' ? {} : { parentId: parentTaskId };
-	const query = convexQuery(api.tasks.public.findAll, args);
-	const { data: subtasks } = useSuspenseQuery(query);
+}
 
+export function Task(props: TaskProps) {
+	//
+	return (
+		<Suspense fallback={<Loading />}>
+			<TaskContent {...props} />
+		</Suspense>
+	);
+}
+
+function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
+	//
 	const isMobile = useIsMobile();
 	const direction = isMobile ? 'vertical' : 'horizontal';
 
@@ -62,20 +65,9 @@ export function Task({
 					minSize={25}
 					className="hidden md:block"
 				>
-					<div className="overflow-auto h-full">
-						{subtasks.length === 0 && <QuickAdd />}
-						{subtasks.map((task) => (
-							<Link
-								key={task._id}
-								to="/$"
-								params={{ _splat: `/task/${task._id}` }}
-								resetScroll={false}
-								className="block min-w-0"
-							>
-								<TaskItem className={cn(taskId === task._id && 'bg-muted')} task={task} />
-							</Link>
-						))}
-					</div>
+					<Suspense fallback={<Loading />}>
+						<TaskList parentTaskId={parentTaskId} />
+					</Suspense>
 				</ResizablePanel>
 			)}
 			{isTaskListVisible && <ResizableHandle withHandle />}
@@ -85,17 +77,39 @@ export function Task({
 				defaultSize={isTaskListVisible ? 100 - preferredWidthPercent : 100}
 				minSize={25}
 			>
-				<TaskDetailAndConversation
-					list={<TaskDetail taskId={taskId} />}
-					detail={
-						<TaskConversation
-							taskId={taskId}
-							onToggleList={handleToggleList}
-							isTaskListVisible={isTaskListVisible}
-						/>
-					}
-				/>
+				<Suspense fallback={<Loading />}>
+					<TaskDetailAndConversation
+						list={<TaskDetail />}
+						detail={
+							<TaskConversation onToggleList={handleToggleList} isTaskListVisible={isTaskListVisible} />
+						}
+					/>
+				</Suspense>
 			</ResizablePanel>
 		</ResizablePanelGroup>
+	);
+}
+
+function TaskList({ parentTaskId = 'inbox' }: { parentTaskId?: Id<'tasks'> | 'inbox' }) {
+	//
+	const currentTaskId = useCurrentTaskId();
+	const { subtasks } = useSubtasks(parentTaskId === 'inbox' ? undefined : parentTaskId);
+
+	return (
+		<div className="overflow-auto h-full">
+			{subtasks.length === 0 && <QuickAdd />}
+			{subtasks.map((task) => (
+				<Link
+					key={task._id}
+					to="/$"
+					params={{ _splat: `/task/${task._id}` }}
+					search={(prev) => prev}
+					resetScroll={false}
+					className="block min-w-0"
+				>
+					<TaskItem className={cn(currentTaskId === task._id && 'bg-muted')} task={task} />
+				</Link>
+			))}
+		</div>
 	);
 }

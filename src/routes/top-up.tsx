@@ -1,10 +1,8 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { api } from 'convex/_generated/api';
 import { TopUpCard } from '~/components/TopUpCard';
 import { TopUpItem } from '~/components/TopUpItem';
+import { useTopUpHistory, useWaitingTopUps } from '~/hooks/query/useTopUps';
 
 export const Route = createFileRoute('/top-up')({
 	component: RouteComponent,
@@ -12,8 +10,7 @@ export const Route = createFileRoute('/top-up')({
 
 export function RouteComponent() {
 	//
-	const query = convexQuery(api.topUps.public.findAllWaiting, {});
-	const { data: waitingTopUps } = useSuspenseQuery(query);
+	const { waitingTopUps } = useWaitingTopUps();
 
 	track('top-up', {
 		waitingTopUps: waitingTopUps.length,
@@ -45,12 +42,11 @@ export function RouteComponent() {
 
 function TopUpHistory() {
 	//
-	const query = convexQuery(api.topUps.public.findAllHistory, {});
-	const { data: history } = useSuspenseQuery(query);
+	const { topUpHistory } = useTopUpHistory();
 
 	return (
 		<ul className="flex flex-col gap-2">
-			{history.map((topUp) => (
+			{topUpHistory.map((topUp) => (
 				<TopUpItem key={topUp._id} topUp={topUp} />
 			))}
 		</ul>

@@ -1,18 +1,15 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
-import type { Doc, Id } from 'convex/_generated/dataModel';
+import type { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
-import { type RefCallback, useEffect, useMemo, useState } from 'react';
+import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
 import { AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { DebugAction } from '~/components/DebugAction';
-import { Loading } from '~/components/Loading';
 import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
 import { Button } from '~/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '~/components/ui/drawer';
@@ -21,24 +18,31 @@ import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
+import { Loading } from '~/components/Loading';
+import { useCurrentTask } from '~/hooks/useCurrentTask';
 const PAGE_SIZE = 35;
 const NEAR_TOP_THRESHOLD = 200; // px
 
-export function TaskConversation({
-	taskId, //
-	className,
-	onToggleList,
-	isTaskListVisible = true,
-}: {
-	taskId: Id<'tasks'>;
+interface TaskConversationProps {
 	className?: string;
 	onToggleList?: () => void;
 	isTaskListVisible?: boolean;
-}) {
+}
+
+export function TaskConversation(props: TaskConversationProps) {
+	//
+	return (
+		<Suspense fallback={<Loading />}>
+			<TaskConversationContent {...props} />
+		</Suspense>
+	);
+}
+
+function TaskConversationContent({ className, onToggleList, isTaskListVisible = true }: TaskConversationProps) {
+	//
 	const navigate = useNavigate();
 
-	const taskQuery = convexQuery(api.tasks.public.findOne, { taskId });
-	const { data: task } = useSuspenseQuery(taskQuery);
+	const { task } = useCurrentTask();
 
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
 	const { resolve, discard, increaseBudget, stop } = useTaskMutations();
@@ -77,8 +81,6 @@ export function TaskConversation({
 		if (task.status === 'unread') markAsRead({ taskId: task._id });
 		//
 	}, [task.status, markAsRead, task._id]);
-
-	if (status === 'LoadingFirstPage' && actions.length === 0) return <Loading />;
 
 	return (
 		<div className={cn('flex flex-col h-full p-2 gap-2', className)}>
@@ -178,7 +180,7 @@ export function TaskConversation({
 								action={action}
 								initialRenderDate={initialRenderDate}
 								isAuthorCurrentUser={action.author === user._id}
-								taskId={taskId}
+								taskId={task._id}
 							/>
 						) : (
 							<Action
@@ -186,7 +188,7 @@ export function TaskConversation({
 								action={action}
 								initialRenderDate={initialRenderDate}
 								isAuthorCurrentUser={action.author === user._id}
-								taskId={taskId}
+								taskId={task._id}
 							/>
 						),
 					)}

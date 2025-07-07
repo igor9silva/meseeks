@@ -1,14 +1,22 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
+import { Suspense } from 'react';
+import { Loading } from '~/components/Loading';
 import { QuickAdd } from '~/components/QuickAdd';
 import { TaskItem } from '~/components/TaskItem';
+import { useSubtasks } from '~/hooks/query/useSubtasks';
 
 export function Inbox() {
 	//
-	const query = convexQuery(api.tasks.public.findAll, {});
-	const { data: subtasks } = useSuspenseQuery(query);
+	return (
+		<Suspense fallback={<Loading />}>
+			<InboxContent />
+		</Suspense>
+	);
+}
+
+function InboxContent() {
+	//
+	const { subtasks } = useSubtasks();
 
 	return (
 		<div className="overflow-auto h-full">

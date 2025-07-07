@@ -1,6 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
 import { forwardRef, Suspense, useState } from 'react';
@@ -17,6 +14,7 @@ import {
 } from '~/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import { Skeleton } from '~/components/ui/skeleton';
+import { useIntelligences } from '~/hooks/query/useIntelligences';
 import { cn } from '~/lib/utils';
 
 // TODO: display the model cost
@@ -41,7 +39,6 @@ export const IntelligenceSelector = forwardRef<
 
 IntelligenceSelector.displayName = 'IntelligenceSelector';
 
-// Define interface for intelligence options from the API
 interface IntelligenceOption {
 	key: string;
 	name: string;
@@ -66,8 +63,7 @@ const IntelligenceCombobox = forwardRef<
 	}
 >(({ value, onChange, className }, ref) => {
 	//
-	const query = convexQuery(api.skills.public.availableIntelligences, {});
-	const { data: intelligences } = useSuspenseQuery(query);
+	const { intelligences } = useIntelligences();
 
 	const [open, setOpen] = useState(false);
 	const [selected, setSelected] = useState(value ?? intelligences.default);
@@ -123,7 +119,7 @@ const IntelligenceCombobox = forwardRef<
 				style={{ minWidth: '270px' }}
 			>
 				<Command>
-					<CommandInput placeholder="Search intelligences..." />
+					<CommandInput placeholder="Search intelligence..." />
 					<CommandList>
 						<CommandEmpty>No intelligence found.</CommandEmpty>
 
