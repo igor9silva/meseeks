@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { modelsSchema } from 'convex/schemas/skillSchema';
-import { ArrowUp, Mic, Sparkles } from 'lucide-react';
+import { ArrowUp, Mic, Sparkles, Square } from 'lucide-react';
 import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
@@ -23,6 +23,7 @@ interface IdleStateProps {
 	isComposing: boolean;
 	canRequestIteration: boolean;
 	intelligenceSelectorRef: React.RefObject<HTMLButtonElement>;
+	handleStop: () => void;
 }
 
 export function IdleState({
@@ -39,6 +40,7 @@ export function IdleState({
 	isComposing,
 	canRequestIteration,
 	intelligenceSelectorRef,
+	handleStop,
 }: IdleStateProps) {
 	//
 	const { setPreferredIntelligence } = useTaskMutations();
@@ -87,6 +89,12 @@ export function IdleState({
 							icon={<Sparkles className="size-5" />}
 							onClick={handleRequestIteration}
 							tooltip="Request AI iteration"
+						/>
+					) : isActing ? (
+						<ActionButton
+							icon={<Square className="size-5" />} //
+							onClick={handleStop}
+							tooltip="Stop"
 						/>
 					) : (
 						<ActionButton

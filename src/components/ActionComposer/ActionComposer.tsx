@@ -128,6 +128,7 @@ export function ActionComposer({
 						isComposing={isComposing}
 						canRequestIteration={canRequestIteration}
 						intelligenceSelectorRef={intelligenceSelectorRef}
+						handleStop={() => stop({ taskId: task._id })}
 					/>
 				)}
 			</div>
