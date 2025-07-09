@@ -9,15 +9,22 @@ interface LabelWithTooltipProps {
 	children: ReactNode;
 	tooltip: string;
 	className?: string;
+	renderAsDrawerOnMobile?: boolean;
 }
 
-export function LabelWithTooltip({ htmlFor, children, tooltip, className }: LabelWithTooltipProps) {
+export function LabelWithTooltip({
+	htmlFor,
+	children,
+	tooltip,
+	className,
+	renderAsDrawerOnMobile = true, // default to true for form help text
+}: LabelWithTooltipProps) {
 	//
 	return (
 		<Label htmlFor={htmlFor} className={className}>
 			{children}
 			<TooltipProvider>
-				<Tooltip>
+				<Tooltip renderAsDrawerOnMobile={renderAsDrawerOnMobile}>
 					<TooltipTrigger asChild>
 						<InfoIcon className="h-4 w-4 inline-block ml-1" />
 					</TooltipTrigger>

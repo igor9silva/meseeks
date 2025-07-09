@@ -23,7 +23,7 @@ export function TaskBudget({
 
 	return (
 		<TooltipProvider>
-			<Tooltip>
+			<Tooltip renderAsDrawerOnMobile={true}>
 				<TooltipTrigger asChild>
 					<div className={cn('flex flex-col items-end text-right whitespace-nowrap text-sm', className)}>
 						{task.isActive ? (

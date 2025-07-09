@@ -18,17 +18,35 @@ const MOBILE_BREAKPOINT = 768;
  */
 export function useIsMobile() {
 	//
-	const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
+	const { isMobile } = useIsMobileWithMounted();
+
+	return isMobile;
+}
+
+/**
+ * Hook that returns both mobile state and mounted state
+ */
+export function useIsMobileWithMounted() {
+	//
+	const [isMobile, setIsMobile] = useState(false);
+	const [isMounted, setIsMounted] = useState(false);
 
 	useEffect(() => {
-		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-		const onChange = () => {
+		setIsMounted(true);
+
+		const checkMobile = () => {
 			setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
 		};
-		mql.addEventListener('change', onChange);
-		setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-		return () => mql.removeEventListener('change', onChange);
+
+		// initial check
+		checkMobile();
+
+		// listen for changes
+		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+		mql.addEventListener('change', checkMobile);
+
+		return () => mql.removeEventListener('change', checkMobile);
 	}, []);
 
-	return Boolean(isMobile);
+	return { isMobile: isMounted ? isMobile : false, isMounted };
 }
