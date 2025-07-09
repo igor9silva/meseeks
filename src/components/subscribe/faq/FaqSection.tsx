@@ -1,5 +1,5 @@
+import { QuestionDialog } from '~/components/QuestionDialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
-import { QuestionDialog } from '~/components/ui/QuestionDialog';
 
 import { faqs } from './index';
 

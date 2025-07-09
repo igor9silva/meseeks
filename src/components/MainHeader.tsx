@@ -8,8 +8,7 @@ import { Balance } from '~/components/Balance';
 import { useCommandMenu } from '~/components/CommandMenu';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '~/components/ui/button';
-import { TooltipProvider } from '~/components/ui/tooltip';
-import { TooltipButton } from '~/components/ui/TooltipButton';
+import { TooltipButton, TooltipProvider } from '~/components/ui/tooltip';
 import { useTask } from '~/hooks/query/useTask';
 import { useSplatParams } from '~/hooks/useSplatParams';
 

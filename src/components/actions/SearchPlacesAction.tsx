@@ -64,8 +64,10 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	);
 }
 
-function Success({ action, isAuthorCurrentUser }: ActionComponentProps) {
+function Success(props: ActionComponentProps) {
 	//
+	const { action, isAuthorCurrentUser } = props;
+
 	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
 
 	if (!response.success) {

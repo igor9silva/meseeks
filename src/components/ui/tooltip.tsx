@@ -3,6 +3,9 @@ import * as React from 'react';
 
 import { cn } from '~/lib/utils';
 
+import { type ButtonProps } from '~/components/ui/button';
+import { Button } from './button';
+
 const TooltipProvider = ({ delayDuration = 0, ...props }: TooltipPrimitive.TooltipProviderProps) => (
 	<TooltipPrimitive.Provider delayDuration={delayDuration} {...props} />
 );
@@ -30,4 +33,21 @@ const TooltipContent = React.forwardRef<
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+interface TooltipButtonProps extends ButtonProps {
+	//
+	tooltipContent: React.ReactNode;
+}
+
+function TooltipButton({ tooltipContent, children, ...props }: TooltipButtonProps) {
+	//
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<Button {...props}>{children}</Button>
+			</TooltipTrigger>
+			<TooltipContent>{tooltipContent}</TooltipContent>
+		</Tooltip>
+	);
+}
+
+export { Tooltip, TooltipButton, TooltipContent, TooltipProvider, TooltipTrigger };

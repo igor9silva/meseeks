@@ -24,7 +24,7 @@ export function TaskDetailAndSubstasks({
 			<ErrorBoundary fallback={<BasicError text="Not found (or something else went wrong)." />}>
 				<ResizablePanelGroup direction="vertical" className="overflow-hidden">
 					<ResizablePanel id="details" order={0} defaultSize={detailInitialSize}>
-						{<TaskDetail className={className} taskId={taskId} showExpand={showExpand} />}
+						{<TaskDetail className={className} showExpand={showExpand} />}
 					</ResizablePanel>
 					<ResizableHandle withHandle />
 					<ResizablePanel id="substasks" order={1} defaultSize={100 - detailInitialSize}>
