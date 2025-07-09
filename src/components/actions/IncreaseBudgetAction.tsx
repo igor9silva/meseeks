@@ -1,16 +1,11 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { asDollars } from 'convex/lib/money';
 
+import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 
-export function IncreaseBudgetAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function IncreaseBudgetAction(props: ActionComponentProps) {
+	//
 	const { action, isAuthorCurrentUser } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 

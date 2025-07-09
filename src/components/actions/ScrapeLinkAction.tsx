@@ -1,6 +1,6 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { useState } from 'react';
 import { z } from 'zod';
+import { ActionComponentProps } from '~/components/actions';
 
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GenericAction } from '~/components/actions/GenericAction';
@@ -8,13 +8,8 @@ import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
 
-export function ScrapeLinkAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function ScrapeLinkAction(props: ActionComponentProps) {
+	//
 	const { action, initialRenderDate, isAuthorCurrentUser, taskId } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
@@ -28,7 +23,7 @@ export function ScrapeLinkAction(props: {
 			return <GenericAction {...props} />;
 
 		case 'failed':
-			return <Error action={action} isAuthorCurrentUser={isAuthorCurrentUser} />;
+			return <Error {...props} />;
 
 		case 'running':
 			return (
@@ -40,7 +35,7 @@ export function ScrapeLinkAction(props: {
 			);
 
 		case 'succeeded':
-			return <Success isAuthorCurrentUser={isAuthorCurrentUser} action={action} />;
+			return <Success {...props} />;
 	}
 }
 
@@ -66,7 +61,7 @@ const ScrapeResultSchema = z.object({
 	}),
 });
 
-function Error({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
 			text={`🚫 Failed to read "${action.args['url']}"`}
@@ -76,13 +71,15 @@ function Error({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuth
 	);
 }
 
-function Success({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function Success(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser } = props;
 	//
 	const response = ScrapeResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
 
 	if (!response.success) {
 		console.warn('Invalid (or no) result found succeeded action', action._id);
-		return <Error action={action} isAuthorCurrentUser={isAuthorCurrentUser} />;
+		return <Error {...props} />;
 	}
 
 	const { data } = response.data;

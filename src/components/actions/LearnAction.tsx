@@ -1,15 +1,10 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
+import { ActionComponentProps } from '~/components/actions';
 
 import { GenericAction } from '~/components/actions/GenericAction';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 
-export function LearnAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function LearnAction(props: ActionComponentProps) {
+	//
 	const { action, isAuthorCurrentUser } = props;
 
 	switch (action.status) {
@@ -22,7 +17,7 @@ export function LearnAction(props: {
 			return <GenericAction {...props} />;
 
 		case 'failed':
-			return <Error action={action} isAuthorCurrentUser={isAuthorCurrentUser} />;
+			return <Error {...props} />;
 
 		case 'running':
 			return <SimpleMessage running text={`📖 Learning...`} isAuthorCurrentUser={isAuthorCurrentUser} />;
@@ -39,7 +34,7 @@ export function LearnAction(props: {
 	}
 }
 
-function Error({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
 			text={`🚫 Failed to learn`}

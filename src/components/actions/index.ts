@@ -1,3 +1,4 @@
+import { Doc, Id } from 'convex/_generated/dataModel';
 import { CancelScheduleAction } from '~/components/actions/CancelScheduleAction';
 import { DiscardAction } from '~/components/actions/DiscardAction';
 import { DoneAction } from '~/components/actions/DoneAction';
@@ -12,8 +13,17 @@ import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
 import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
 import { SearchWebAction } from '~/components/actions/SearchWebAction';
 import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
+import { StopAction } from '~/components/actions/StopAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
+
+export type ActionComponentProps = {
+	className?: string;
+	action: Doc<'actions'>;
+	initialRenderDate: Date;
+	isAuthorCurrentUser: boolean;
+	taskId: Id<'tasks'>;
+};
 
 export default {
 	instruct: ThinkingAction,
@@ -34,9 +44,8 @@ export default {
 	schedule: ScheduleAction,
 	cancelSchedule: CancelScheduleAction,
 	setUserInfo: SetUserInfoAction,
+	stop: StopAction,
 	//
-	createSkill: LearnAction,
-	updateSkill: LearnAction,
 	learn: LearnAction,
 
 	// hidden

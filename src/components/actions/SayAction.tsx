@@ -1,22 +1,12 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
+import { ActionComponentProps } from '~/components/actions';
 import { CopyButton } from '~/components/CopyButton';
 import { Message, MessageContent } from '~/components/ui/message';
 
-export function SayAction({
-	className, //
-	action,
-	initialRenderDate,
-	isAuthorCurrentUser,
-	taskId,
-}: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function SayAction(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser, className } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
 	return (

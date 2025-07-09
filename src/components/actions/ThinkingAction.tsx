@@ -1,22 +1,12 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
-
+import { ActionComponentProps } from '~/components/actions';
 import { Message } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
+
 import { GenericAction } from './GenericAction';
 
-export function ThinkingAction({
-	className, //
-	action,
-	initialRenderDate,
-	isAuthorCurrentUser,
-	taskId,
-}: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function ThinkingAction(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser, className } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
 	const hiddenStatuses = ['enqueued', 'succeeded', 'skipped'];
@@ -30,13 +20,5 @@ export function ThinkingAction({
 		);
 	}
 
-	return (
-		<GenericAction
-			action={action}
-			initialRenderDate={initialRenderDate}
-			isAuthorCurrentUser={isAuthorCurrentUser}
-			taskId={taskId}
-			className={className}
-		/>
-	);
+	return <GenericAction {...props} />;
 }

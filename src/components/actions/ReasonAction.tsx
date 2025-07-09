@@ -1,18 +1,12 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
+import { ActionComponentProps } from '~/components/actions';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 
 import { Message, MessageContent } from '~/components/ui/message';
 import { Reasoning, ReasoningContent, ReasoningTrigger } from '~/components/ui/reasoning';
 
-export function ReasonAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
-	// const isNew = useIsNew(action._creationTime, initialRenderDate);
-	const { className, action, isAuthorCurrentUser } = props;
+export function ReasonAction(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser, className } = props;
 
 	if (action.status === 'running') return <ThinkingAction {...props} />;
 	if (action.status !== 'succeeded') return null;

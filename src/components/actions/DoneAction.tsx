@@ -1,22 +1,12 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { useMemo } from 'react';
 
+import { ActionComponentProps } from '~/components/actions';
 import { SimpleMessage } from '~/components/ui/message';
 
-export function DoneAction({
-	className, //
-	action,
-	initialRenderDate,
-	isAuthorCurrentUser,
-	taskId,
-}: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function DoneAction(props: ActionComponentProps) {
+	//
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
+	const { action, isAuthorCurrentUser, initialRenderDate, taskId } = props;
 
 	const message = useMemo(() => {
 		//

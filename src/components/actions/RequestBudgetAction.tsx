@@ -1,16 +1,11 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
+import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { Message, MessageContent } from '~/components/ui/message';
 
-export function RequestBudgetAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function RequestBudgetAction(props: ActionComponentProps) {
+	//
 	const { className, action, isAuthorCurrentUser } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 

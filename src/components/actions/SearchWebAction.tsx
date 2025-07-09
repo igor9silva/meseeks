@@ -1,21 +1,16 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 
+import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
 
-export function SearchWebAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
-	const { action, initialRenderDate, isAuthorCurrentUser, taskId } = props;
+export function SearchWebAction(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
 	switch (action.status) {
@@ -28,7 +23,7 @@ export function SearchWebAction(props: {
 			return <GenericAction {...props} />;
 
 		case 'failed':
-			return <Error action={action} isAuthorCurrentUser={isAuthorCurrentUser} />;
+			return <Error {...props} />;
 
 		case 'running':
 			return (
@@ -40,7 +35,7 @@ export function SearchWebAction(props: {
 			);
 
 		case 'succeeded':
-			return <Success isAuthorCurrentUser={isAuthorCurrentUser} action={action} />;
+			return <Success {...props} />;
 	}
 }
 
@@ -56,7 +51,7 @@ const SearchResultSchema = z.object({
 	),
 });
 
-function Error({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
 			text={`🚫 Failed to search "${action.args['query']}"`}
@@ -66,13 +61,15 @@ function Error({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuth
 	);
 }
 
-function Success({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function Success(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser } = props;
 	//
 	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
 
 	if (!response.success) {
 		console.warn('Invalid (or no) result found succeeded action', action._id);
-		return <Error action={action} isAuthorCurrentUser={isAuthorCurrentUser} />;
+		return <Error {...props} />;
 	}
 
 	const { query, results } = response.data;

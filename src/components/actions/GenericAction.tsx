@@ -1,5 +1,5 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
 import { useMemo } from 'react';
+import { ActionComponentProps } from '~/components/actions';
 import { cn } from '~/lib/utils';
 
 import { asDollars } from 'convex/lib/money';
@@ -9,19 +9,9 @@ import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 
-export function GenericAction({
-	className, //
-	action,
-	initialRenderDate,
-	isAuthorCurrentUser,
-	taskId,
-}: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function GenericAction(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className } = props;
 	const { approveAction, rejectAction } = useTaskMutations();
 	const isNew = useMemo(() => {
 		return new Date(action._creationTime) > initialRenderDate;

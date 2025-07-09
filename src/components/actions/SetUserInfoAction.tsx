@@ -1,15 +1,9 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
+import { ActionComponentProps } from '~/components/actions';
 
 import { GenericAction } from '~/components/actions/GenericAction';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 
-export function SetUserInfoAction(props: {
-	className?: string;
-	action: Doc<'actions'>;
-	initialRenderDate: Date;
-	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
-}) {
+export function SetUserInfoAction(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser } = props;
 
