@@ -91,7 +91,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 							size="sm"
 							variant="ghost"
 							onClick={onToggleList}
-							className="flex items-center gap-1"
+							className="hidden md:flex items-center gap-1"
 							title={isTaskListVisible ? 'Hide task list' : 'Show task list'}
 						>
 							{isTaskListVisible ? (
