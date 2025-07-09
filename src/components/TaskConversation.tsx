@@ -286,7 +286,7 @@ function StickToBottomContent({
 	}, [actions, isAtBottom, isLoaded, scrollToBottom]);
 
 	return (
-		<StickToBottom.Content className="relative h-full p-2">
+		<StickToBottom.Content className="relative h-full p-0 md:p-2">
 			<div className="h-full">
 				{status === 'LoadingMore' && (
 					<div className="px-4 pt-4">
