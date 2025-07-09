@@ -36,10 +36,10 @@ export function ActiveTasksTab({ scrollContainerRef }: ActiveTasksTabProps) {
 				{activeTasks.length === 0 && status !== 'LoadingFirstPage' && (
 					<div className="text-muted-foreground text-center py-8">No active tasks.</div>
 				)}
-				{status === 'LoadingFirstPage' && <Loading />}
+				{status === 'LoadingFirstPage' && <Loading className="mt-4" />}
 				{status === 'LoadingMore' && (
 					<div className="flex justify-center pt-4">
-						<Loading />
+						<Loading className="mt-4" />
 					</div>
 				)}
 			</div>

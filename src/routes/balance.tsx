@@ -7,7 +7,7 @@ import { ActiveTasksTab } from '~/components/balance/ActiveTasksTab';
 import { LowBalanceWarning } from '~/components/balance/LowBalanceWarning';
 import { TopUpSection } from '~/components/balance/TopUpSection';
 import { TransactionsTab } from '~/components/balance/TransactionsTab';
-import { EnergyCredits } from '~/components/EnergyCredits';
+import { EnergyTooltip } from '~/components/EnergyTooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useLockedBalance } from '~/hooks/query/useTransactions';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
@@ -58,17 +58,21 @@ function RouteComponent() {
 					<h1 className="text-2xl font-bold">Balance</h1>
 					<span>
 						Your current non-locked balance is{' '}
-						<span className="font-bold">
-							{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })} <EnergyCredits />
-						</span>
+						<EnergyTooltip>
+							<span className="font-bold">
+								{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })}⚡
+							</span>
+						</EnergyTooltip>
 						.
 					</span>
 					{lockedBalance > 0 && (
 						<span>
 							Other{' '}
-							<span className="font-bold">
-								{asDollars({ bigInt: lockedBalance, precision: 6 })} <EnergyCredits /> are locked
-							</span>{' '}
+							<EnergyTooltip>
+								<span className="font-bold">
+									{asDollars({ bigInt: lockedBalance, precision: 6 })}⚡
+								</span>
+							</EnergyTooltip>{' '}
 							in active tasks.
 						</span>
 					)}

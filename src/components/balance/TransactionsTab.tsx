@@ -76,10 +76,10 @@ export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 						{debouncedSearchTerm ? 'No transactions match your search criteria.' : 'No transactions yet.'}
 					</div>
 				)}
-				{status === 'LoadingFirstPage' && <Loading />}
+				{status === 'LoadingFirstPage' && <Loading className="mt-5" />}
 				{status === 'LoadingMore' && (
 					<div className="flex justify-center pt-4">
-						<Loading />
+						<Loading className="mt-4" />
 					</div>
 				)}
 			</div>
