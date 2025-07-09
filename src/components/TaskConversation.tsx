@@ -244,11 +244,11 @@ function StickToBottomContent({
 		current: HTMLDivElement | null;
 	}; // type hack, comes odd from useStickToBottomContext
 
-	const [isLoaded, setIsLoaded] = useState(false);
+	const [isLoaded, setIsLoaded] = useState(0);
 
 	useEffect(() => {
-		if (isLoaded) return;
-		if (actions.length > 0) setIsLoaded(true);
+		if (isLoaded > 0) return;
+		if (actions.length > 0) setIsLoaded(isLoaded + 1);
 	}, [actions.length, isLoaded]);
 
 	// Infinite scroll, loads more when near the top TODO: abstract into a hook
@@ -277,7 +277,10 @@ function StickToBottomContent({
 	useEffect(() => {
 		//
 		if (isAtBottom && actions.length > 0) {
-			scrollToBottom(isLoaded ? 'smooth' : 'instant');
+			// TODO: this is a hack to make the scroll smooth when new events but instant at first
+			// 1st render is usually empty
+			// 2nd render has the actions loaded
+			scrollToBottom(isLoaded > 1 ? 'smooth' : 'instant');
 		}
 		//
 	}, [actions, isAtBottom, isLoaded, scrollToBottom]);
