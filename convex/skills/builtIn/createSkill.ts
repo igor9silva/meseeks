@@ -13,7 +13,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 const DEFAULT_PRE_APPROVED_COST = asBigInt({ dollars: 0.2 });
 
 export const createSkill = defineSkill({
-	preApprovedCost: 0n,
+	preApprovedCost: 'none',
 	description: 'Learn a new skill.',
 	parameters: z.object({
 		skill: simplifiedSkillSchema,
@@ -57,9 +57,8 @@ export const createSkill = defineSkill({
 
 			console.debug('skill created', args.skill);
 
-			const kind = args.skill.kind === 'hard' ? 'Hard' : 'Soft';
 			return {
-				text: `🎓 ${kind} skill '${args.skill.key}' learned.`,
+				text: `✅ ${args.skill.kind === 'hard' ? 'Hard' : 'Soft'} skill '${args.skill.key}' learned.`,
 				reactions: execution.skill.knownReactions,
 			};
 		},

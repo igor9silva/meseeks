@@ -13,6 +13,7 @@ import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
 import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
 import { SearchWebAction } from '~/components/actions/SearchWebAction';
 import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
+import { SkillAction } from '~/components/actions/SkillAction';
 import { StopAction } from '~/components/actions/StopAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
@@ -46,6 +47,8 @@ export default {
 	setUserInfo: SetUserInfoAction,
 	stop: StopAction,
 	//
+	createSkill: SkillAction,
+	updateSkill: SkillAction,
 	learn: LearnAction,
 
 	// hidden

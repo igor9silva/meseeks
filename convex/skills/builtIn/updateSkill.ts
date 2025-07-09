@@ -6,7 +6,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 import { createConfig, ensureInputSchemaIsValid } from './createSkill';
 
 export const updateSkill = defineSkill({
-	preApprovedCost: 0n,
+	preApprovedCost: 'none',
 	description: 'Update details of a skill we already know.',
 	parameters: z.object({
 		updatedSkill: simplifiedSkillSchema,
