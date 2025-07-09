@@ -88,15 +88,15 @@ function Success(props: ActionComponentProps) {
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen} className="min-w-0 w-full">
-				<CollapsibleTrigger className="flex gap-0 items-center">
+				<CollapsibleTrigger className="flex gap-0 items-center min-w-0">
 					<MessageContent
-						className="text-sm text-muted-foreground text-left"
+						className="text-sm text-muted-foreground text-left break-all overflow-wrap-anywhere min-w-0"
 						text={`🧵 Read "${action.args['url']}"`}
 					/>
 					<Button
 						variant="link"
 						size="sm"
-						className="text-muted-foreground p-1"
+						className="text-muted-foreground p-1 flex-shrink-0"
 						onClick={() => setIsOpen(!isOpen)}
 					>
 						{isOpen ? <ChevronUp /> : <ChevronDown />}
