@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
+import { computeNextRun } from '../../lib/cron';
 import { formatScheduledTime } from '../../lib/date';
-import { computeNextRun } from '../../schedules/cron';
 import { timeZoneSchema } from '../../schemas/scheduleSchema';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
@@ -30,6 +30,12 @@ export const schedule = defineSkill({
 			.describe(
 				'Cron expression for recurring execution (**required for recurring schedules**). Example: "0 9 * * 1" for every Monday at 9 AM',
 			),
+		instructions: z
+			.string()
+			.optional()
+			.describe(
+				'Specific instructions for what to do when this schedule triggers (e.g., "Generate daily sales report", "Send weekly project update"). This provides context to the model when the schedule runs.',
+			),
 	}),
 	knownReactions: [
 		{
@@ -42,7 +48,7 @@ export const schedule = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			const skillKey = 'iterate';
+			const skillKey = 'scheduledIteration';
 
 			// Create the schedule (this handles all validation and business logic)
 			await execution.ctx.runMutation(internal.schedules.private._create, {
@@ -50,7 +56,10 @@ export const schedule = defineSkill({
 				owner: execution.task.owner,
 				author: execution.action._id,
 				skillKey,
-				args: {},
+				args: {
+					scheduleType: args.scheduleType,
+					instructions: args.instructions,
+				},
 				depth: execution.action.depth + 1,
 				scheduleType: args.scheduleType,
 				timeZone: args.timeZone,

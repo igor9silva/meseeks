@@ -16,6 +16,7 @@ import { requestIteration } from './requestIteration';
 import { resolve } from './resolve';
 import { say } from './say';
 import { schedule } from './schedule';
+import { scheduledIteration } from './scheduledIteration';
 import { setUserInfo } from './setUserInfo';
 import { stop } from './stop';
 import { subtract } from './subtract';
@@ -52,6 +53,7 @@ export const _builtInSkills = {
 
 	// scheduling
 	schedule,
+	scheduledIteration,
 	cancelSchedule,
 
 	// skills

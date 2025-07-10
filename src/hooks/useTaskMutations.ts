@@ -141,12 +141,14 @@ export function useTaskMutations() {
 		scheduledAt,
 		cronExpression,
 		timeZone,
+		instructions,
 	}: {
 		taskId: Id<'tasks'>;
 		scheduleType: 'one-time' | 'recurring';
 		scheduledAt?: string;
 		cronExpression?: string;
 		timeZone: string;
+		instructions?: string;
 	}) => {
 		return act({
 			taskId,
@@ -156,7 +158,7 @@ export function useTaskMutations() {
 				scheduledAt,
 				cronExpression,
 				timeZone,
-				skillKey: 'iterate',
+				instructions,
 			},
 		});
 	};

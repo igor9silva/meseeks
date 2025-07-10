@@ -5,8 +5,8 @@ import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
 import { _add as _addAction } from '../action/private';
 import { internalMutation } from '../lib';
+import { computeNextRun } from '../lib/cron';
 import { authorSchema } from '../schemas/authorSchema';
-import { computeNextRun } from './cron';
 import { _updateJobId, _updateLastRun } from './private';
 
 export const _executeOneTime = internalMutation({

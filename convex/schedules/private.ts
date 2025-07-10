@@ -2,8 +2,8 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { internalMutation, internalQuery } from '../lib';
+import { computeNextRun, isExpressionValid } from '../lib/cron';
 import { authorSchema } from '../schemas/authorSchema';
-import { computeNextRun, isExpressionValid } from './cron';
 import { scheduleExecution } from './lifecycle';
 
 export const _create = internalMutation({

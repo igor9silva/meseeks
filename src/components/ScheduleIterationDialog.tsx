@@ -1,7 +1,8 @@
 import { Id } from 'convex/_generated/dataModel';
 import { CalendarIcon, ClockIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import { getNextDates } from 'convex/lib/cron';
 import { Button } from '~/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { Input } from '~/components/ui/input';
@@ -33,9 +34,25 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 	const [scheduledDate, setScheduledDate] = useState(defaultDate);
 	const [scheduledTime, setScheduledTime] = useState(defaultTime);
 	const [cronExpression, setCronExpression] = useState('0 9 * * 1'); // every Monday at 9:00 AM
+	const [instructions, setInstructions] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 
 	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+	// Compute next execution dates for cron preview
+	const nextCronDates = useMemo(() => {
+		//
+		if (scheduleType === 'recurring' && cronExpression.trim()) {
+			try {
+				return { dates: getNextDates(cronExpression, timeZone, 5), error: null };
+			} catch (error) {
+				return { dates: [], error: 'Invalid expression' };
+			}
+		}
+
+		return { dates: [], error: null };
+		//
+	}, [cronExpression, timeZone, scheduleType]);
 
 	// Check if current selection matches a quick option
 	const isOptionActive = (option: (typeof quickOptions)[number]) => {
@@ -71,6 +88,11 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 				timeZone,
 			};
 
+			// Add instructions if provided
+			if (instructions.trim()) {
+				scheduleArgs.instructions = instructions.trim();
+			}
+
 			if (scheduleType === 'one-time') {
 				//
 				const dateTime = new Date(`${scheduledDate}T${scheduledTime}`);
@@ -88,6 +110,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 			setScheduledDate(defaultDate);
 			setScheduledTime(defaultTime);
 			setCronExpression('0 9 * * 1');
+			setInstructions('');
 			setScheduleType('one-time');
 			//
 		} finally {
@@ -187,18 +210,52 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 							<div className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="cron">Cron Expression</Label>
-									<Textarea
+									<Input
 										id="cron"
 										value={cronExpression}
 										onChange={(e) => setCronExpression(e.target.value)}
 										placeholder="0 9 * * 1"
-										className="font-mono text-sm resize-none"
-										rows={2}
+										className="font-mono text-sm"
 									/>
-									<p className="text-xs text-muted-foreground">
-										Example: "0 9 * * 1" = Every Monday at 9:00 AM
-									</p>
+									<div className="text-sm text-muted-foreground font-mono ml-4">
+										<div>│ │ │ │ │</div>
+										<div>│ │ │ │ └─── Day of Week (0-7)</div>
+										<div>│ │ │ └───── Month (1-12)</div>
+										<div>│ │ └─────── Day of Month (1-31)</div>
+										<div>│ └───────── Hour (0-23)</div>
+										<div>└─────────── Minute (0-59)</div>
+									</div>
 								</div>
+
+								{nextCronDates.dates.length > 0 && (
+									<div className="space-y-2">
+										<Label className="text-sm font-medium">Next 5 executions</Label>
+										<div className="bg-muted/50 rounded-xl px-3 py-3 space-y-1">
+											{nextCronDates.dates.map((date, index) => (
+												<div key={index} className="text-sm font-mono">
+													{date.toLocaleString('en-US', {
+														timeZone,
+														weekday: 'short',
+														month: 'short',
+														day: 'numeric',
+														hour: 'numeric',
+														minute: '2-digit',
+														year: 'numeric',
+														hour12: true,
+													})}
+												</div>
+											))}
+										</div>
+									</div>
+								)}
+
+								{nextCronDates.error && (
+									<div className="space-y-2">
+										<div className="bg-destructive text-destructive-foreground rounded-xl px-3 py-2 text-sm">
+											{nextCronDates.error}
+										</div>
+									</div>
+								)}
 
 								<div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
 									<ClockIcon className="size-4" />
@@ -206,6 +263,21 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								</div>
 							</div>
 						)}
+
+						<div className="space-y-2">
+							<Label htmlFor="instructions">Instructions (optional)</Label>
+							<Textarea
+								id="instructions"
+								value={instructions}
+								onChange={(e) => setInstructions(e.target.value)}
+								placeholder="Specific instructions for what to do when this schedule runs (e.g., 'Generate daily sales report', 'Send weekly project update')"
+								className="resize-none"
+								rows={3}
+							/>
+							<p className="text-xs text-muted-foreground">
+								Provide context about what should happen when this schedule triggers
+							</p>
+						</div>
 
 						<div className="flex justify-end gap-3 pt-2">
 							<Button

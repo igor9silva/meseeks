@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as components_private from "../components/private.js";
 import type * as components_public from "../components/public.js";
 import type * as http from "../http.js";
+import type * as lib_cron from "../lib/cron.js";
 import type * as lib_date from "../lib/date.js";
 import type * as lib_errors from "../lib/errors.js";
 import type * as lib_money from "../lib/money.js";
@@ -26,7 +27,6 @@ import type * as lib from "../lib.js";
 import type * as magicRock_public from "../magicRock/public.js";
 import type * as magicRock from "../magicRock.js";
 import type * as migrations from "../migrations.js";
-import type * as schedules_cron from "../schedules/cron.js";
 import type * as schedules_lifecycle from "../schedules/lifecycle.js";
 import type * as schedules_private from "../schedules/private.js";
 import type * as schedules_public from "../schedules/public.js";
@@ -65,6 +65,7 @@ import type * as skills_builtIn_requestIteration from "../skills/builtIn/request
 import type * as skills_builtIn_resolve from "../skills/builtIn/resolve.js";
 import type * as skills_builtIn_say from "../skills/builtIn/say.js";
 import type * as skills_builtIn_schedule from "../skills/builtIn/schedule.js";
+import type * as skills_builtIn_scheduledIteration from "../skills/builtIn/scheduledIteration.js";
 import type * as skills_builtIn_setUserInfo from "../skills/builtIn/setUserInfo.js";
 import type * as skills_builtIn_stop from "../skills/builtIn/stop.js";
 import type * as skills_builtIn_subtract from "../skills/builtIn/subtract.js";
@@ -117,6 +118,7 @@ declare const fullApi: ApiFromModules<{
   "components/private": typeof components_private;
   "components/public": typeof components_public;
   http: typeof http;
+  "lib/cron": typeof lib_cron;
   "lib/date": typeof lib_date;
   "lib/errors": typeof lib_errors;
   "lib/money": typeof lib_money;
@@ -126,7 +128,6 @@ declare const fullApi: ApiFromModules<{
   "magicRock/public": typeof magicRock_public;
   magicRock: typeof magicRock;
   migrations: typeof migrations;
-  "schedules/cron": typeof schedules_cron;
   "schedules/lifecycle": typeof schedules_lifecycle;
   "schedules/private": typeof schedules_private;
   "schedules/public": typeof schedules_public;
@@ -165,6 +166,7 @@ declare const fullApi: ApiFromModules<{
   "skills/builtIn/resolve": typeof skills_builtIn_resolve;
   "skills/builtIn/say": typeof skills_builtIn_say;
   "skills/builtIn/schedule": typeof skills_builtIn_schedule;
+  "skills/builtIn/scheduledIteration": typeof skills_builtIn_scheduledIteration;
   "skills/builtIn/setUserInfo": typeof skills_builtIn_setUserInfo;
   "skills/builtIn/stop": typeof skills_builtIn_stop;
   "skills/builtIn/subtract": typeof skills_builtIn_subtract;
