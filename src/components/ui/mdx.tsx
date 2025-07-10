@@ -15,7 +15,7 @@ import { Task } from '~/components/layout/Task';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { TwoColumn } from '~/components/layout/TwoColumn';
 import { Loading } from '~/components/Loading';
-import { QuickAdd } from '~/components/QuickAdd';
+import { QuickSeek } from '~/components/QuickSeek';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndChat } from '~/components/TaskDetailAndChat';
@@ -47,7 +47,7 @@ const components = {
 	TaskDetailAndChat,
 	TaskDetail,
 	Grid,
-	QuickAdd,
+	QuickSeek,
 	ListAndDetail,
 	TaskDetailAndConversation,
 	Inbox,

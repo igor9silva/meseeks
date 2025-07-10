@@ -22,16 +22,16 @@ import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
-export function QuickAdd({ className }: { className?: string }) {
+export function QuickSeek({ className }: { className?: string }) {
 	//
 	return (
 		<div className="h-full flex flex-col justify-end items-center md:justify-center">
-			<QuickAddContent className="w-full max-w-5xl" />
+			<QuickSeekContent className="w-full max-w-5xl" />
 		</div>
 	);
 }
 
-export function QuickAddContent({ className }: { className?: string }) {
+export function QuickSeekContent({ className }: { className?: string }) {
 	//
 	const navigate = useNavigate();
 	const addTask = useMutation(api.tasks.public.add);

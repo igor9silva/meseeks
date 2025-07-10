@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Suspense } from 'react';
 import { Loading } from '~/components/Loading';
-import { QuickAdd } from '~/components/QuickAdd';
+import { QuickSeek } from '~/components/QuickSeek';
 import { TaskItem } from '~/components/TaskItem';
 import { useSubtasks } from '~/hooks/query/useSubtasks';
 
@@ -20,7 +20,7 @@ function InboxContent() {
 
 	return (
 		<div className="overflow-auto h-full">
-			{subtasks.length === 0 && <QuickAdd />}
+			{subtasks.length === 0 && <QuickSeek />}
 			{subtasks.map((task) => (
 				<Link
 					key={task._id}

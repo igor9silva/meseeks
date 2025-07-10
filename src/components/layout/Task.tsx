@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Id } from 'convex/_generated/dataModel';
 import { Suspense } from 'react';
 import { Loading } from '~/components/Loading';
-import { QuickAdd } from '~/components/QuickAdd';
+import { QuickSeek } from '~/components/QuickSeek';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskItem } from '~/components/TaskItem';
@@ -97,7 +97,7 @@ function TaskList({ parentTaskId = 'inbox' }: { parentTaskId?: Id<'tasks'> | 'in
 
 	return (
 		<div className="overflow-auto h-full">
-			{subtasks.length === 0 && <QuickAdd />}
+			{subtasks.length === 0 && <QuickSeek />}
 			{subtasks.map((task) => (
 				<Link
 					key={task._id}
