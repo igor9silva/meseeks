@@ -4,6 +4,7 @@ import { DiscardAction } from '~/components/actions/DiscardAction';
 import { DoneAction } from '~/components/actions/DoneAction';
 import { IncreaseBudgetAction } from '~/components/actions/IncreaseBudgetAction';
 import { LearnAction } from '~/components/actions/LearnAction';
+import { MathAction } from '~/components/actions/MathAction';
 import { ReasonAction } from '~/components/actions/ReasonAction';
 import { RequestBudgetAction } from '~/components/actions/RequestBudgetAction';
 import { ResolveAction } from '~/components/actions/ResolveAction';
@@ -50,6 +51,12 @@ export default {
 	createSkill: SkillAction,
 	updateSkill: SkillAction,
 	learn: LearnAction,
+	//
+	// math skills
+	multiply: MathAction,
+	sum: MathAction,
+	subtract: MathAction,
+	divide: MathAction,
 
 	// hidden
 	requestIteration: null,
