@@ -62,6 +62,5 @@ export const _builtInSkills = {
 	setUserInfo,
 };
 
-// updateSummary,
 // moveTask,
 // createSubtask,

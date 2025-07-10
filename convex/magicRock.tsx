@@ -237,8 +237,6 @@ async function renderHistory(
 		amount: env.DEFAULT_CONTEXT_SIZE,
 	});
 
-	// TODO: add the summary as a message?
-
 	const history = actions
 		// remove unfinished or skipped actions
 		.filter((action) => ['succeeded', 'failed', 'pending authorization'].includes(action.status))
@@ -282,9 +280,6 @@ function computeSince(
 	//
 	switch (skill.config.historyMode) {
 		//
-		case 'since last summarized':
-			return task.lastSummarizedAt ?? task.lastUpdatedAt ?? 0;
-
 		case 'since last instructed':
 			return task.lastUpdatedAt ?? 0;
 
@@ -409,10 +404,9 @@ function valueForVariable(
 				`<status>{{task.status}}</status>`,
 				`<createdAt>{{task.createdAt}}</createdAt>`,
 				`<lastUpdatedAt>{{task.lastUpdatedAt}}</lastUpdatedAt>`,
-				`<lastSummarizedAt>{{task.lastSummarizedAt}}</lastSummarizedAt>`,
 				`<energyBudget>{{task.energyBudget}}</energyBudget>`,
 				`<instructions>{{task.instructions}}</instructions>`,
-				// `<summary>{{task.summary}}</summary>`,
+				`<summary>{{task.summary}}</summary>`,
 				// `<parent>${task.parent}</parent>`,
 			]
 				.join('')
@@ -433,14 +427,11 @@ function valueForVariable(
 		case 'task.lastUpdatedAt':
 			return dateOrNever(task.lastUpdatedAt);
 
-		case 'task.lastSummarizedAt':
-			return dateOrNever(task.lastSummarizedAt);
-
 		case 'task.instructions':
 			return task.instructions ?? '<system>no instructions</system>';
 
-		// case 'task.summary':
-		// 	return task.summary ?? '<system>no summary</system>';
+		case 'task.summary':
+			return task.summary ?? '<system>no summary</system>';
 
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';

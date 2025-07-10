@@ -80,6 +80,7 @@ export const _findActiveTasks = internalQuery({
 				.eq('isActive', true),
 		);
 
+		// TODO: make sure higher budget tasks are first
 		return limit ? await query.take(limit) : await query.collect();
 	},
 });
@@ -346,29 +347,17 @@ export const _updateInstructions = internalMutation({
 		taskId: zid('tasks'),
 		title: z.string().optional(),
 		instructions: z.string().optional(),
+		summary: z.string().optional(),
 	},
-	handler: async (ctx, { taskId, title, instructions }) => {
+	handler: async (ctx, { taskId, title, instructions, summary }) => {
 		//
 		if (title === undefined && instructions === undefined) throw new Error('Nothing to do');
 
 		return await ctx.db.patch(taskId, {
 			...(title !== undefined && { title }),
 			...(instructions !== undefined && { instructions }),
+			...(summary !== undefined && { summary }),
 			lastUpdatedAt: Date.now(),
-		});
-	},
-});
-
-export const _updateSummary = internalMutation({
-	args: {
-		taskId: zid('tasks'),
-		summary: z.string(),
-	},
-	handler: async (ctx, { taskId, summary }) => {
-		//
-		return await ctx.db.patch(taskId, {
-			summary,
-			lastSummarizedAt: Date.now(),
 		});
 	},
 });

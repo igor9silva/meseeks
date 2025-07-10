@@ -1,7 +1,8 @@
 import { TimeAgo } from '~/components/TimeAgo';
-import { Card, CardContent, CardHeader } from '~/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
+import { Separator } from '~/components/ui/separator';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
@@ -86,14 +87,14 @@ export default function TaskDetail({
 					editClassName="h-full"
 				/>
 			</CardContent>
-			{/* {task.summary && (
+			{task.summary && (
 				<>
 					<Separator />
 					<CardFooter className="p-0 md:p-4 ">
 						<MDX text={task.summary} />
 					</CardFooter>
 				</>
-			)} */}
+			)}
 		</Card>
 	);
 }

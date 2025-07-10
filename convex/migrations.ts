@@ -1,29 +1,33 @@
 import { Migrations } from '@convex-dev/migrations';
-import { components } from './_generated/api.js';
+import { components, internal } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 
-// export const fillDepth = migrations.define({
-// 	table: 'actions',
-// 	// customRange: (query) => query.withIndex('by_requiredField', (q) => q.eq('requiredField', '')),
-// 	migrateOne: async (_ctx, doc) => ({ depth: 0 }),
-// });
+export const removeSinceLastSummarizedHistoryMode = migrations.define({
+	table: 'skills',
+	migrateOne: async (_ctx, doc) => {
+		if (doc.kind === 'soft' && doc.config.historyMode === 'since last summarized') {
+			return {
+				...doc,
+				config: {
+					...doc.config,
+					historyMode: 'since last instructed' as const,
+				},
+			};
+		}
+		return doc;
+	},
+});
 
-// export const fillEnergyBudget = migrations.define({
-// 	table: 'tasks',
-// 	migrateOne: async (_ctx, doc) => {
-// 		// Check if the task has the old budgetUSDC field
-// 		if ('budgetUSDC' in doc && doc.budgetUSDC) {
-// 			return {
-// 				energyBudget: doc.budgetUSDC,
-// 				// budgetUSDC: undefined, // Remove the old field
-// 			};
-// 		}
-// 		// If it already has budgetEnergy or no budget field, no change needed
-// 		return {};
-// 	},
-// });
+export const removeLastSummarizedAt = migrations.define({
+	table: 'tasks',
+	migrateOne: async (_ctx, doc) => {
+		return { ...doc, lastSummarizedAt: undefined };
+	},
+});
 
-// export const runFillDepth = migrations.runner(internal.migrations.fillDepth);
-// export const runFillEnergyBudget = migrations.runner(internal.migrations.fillEnergyBudget);
+export const runRemoveSinceLastSummarizedHistoryMode = migrations.runner(
+	internal.migrations.removeSinceLastSummarizedHistoryMode,
+);
+export const runRemoveLastSummarizedAt = migrations.runner(internal.migrations.removeLastSummarizedAt);

@@ -71,7 +71,6 @@ import type * as skills_builtIn_subtract from "../skills/builtIn/subtract.js";
 import type * as skills_builtIn_sum from "../skills/builtIn/sum.js";
 import type * as skills_builtIn_updateInstructions from "../skills/builtIn/updateInstructions.js";
 import type * as skills_builtIn_updateSkill from "../skills/builtIn/updateSkill.js";
-import type * as skills_builtIn_updateSummary from "../skills/builtIn/updateSummary.js";
 import type * as skills_createAITool from "../skills/createAITool.js";
 import type * as skills_createBuiltInTool from "../skills/createBuiltInTool.js";
 import type * as skills_createHttpTool from "../skills/createHttpTool.js";
@@ -172,7 +171,6 @@ declare const fullApi: ApiFromModules<{
   "skills/builtIn/sum": typeof skills_builtIn_sum;
   "skills/builtIn/updateInstructions": typeof skills_builtIn_updateInstructions;
   "skills/builtIn/updateSkill": typeof skills_builtIn_updateSkill;
-  "skills/builtIn/updateSummary": typeof skills_builtIn_updateSummary;
   "skills/createAITool": typeof skills_createAITool;
   "skills/createBuiltInTool": typeof skills_createBuiltInTool;
   "skills/createHttpTool": typeof skills_createHttpTool;

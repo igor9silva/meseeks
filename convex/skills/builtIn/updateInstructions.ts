@@ -14,6 +14,10 @@ export const updateInstructions = defineSkill({
 			.string()
 			.optional()
 			.describe(`MDX. Add any details on how to handle the task, what should be done, how, references, etc.`),
+		summary: z
+			.string() //
+			.optional()
+			.describe(`MDX. Add any details on what we have done so far.`),
 	}),
 	knownReactions: [
 		{
@@ -33,6 +37,7 @@ export const updateInstructions = defineSkill({
 				taskId: execution.task._id,
 				title: isTitleTruncated ? args.title?.slice(0, MAX_TITLE_LENGTH).trim() + '...' : args.title,
 				instructions: args.instructions,
+				summary: args.summary,
 			});
 
 			return {

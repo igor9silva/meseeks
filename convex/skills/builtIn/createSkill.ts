@@ -100,7 +100,7 @@ export function createConfig(skill: z.infer<typeof simplifiedSkillSchema>) {
 				instructions: skill.config.instructions,
 				temperature: skill.config.temperature,
 				availableSkills: skill.config.availableSkills,
-				historyMode: 'since last summarized',
+				historyMode: 'since last instructed',
 			});
 
 		case 'hard':
