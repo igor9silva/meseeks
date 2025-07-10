@@ -203,7 +203,6 @@ export const decisionConfigSchema = z.object({
 	availableSkills: z.array(z.string()).describe('Skills that can be used to make the decision'),
 	historyMode: z.enum([
 		// 'none', //
-		'since last summarized',
 		'since last instructed',
 		'all',
 	]),

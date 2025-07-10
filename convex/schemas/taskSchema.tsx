@@ -35,7 +35,6 @@ export const taskSchema = z
 		isActive: z.boolean().describe('Computed from status.'),
 		parentId: zid('tasks').optional().describe('The parent task ID of this task.'),
 		lastUpdatedAt: z.number().optional().describe('The last time the task instructions were reviewed/updated.'),
-		lastSummarizedAt: z.number().optional().describe('The last time the task activity was summarized.'),
 		// lastReadAction: zid('actions').optional().describe('The last action that was "read" by the user.'),
 		energyBudget: taskBudgetSchema,
 		embeddingId: zid('taskEmbeddings').optional(),
