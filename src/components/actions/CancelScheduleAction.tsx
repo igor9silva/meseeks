@@ -1,6 +1,5 @@
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
-
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 
 export function CancelScheduleAction(props: ActionComponentProps) {
@@ -30,7 +29,7 @@ export function CancelScheduleAction(props: ActionComponentProps) {
 
 		case 'succeeded':
 			//
-			const message = action.result.text || 'Schedule canceled successfully';
+			const message = action.result.text || 'Canceled scheduled iteration.';
 
 			return <SimpleMessage text={message} isAuthorCurrentUser={isAuthorCurrentUser} />;
 	}

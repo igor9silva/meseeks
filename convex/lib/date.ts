@@ -2,17 +2,27 @@ export function formatScheduledTime(date: Date, timeZone: string): string {
 	//
 	const timeStr = formatTime(date, timeZone);
 
+	// Get UTC offset in simple +/-X format
+	const offsetMatch = date
+		.toLocaleString('en-US', {
+			timeZone,
+			timeZoneName: 'longOffset',
+		})
+		.match(/GMT([+-])0?(\d+)/);
+
+	const offsetStr = offsetMatch ? `${offsetMatch[1]}${offsetMatch[2]}` : '+0';
+
 	if (isDateInTimezone(date, new Date(), timeZone)) {
-		return `today at ${timeStr}`;
+		return `today at ${timeStr} (UTC${offsetStr})`;
 	}
 
 	const tomorrow = new Date();
 	tomorrow.setDate(tomorrow.getDate() + 1);
 	if (isDateInTimezone(date, tomorrow, timeZone)) {
-		return `tomorrow at ${timeStr}`;
+		return `tomorrow at ${timeStr} (UTC${offsetStr})`;
 	}
 
-	return `at ${formatDateTime(date, timeZone)}`;
+	return `at ${formatDateTime(date, timeZone)} (UTC${offsetStr})`;
 }
 
 export function formatTime(date: Date, timeZone: string): string {
