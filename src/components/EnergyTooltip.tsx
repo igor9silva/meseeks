@@ -1,11 +1,11 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 
-export function EnergyTooltip({ children }: { children: React.ReactNode }) {
+export function EnergyTooltip({ children, className }: { children: React.ReactNode; className?: string }) {
 	//
 	return (
 		<TooltipProvider>
 			<Tooltip>
-				<TooltipTrigger>{children}</TooltipTrigger>
+				<TooltipTrigger className={className}>{children}</TooltipTrigger>
 				<TooltipContent>
 					<strong>Energy</strong>, US Dollar-equivalent credits.
 				</TooltipContent>
