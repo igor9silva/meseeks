@@ -100,6 +100,11 @@ export const availableIntelligences = query({
 			],
 			all: [
 				{
+					key: 'cerebras/qwen3-235b',
+					name: 'Qwen 235B',
+					provider: 'Cerebras',
+				},
+				{
 					key: 'moonshot/kimi-2',
 					name: 'Kimi 2',
 					provider: 'Moonshot',

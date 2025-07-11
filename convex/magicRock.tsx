@@ -1,4 +1,5 @@
 import { anthropic } from '@ai-sdk/anthropic';
+import { cerebras } from '@ai-sdk/cerebras';
 import { deepseek } from '@ai-sdk/deepseek';
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
@@ -160,7 +161,7 @@ function languageModelFrom(
 		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'),
 
 		// Cerebras
-		// 'cerebras/qwen3-32b': cerebras('qwen-3-32b'),
+		'cerebras/qwen3-235b': cerebras('qwen-3-235b-a22b'),
 
 		// DeepInfra
 		// 'deepinfra/deepseek-v3': deepinfra('deepseek-ai/DeepSeek-V3-0324'),
