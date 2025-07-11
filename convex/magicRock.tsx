@@ -205,13 +205,17 @@ async function loadTools(
 	skill: z.infer<typeof softSkillSchema>,
 ): Promise<Record<string, AITool>> {
 	//
-	const availableSkills = skill.config.availableSkills.flatMap((skillItem) => {
-		//
-		if (skillItem === '{{taskSkills}}') return task.availableSkills ?? [];
-		// TODO: support for more variables, better abstraction
+	const availableSkills = [
+		...new Set( // as a Set to avoid duplicates
+			skill.config.availableSkills.flatMap((skillItem) => {
+				//
+				if (skillItem === '{{taskSkills}}') return task.availableSkills ?? [];
+				// TODO: support for more variables, better abstraction
 
-		return skillItem;
-	});
+				return skillItem;
+			}),
+		),
+	];
 
 	console.debug('loading tools, config:', availableSkills);
 
