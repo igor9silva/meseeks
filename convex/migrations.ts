@@ -1,8 +1,33 @@
 import { Migrations } from '@convex-dev/migrations';
-import { components } from './_generated/api.js';
+import { components, internal } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
+import { _enableSkill } from './skills/private';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
+
+// Migration to enable specific skills for all existing users
+export const enableDefaultSkillsForAllUsers = migrations.define({
+	table: 'users',
+	migrateOne: async (ctx, doc) => {
+		//
+		const skillsToEnable = ['searchWeb', 'searchIdealista', 'scrapeLink', 'scrapeTweet', 'searchPlaces'];
+
+		// Enable each skill for this user
+		for (const skillKey of skillsToEnable) {
+			await _enableSkill(ctx, {
+				userId: doc._id,
+				skillKey,
+			});
+		}
+
+		console.info(`Enabled ${skillsToEnable.length} skills for user ${doc._id}`);
+
+		return doc; // return unchanged
+	},
+});
+
+// Runner function to execute the migration
+export const runEnableDefaultSkillsForAllUsers = migrations.runner(internal.migrations.enableDefaultSkillsForAllUsers);
 
 // export const removeSinceLastSummarizedHistoryMode = migrations.define({
 // 	table: 'skills',

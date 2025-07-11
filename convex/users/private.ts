@@ -10,6 +10,7 @@ import { tokenSchema } from '../schemas/topUpSchema';
 import { _findActive } from '../subscriptions/private';
 import { _addWithActions } from '../tasks/private';
 import { _addFreeCredits } from '../transactions/private';
+import { _setUserPreference } from './preferences/private';
 
 export const _seedIfNeeded = async (
 	ctx: MutationCtx, //
@@ -41,14 +42,14 @@ export const _seedIfNeeded = async (
 		// TODO: at somepoint, we'd like users to spawn their own Convex instance for full isolation and control
 	};
 
+	// Set default user preferences including enabled skills
+	await _setDefaultPreferences(ctx, userId);
+
 	if (!env.REF_USER_ID) {
 		console.warn('No ref user ID defined. Skipping seeding components.');
 		markAreReady();
 		return;
 	}
-
-	// Set default user preferences including enabled skills
-	// await _setDefaultPreferences(ctx, userId);
 
 	// const refUser = await _findOne(ctx, { userId: env.REF_USER_ID as Id<'users'> });
 	// if (!refUser) throw new Error('Ref user not found'); // FATAL (will stop seeding user forever), TODO: notify fatal
@@ -96,39 +97,20 @@ I'm also curious about Meseeks and would love to learn more about its capabiliti
 	});
 };
 
-// const _setDefaultPreferences = async (
-// 	ctx: MutationCtx, //
-// 	userId: Id<'users'>,
-// ) => {
-// 	//
-// 	// Set default enabled skills - these are the core skills users should have by default
-// 	const defaultEnabledSkills = [
-// 		// Core communication and feedback
-// 		'learn',
-// 		'setUserInfo',
+const _setDefaultPreferences = async (
+	ctx: MutationCtx, //
+	userId: Id<'users'>,
+) => {
+	//
+	// TODO: unhack
+	const defaultEnabledSkills = ['searchWeb', 'searchIdealista', 'scrapeLink', 'scrapeTweet', 'searchPlaces'];
 
-// 		// Scheduling capabilities
-// 		'schedule',
-// 		'cancelSchedule',
-
-// 		// Basic math operations
-// 		'sum',
-// 		'subtract',
-// 		'multiply',
-// 		'divide',
-
-// 		// Web capabilities (if available)
-// 		// Note: These might be platform-specific skills that get added later
-// 		// 'searchWeb',
-// 		// 'scrapeLink',
-// 	];
-
-// 	await _setUserPreference(ctx, {
-// 		userId,
-// 		key: 'enabledSkills',
-// 		value: defaultEnabledSkills,
-// 	});
-// };
+	await _setUserPreference(ctx, {
+		userId,
+		key: 'enabledSkills',
+		value: defaultEnabledSkills,
+	});
+};
 
 // const _seedComponentsFromRef = async (
 // 	ctx: MutationCtx, //
