@@ -3,6 +3,7 @@ import { deepseek } from '@ai-sdk/deepseek';
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
 import { openai } from '@ai-sdk/openai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { xai } from '@ai-sdk/xai';
 import { type CoreMessage, generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
@@ -31,6 +32,12 @@ import { _toolsForMagicRock } from './skills/tools';
 // >tfw automation achieves infinite productivity
 // >singularity.png
 // >mfw humanity peaked by tricking rocks into thinking
+
+const moonshot = createOpenAICompatible({
+	name: 'moonshot',
+	apiKey: env.MOONSHOT_API_KEY,
+	baseURL: 'https://api.moonshot.ai/v1',
+});
 
 export type MagicRockContext = Parameters<typeof generateText>[0];
 
@@ -148,6 +155,9 @@ function languageModelFrom(
 
 		// DeepSeek
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
+
+		// Moonshot
+		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'),
 
 		// Cerebras
 		// 'cerebras/qwen3-32b': cerebras('qwen-3-32b'),

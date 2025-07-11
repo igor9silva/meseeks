@@ -112,6 +112,8 @@ export const env = createEnv({
 			.describe('Maximum number of active tasks to show in activeTasks variable.')
 			.default('20'),
 
+		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
+
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
 	},
 

@@ -85,6 +85,9 @@ export const modelsSchema = z.enum([
 	// DeepSeek
 	'deepseek/deepseek-v3',
 
+	// Moonshot
+	'moonshot/kimi-2',
+
 	// Cerebras
 	// 'cerebras/qwen3-32b',
 
@@ -154,6 +157,10 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 		// DeepSeek
 		case 'deepseek/deepseek-v3':
 			return pricePerMillionTokens({ input: 0.27, output: 1.1 });
+
+		// Moonshot
+		case 'moonshot/kimi-2':
+			return pricePerMillionTokens({ input: 0.15, output: 2.5 });
 
 		// Cerebras
 		// case 'cerebras/qwen3-32b':

@@ -100,6 +100,11 @@ export const availableIntelligences = query({
 			],
 			all: [
 				{
+					key: 'moonshot/kimi-2',
+					name: 'Kimi 2',
+					provider: 'Moonshot',
+				},
+				{
 					key: 'anthropic/claude-3.5-haiku',
 					name: 'Claude 3.5 Haiku',
 					provider: 'Anthropic',
