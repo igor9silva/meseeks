@@ -1,4 +1,5 @@
 import { TimeAgo } from '~/components/TimeAgo';
+import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
@@ -64,6 +65,17 @@ export default function TaskDetail({
 						<TimeAgo date={task._creationTime} suffix="old, " className="text-sm text-muted-foreground" />
 						<TaskBudget task={task} className="text-sm" />
 					</div>
+					{task.availableSkills && task.availableSkills.length > 0 && (
+						<div className="px-2 pb-2">
+							<div className="flex flex-wrap gap-1">
+								{task.availableSkills.map((skillKey) => (
+									<Badge key={skillKey} variant="secondary" className="text-xs">
+										{skillKey}
+									</Badge>
+								))}
+							</div>
+						</div>
+					)}
 				</div>
 			</CardHeader>
 			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow">

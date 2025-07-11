@@ -39,6 +39,11 @@ export const taskSchema = z
 		energyBudget: taskBudgetSchema,
 		embeddingId: zid('taskEmbeddings').optional(),
 		preferredIntelligence: modelsSchema.optional().describe('The preferred intelligence to use for this task.'),
+		availableSkills: z
+			.array(z.string())
+			.max(16)
+			.optional()
+			.describe('List of skill keys that are available for this task. Max 16 skills.'),
 	})
 	.describe(`It's a goal to be achieved. A Task is the basic and most fundamental entity of Meseeks.`);
 

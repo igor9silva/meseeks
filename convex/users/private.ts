@@ -32,28 +32,23 @@ export const _seedIfNeeded = async (
 		description: 'Welcome credits',
 	});
 
-	// const inboxTaskId = await _addInboxTask(ctx, {
-	// 	author: userId,
-	// 	owner: userId,
-	// });
-
-	// add welcome messages
 	await _addWelcomeMessages(ctx, userId);
 
 	const markAreReady = () => {
-		// adding a fake delay for fun
-		const delay = 10000; // ms
+		//
+		const delay = 10000; // ms, fake delay for fun
 		ctx.scheduler.runAfter(delay, internal.users.private._markAreReady, { userId });
 		// TODO: at somepoint, we'd like users to spawn their own Convex instance for full isolation and control
 	};
 
 	if (!env.REF_USER_ID) {
-		console.error('No ref user ID defined. Skipping seeding components.');
+		console.warn('No ref user ID defined. Skipping seeding components.');
 		markAreReady();
 		return;
 	}
 
-	// // TODO: create user preferences
+	// Set default user preferences including enabled skills
+	// await _setDefaultPreferences(ctx, userId);
 
 	// const refUser = await _findOne(ctx, { userId: env.REF_USER_ID as Id<'users'> });
 	// if (!refUser) throw new Error('Ref user not found'); // FATAL (will stop seeding user forever), TODO: notify fatal
@@ -100,6 +95,40 @@ I'm also curious about Meseeks and would love to learn more about its capabiliti
 		],
 	});
 };
+
+// const _setDefaultPreferences = async (
+// 	ctx: MutationCtx, //
+// 	userId: Id<'users'>,
+// ) => {
+// 	//
+// 	// Set default enabled skills - these are the core skills users should have by default
+// 	const defaultEnabledSkills = [
+// 		// Core communication and feedback
+// 		'learn',
+// 		'setUserInfo',
+
+// 		// Scheduling capabilities
+// 		'schedule',
+// 		'cancelSchedule',
+
+// 		// Basic math operations
+// 		'sum',
+// 		'subtract',
+// 		'multiply',
+// 		'divide',
+
+// 		// Web capabilities (if available)
+// 		// Note: These might be platform-specific skills that get added later
+// 		// 'searchWeb',
+// 		// 'scrapeLink',
+// 	];
+
+// 	await _setUserPreference(ctx, {
+// 		userId,
+// 		key: 'enabledSkills',
+// 		value: defaultEnabledSkills,
+// 	});
+// };
 
 // const _seedComponentsFromRef = async (
 // 	ctx: MutationCtx, //

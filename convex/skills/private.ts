@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
 import { zodToString } from '../lib/zodToString';
-import { builtInSkillSchema, newSkillSchema, skillOwnerSchema } from '../schemas/skillSchema';
+import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from '../schemas/skillSchema';
 import { _getUserPreferece, _setUserPreference } from '../users/preferences/private';
 import { _builtInSkills } from './builtIn/index';
 
@@ -214,5 +214,97 @@ export const _enableSkill = internalMutation({
 			key: 'enabledSkills',
 			value: currentSkills.concat(skillKey),
 		});
+	},
+});
+
+export const _replaceProSkills = internalMutation({
+	args: {
+		skills: z
+			.array(skillSchema)
+			.describe('Skills array object (from DEV.ts output) to replace all existing "isPro" skills with'),
+		deleteUnspecified: z
+			.boolean()
+			.optional()
+			.default(false)
+			.describe(
+				'If true, deletes existing "isPro" skills that are not in the new list. If false, only updates/inserts skills from the new list.',
+			),
+	},
+	handler: async (ctx, { skills, deleteUnspecified }) => {
+		//
+		console.info(`Replacing Pro-managed skills (deleteUnspecified: ${deleteUnspecified})`);
+
+		// Validate all skills have the correct owner
+		for (const skill of skills) {
+			if (skill.owner !== 'isPro') {
+				throw new Error(`All skills must have owner "isPro", found: ${skill.owner}`);
+			}
+		}
+
+		// Validate no duplicate keys in new skills
+		const newSkillKeys = new Set<string>();
+		for (const skill of skills) {
+			if (newSkillKeys.has(skill.key)) {
+				throw new Error(`Duplicate skill key found: ${skill.key}`);
+			}
+			newSkillKeys.add(skill.key);
+		}
+		console.info(`Validated ${skills.length} new skills with unique keys`);
+
+		// Get all existing "isPro" skills
+		const existingSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
+		console.info(`Found ${existingSkills.length} existing "isPro" skills`);
+
+		// Create maps for easier lookup
+		const existingSkillsByKey = new Map(existingSkills.map((skill) => [skill.key, skill]));
+
+		let insertedCount = 0;
+		let updatedCount = 0;
+		let deletedCount = 0;
+		const insertedSkillIds: string[] = [];
+
+		// Process each new skill: insert if new, update if exists
+		for (const skill of skills) {
+			//
+			const existingSkill = existingSkillsByKey.get(skill.key);
+
+			if (existingSkill) {
+				await ctx.db.patch(existingSkill._id, skill);
+				updatedCount++;
+			} else {
+				const skillId = await ctx.db.insert('skills', skill);
+				insertedSkillIds.push(skillId);
+				insertedCount++;
+				console.debug(`Inserted skill: ${skill.key}`);
+			}
+		}
+
+		// Delete skills that exist but are not in the new list (only if explicitly requested)
+		for (const existingSkill of existingSkills) {
+			if (!newSkillKeys.has(existingSkill.key)) {
+				if (deleteUnspecified) {
+					await ctx.db.delete(existingSkill._id);
+					deletedCount++;
+					console.warn(`Deleted skill: ${existingSkill.key}`);
+				} else {
+					throw new Error(
+						`Skill ${existingSkill.key} is not in the new list and deleteUnspecified is false. DID NOTHING.`,
+					);
+				}
+			}
+		}
+
+		console.info(
+			`Operation completed: ${insertedCount} inserted, ${updatedCount} updated, ${deletedCount} deleted`,
+		);
+
+		return {
+			success: true,
+			inserted: insertedCount,
+			updated: updatedCount,
+			deleted: deletedCount,
+			skillKeys: skills.map((s) => s.key),
+			deletedUnspecified: deleteUnspecified,
+		};
 	},
 });

@@ -111,6 +111,7 @@ export const _add = internalMutation({
 				available: 0n,
 			},
 			preferredIntelligence,
+			availableSkills: [],
 		});
 
 		// TODO: receive actions instead of using hardcoded ones
@@ -174,6 +175,7 @@ export const _addWithActions = internalMutation({
 				available: 0n,
 			},
 			preferredIntelligence,
+			availableSkills: [],
 		});
 
 		await _addActions(ctx, {
@@ -183,69 +185,6 @@ export const _addWithActions = internalMutation({
 			depth: 0,
 			skills,
 		});
-
-		return taskId;
-	},
-});
-
-export const _addInboxTask = internalMutation({
-	args: {
-		author: authorSchema,
-		owner: zid('users'),
-	},
-	handler: async (ctx, { author, owner }) => {
-		//
-		const taskId = await ctx.db.insert('tasks', {
-			author,
-			owner,
-			title: 'Look at me!',
-			status: 'idle',
-			isActive: true,
-			energyBudget: {
-				total: 0n,
-				available: 0n,
-			},
-			instructions: `
-# Look at me!
-## ooh-wee, welcome to Meseeks! 
-Here, everything is a task.
-<br />
-Every time a task gets **marked as done**, we summarize and learn from it, so other tasks can have amplified context on you and everything you've been doing 😌
-<br />
-#### This box is the task description.
-It's a place were you - **or your Meseeks** - can add details on what you are seeking, constraints, instructions, files, or anything you want.
-
-------------------------------------
-Every piece of text is dynamic, **try tapping with 3 fingers** (or middle mouse button) here. Powered by [Markdown](https://en.wikipedia.org/wiki/Markdown) and *React Components* 🔥
-<br />
-You can do that in messages as well. **Have fun 👻**.
-
-------------------------------------
-
-<p className="text-sm text-muted-foreground">**Tip:** type \`<EasterEgg />\` in the chatbox.</p>
-
-------------------------------------
-Oh, there is one more thing. **Verified humans get 500 actions ⚡ for free!**
-<br />
-On the command bar you should see your balance: <Balance />
-<br />
-Each task gets it's own budget until it's done. **The larger the budget, the more autonomous it gets.**
-<br />
-If you need more funds, look for "Top up".
-<br />
-Happy hacking 🚀
-`.trim(),
-		});
-
-		await _increaseBudget(ctx, { taskId, amount: 1n });
-
-		// await _addAction(ctx, {
-		// 	taskId,
-		// 	author,
-		// 	owner,
-		// 	skillKey: 'say',
-		// 	args: { message: description },
-		// });
 
 		return taskId;
 	},
@@ -348,15 +287,25 @@ export const _updateInstructions = internalMutation({
 		title: z.string().optional(),
 		instructions: z.string().optional(),
 		summary: z.string().optional(),
+		availableSkills: z.array(z.string()).max(16).optional(),
 	},
-	handler: async (ctx, { taskId, title, instructions, summary }) => {
+	handler: async (ctx, { taskId, title, instructions, summary, availableSkills }) => {
 		//
-		if (title === undefined && instructions === undefined) throw new Error('Nothing to do');
+		if (
+			title === undefined &&
+			instructions === undefined &&
+			summary === undefined &&
+			availableSkills === undefined
+		) {
+			throw new Error('Nothing to do');
+		}
 
+		// TODO: we're only updating if not undefined, shouldn't we replace instead?
 		return await ctx.db.patch(taskId, {
 			...(title !== undefined && { title }),
 			...(instructions !== undefined && { instructions }),
 			...(summary !== undefined && { summary }),
+			...(availableSkills !== undefined && { availableSkills }),
 			lastUpdatedAt: Date.now(),
 		});
 	},

@@ -195,17 +195,13 @@ async function loadTools(
 	skill: z.infer<typeof softSkillSchema>,
 ): Promise<Record<string, AITool>> {
 	//
-	const availableSkills = skill.config.availableSkills;
-
-	// TODO: remove this once it gets dynamic
-	if (skill.key === 'iterate') {
+	const availableSkills = skill.config.availableSkills.flatMap((skillItem) => {
 		//
-		const enabledSkills = await ctx.runQuery(internal.skills.private._listEnabledKeys, {
-			userId: task.owner,
-		});
+		if (skillItem === '{{taskSkills}}') return task.availableSkills ?? [];
+		// TODO: support for more variables, better abstraction
 
-		availableSkills.push(...enabledSkills);
-	}
+		return skillItem;
+	});
 
 	console.debug('loading tools, config:', availableSkills);
 
@@ -273,20 +269,20 @@ function renderAction(
 	};
 }
 
-function computeSince(
-	task: Doc<'tasks'>, //
-	skill: z.infer<typeof softSkillSchema>,
-) {
-	//
-	switch (skill.config.historyMode) {
-		//
-		case 'since last instructed':
-			return task.lastUpdatedAt ?? 0;
+// function computeSince(
+// 	task: Doc<'tasks'>, //
+// 	skill: z.infer<typeof softSkillSchema>,
+// ) {
+// 	//
+// 	switch (skill.config.historyMode) {
+// 		//
+// 		case 'since last instructed':
+// 			return task.lastUpdatedAt ?? 0;
 
-		case 'all':
-			return 0;
-	}
-}
+// 		case 'all':
+// 			return 0;
+// 	}
+// }
 
 async function renderInstructions(
 	ctx: ActionCtx | MutationCtx, //
@@ -299,6 +295,7 @@ async function renderInstructions(
 
 	// TODO: workaround because we needed an async
 	result = await replaceAllSkillsIfNeeded(ctx, task.owner, result);
+	result = await replaceActiveSkillsIfNeeded(ctx, task.owner, result);
 	result = await replaceActiveTasksIfNeeded(ctx, task.owner, result);
 
 	// Handle async variables
@@ -356,6 +353,23 @@ async function replaceAllSkillsIfNeeded(
 	const variable = list.map((i) => `- *${i.key}*: ${i.description}`).join('\n');
 
 	return text.replace('{{allSkills}}', variable);
+}
+
+async function replaceActiveSkillsIfNeeded(
+	ctx: ActionCtx | MutationCtx, //
+	userId: Id<'users'>,
+	text: string,
+): Promise<string> {
+	//
+	if (!text.includes('{{activeSkills}}')) return text;
+
+	const enabledSkillKeys = await ctx.runQuery(internal.skills.private._listEnabledKeys, {
+		userId,
+	});
+
+	const variable = enabledSkillKeys.map((key) => `- *${key}*`).join('\n');
+
+	return text.replace('{{activeSkills}}', variable);
 }
 
 async function replaceActiveTasksIfNeeded(

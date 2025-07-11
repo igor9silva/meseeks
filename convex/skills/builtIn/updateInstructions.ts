@@ -18,6 +18,13 @@ export const updateInstructions = defineSkill({
 			.string() //
 			.optional()
 			.describe(`MDX. Add any details on what we have done so far.`),
+		availableSkills: z
+			.array(z.string())
+			.max(16)
+			.optional()
+			.describe(
+				'List of skill keys available for this task. Select up to 16 skills that will be available for this tasks. Make sure to select the most relevant skills for completing this task.',
+			),
 	}),
 	knownReactions: [
 		{
@@ -38,6 +45,7 @@ export const updateInstructions = defineSkill({
 				title: isTitleTruncated ? args.title?.slice(0, MAX_TITLE_LENGTH).trim() + '...' : args.title,
 				instructions: args.instructions,
 				summary: args.summary,
+				availableSkills: args.availableSkills,
 			});
 
 			return {
