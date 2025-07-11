@@ -402,7 +402,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 								<div key={index} className="flex justify-between">
 									<span>{cost.description}</span>
 									<span className="font-mono">
-										${asDollars({ bigInt: cost.amount, precision: 6 })} USDc
+										${asDollars({ bigInt: cost.amount, precision: 6 })} energy
 									</span>
 								</div>
 							))}
@@ -428,7 +428,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 							<div className="flex justify-between">
 								<span>Estimated:</span>
 								<span className="font-mono">
-									${asDollars({ bigInt: action.estimatedCost!, precision: 6 })} USDc
+									${asDollars({ bigInt: action.estimatedCost!, precision: 6 })} energy
 								</span>
 							</div>
 						</div>
