@@ -1,13 +1,13 @@
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '~/components/ui/card';
+import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
-import { Separator } from '~/components/ui/separator';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
+import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskBudget } from './TaskBudget';
 
@@ -78,7 +78,7 @@ export default function TaskDetail({
 					)}
 				</div>
 			</CardHeader>
-			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow">
+			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow flex flex-col">
 				<EditableContent
 					key={task.instructions}
 					value={task.instructions ?? ''}
@@ -98,15 +98,8 @@ export default function TaskDetail({
 					viewClassName="w-full h-full"
 					editClassName="h-full"
 				/>
+				{task.summary && <CollapsibleSummary summary={task.summary} />}
 			</CardContent>
-			{task.summary && (
-				<>
-					<Separator />
-					<CardFooter className="p-0 md:p-4 ">
-						<MDX text={task.summary} />
-					</CardFooter>
-				</>
-			)}
 		</Card>
 	);
 }

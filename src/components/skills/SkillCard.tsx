@@ -101,11 +101,7 @@ export function SkillCard({
 	);
 
 	return (
-		<Link
-			to="/skills/$id"
-			params={{ id: skill._id }}
-			className="block transition-all hover:scale-[1.01] focus:scale-[1.01] hover:shadow-md focus:shadow-md outline-none"
-		>
+		<Link to="/skills/$id" params={{ id: skill._id }} className="block transition-all focus:shadow-md outline-none">
 			<CardWrapper>{cardContent}</CardWrapper>
 		</Link>
 	);
