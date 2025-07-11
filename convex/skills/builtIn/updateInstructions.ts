@@ -17,7 +17,7 @@ export const updateInstructions = defineSkill({
 		summary: z
 			.string() //
 			.optional()
-			.describe(`MDX. Add any details on what we have done so far.`),
+			.describe(`MDX. Add any details on what we have done so far. Bullet points are preferred.`),
 		availableSkills: z
 			.array(z.string())
 			.max(16)
