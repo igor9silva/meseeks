@@ -93,7 +93,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<RootLayout>{children}</RootLayout>
 				<Scripts />
 				<SpeedInsights />
-				<Analytics />
+				<Analytics debug={false} />
 			</body>
 		</html>
 	);

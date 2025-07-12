@@ -1,6 +1,6 @@
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
-import { forwardRef, Suspense, useState } from 'react';
+import { forwardRef, Suspense, useEffect, useState } from 'react';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
 import {
@@ -67,6 +67,10 @@ const IntelligenceCombobox = forwardRef<
 
 	const [open, setOpen] = useState(false);
 	const [selected, setSelected] = useState(value ?? intelligences.default);
+
+	useEffect(() => {
+		setSelected(value ?? intelligences.default);
+	}, [value, intelligences.default]);
 
 	const selectedOption = [...intelligences.recommended, ...intelligences.all].find(
 		(intelligence) => intelligence.key === selected,
