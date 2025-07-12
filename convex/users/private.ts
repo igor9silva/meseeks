@@ -103,7 +103,14 @@ const _setDefaultPreferences = async (
 ) => {
 	//
 	// TODO: unhack
-	const defaultEnabledSkills = ['searchWeb', 'searchIdealista', 'scrapeLink', 'scrapeTweet', 'searchPlaces'];
+	const defaultEnabledSkills = [
+		'searchWeb',
+		'searchIdealista',
+		'scrapeLink',
+		'scrapeTweet',
+		'searchPlaces',
+		'analyze',
+	];
 
 	await _setUserPreference(ctx, {
 		userId,

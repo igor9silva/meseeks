@@ -114,6 +114,7 @@ export function createAITool(
 
 			if (warnings?.length) console.warn('Decision skill warnings', warnings);
 
+			// TODO: persist initially on prepareContext(), consdering sometimes its interrupted of fail
 			await _persistDetails({
 				ctx,
 				action,

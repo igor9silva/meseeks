@@ -3,12 +3,10 @@ import { cancelSchedule } from './cancelSchedule';
 import { createSkill } from './createSkill';
 import { decreaseBudget } from './decreaseBudget';
 import { discard } from './discard';
-import { divide } from './divide';
 import { done } from './done';
 import { increaseBudget } from './increaseBudget';
 import { justSay } from './justSay';
 import { lookAtMe } from './lookAtMe';
-import { multiply } from './multiply';
 import { reason } from './reason';
 import { reopen } from './reopen';
 import { requestBudget } from './requestBudget';
@@ -19,8 +17,6 @@ import { schedule } from './schedule';
 import { scheduledIteration } from './scheduledIteration';
 import { setUserInfo } from './setUserInfo';
 import { stop } from './stop';
-import { subtract } from './subtract';
-import { sum } from './sum';
 import { updateInstructions } from './updateInstructions';
 import { updateSkill } from './updateSkill';
 
@@ -31,10 +27,10 @@ export const _builtInSkills = {
 	updateInstructions,
 
 	// math
-	sum,
-	multiply,
-	divide,
-	subtract,
+	// sum,
+	// multiply,
+	// divide,
+	// subtract,
 
 	// lifecycle
 	say,

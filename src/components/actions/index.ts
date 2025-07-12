@@ -1,4 +1,5 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
+import { AnalyzeAction } from '~/components/actions/AnalyzeAction';
 import { CancelScheduleAction } from '~/components/actions/CancelScheduleAction';
 import { DiscardAction } from '~/components/actions/DiscardAction';
 import { DoneAction } from '~/components/actions/DoneAction';
@@ -38,6 +39,7 @@ export default {
 	resolve: ResolveAction,
 	discard: DiscardAction,
 	askForClarification: SayAction,
+	analyze: AnalyzeAction,
 	searchWeb: SearchWebAction,
 	updateInstructions: UpdateInstructionsAction,
 	scrapeLink: ScrapeLinkAction,
