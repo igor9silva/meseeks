@@ -15,6 +15,8 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 	const totalBudget = task.energyBudget.total;
 	const spentBudget = totalBudget - availableBudget;
 
+	if (availableBudget < 1n) return null;
+
 	return (
 		<Link
 			to="/$"
