@@ -1,3 +1,3 @@
 # Meseeks
 
-The first companion. Fully open-source.
+The first companion. Fully open (source, prompts, business).
