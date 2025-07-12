@@ -153,7 +153,6 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 				<Link
 					to="/$"
 					search={(prev) => ({ ...prev, debug: debug ? undefined : true })}
-					replace
 					className="hidden md:block"
 				>
 					<Toggle
