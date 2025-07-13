@@ -46,7 +46,7 @@ export const _seedIfNeeded = async (
 	await _setDefaultPreferences(ctx, userId);
 
 	if (!env.REF_USER_ID) {
-		console.warn('No ref user ID defined. Skipping seeding components.');
+		console.debug('No ref user ID defined. Skipping seeding components.');
 		markAreReady();
 		return;
 	}
