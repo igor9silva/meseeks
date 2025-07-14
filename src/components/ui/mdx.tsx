@@ -82,7 +82,12 @@ export default function MDX({
 	if (!Component) throw new Error('No component found');
 
 	return (
-		<div className={cn('whitespace-normal [&>*]:break-normal [&>*]:hyphens-none h-full', className)}>
+		<div
+			className={cn(
+				'whitespace-normal [&>*]:break-normal [&>*]:hyphens-none h-full max-w-full overflow-x-auto',
+				className,
+			)}
+		>
 			<ErrorBoundary
 				fallbackRender={({ error }) => <MDXError text={text} error={error} onClickFix={onClickFix} />}
 			>

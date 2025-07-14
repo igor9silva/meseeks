@@ -22,7 +22,7 @@ export function TaskBudget({
 	const percentSpent = total > 0n ? Number((spent * 100n) / total) : 0;
 
 	return (
-		<TooltipProvider>
+		<TooltipProvider delayDuration={250}>
 			<Tooltip renderAsDrawerOnMobile={true}>
 				<TooltipTrigger asChild>
 					<div className={cn('flex flex-col items-end text-right whitespace-nowrap text-sm', className)}>

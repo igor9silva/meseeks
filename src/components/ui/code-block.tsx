@@ -29,7 +29,8 @@ export type CodeBlockCodeProps = {
 	className?: string;
 } & React.HTMLProps<HTMLDivElement>;
 
-function CodeBlockCode({ code, language = 'tsx', theme = 'github-light', className, ...props }: CodeBlockCodeProps) {
+function CodeBlockCode({ code, language = 'tsx', theme = 'github-dark', className, ...props }: CodeBlockCodeProps) {
+	//
 	const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 
 	useEffect(() => {
