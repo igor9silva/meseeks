@@ -1,4 +1,5 @@
-import { Expand, Minimize2 } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { Bug, Expand, Minimize2 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
 
@@ -25,6 +26,7 @@ export function SayAction(props: ActionComponentProps) {
 				message={action.args['message']}
 				isAuthorCurrentUser={isAuthorCurrentUser}
 				onClose={toggleFullscreen}
+				action={action}
 			/>
 		);
 	}
@@ -41,6 +43,10 @@ export function SayAction(props: ActionComponentProps) {
 				})}
 			/>
 			<div className="absolute top-1 right-1 flex gap-1">
+				<DebugButton
+					action={action}
+					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+				/>
 				<ExpandButton
 					onClick={toggleFullscreen}
 					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
@@ -58,10 +64,12 @@ function FullscreenMessage({
 	message,
 	isAuthorCurrentUser,
 	onClose,
+	action,
 }: {
 	message: string;
 	isAuthorCurrentUser: boolean;
 	onClose: () => void;
+	action: ActionComponentProps['action'];
 }) {
 	//
 	// ESC key to close fullscreen
@@ -76,6 +84,7 @@ function FullscreenMessage({
 			{/* Close button - floating in top right */}
 			<div className="absolute top-4 right-4 flex gap-2 z-10">
 				<CopyButton textToCopy={message} className="opacity-70 hover:opacity-100 transition-opacity" />
+				<DebugButton action={action} className="opacity-70 hover:opacity-100 transition-opacity" />
 				<MinimizeButton onClick={onClose} className="opacity-70 hover:opacity-100 transition-opacity" />
 			</div>
 
@@ -127,6 +136,40 @@ function MinimizeButton({ onClick, className }: { onClick: () => void; className
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="px-2 py-1 text-xs">Exit fullscreen</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function DebugButton({ action, className }: { action: ActionComponentProps['action']; className?: string }) {
+	//
+	const navigate = useNavigate();
+
+	const handleDebugClick = (e?: React.MouseEvent) => {
+		e?.stopPropagation();
+
+		// Navigate to debug mode with action anchor
+		navigate({
+			to: '/$',
+			search: (prev) => ({ ...prev, debug: true }),
+			hash: `action-${action._id}`,
+		});
+	};
+
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						variant="secondary"
+						size="icon"
+						onClick={handleDebugClick}
+						className={cn('h-6 w-6 border', className)}
+					>
+						<Bug className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Inspect in debug mode</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
