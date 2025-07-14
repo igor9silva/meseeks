@@ -15,6 +15,7 @@ import {
 	Circle,
 	CircleCheckBig,
 	CircleX,
+	CodeXml,
 	Github,
 	Inbox,
 	LogOut,
@@ -194,6 +195,7 @@ export function CommandMenuDialog() {
 						<CalendarIcon className="mr-2" />
 						See schedules
 					</CommandItem>
+					<DevModeCommandItem />
 					<CommandItem
 						value="github"
 						keywords={['github', 'source', 'code', 'repository']}
@@ -424,6 +426,35 @@ function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 		<CommandItem value={`/seek`} keywords={['seek', 'search', search]} onSelect={handleSelect}>
 			<SquarePen className="mr-2" />
 			{`Seek for "${search}"`}
+		</CommandItem>
+	);
+}
+
+function DevModeCommandItem() {
+	//
+	const { close } = useCommandMenu();
+	const navigate = useNavigate();
+	const { pathname, search } = useLocation();
+
+	const isDebugMode = Boolean(search.debug);
+
+	const handleToggleDebug = () => {
+		//
+		navigate({
+			to: pathname,
+			search: (prev) => ({ ...prev, debug: isDebugMode ? undefined : true }),
+		});
+		close();
+	};
+
+	return (
+		<CommandItem
+			value="toggle-debug"
+			keywords={['debug', 'dev', 'development', 'toggle']}
+			onSelect={handleToggleDebug}
+		>
+			<CodeXml className="mr-2" />
+			{isDebugMode ? 'Disable' : 'Enable'} Dev Mode
 		</CommandItem>
 	);
 }
