@@ -3,6 +3,7 @@ import { AnalyzeAction } from '~/components/actions/AnalyzeAction';
 import { CancelScheduleAction } from '~/components/actions/CancelScheduleAction';
 import { DiscardAction } from '~/components/actions/DiscardAction';
 import { DoneAction } from '~/components/actions/DoneAction';
+import { GetSkillDetailsAction } from '~/components/actions/GetSkillDetailsAction';
 import { IncreaseBudgetAction } from '~/components/actions/IncreaseBudgetAction';
 import { LearnAction } from '~/components/actions/LearnAction';
 import { MathAction } from '~/components/actions/MathAction';
@@ -50,9 +51,10 @@ export default {
 	setUserInfo: SetUserInfoAction,
 	stop: StopAction,
 	//
+	learnSkill: LearnAction,
 	createSkill: SkillAction,
 	updateSkill: SkillAction,
-	learn: LearnAction,
+	getSkillDetails: GetSkillDetailsAction,
 	//
 	// math skills
 	multiply: MathAction,

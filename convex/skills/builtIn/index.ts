@@ -4,6 +4,7 @@ import { createSkill } from './createSkill';
 import { decreaseBudget } from './decreaseBudget';
 import { discard } from './discard';
 import { done } from './done';
+import { getSkillDetails } from './getSkillDetails';
 import { increaseBudget } from './increaseBudget';
 import { justSay } from './justSay';
 import { lookAtMe } from './lookAtMe';
@@ -55,6 +56,7 @@ export const _builtInSkills = {
 	// skills
 	createSkill,
 	updateSkill,
+	getSkillDetails,
 
 	// user info
 	setUserInfo,

@@ -9,11 +9,11 @@ export const updateSkill = defineSkill({
 	preApprovedCost: 'none',
 	description: 'Update details of a skill we already know.',
 	parameters: z.object({
-		updatedSkill: simplifiedSkillSchema,
+		skill: simplifiedSkillSchema,
 	}),
 	knownReactions: [
 		{
-			skillKey: 'learn',
+			skillKey: 'learnSkill',
 			args: {},
 			condition: 'companion',
 		},
@@ -22,34 +22,36 @@ export const updateSkill = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			console.debug('updating skill', args.updatedSkill);
-			ensureInputSchemaIsValid(args.updatedSkill.inputSchema);
+			console.debug('updating skill', args.skill);
+			ensureInputSchemaIsValid(args.skill.inputSchema);
+
+			const { skill } = args;
 
 			await execution.ctx.runMutation(internal.skills.private._update, {
 				userId: execution.task.owner,
-				updatedSkill: newSkillSchema.parse({
-					key: args.updatedSkill.key,
-					description: args.updatedSkill.description,
-					kind: args.updatedSkill.kind,
-					inputSchema: args.updatedSkill.inputSchema,
-					preApprovedCost: args.updatedSkill.isSafe ? asBigInt({ dollars: 0.05 }) : 'none',
-					knownReactions: args.updatedSkill.knownReactions?.map((key) => ({
+				skill: newSkillSchema.parse({
+					key: skill.key,
+					description: skill.description,
+					kind: skill.kind,
+					inputSchema: skill.inputSchema,
+					preApprovedCost: skill.isSafe ? asBigInt({ dollars: 0.05 }) : 'none',
+					knownReactions: skill.knownReactions?.map((key) => ({
 						skillKey: key,
 						args: {},
 						condition: 'any',
 					})),
-					config: createConfig(args.updatedSkill),
-					cost: args.updatedSkill.kind === 'hard' ? 0n : 'dynamic',
+					config: createConfig(skill),
+					cost: skill.kind === 'hard' ? 0n : 'dynamic',
 					owner: execution.task.owner,
 					author: execution.action._id,
 				}),
 			});
 
-			console.debug('skill updated', args.updatedSkill);
+			console.debug('skill updated', skill);
 
-			const kind = args.updatedSkill.kind === 'hard' ? 'Hard' : 'Soft';
+			const kind = skill.kind === 'hard' ? 'Hard' : 'Soft';
 			return {
-				text: `✍️ ${kind} skill '${args.updatedSkill.key}' updated.`,
+				text: `✍️ ${kind} skill '${skill.key}' updated.`,
 				reactions: execution.skill.knownReactions,
 			};
 		},

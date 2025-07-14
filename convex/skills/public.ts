@@ -178,13 +178,13 @@ export const create = mutation({
 
 export const update = mutation({
 	args: {
-		updatedSkill: newSkillSchema,
+		skill: newSkillSchema,
 	},
-	handler: async (ctx, { updatedSkill }) => {
+	handler: async (ctx, { skill }) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
 
-		return await _update(ctx, { updatedSkill, userId: currentUser._id });
+		return await _update(ctx, { skill, userId: currentUser._id });
 	},
 });
 

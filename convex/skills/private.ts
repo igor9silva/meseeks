@@ -177,19 +177,19 @@ export const _create = internalMutation({
 
 export const _update = internalMutation({
 	args: {
-		updatedSkill: newSkillSchema,
+		skill: newSkillSchema,
 		userId: zid('users'),
 	},
-	handler: async (ctx, { updatedSkill, userId }) => {
+	handler: async (ctx, { skill, userId }) => {
 		//
-		const existing = await _findOne(ctx, { key: updatedSkill.key, owner: userId });
+		const existing = await _findOne(ctx, { key: skill.key, owner: userId });
 
 		if (!existing) throw new Error('Skill not found');
 		if (existing.owner !== userId) throw new Error('Skill not found');
 		if (!('_id' in existing)) throw new Error('Skill not found'); // built-in skills do not have an _id
 
 		return await ctx.db.patch(existing._id, {
-			...updatedSkill,
+			...skill,
 		});
 	},
 });

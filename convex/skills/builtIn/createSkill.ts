@@ -20,7 +20,7 @@ export const createSkill = defineSkill({
 	}),
 	knownReactions: [
 		{
-			skillKey: 'learn',
+			skillKey: 'learnSkill',
 			args: {},
 			condition: 'companion',
 		},
@@ -32,18 +32,20 @@ export const createSkill = defineSkill({
 			console.debug('learning skill', args.skill);
 			ensureInputSchemaIsValid(args.skill.inputSchema);
 
+			const { skill } = args;
+
 			await execution.ctx.runMutation(internal.skills.private._create, {
 				userId: execution.task.owner,
 				skill: newSkillSchema.parse({
-					key: args.skill.key,
-					description: args.skill.description,
-					kind: args.skill.kind,
-					inputSchema: args.skill.inputSchema,
-					preApprovedCost: args.skill.isSafe ? DEFAULT_PRE_APPROVED_COST : 'none',
+					key: skill.key,
+					description: skill.description,
+					kind: skill.kind,
+					inputSchema: skill.inputSchema,
+					preApprovedCost: skill.isSafe ? DEFAULT_PRE_APPROVED_COST : 'none',
 					// TODO: make sure to add `iterate` to the knownReactions
-					knownReactions: createKnownReactions(args.skill.knownReactions),
-					config: createConfig(args.skill),
-					cost: args.skill.kind === 'hard' ? 0n : 'dynamic',
+					knownReactions: createKnownReactions(skill.knownReactions),
+					config: createConfig(skill),
+					cost: skill.kind === 'hard' ? 0n : 'dynamic',
 					owner: execution.task.owner,
 					author: execution.action._id,
 				}),
@@ -52,13 +54,13 @@ export const createSkill = defineSkill({
 			// enable the newly created skill
 			await execution.ctx.runMutation(internal.skills.private._enableSkill, {
 				userId: execution.task.owner,
-				skillKey: args.skill.key,
+				skillKey: skill.key,
 			});
 
-			console.debug('skill created', args.skill);
+			console.debug('skill created', skill);
 
 			return {
-				text: `✅ ${args.skill.kind === 'hard' ? 'Hard' : 'Soft'} skill '${args.skill.key}' learned.`,
+				text: `✅ ${skill.kind === 'hard' ? 'Hard' : 'Soft'} skill '${skill.key}' learned.`,
 				reactions: execution.skill.knownReactions,
 			};
 		},
