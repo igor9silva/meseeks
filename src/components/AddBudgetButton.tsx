@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { asBigInt } from 'convex/lib/money';
-import { DollarSign } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
@@ -10,7 +9,7 @@ export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; te
 	return (
 		<Link to="." search={(prev) => ({ ...prev, isBudgetDrawerOpen: true })} className="no-underline">
 			<Button size="sm" variant={props.variant ?? 'default'} className="flex items-center gap-1">
-				<DollarSign className="h-4 w-4" />
+				<span>⚡</span>
 				{props.text ?? 'Add energy'}
 			</Button>
 		</Link>
@@ -45,7 +44,7 @@ export function AddBudgetButton(props: {
 			onClick={handleAddBudget}
 			className="flex items-center gap-1"
 		>
-			<DollarSign className="h-4 w-4" />
+			<span>⚡</span>
 			{props.text ?? `Add $${props.amount.toFixed(2)}`}
 		</Button>
 	);
