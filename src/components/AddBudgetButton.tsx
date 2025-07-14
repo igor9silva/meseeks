@@ -45,7 +45,7 @@ export function AddBudgetButton(props: {
 			className="flex items-center gap-1"
 		>
 			<span>⚡</span>
-			{props.text ?? `Add $${props.amount.toFixed(2)}`}
+			{props.text ?? `Add ${props.amount.toFixed(2)}`}
 		</Button>
 	);
 }
