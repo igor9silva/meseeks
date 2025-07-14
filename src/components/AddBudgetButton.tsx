@@ -18,34 +18,31 @@ export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; te
 
 export function AddBudgetButton(props: {
 	variant?: 'ghost' | 'default';
-	amount: number;
+	amount?: number;
 	shouldIterate?: boolean;
 	text?: string;
 }) {
 	//
+	const { amount, shouldIterate, variant, text } = props;
 	const { taskId } = useSplatParams();
 	const { increaseBudget } = useTaskMutations();
 
 	if (!taskId) throw new Error('Must be used within a task');
+	if (amount === undefined) return <AddCustomBudgetButton />;
 
 	const handleAddBudget = () => {
 		//
 		increaseBudget({
 			taskId,
-			amount: asBigInt({ dollars: props.amount }),
-			shouldIterate: props.shouldIterate ?? true,
+			amount: asBigInt({ dollars: amount }),
+			shouldIterate: shouldIterate ?? true,
 		});
 	};
 
 	return (
-		<Button
-			size="sm"
-			variant={props.variant ?? 'default'}
-			onClick={handleAddBudget}
-			className="flex items-center gap-1"
-		>
+		<Button size="sm" variant={variant ?? 'default'} onClick={handleAddBudget} className="flex items-center gap-1">
 			<span>⚡</span>
-			{props.text ?? `Add ${props.amount.toFixed(2)}`}
+			{text ?? `Add ${amount.toFixed(2)}`}
 		</Button>
 	);
 }
