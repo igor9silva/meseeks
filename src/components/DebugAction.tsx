@@ -737,7 +737,14 @@ function ActionRow({
 		<TooltipProvider>
 			<div className="border-b">
 				{/* Main row */}
-				<div className="flex items-center py-2 px-4 hover:bg-muted/50 cursor-pointer group" onClick={onToggle}>
+				<div
+					className={cn(
+						'flex items-center py-2 px-4 hover:bg-muted/50 cursor-pointer group',
+						!isAuthorCurrentUser && 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
+					)}
+					style={{ paddingLeft: `${16 + action.depth * 4}px` }}
+					onClick={onToggle}
+				>
 					<div className="flex items-center gap-2 min-w-0 flex-1">
 						<Button variant="ghost" size="sm" className="h-4 w-4 p-0 opacity-60">
 							{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
