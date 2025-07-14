@@ -85,7 +85,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 			//
 			if (isError(INSUFFICIENT_ACCOUNT_FUNDS_ERROR, error)) {
 				toast.error('Account funds are insufficient.', {
-					description: 'Top up or decrease the task budget.',
+					description: 'Top up or decrease the task energy budget.',
 					action: {
 						label: 'Top up',
 						onClick: () => navigate({ to: '/top-up' }),

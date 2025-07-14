@@ -5,7 +5,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const decreaseBudget = defineSkill({
 	preApprovedCost: 'none',
-	description: 'Decrease budget from the task',
+	description: 'Remove energy from the task',
 	parameters: z.object({
 		amount: z.bigint().min(0n).describe('The amount of funds to remove, in energy.'),
 	}),
@@ -21,13 +21,13 @@ export const decreaseBudget = defineSkill({
 				});
 
 				return {
-					text: `decreased budget by ${asDollars({ bigInt: args.amount })}`,
+					text: `decreased energy by ${asDollars({ bigInt: args.amount })}`,
 					reactions: [],
 				};
 				//
 			} catch (error) {
 				// perform() will resolve as failed with that message
-				throw new Error('Failed to decrease budget from task.');
+				throw new Error('Failed to remove energy from task.');
 			}
 		},
 });

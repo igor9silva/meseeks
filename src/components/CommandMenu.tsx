@@ -342,9 +342,9 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	};
 
 	return (
-		<CommandItem keywords={['budget', 'add', 'increase']} onSelect={handleSelect}>
+		<CommandItem keywords={['energy', 'budget', 'add', 'increase']} onSelect={handleSelect}>
 			<CircleCheckBig className="mr-2" />
-			Add budget
+			Add energy
 		</CommandItem>
 	);
 }
@@ -364,9 +364,9 @@ function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	};
 
 	return (
-		<CommandItem keywords={['budget', 'decrease', 'reduce', 'clear']} onSelect={handleSelect}>
+		<CommandItem keywords={['energy', 'budget', 'decrease', 'reduce', 'clear']} onSelect={handleSelect}>
 			<BrushCleaning className="mr-2" />
-			Clear budget (remove all remaining)
+			Clear energy (remove remaining budget)
 		</CommandItem>
 	);
 }

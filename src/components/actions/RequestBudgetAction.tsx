@@ -26,7 +26,7 @@ export function RequestBudgetAction(props: ActionComponentProps) {
 			<MessageContent
 				isMDX={true}
 				shouldRenderComponents={true}
-				text={action.result?.text ?? 'request budget'}
+				text={action.result?.text ?? 'request energy'}
 				className={cn({
 					'bg-primary text-primary-foreground p-2': isAuthorCurrentUser,
 				})}

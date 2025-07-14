@@ -269,7 +269,7 @@ async function _ensureWithinBudget(
 
 	if (estimatedCost > task.energyBudget.available) {
 		throw NotEnoughBudget(
-			`Not enough budget. Estimated cost: ${asDollars({ bigInt: estimatedCost })}.`,
+			`Not enough energy. Estimated cost: ${asDollars({ bigInt: estimatedCost })}.`,
 			action,
 			action.skillKey,
 			estimatedCost,
@@ -367,7 +367,7 @@ async function _handleActionError({
 	// react with appropriate reactions
 	if (isError(NOT_ENOUGH_BUDGET_ERROR, error)) {
 		//
-		console.debug(`Lacking budget for action ${actionId}. Requesting more budget.`);
+		console.debug(`Lacking energy for action ${actionId}. Requesting more energy.`);
 		const typedError = error as ReturnType<typeof NotEnoughBudget>;
 
 		result.text = typedError.data.message;

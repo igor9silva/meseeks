@@ -21,14 +21,14 @@ export function IncreaseBudgetAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 ${action.result.text ?? 'Failed to increase budget'}`}
+					text={`🚫 ${action.result.text ?? 'Failed to add energy'}`}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>
 			);
 
 		case 'running':
-			return <SimpleMessage running text={`💰 Increasing budget`} isAuthorCurrentUser={isAuthorCurrentUser} />;
+			return <SimpleMessage running text={`💰 Increasing energy`} isAuthorCurrentUser={isAuthorCurrentUser} />;
 
 		case 'succeeded':
 			//
@@ -36,12 +36,12 @@ export function IncreaseBudgetAction(props: ActionComponentProps) {
 
 			if (typeof amount !== 'bigint') {
 				console.warn('IncreaseBudgetAction: amount is not a bigint', action);
-				return <SimpleMessage text={`Budget increased.`} isAuthorCurrentUser={isAuthorCurrentUser} />;
+				return <SimpleMessage text={`Energy increased.`} isAuthorCurrentUser={isAuthorCurrentUser} />;
 			}
 
 			return (
 				<SimpleMessage
-					text={`💰 Budget increased by ${asDollars({ bigInt: amount })}`}
+					text={`💰 Energy increased by ${asDollars({ bigInt: amount })}`}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>
 			);

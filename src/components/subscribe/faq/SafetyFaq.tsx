@@ -14,7 +14,7 @@ export const SafetyFaq = {
 				every byte and every token going in and out, including our own system prompts.
 			</p>
 			<p>
-				<strong>Budget Control:</strong> All actions are funded using task budgets. You control autonomy at the
+				<strong>Budget Control:</strong> All actions are funded using task energy. You control autonomy at the
 				skill level - allowing automatic execution up to a set amount, or requiring human authorization for
 				sensitive actions like publishing content or sending emails.
 			</p>

@@ -121,7 +121,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 								<Archive className="h-4 w-4" />
 								Discard
 							</Button>
-							<AddCustomBudgetButton variant="ghost" text="Add Budget" />
+							<AddCustomBudgetButton variant="ghost" text="Add Energy" />
 						</>
 					) : (
 						<>
@@ -207,7 +207,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 			>
 				<DrawerContent>
 					<DrawerHeader>
-						<DrawerTitle>Add budget</DrawerTitle>
+						<DrawerTitle>Add energy</DrawerTitle>
 					</DrawerHeader>
 					<div className="px-4 pb-4">
 						<BudgetSelector value={selectedBudget} onChange={setSelectedBudget} className="w-full" />

@@ -119,7 +119,7 @@ function TransactionKind({ transaction }: { transaction: Doc<'transactions'> }) 
 		case 'top up':
 			return <h3 className="font-medium">Added funds to account</h3>;
 		case 'fund task':
-			return <h3 className="font-medium">Added budget to task</h3>;
+			return <h3 className="font-medium">Added energy to task</h3>;
 		case 'refund from task':
 			return <h3 className="font-medium">Refunded unused funds from task</h3>;
 		default:
