@@ -24,10 +24,7 @@ export function AnalyzeAction(props: ActionComponentProps) {
 			return <Error {...props} />;
 
 		case 'running':
-			const language = action.args['language'] as string;
-			return (
-				<SimpleMessage running text={`Running ${language} code...`} isAuthorCurrentUser={isAuthorCurrentUser} />
-			);
+			return <SimpleMessage running text={`Running code...`} isAuthorCurrentUser={isAuthorCurrentUser} />;
 
 		case 'succeeded':
 			return <Success {...props} />;
@@ -35,10 +32,9 @@ export function AnalyzeAction(props: ActionComponentProps) {
 }
 
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
-	const language = action.args['language'] as string;
 	return (
 		<FailedMessage
-			text={`🚫 Failed to run ${language} code`}
+			text={`🚫 Failed to run code`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>
@@ -50,18 +46,16 @@ function Success(props: ActionComponentProps) {
 	const { action, isAuthorCurrentUser, className } = props;
 	const [isOpen, setIsOpen] = useState(false);
 
-	const language = action.args['language'] as string;
 	const code = action.args['code'] as string;
+	const language = action.args['language'] as string | undefined;
 	const output = action.result?.text ?? '';
-
-	const displayLanguage = language === 'typescript' ? 'TypeScript' : 'Python';
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={className}>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 				<CollapsibleTrigger className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground">
 					<CodeXml className="size-4" />
-					<span>Run {displayLanguage} code</span>
+					<span>Run code</span>
 					<div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
 						<ChevronDown className="size-4" />
 					</div>
@@ -82,10 +76,7 @@ function Success(props: ActionComponentProps) {
 						<div className="text-sm font-medium text-foreground">Code</div>
 						<div className="max-h-80 overflow-y-auto">
 							<CodeBlock>
-								<CodeBlockCode
-									code={code}
-									language={language === 'typescript' ? 'typescript' : 'python'}
-								/>
+								<CodeBlockCode code={code} language={language ?? 'python'} />
 							</CodeBlock>
 						</div>
 					</div>
