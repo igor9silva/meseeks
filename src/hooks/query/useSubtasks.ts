@@ -34,8 +34,8 @@ export function useSubtasks(parentId?: Id<'tasks'>) {
 				return aPriority - bPriority;
 			}
 
-			// same priority, sort by creation time (ascending)
-			return a._creationTime - b._creationTime;
+			// same priority, sort by creation time (descending - newest first)
+			return b._creationTime - a._creationTime;
 		});
 
 		// inactive tasks don't need sorting (always "idle"), just append them
