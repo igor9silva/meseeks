@@ -5,7 +5,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 export const setUserInfo = defineSkill({
 	preApprovedCost: 0n,
 	description:
-		'Update the user information stored in preferences. Use this when the user explicitly asks you to remember something.',
+		'Update the user information stored in preferences. Use this when the user explicitly asks you to remember something. <IMPORTANT>What you pass in as `userInfo` will REPLACE the current user info. So make sure to include the WHOLE THING.</IMPORTANT>',
 	parameters: z.object({
 		userInfo: z.string().describe('The updated user information as a text string'),
 	}),
@@ -27,7 +27,7 @@ export const setUserInfo = defineSkill({
 			});
 
 			return {
-				text: `✅ User information updated successfully.`,
+				text: `✅ User information updated.`,
 				reactions: execution.skill.knownReactions,
 			};
 		},

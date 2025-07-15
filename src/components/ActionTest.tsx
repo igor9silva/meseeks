@@ -40,7 +40,7 @@ const DEFAULT_ACTION = `{
         "taskId": "kh79gxscr97dj1xkd3fa1e556h7jkdre"
       }
     ],
-    "text": "✅ User information updated successfully."
+    "text": "✅ User information updated."
   },
   "skillKey": "setUserInfo",
   "status": "succeeded",
