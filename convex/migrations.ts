@@ -6,11 +6,11 @@ import { _enableSkill } from './skills/private';
 export const migrations = new Migrations<DataModel>(components.migrations);
 
 // Migration to enable specific skills for all existing users
-export const enableAnalyzeSkill = migrations.define({
+export const enableMissingSkillsOne = migrations.define({
 	table: 'users',
 	migrateOne: async (ctx, doc) => {
 		//
-		const skillsToEnable = ['analyze'];
+		const skillsToEnable = ['valyu_search', 'github_search', 'twitter_search'];
 
 		// Enable each skill for this user
 		for (const skillKey of skillsToEnable) {
@@ -27,7 +27,7 @@ export const enableAnalyzeSkill = migrations.define({
 });
 
 // Runner function to execute the migration
-export const runEnableAnalyzeSkill = migrations.runner(internal.migrations.enableAnalyzeSkill);
+export const runEnableMissingSkillsOne = migrations.runner(internal.migrations.enableMissingSkillsOne);
 
 // export const removeSinceLastSummarizedHistoryMode = migrations.define({
 // 	table: 'skills',

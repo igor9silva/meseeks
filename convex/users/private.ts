@@ -105,6 +105,9 @@ const _setDefaultPreferences = async (
 	// TODO: unhack
 	const defaultEnabledSkills = [
 		'searchWeb',
+		'valyu_search',
+		'github_search',
+		'twitter_search',
 		'searchIdealista',
 		'scrapeLink',
 		'scrapeTweet',

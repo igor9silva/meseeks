@@ -143,6 +143,53 @@ export const _listEnabledKeys = internalQuery({
 	},
 });
 
+export const _listEnabledSkillsWithDetails = internalQuery({
+	args: {
+		userId: zid('users'),
+	},
+	handler: async (ctx, { userId }) => {
+		//
+		const [enabledSkillKeys, allSkills] = await Promise.all([
+			_listEnabledKeys(ctx, { userId }),
+			_findAll(ctx, { owner: userId }),
+		]);
+
+		// Create a map of all available skills for fast lookup
+		const allSkillsMap = new Map<string, { key: string; description: string; inputSchema: string }>();
+
+		// Add database skills (user + global)
+		for (const skill of allSkills) {
+			allSkillsMap.set(skill.key, {
+				key: skill.key,
+				description: skill.description,
+				inputSchema: skill.inputSchema,
+			});
+		}
+
+		// Add built-in skills
+		for (const key in _builtInSkills) {
+			const builtInTool = _builtInSkills[key as keyof typeof _builtInSkills];
+			allSkillsMap.set(key, {
+				key,
+				description: builtInTool.description,
+				inputSchema: zodToString(builtInTool.parameters),
+			});
+		}
+
+		// Filter to only enabled skills
+		const enabledSkillsSet = new Set(enabledSkillKeys);
+		const skillDetails = [];
+
+		for (const [key, skill] of allSkillsMap) {
+			if (enabledSkillsSet.has(key)) {
+				skillDetails.push(skill);
+			}
+		}
+
+		return skillDetails;
+	},
+});
+
 export const _findOneByOwner = internalQuery({
 	args: {
 		key: z.string(),

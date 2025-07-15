@@ -378,11 +378,13 @@ async function replaceActiveSkillsIfNeeded(
 	//
 	if (!text.includes('{{activeSkills}}')) return text;
 
-	const enabledSkillKeys = await ctx.runQuery(internal.skills.private._listEnabledKeys, {
+	const enabledSkills = await ctx.runQuery(internal.skills.private._listEnabledSkillsWithDetails, {
 		userId,
 	});
 
-	const variable = enabledSkillKeys.map((key) => `- *${key}*`).join('\n');
+	const variable = enabledSkills
+		.map((skill) => `- **${skill.key}**: ${skill.description}\n  Input schema: \`${skill.inputSchema}\``)
+		.join('\n');
 
 	return text.replace('{{activeSkills}}', variable);
 }
