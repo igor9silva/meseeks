@@ -10,9 +10,9 @@ import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 
-export function SayAction(props: ActionComponentProps) {
+export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {
 	//
-	const { action, isAuthorCurrentUser, className } = props;
+	const { action, isAuthorCurrentUser, className, shouldRenderComponents = false, contentKey = 'message' } = props;
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
 	const toggleFullscreen = (e?: React.MouseEvent) => {
@@ -23,10 +23,11 @@ export function SayAction(props: ActionComponentProps) {
 	if (isFullscreen) {
 		return (
 			<FullscreenMessage
-				message={action.args['message']}
+				message={action.args[contentKey]}
 				isAuthorCurrentUser={isAuthorCurrentUser}
 				onClose={toggleFullscreen}
 				action={action}
+				shouldRenderComponents={shouldRenderComponents}
 			/>
 		);
 	}
@@ -35,8 +36,8 @@ export function SayAction(props: ActionComponentProps) {
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'relative group')}>
 			<MessageContent
 				isMDX={true}
-				shouldRenderComponents={false}
-				text={action.args['message']}
+				shouldRenderComponents={shouldRenderComponents}
+				text={action.args[contentKey]}
 				className={cn({
 					'bg-primary text-primary-foreground': isAuthorCurrentUser,
 					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
@@ -52,7 +53,7 @@ export function SayAction(props: ActionComponentProps) {
 					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 				/>
 				<CopyButton
-					textToCopy={action.args['message']}
+					textToCopy={action.args[contentKey]}
 					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 				/>
 			</div>
@@ -65,11 +66,13 @@ function FullscreenMessage({
 	isAuthorCurrentUser,
 	onClose,
 	action,
+	shouldRenderComponents,
 }: {
 	message: string;
 	isAuthorCurrentUser: boolean;
 	onClose: () => void;
 	action: ActionComponentProps['action'];
+	shouldRenderComponents: boolean;
 }) {
 	//
 	// ESC key to close fullscreen
@@ -80,7 +83,7 @@ function FullscreenMessage({
 	});
 
 	return (
-		<div className="fixed inset-0 z-50 p-4">
+		<div className="fixed inset-0 z-50">
 			{/* Close button - floating in top right */}
 			<div className="absolute top-4 right-4 flex gap-2 z-10">
 				<CopyButton textToCopy={message} className="opacity-70 hover:opacity-100 transition-opacity" />
@@ -90,9 +93,9 @@ function FullscreenMessage({
 
 			<MessageContent
 				isMDX={true}
-				shouldRenderComponents={false}
+				shouldRenderComponents={shouldRenderComponents}
 				text={message}
-				className={cn('text-lg leading-relaxed md:max-w-full w-full h-full rounded-none', {
+				className={cn('text-lg leading-relaxed md:max-w-full w-full h-full rounded-none p-4', {
 					'bg-primary text-primary-foreground': isAuthorCurrentUser,
 					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
 				})}

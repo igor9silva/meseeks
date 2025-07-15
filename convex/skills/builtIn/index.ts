@@ -9,6 +9,7 @@ import { increaseBudget } from './increaseBudget';
 import { justSay } from './justSay';
 import { lookAtMe } from './lookAtMe';
 import { reason } from './reason';
+import { render } from './render';
 import { reopen } from './reopen';
 import { requestBudget } from './requestBudget';
 import { requestIteration } from './requestIteration';
@@ -35,6 +36,7 @@ export const _builtInSkills = {
 
 	// lifecycle
 	say,
+	render,
 	justSay, // TODO: this is a workaround to avoid reactions on the onboarding
 	done,
 	stop,

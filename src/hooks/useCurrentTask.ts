@@ -1,5 +1,5 @@
+import { useTask } from '~/hooks/query/useTask';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useTask } from '~/hooks/useTask';
 
 export function useCurrentTask() {
 	//

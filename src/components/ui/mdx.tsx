@@ -9,23 +9,102 @@ import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetBu
 import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
 import { Inbox } from '~/components/Inbox';
-import { Grid } from '~/components/layout/Grid';
-import { ListAndDetail } from '~/components/layout/ListAndDetail';
 import { Task } from '~/components/layout/Task';
-import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
-import { TwoColumn } from '~/components/layout/TwoColumn';
 import { Loading } from '~/components/Loading';
 import { QuickSeek } from '~/components/QuickSeek';
-import { TaskConversation } from '~/components/TaskConversation';
-import TaskDetail from '~/components/TaskDetail';
-import { TaskDetailAndChat } from '~/components/TaskDetailAndChat';
-import { TaskDetailAndSubstasks } from '~/components/TaskDetailAndSubstasks';
 import { TopUpCard } from '~/components/TopUpCard';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { Badge } from '~/components/ui/badge';
+import {
+	Breadcrumb,
+	BreadcrumbEllipsis,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from '~/components/ui/breadcrumb';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
+import { Checkbox } from '~/components/ui/checkbox';
 import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
-import { ScrollArea } from '~/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Combobox } from '~/components/ui/combobox';
+import {
+	Command,
+	CommandDialog,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator,
+	CommandShortcut,
+} from '~/components/ui/command';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '~/components/ui/dialog';
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from '~/components/ui/drawer';
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuPortal,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
+import { Input } from '~/components/ui/input';
+import { Label } from '~/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
+import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Separator } from '~/components/ui/separator';
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from '~/components/ui/sheet';
+import { Skeleton } from '~/components/ui/skeleton';
+import { Slider } from '~/components/ui/slider';
+import { Switch } from '~/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { Textarea } from '~/components/ui/textarea';
+import { Toggle } from '~/components/ui/toggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useSetupWindowGlobals } from '~/hooks/useSetupWindowGlobals';
 import { cn } from '~/lib/utils';
 
@@ -41,21 +120,130 @@ const components = {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-	TwoColumn,
-	TaskConversation,
-	TaskDetailAndSubstasks,
-	TaskDetailAndChat,
-	TaskDetail,
-	Grid,
+	// TwoColumn,
+	// TaskConversation,
+	// TaskDetailAndSubstasks,
+	// TaskDetailAndChat,
+	// TaskDetail,
+	// Grid,
 	QuickSeek,
-	ListAndDetail,
-	TaskDetailAndConversation,
+	// ListAndDetail,
+	// TaskDetailAndConversation,
 	Inbox,
 	Task,
 	ScrollArea,
 	EasterEgg,
 	TopUpCard,
 	ActionTest,
+	// UI Components
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+	Alert,
+	AlertDescription,
+	AlertTitle,
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+	Badge,
+	Breadcrumb,
+	BreadcrumbEllipsis,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+	Checkbox,
+	CodeBlock,
+	CodeBlockCode,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+	Combobox,
+	Command,
+	CommandDialog,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator,
+	CommandShortcut,
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuPortal,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+	Input,
+	Label,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+	RadioGroup,
+	RadioGroupItem,
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+	ScrollBar,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+	Skeleton,
+	Slider,
+	Switch,
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+	Textarea,
+	Toggle,
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
 };
 
 export default function MDX({
@@ -190,7 +378,7 @@ function MDXError({
 	const handleFixClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
 		if (onClickFix) return onClickFix(e);
-		toast.error('Not implemented yet.');
+		toast.error('Coming soon.');
 	};
 
 	if (shouldShowRaw)

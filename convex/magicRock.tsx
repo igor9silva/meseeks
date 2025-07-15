@@ -158,7 +158,8 @@ function languageModelFrom(
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
 
 		// Moonshot
-		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'), //groq('moonshotai/kimi-k2-instruct'),
+		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'),
+		// 'moonshot/kimi-2': groq('moonshotai/kimi-k2-instruct'),
 
 		// Cerebras
 		'cerebras/qwen3-235b': cerebras('qwen-3-235b-a22b'),
