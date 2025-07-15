@@ -86,16 +86,28 @@ export const availableIntelligences = query({
 					description: 'Best overall',
 				},
 				{
+					key: 'moonshot/kimi-2',
+					name: 'Kimi 2',
+					provider: 'Moonshot',
+					description: '10x cheaper than Sonnet, a bit slow',
+				},
+				{
 					key: 'xai/grok-3-mini',
 					name: 'Grok 3 Mini',
 					provider: 'xAI',
-					description: 'Best value',
+					description: 'Best performance per energy',
+				},
+				{
+					key: 'anthropic/claude-3.5-haiku',
+					name: 'Claude 3.5 Haiku',
+					provider: 'Anthropic',
+					description: 'Surprisingly very good',
 				},
 				{
 					key: 'groq/qwen3-32b',
 					name: 'Qwen 32B',
 					provider: 'Groq',
-					description: 'Cheap and fast',
+					description: 'Cheap and faaaast, a bit dumb',
 				},
 			],
 			all: [
@@ -103,16 +115,6 @@ export const availableIntelligences = query({
 					key: 'cerebras/qwen3-235b',
 					name: 'Qwen 235B',
 					provider: 'Cerebras',
-				},
-				{
-					key: 'moonshot/kimi-2',
-					name: 'Kimi 2',
-					provider: 'Moonshot',
-				},
-				{
-					key: 'anthropic/claude-3.5-haiku',
-					name: 'Claude 3.5 Haiku',
-					provider: 'Anthropic',
 				},
 				{
 					key: 'anthropic/claude-4-opus',

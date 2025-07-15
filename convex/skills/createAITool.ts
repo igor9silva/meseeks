@@ -60,7 +60,9 @@ export function createAITool(
 			let reason = finishReason;
 			if (toolCalls.length > 0 && reason !== 'tool-calls') {
 				reason = 'tool-calls';
-				console.warn('Has tool calls but finish reason is not `tool-calls`', toolCalls);
+				console.warn(
+					`(${context.model.modelId}) Has tool calls but finish reason is not 'tool-calls' ${toolCalls.map((call) => call.toolName).join(', ')}`,
+				);
 			}
 
 			switch (reason) {
