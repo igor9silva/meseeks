@@ -60,14 +60,19 @@ export function TaskDetailAndConversation({
 					id="list"
 					order={0}
 					defaultSize={shouldRenderDetailPanel ? panelSize : undefined}
-					minSize={10}
+					minSize={isBelowWidthBreakpoint ? 10 : 25}
 				>
 					{/* the content of the first panel depends on the layout direction */}
 					{direction === 'vertical' ? list : detail}
 				</ResizablePanel>
 				{shouldRenderDetailPanel && <ResizableHandle withHandle />}
 				{shouldRenderDetailPanel && (
-					<ResizablePanel id="detail" order={1} defaultSize={100 - panelSize} minSize={10}>
+					<ResizablePanel
+						id="detail"
+						order={1}
+						defaultSize={100 - panelSize}
+						minSize={isBelowWidthBreakpoint ? 30 : 25}
+					>
 						{/* the content of the second panel depends on the layout direction */}
 						{direction === 'vertical' ? detail : list}
 					</ResizablePanel>

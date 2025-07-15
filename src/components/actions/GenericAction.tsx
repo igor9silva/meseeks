@@ -7,6 +7,7 @@ import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
+import { TextShimmer } from '~/components/ui/text-shimmer';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {
@@ -39,12 +40,7 @@ export function GenericAction(props: ActionComponentProps) {
 				'slide-in-from-left': isNew && !isAuthorCurrentUser,
 			})}
 		>
-			<div
-				className={cn('max-w-full', {
-					'bg-green-700/30 animate-pulse rounded-xl p-2': action.status === 'running',
-					// 'bg-red-700/30 rounded-xl p-2': action.status === 'failed',
-				})}
-			>
+			<div className="max-w-full">
 				{action.status === 'pending authorization' ? (
 					<div className="flex flex-col gap-2 p-2 rounded-xl bg-muted">
 						<div className="flex flex-col">
@@ -95,7 +91,7 @@ export function GenericAction(props: ActionComponentProps) {
 								})}
 							/>
 						) : (
-							<div className="text-sm text-muted-foreground">Using {action.skillKey}()</div>
+							<TextShimmer text={`Performing ${action.skillKey}()`} />
 						)}
 					</>
 				)}
@@ -128,7 +124,7 @@ function Result({
 	if (status === 'failed') {
 		return (
 			<FailedMessage
-				text={`🚫 Failed to ${skillKey}()`}
+				text={`🚫 Failed to perform ${skillKey}()`}
 				error={result}
 				isAuthorCurrentUser={isAuthorCurrentUser}
 			/>
@@ -141,7 +137,7 @@ function Result({
 		<Collapsible className={cn('text-sm', className)}>
 			<CollapsibleTrigger>
 				<div className={cn('text-muted-foreground', { 'line-through': status === 'skipped' })}>
-					{skillKey}()
+					Performed {skillKey}().
 				</div>
 			</CollapsibleTrigger>
 			<CollapsibleContent>

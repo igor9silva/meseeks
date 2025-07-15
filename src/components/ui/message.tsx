@@ -134,10 +134,13 @@ const FailedMessage = ({
 	<Message isAuthorCurrentUser={isAuthorCurrentUser}>
 		<Collapsible>
 			<CollapsibleTrigger>
-				<MessageContent className="text-sm text-muted-foreground text-left" text={text} />
+				<MessageContent
+					className="text-sm text-muted-foreground text-left break-all overflow-wrap-anywhere min-w-0"
+					text={text}
+				/>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<pre className="text-sm text-muted-foreground text-left whitespace-pre-wrap break-normal hyphens-none">
+				<pre className="text-sm text-muted-foreground text-left whitespace-pre-wrap break-all overflow-wrap-anywhere min-w-0">
 					{error}
 				</pre>
 			</CollapsibleContent>
