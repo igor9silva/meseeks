@@ -42,6 +42,7 @@ export default {
 	askForClarification: SayAction,
 	analyze: AnalyzeAction,
 	searchWeb: SearchWebAction,
+	valyu_search: SearchWebAction,
 	updateInstructions: UpdateInstructionsAction,
 	scrapeLink: ScrapeLinkAction,
 	searchPlaces: SearchPlacesAction,
