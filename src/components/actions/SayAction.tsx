@@ -109,12 +109,7 @@ function ExpandButton({ onClick, className }: { onClick: (e?: React.MouseEvent) 
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<Button
-						variant="secondary"
-						size="icon"
-						onClick={onClick}
-						className={cn('h-6 w-6 border', className)}
-					>
+					<Button variant="outline" size="icon" onClick={onClick} className={cn('h-6 w-6 border', className)}>
 						<Expand className="h-4 w-4" />
 					</Button>
 				</TooltipTrigger>
@@ -129,12 +124,7 @@ function MinimizeButton({ onClick, className }: { onClick: () => void; className
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger asChild>
-					<Button
-						variant="secondary"
-						size="icon"
-						onClick={onClick}
-						className={cn('h-6 w-6 border', className)}
-					>
+					<Button variant="outline" size="icon" onClick={onClick} className={cn('h-6 w-6 border', className)}>
 						<Minimize2 className="h-4 w-4" />
 					</Button>
 				</TooltipTrigger>
@@ -164,7 +154,7 @@ function DebugButton({ action, className }: { action: ActionComponentProps['acti
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Button
-						variant="secondary"
+						variant="outline"
 						size="icon"
 						onClick={handleDebugClick}
 						className={cn('h-6 w-6 border', className)}
