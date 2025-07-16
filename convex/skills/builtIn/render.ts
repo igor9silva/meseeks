@@ -5,7 +5,7 @@ export const render = defineSkill({
 	preApprovedCost: 0n,
 	description: 'Render a React component',
 	parameters: z.object({
-		code: z.string().describe('The React component code to render.'),
+		code: z.string().max(10000).describe('The React component code to render.'),
 	}),
 	knownReactions: [
 		{
