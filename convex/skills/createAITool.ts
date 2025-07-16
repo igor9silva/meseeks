@@ -306,6 +306,7 @@ async function _persistDetails({
 				maxTokens: context?.maxTokens,
 				systemInstructions: context?.system || '',
 				historyLength: Array.isArray(context?.messages) ? context?.messages.length : 0,
+				// TODO: persist the whole history
 				availableTools: context?.tools ? Object.keys(context?.tools) : [],
 				finishReason: finishReason || 'unknown',
 				text,

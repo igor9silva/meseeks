@@ -11,6 +11,9 @@ import { useTopUp, useTopUpHistory, useWaitingTopUps } from '~/hooks/query/useTo
 import { useLockedBalance } from '~/hooks/query/useTransactions';
 import { useContainerBreakpoint } from '~/hooks/useContainerBreakpoint';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
+import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
+import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { cn } from '~/lib/utils';
 
 // declare global window interface for runtime globals
 declare global {
@@ -44,9 +47,12 @@ declare global {
 		// Other hooks
 		useCurrentTask: typeof useCurrentTask;
 		useContainerBreakpoint: typeof useContainerBreakpoint;
+		useTaskMutations: typeof useTaskMutations;
+		useOptimisticTaskUpdate: typeof useOptimisticTaskUpdate;
 
 		// Utilities
 		asDollars: typeof asDollars;
+		cn: typeof cn;
 	}
 }
 
@@ -88,8 +94,12 @@ export function useSetupWindowGlobals() {
 		window.useCurrentTask = useCurrentTask;
 		window.useContainerBreakpoint = useContainerBreakpoint;
 
+		window.useTaskMutations = useTaskMutations;
+		window.useOptimisticTaskUpdate = useOptimisticTaskUpdate;
+
 		// Utilities
 		window.asDollars = asDollars;
+		window.cn = cn;
 
 		hasSetup.current = true;
 	}, []);

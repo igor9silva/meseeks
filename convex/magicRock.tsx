@@ -407,14 +407,16 @@ async function replaceActiveTasksIfNeeded(
 	// Sort by total budget (highest first)
 	const sortedTasks = activeTasks.sort((a, b) => Number(b.energyBudget.total - a.energyBudget.total));
 
-	const variable = sortedTasks
-		.map((task) => {
-			const title = task.title || 'Untitled';
-			const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
-			const createdAt = dateOrNever(task._creationTime);
-			return `- *${title}* (${totalBudget} energy (US-Dollar equivalent), created: ${createdAt})`;
-		})
-		.join('\n');
+	const variable =
+		'1 energy === 1 US dollar\n' +
+		sortedTasks
+			.map((task) => {
+				const title = task.title || 'Untitled';
+				const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
+				const createdAt = dateOrNever(task._creationTime);
+				return `- *${title}* (${totalBudget} energy, created: ${createdAt})`;
+			})
+			.join('\n');
 
 	return text.replace('{{activeTasks}}', variable || '<system>No active tasks found.</system>');
 }

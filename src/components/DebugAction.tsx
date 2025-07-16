@@ -481,7 +481,7 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 
 			{llm.availableTools && llm.availableTools.length > 0 && (
 				<div>
-					<div className="text-sm font-medium mb-2">Available Tools</div>
+					<div className="text-sm font-medium mb-2">Available Skills</div>
 					<div className="flex flex-wrap gap-1">
 						{llm.availableTools.map((tool: string) => (
 							<Badge key={tool} variant="secondary" className="text-xs font-mono">
