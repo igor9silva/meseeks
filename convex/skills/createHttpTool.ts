@@ -1,4 +1,5 @@
 import { tool } from 'ai';
+import { dset } from 'dset';
 import type { z } from 'zod';
 import { internal } from '../_generated/api';
 import type { Doc } from '../_generated/dataModel';
@@ -45,6 +46,9 @@ export function createHTTPTool(
 							break;
 						case 'body':
 							body[target] = value;
+							break;
+						case 'bodyPath':
+							dset(body, target, value);
 							break;
 					}
 				}

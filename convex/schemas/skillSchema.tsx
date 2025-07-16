@@ -39,6 +39,7 @@ export const httpConfigSchema = z.object({
 				'header',
 				'path',
 				'body',
+				'bodyPath',
 			]),
 			source: z.string().describe('the parameter name on inputSchema'),
 			target: z
@@ -392,6 +393,7 @@ export const simplifiedHttpConfigSchema = z.object({
 				'header',
 				'path',
 				'body',
+				'bodyPath',
 			]),
 			source: z.string().describe('the parameter name on inputSchema'),
 			target: z
