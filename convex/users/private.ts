@@ -115,6 +115,7 @@ const _setDefaultPreferences = async (
 		'analyze',
 		// 'compose',
 		'transcribeYouTube',
+		'describeYouTube',
 	];
 
 	// TODO: this also brings idealista_* (inner skills)
