@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
+import { CopyButton } from '~/components/CopyButton';
 import { Button } from '~/components/ui/button';
 import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
@@ -93,11 +94,18 @@ function Success(props: ActionComponentProps) {
 					<div className="mt-2 space-y-2">
 						{isOpen && <div className="text-sm font-medium text-foreground">Output</div>}
 						<div
-							className={cn('border border-border bg-background rounded-md p-3 overflow-auto', {
-								'max-h-64': isOpen,
-								'max-h-32': !isOpen,
-							})}
+							className={cn(
+								'border border-border bg-background rounded-md p-3 overflow-auto relative group/output',
+								{
+									'max-h-64': isOpen,
+									'max-h-32': !isOpen,
+								},
+							)}
 						>
+							<CopyButton
+								textToCopy={output}
+								className="absolute top-2 right-2 opacity-0 group-hover/output:opacity-50 hover:!opacity-100 transition-opacity z-10"
+							/>
 							<pre className="whitespace-pre text-sm font-mono text-foreground">
 								{output || '(no output)'}
 							</pre>
@@ -107,7 +115,13 @@ function Success(props: ActionComponentProps) {
 					<CollapsibleContent className="mt-2 space-y-3">
 						{/* Code - shown only when expanded */}
 						<div className="text-sm font-medium text-foreground">Code</div>
-						<div className="max-h-80 overflow-auto">
+						<div className="max-h-80 overflow-auto relative group/code">
+							<div className="absolute top-2 right-2 z-10">
+								<CopyButton
+									textToCopy={code}
+									className="opacity-0 group-hover/code:opacity-50 hover:!opacity-100 transition-opacity"
+								/>
+							</div>
 							<CodeBlock>
 								<CodeBlockCode code={code} language={language ?? 'python'} />
 							</CodeBlock>
@@ -163,7 +177,11 @@ function FullscreenAnalyzeAction({
 					{/* Output */}
 					<div className="space-y-3">
 						<div className="text-base font-medium">Output</div>
-						<div className="border border-border bg-background rounded-md p-4 max-h-96 overflow-auto">
+						<div className="border border-border bg-background rounded-md p-4 max-h-96 overflow-auto relative group/output">
+							<CopyButton
+								textToCopy={output}
+								className="absolute top-2 right-2 opacity-70 hover:opacity-100 transition-opacity z-10"
+							/>
 							<pre className="whitespace-pre text-sm font-mono text-foreground">
 								{output || '(no output)'}
 							</pre>
@@ -173,7 +191,13 @@ function FullscreenAnalyzeAction({
 					{/* Code */}
 					<div className="space-y-3">
 						<div className="text-base font-medium">Code</div>
-						<div className="max-h-96 overflow-auto">
+						<div className="max-h-96 overflow-auto relative group/code">
+							<div className="absolute top-2 right-2 z-10">
+								<CopyButton
+									textToCopy={code}
+									className="opacity-70 hover:opacity-100 transition-opacity"
+								/>
+							</div>
 							<CodeBlock>
 								<CodeBlockCode code={code} language={language ?? 'python'} />
 							</CodeBlock>
