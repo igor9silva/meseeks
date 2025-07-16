@@ -3,10 +3,13 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
+import { SoftSkillConfig } from '~/components/skills/SoftSkillConfig';
 import { Button } from '~/components/ui/button';
 import { Form } from '~/components/ui/form';
 import { Separator } from '~/components/ui/separator';
 import { BasicInfoFields } from './BasicInfoFields';
+import { FormActions } from './FormActions';
 import { SkillKindSelector } from './SkillKindSelector';
 
 const skillFormSchema = z.object({
@@ -71,10 +74,10 @@ export function UnifiedSkillForm({ skill, isEditable = true }: UnifiedSkillFormP
 				<Separator />
 
 				{/* Skill-specific configuration */}
-				{/* {skillKind === 'soft' ? <SoftSkillConfig /> : <HardSkillConfig />} */}
+				{form.watch('kind') === 'soft' ? <SoftSkillConfig /> : <HardSkillConfig />}
 
 				{/* Form Actions */}
-				{/* <FormActions isEditing={Boolean(skill)} /> */}
+				<FormActions isEditing={Boolean(skill)} />
 
 				<div className="flex justify-end">
 					<Button type="submit" disabled={!isEditable}>

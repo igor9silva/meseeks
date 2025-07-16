@@ -113,7 +113,13 @@ const _setDefaultPreferences = async (
 		'scrapeTweet',
 		'searchPlaces',
 		'analyze',
+		// 'compose',
+		'transcribeYouTube',
 	];
+
+	// TODO: this also brings idealista_* (inner skills)
+	// const proSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
+	// const defaultEnabledSkills = proSkills.map((skill) => skill.key);
 
 	await _setUserPreference(ctx, {
 		userId,
