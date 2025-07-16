@@ -1,6 +1,6 @@
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
-import { forwardRef, Suspense, useEffect, useState } from 'react';
+import { forwardRef, Suspense, useCallback, useEffect, useState } from 'react';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
 import {
@@ -76,16 +76,19 @@ const IntelligenceCombobox = forwardRef<
 		(intelligence) => intelligence.key === selected,
 	);
 
-	const handleSelect = (key: string) => {
-		const parsed = modelsSchema.safeParse(key);
-		if (parsed.success) {
-			setOpen(false);
-			setSelected(parsed.data);
-			onChange(parsed.data);
-		} else {
-			console.error('Invalid intelligence key', key);
-		}
-	};
+	const handleSelect = useCallback(
+		(key: string) => {
+			const parsed = modelsSchema.safeParse(key);
+			if (parsed.success) {
+				setOpen(false);
+				setSelected(parsed.data);
+				onChange(parsed.data);
+			} else {
+				console.error('Invalid intelligence key', key);
+			}
+		},
+		[onChange],
+	);
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -107,12 +110,12 @@ const IntelligenceCombobox = forwardRef<
 					{selectedOption ? (
 						<div className="flex items-center gap-2 truncate">
 							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-							<span className="truncate hidden md:inline">{selectedOption.name}</span>
+							<span className="truncate ">{selectedOption.name}</span>
 						</div>
 					) : (
 						<div className="flex items-center gap-2">
 							<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-							<span className="hidden md:inline">Select intelligence...</span>
+							<span className="">Select intelligence...</span>
 						</div>
 					)}
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -125,8 +128,8 @@ const IntelligenceCombobox = forwardRef<
 				style={{ minWidth: '270px' }}
 			>
 				<Command>
-					<CommandInput placeholder="Search intelligence..." />
-					<CommandList>
+					<CommandInput placeholder="Search intelligences..." />
+					<CommandList className="max-h-80">
 						<CommandEmpty>No intelligence found.</CommandEmpty>
 
 						<CommandGroup heading="Recommended">
@@ -135,17 +138,17 @@ const IntelligenceCombobox = forwardRef<
 									key={intelligence.key}
 									value={intelligence.key}
 									onSelect={handleSelect}
-									className={cn('py-2', selected === intelligence.key && 'bg-accent/75')}
+									className={cn('cursor-pointer', selected === intelligence.key && 'bg-accent/75')}
 								>
-									<div className="flex flex-col w-full">
+									<div className="flex flex-col w-full gap-1">
 										<div className="flex w-full justify-between items-center">
 											<span className="font-medium">{intelligence.name}</span>
-											<span className="text-xs text-muted-foreground">
-												by {intelligence.provider}
+											<span className="text-xs text-muted-foreground flex-shrink-0">
+												{intelligence.provider}
 											</span>
 										</div>
 										{hasDescription(intelligence) && (
-											<span className="text-xs text-muted-foreground mt-1">
+											<span className="text-xs text-muted-foreground leading-relaxed">
 												{intelligence.description}
 											</span>
 										)}
@@ -156,17 +159,17 @@ const IntelligenceCombobox = forwardRef<
 
 						<CommandSeparator />
 
-						<CommandGroup>
+						<CommandGroup heading="Other">
 							{intelligences.all.map((intelligence) => (
 								<CommandItem
 									key={intelligence.key}
 									value={intelligence.key}
 									onSelect={handleSelect}
-									className={cn(selected === intelligence.key && 'bg-accent/75')}
+									className={cn('cursor-pointer', selected === intelligence.key && 'bg-accent/75')}
 								>
 									<div className="flex w-full justify-between items-center">
 										<span>{intelligence.name}</span>
-										<span className="text-xs text-muted-foreground">
+										<span className="text-xs text-muted-foreground flex-shrink-0">
 											by {intelligence.provider}
 										</span>
 									</div>
