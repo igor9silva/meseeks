@@ -6,6 +6,7 @@ import { GenericAction } from '~/components/actions/GenericAction';
 import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { FailedMessage, Message, SimpleMessage } from '~/components/ui/message';
+import { cn } from '~/lib/utils';
 
 export function AnalyzeAction(props: ActionComponentProps) {
 	//
@@ -52,36 +53,47 @@ function Success(props: ActionComponentProps) {
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={className}>
-			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CollapsibleTrigger className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground">
-					<CodeXml className="size-4" />
-					<span>Run code</span>
-					<div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-						<ChevronDown className="size-4" />
-					</div>
-				</CollapsibleTrigger>
-				<CollapsibleContent className="my-4 space-y-3">
-					{/* Output - shown prominently first */}
-					<div className="space-y-2">
-						<div className="text-sm font-medium text-foreground">Output</div>
-						<div className="border border-border bg-background rounded-md p-3 max-h-64 overflow-y-auto">
-							<pre className="whitespace-pre-wrap text-sm font-mono text-foreground">
+			<div
+				className={cn('rounded-xl p-2 text-foreground w-full md:w-[95%]', {
+					'bg-primary text-primary-foreground': isAuthorCurrentUser,
+					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
+				})}
+			>
+				<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+					<CollapsibleTrigger className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground">
+						<CodeXml className="size-4" />
+						<span>Run code</span>
+						<div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+							<ChevronDown className="size-4" />
+						</div>
+					</CollapsibleTrigger>
+
+					{/* Output - always shown */}
+					<div className="mt-2 space-y-2">
+						{isOpen && <div className="text-sm font-medium text-foreground">Output</div>}
+						<div
+							className={cn('border border-border bg-background rounded-md p-3 overflow-auto', {
+								'max-h-64': isOpen,
+								'max-h-32': !isOpen,
+							})}
+						>
+							<pre className="whitespace-pre text-sm font-mono text-foreground">
 								{output || '(no output)'}
 							</pre>
 						</div>
 					</div>
 
-					{/* Code - shown after output */}
-					<div className="space-y-2">
+					<CollapsibleContent className="mt-2 space-y-3">
+						{/* Code - shown only when expanded */}
 						<div className="text-sm font-medium text-foreground">Code</div>
-						<div className="max-h-80 overflow-y-auto">
+						<div className="max-h-80 overflow-auto">
 							<CodeBlock>
 								<CodeBlockCode code={code} language={language ?? 'python'} />
 							</CodeBlock>
 						</div>
-					</div>
-				</CollapsibleContent>
-			</Collapsible>
+					</CollapsibleContent>
+				</Collapsible>
+			</div>
 		</Message>
 	);
 }
