@@ -113,7 +113,7 @@ const _setDefaultPreferences = async (
 		'scrapeTweet',
 		'searchPlaces',
 		'analyze',
-		// 'compose',
+		'compose',
 		'transcribeYouTube',
 		'describeYouTube',
 	];
