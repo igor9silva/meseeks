@@ -33,6 +33,9 @@ export function TaskDetailAndConversation({
 	// render if there is detail data AND the container height is sufficient
 	const shouldRenderDetailPanel = Boolean(detail) && !isBelowHeightBreakpoint;
 
+	// determine if the list panel should be rendered
+	const shouldRenderListPanel = Boolean(list);
+
 	const {
 		getTaskDetailWidthPercentDesktop: getWidthDesktop,
 		setTaskDetailWidthPercentDesktop: setWidthDesktop,
@@ -49,12 +52,21 @@ export function TaskDetailAndConversation({
 
 	const panelSize = getPanelSize() ?? defaultListSize;
 
+	// when there's no list (TaskDetail), just render the detail (TaskConversation) in a single panel
+	if (!shouldRenderListPanel) {
+		return (
+			<div ref={containerRef} className={cn('h-full w-full', className)}>
+				{detail}
+			</div>
+		);
+	}
+
 	return (
 		<div ref={containerRef} className={cn('h-full w-full', className)}>
 			<ResizablePanelGroup
 				direction={direction}
 				className={cn('overflow-hidden', className)}
-				onLayout={handleLayout}
+				onLayout={shouldRenderDetailPanel ? handleLayout : undefined}
 			>
 				<ResizablePanel
 					id="list"

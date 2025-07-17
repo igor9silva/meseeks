@@ -149,7 +149,7 @@ export function CommandMenuDialog() {
 					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
 					<CommandItem
 						value="feedback"
-						keywords={['feedback', 'report', 'bug', 'suggest']}
+						keywords={['feedback', 'report', 'bug', 'suggest', 'give']}
 						onSelect={() => {
 							close();
 							feedbackDialog.open();

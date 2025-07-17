@@ -9,7 +9,7 @@ import { TaskItem } from '~/components/TaskItem';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
 import { useSubtasks } from '~/hooks/query/useSubtasks';
-import { useCurrentTaskId } from '~/hooks/useCurrentTask';
+import { useCurrentTask, useCurrentTaskId } from '~/hooks/useCurrentTask';
 import { useIsMobile } from '~/hooks/useIsMobile';
 import { usePreferences } from '~/hooks/usePreferences';
 import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
@@ -78,15 +78,32 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 				minSize={25}
 			>
 				<Suspense fallback={<Loading />}>
-					<TaskDetailAndConversation
-						list={<TaskDetail />}
-						detail={
-							<TaskConversation onToggleList={handleToggleList} isTaskListVisible={isTaskListVisible} />
-						}
+					<TaskDetailWithConditionalRendering
+						onToggleList={handleToggleList}
+						isTaskListVisible={isTaskListVisible}
 					/>
 				</Suspense>
 			</ResizablePanel>
 		</ResizablePanelGroup>
+	);
+}
+
+function TaskDetailWithConditionalRendering({
+	onToggleList,
+	isTaskListVisible,
+}: {
+	onToggleList: () => void;
+	isTaskListVisible: boolean;
+}) {
+	//
+	const { task } = useCurrentTask();
+	const taskHasContent = Boolean(task.title?.trim() || task.instructions?.trim());
+
+	return (
+		<TaskDetailAndConversation
+			list={taskHasContent ? <TaskDetail /> : undefined}
+			detail={<TaskConversation onToggleList={onToggleList} isTaskListVisible={isTaskListVisible} />}
+		/>
 	);
 }
 
