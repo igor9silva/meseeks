@@ -78,7 +78,7 @@ export function ensureInputSchemaIsValid(inputSchema: string) {
 		stringToZod(inputSchema);
 		return true;
 	} catch (error) {
-		throw new Error('Invalid input schema');
+		throw new Error(`Invalid input schema: ${inputSchema}`);
 	}
 }
 

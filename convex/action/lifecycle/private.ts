@@ -18,6 +18,10 @@ import { createTool } from '../../skills/tools';
 import { _findOne as _findOneTask, _setStatus as _setTaskStatus, _useFunds } from '../../tasks/private';
 import { _addMany, _findOne as _findOneAction } from '../private';
 
+// Convex actions have a hardcoded 600-second timeout
+// We need to finish before that to ensure _setResolved gets called
+const ACTION_TIMEOUT_MS = 590 * 1000; // 590 seconds to have 10 seconds buffer
+
 // TODO: if that since we dropped support for sync actions, we can use ActionCtx only, and remove MutationCtx from the arg type
 export const _perform = internalAction({
 	args: {
@@ -37,7 +41,19 @@ export const _perform = internalAction({
 			`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
 		);
 
-		try {
+		// Create a timeout promise that rejects after ACTION_TIMEOUT_MS
+		const timeoutPromise = new Promise((_, reject) => {
+			setTimeout(() => {
+				reject(
+					new Error(
+						`Action execution timed out after ${ACTION_TIMEOUT_MS / 1000} seconds to handle Convex timeout`,
+					),
+				);
+			}, ACTION_TIMEOUT_MS);
+		});
+
+		// Wrap the entire try block execution with timeout
+		const executeWithTimeout = async () => {
 			//
 			// prepare context if needed
 			const context = skill.kind === 'soft' ? await _prepareContext(ctx, task, action, skill) : undefined;
@@ -70,6 +86,12 @@ export const _perform = internalAction({
 				costs: costs,
 				// TODO: also persist reactions
 			});
+		};
+
+		try {
+			//
+			// Race the entire execution against the timeout
+			await Promise.race([executeWithTimeout(), timeoutPromise]);
 			//
 		} catch (error) {
 			//
