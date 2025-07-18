@@ -7,7 +7,7 @@ export const requestIteration = defineSkill({
 	parameters: z.object({}),
 	knownReactions: [
 		{
-			skillKey: 'iterate',
+			skillKey: 'instruct',
 			args: {},
 			condition: 'owner',
 		},
