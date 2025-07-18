@@ -3,7 +3,7 @@ import { internal } from '../../_generated/api';
 import { asBigInt } from '../../lib/money';
 import { newSkillSchema, simplifiedSkillSchema } from '../../schemas/skillSchema';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
-import { createConfig, ensureInputSchemaIsValid } from './createSkill';
+import { createConfig, createKnownReactions, ensureInputSchemaIsValid } from './createSkill';
 
 export const updateSkill = defineSkill({
 	preApprovedCost: 'none',
@@ -35,11 +35,7 @@ export const updateSkill = defineSkill({
 					kind: skill.kind,
 					inputSchema: skill.inputSchema,
 					preApprovedCost: skill.isSafe ? asBigInt({ dollars: 0.05 }) : 'none',
-					knownReactions: skill.knownReactions?.map((key) => ({
-						skillKey: key,
-						args: {},
-						condition: 'any',
-					})),
+					knownReactions: createKnownReactions(skill.knownReactions),
 					config: createConfig(skill),
 					cost: skill.kind === 'hard' ? 0n : 'dynamic',
 					owner: execution.task.owner,
