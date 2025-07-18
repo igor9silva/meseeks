@@ -2,13 +2,13 @@ import { createFileRoute } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { Doc } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
-import { CalendarIcon, ClockIcon, RefreshCwIcon, XIcon } from 'lucide-react';
+import { CalendarIcon, ClockIcon, RefreshCwIcon, Trash } from 'lucide-react';
 import { useState } from 'react';
 
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
-import { Card, CardHeader, CardTitle } from '~/components/ui/card';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -73,28 +73,29 @@ function ScheduleCard({ schedule }: { schedule: ScheduleWithTask }) {
 
 	return (
 		<>
-			<Card>
-				<CardHeader>
-					<div className="flex items-start justify-between">
-						<div className="flex items-center gap-2">
+			<Card className="gap-1">
+				<div className="flex items-center justify-between">
+					<CardHeader className="pb-2">
+						<CardTitle className="flex items-center gap-2">
 							<ScheduleIcon scheduleType={schedule.scheduleType} />
-							<CardTitle className="text-base">
-								{schedule.skillKey} on{' '}
-								<a href={`/task/${schedule.taskId}`} className="text-foreground hover:underline">
-									{schedule.taskTitle}
-								</a>
-							</CardTitle>
-						</div>
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => setShowCancelDialog(true)}
-							className="h-8 px-3 text-muted-foreground hover:text-foreground"
-						>
-							<XIcon className="h-4 w-4 mr-1" />
-							Cancel
-						</Button>
-					</div>
+							<a href={`/task/${schedule.taskId}`} className="text-foreground hover:underline">
+								{schedule.taskTitle}
+							</a>
+						</CardTitle>
+
+						<CardDescription>
+							{schedule.args['instructions'] && (
+								<p className="text-sm text-muted-foreground mt-1">{schedule.args['instructions']}</p>
+							)}
+						</CardDescription>
+					</CardHeader>
+
+					<Button variant="secondary" size="sm" onClick={() => setShowCancelDialog(true)} className="mr-6">
+						<Trash />
+					</Button>
+				</div>
+
+				<CardFooter>
 					<div className="flex flex-wrap gap-2 pt-2">
 						<Badge variant="outline" className="text-xs">
 							<CalendarIcon className="mr-1 h-3 w-3" />
@@ -112,7 +113,7 @@ function ScheduleCard({ schedule }: { schedule: ScheduleWithTask }) {
 							</Badge>
 						)}
 					</div>
-				</CardHeader>
+				</CardFooter>
 			</Card>
 
 			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>

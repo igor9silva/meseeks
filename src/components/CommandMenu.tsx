@@ -181,11 +181,11 @@ export function CommandMenuDialog() {
 					</CommandItem> */}
 					<CommandItem
 						value="/balance"
-						keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy']}
+						keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
 						onSelect={onSelect}
 					>
 						<Wallet className="mr-2" />
-						Balance & top-up
+						Balance & account
 					</CommandItem>
 					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 						<Sparkles className="mr-2" />
