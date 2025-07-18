@@ -29,8 +29,8 @@ import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 // $0.22 - $2.00: Claude Sonnet (balanced performance/cost)
 // $2.01+: Claude Opus (premium option)
 const BUDGET_INTELLIGENCE_CONFIG = [
-	{ maxBudget: 0.21, intelligence: 'moonshot/kimi-2' as const },
-	{ maxBudget: 2.0, intelligence: 'anthropic/claude-4-sonnet' as const },
+	{ maxBudget: 0.51, intelligence: 'moonshot/kimi-2' as const },
+	{ maxBudget: 5.0, intelligence: 'anthropic/claude-4-sonnet' as const },
 	{ maxBudget: Infinity, intelligence: 'anthropic/claude-4-opus' as const },
 ];
 
@@ -63,7 +63,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	const { q } = useSearch({ strict: false });
 
 	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
-	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.5);
+	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.2);
 	const [hasUserSelectedIntelligence, setHasUserSelectedIntelligence] = useState(false);
 
 	// Automatically set intelligence based on budget unless user has manually selected one

@@ -108,7 +108,7 @@ export function createAITool(
 
 				// TODO: better handling of max length
 				// prettier-ignore
-				case 'length': say(`Max length hit: ${warnings}`); break;
+				case 'length': say(`Max length hit. ${warnings}`); break;
 
 				// prettier-ignore
 				default: throw new Error(`Unknown finish reason: ${reason}`);

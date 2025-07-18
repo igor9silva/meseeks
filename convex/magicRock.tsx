@@ -59,6 +59,8 @@ export async function _prepareContext(
 	console.debug('model', model.modelId, model.provider);
 	console.debug('instructions', instructions);
 
+	const isAnthropic = model.provider.toLowerCase().includes('anthropic');
+
 	return {
 		model,
 		temperature: skill.config.temperature,
@@ -72,7 +74,19 @@ export async function _prepareContext(
 		maxSteps: 1, // we are not using AI SDK to run tools or multi-step stuff
 		toolChoice: 'required',
 		system: instructions,
-		messages: history,
+		messages: isAnthropic
+			? [
+					{
+						role: 'system',
+						content: instructions,
+						providerOptions: {
+							// TODO: AI SDK says this is on by default, but doesn't look like it is
+							anthropic: { cacheControl: { type: 'ephemeral' } },
+						},
+					},
+					...history,
+				]
+			: history,
 		tools: tools,
 	};
 }
