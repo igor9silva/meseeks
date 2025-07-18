@@ -2,7 +2,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation } from 'convex/react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { cn } from '~/lib/utils';
@@ -21,6 +21,29 @@ import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
+
+// Configuration for automatic intelligence selection based on budget
+// TODO: allow user to set this up
+// Automatically selects model based on budget ranges:
+// $0.00 - $0.21: Kimi 2 (cheapest option)
+// $0.22 - $2.00: Claude Sonnet (balanced performance/cost)
+// $2.01+: Claude Opus (premium option)
+const BUDGET_INTELLIGENCE_CONFIG = [
+	{ maxBudget: 0.21, intelligence: 'moonshot/kimi-2' as const },
+	{ maxBudget: 2.0, intelligence: 'anthropic/claude-4-sonnet' as const },
+	{ maxBudget: Infinity, intelligence: 'anthropic/claude-4-opus' as const },
+];
+
+function getIntelligenceForBudget(budget: BudgetStep): z.infer<typeof modelsSchema> {
+	//
+	for (const config of BUDGET_INTELLIGENCE_CONFIG) {
+		if (budget <= config.maxBudget) {
+			return config.intelligence;
+		}
+	}
+	// Fallback to the most expensive option
+	return BUDGET_INTELLIGENCE_CONFIG[BUDGET_INTELLIGENCE_CONFIG.length - 1].intelligence;
+}
 
 export function QuickSeek({ className }: { className?: string }) {
 	//
@@ -41,6 +64,22 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
 	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.5);
+	const [hasUserSelectedIntelligence, setHasUserSelectedIntelligence] = useState(false);
+
+	// Automatically set intelligence based on budget unless user has manually selected one
+	useEffect(() => {
+		if (!hasUserSelectedIntelligence) {
+			const suggestedIntelligence = getIntelligenceForBudget(initialFunds);
+			setIntelligence(suggestedIntelligence);
+		}
+	}, [initialFunds, hasUserSelectedIntelligence]);
+
+	// Handle manual intelligence selection - marks user as having made a manual choice
+	const handleIntelligenceChange = (newIntelligence: z.infer<typeof modelsSchema>) => {
+		//
+		setIntelligence(newIntelligence);
+		setHasUserSelectedIntelligence(true);
+	};
 
 	const {
 		textareaRef,
@@ -167,7 +206,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 										<div className="flex items-center gap-2 min-w-0">
 											<IntelligenceSelector
 												value={intelligence}
-												onChange={setIntelligence}
+												onChange={handleIntelligenceChange}
 												ref={intelligenceSelectorRef}
 												className="min-w-0 flex-shrink"
 											/>

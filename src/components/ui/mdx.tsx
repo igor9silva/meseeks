@@ -262,7 +262,7 @@ export default function MDX({
 	//
 	useSetupWindowGlobals();
 
-	const { Component, error, isPending } = useMDX(text, shouldRenderComponents);
+	const { Component, error, isPending } = useMDX(text.trim(), shouldRenderComponents);
 
 	if (isPending) return <Loading />;
 	if (error) return errorFallback ?? <MDXError text={text} error={error} onClickFix={onClickFix} />;
@@ -384,7 +384,7 @@ function MDXError({
 	if (shouldShowRaw)
 		return (
 			<div>
-				<pre className="whitespace-pre-wrap">{text}</pre>
+				<pre className="whitespace-pre-wrap">{text.trim()}</pre>
 				<br />
 				<Button onClick={() => setShouldShowRaw(false)}>Try rendering again</Button>
 			</div>
