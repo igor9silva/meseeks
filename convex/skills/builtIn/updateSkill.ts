@@ -47,6 +47,18 @@ export const updateSkill = defineSkill({
 				}),
 			});
 
+			// enable the updated skill
+			await execution.ctx.runMutation(internal.skills.private._enableSkill, {
+				userId: execution.task.owner,
+				skillKey: skill.key,
+			});
+
+			// make sure it's available for the task
+			await execution.ctx.runMutation(internal.tasks.private._addAvailableSkill, {
+				taskId: execution.task._id,
+				skillKey: skill.key,
+			});
+
 			console.debug('skill updated', skill);
 
 			const kind = skill.kind === 'hard' ? 'Hard' : 'Soft';

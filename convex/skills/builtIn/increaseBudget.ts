@@ -15,8 +15,8 @@ export const increaseBudget = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			const iterate = {
-				skillKey: 'iterate' as const,
+			const instruct = {
+				skillKey: 'instruct' as const,
 				args: {},
 				condition: 'owner' as const,
 			};
@@ -29,7 +29,7 @@ export const increaseBudget = defineSkill({
 
 				return {
 					text: `energy budget increased by ${asDollars({ bigInt: args.amount })}`,
-					reactions: args.shouldIterate ? [iterate] : [],
+					reactions: args.shouldIterate ? [instruct] : [],
 				};
 				//
 			} catch (error) {

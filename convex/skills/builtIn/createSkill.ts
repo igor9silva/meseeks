@@ -57,6 +57,12 @@ export const createSkill = defineSkill({
 				skillKey: skill.key,
 			});
 
+			// make sure it's available for the task
+			await execution.ctx.runMutation(internal.tasks.private._addAvailableSkill, {
+				taskId: execution.task._id,
+				skillKey: skill.key,
+			});
+
 			console.debug('skill created', skill);
 
 			return {

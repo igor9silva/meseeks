@@ -30,7 +30,7 @@ export const updateInstructions = defineSkill({
 		{
 			skillKey: 'iterate',
 			args: {},
-			condition: 'any',
+			condition: 'companion',
 		},
 	],
 	use:

@@ -311,6 +311,24 @@ export const _updateInstructions = internalMutation({
 	},
 });
 
+export const _addAvailableSkill = internalMutation({
+	args: {
+		taskId: zid('tasks'),
+		skillKey: z.string(),
+	},
+	handler: async (ctx, { taskId, skillKey }) => {
+		//
+		const task = await _findOne(ctx, { taskId });
+		if (!task) throw new Error('Task not found');
+
+		if (task.availableSkills?.includes(skillKey)) return;
+
+		await ctx.db.patch(taskId, {
+			availableSkills: [...(task.availableSkills ?? []), skillKey],
+		});
+	},
+});
+
 export const _markAsRead = internalMutation({
 	args: {
 		taskId: zid('tasks'),
