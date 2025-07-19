@@ -23,20 +23,14 @@ export function UpdateInstructionsAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 Failed to update instructions`}
+					text={`🚫 Failed to update task`}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>
 			);
 
 		case 'running':
-			return (
-				<SimpleMessage
-					running
-					text={`✍️ Updating task instructions`}
-					isAuthorCurrentUser={isAuthorCurrentUser}
-				/>
-			);
+			return <SimpleMessage running text={`✍️ Updating task`} isAuthorCurrentUser={isAuthorCurrentUser} />;
 
 		case 'succeeded':
 			//
@@ -58,6 +52,8 @@ export function UpdateInstructionsAction(props: ActionComponentProps) {
 				const remainingFields = fieldNames.slice(0, -1);
 				updatedFieldsString = `${remainingFields.join(', ')} and ${lastField}`;
 			}
+
+			updatedFieldsString = updatedFieldsString.replace('availableSkills', 'available skills');
 
 			return (
 				<SimpleMessage

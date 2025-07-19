@@ -1,5 +1,4 @@
 import { TimeAgo } from '~/components/TimeAgo';
-import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
@@ -9,6 +8,7 @@ import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
+import { TaskAvailableSkills } from './TaskAvailableSkills';
 import { TaskBudget } from './TaskBudget';
 
 export default function TaskDetail({
@@ -29,6 +29,14 @@ export default function TaskDetail({
 
 		// Execute the actual mutation
 		hasChecked ? resolve({ taskId: task._id }) : reopen({ taskId: task._id });
+	};
+
+	const handleAvailableSkillsChange = (availableSkills: string[]) => {
+		//
+		updateInstructions({
+			taskId: task._id,
+			availableSkills,
+		});
 	};
 
 	return (
@@ -65,17 +73,10 @@ export default function TaskDetail({
 						<TimeAgo date={task._creationTime} suffix="old, " className="text-sm text-muted-foreground" />
 						<TaskBudget task={task} className="text-sm" />
 					</div>
-					{task.availableSkills && task.availableSkills.length > 0 && (
-						<div className="px-2 pb-2">
-							<div className="flex flex-wrap gap-1">
-								{task.availableSkills.map((skillKey) => (
-									<Badge key={skillKey} variant="secondary" className="text-xs">
-										{skillKey}
-									</Badge>
-								))}
-							</div>
-						</div>
-					)}
+					<TaskAvailableSkills
+						availableSkills={task.availableSkills ?? []}
+						onAvailableSkillsChange={handleAvailableSkillsChange}
+					/>
 				</div>
 			</CardHeader>
 			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow flex flex-col">

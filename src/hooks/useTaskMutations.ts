@@ -42,15 +42,17 @@ export function useTaskMutations() {
 		taskId, //
 		title,
 		instructions,
+		availableSkills,
 	}: {
 		taskId: Id<'tasks'>;
 		title?: string;
 		instructions?: string;
+		availableSkills?: string[];
 	}) => {
 		return act({
 			taskId,
 			skillKey: 'updateInstructions',
-			args: { title, instructions },
+			args: { title, instructions, availableSkills },
 			shouldReopen: true,
 		});
 	};
