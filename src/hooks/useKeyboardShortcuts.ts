@@ -53,11 +53,16 @@ export function useKeyboardShortcut({
 	skipPreventDefault = false,
 }: UseKeyboardShortcutProps) {
 	//
+	// Enforce that non-global shortcuts must have a targetRef
+	if (!global && !targetRef) {
+		throw new Error('useKeyboardShortcut: targetRef is required when global is false');
+	}
+
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent) => {
 			//
 			// Check if shortcut should be applied based on focus
-			if (targetRef && !global) {
+			if (!global && targetRef) {
 				const activeElement = document.activeElement;
 				if (activeElement !== targetRef.current) return;
 			}

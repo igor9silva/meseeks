@@ -59,14 +59,23 @@ export function ActionComposer({
 		callback: () => textareaRef.current?.focus(),
 	});
 
-	// submit/approve shortcut (CMD+Enter)
+	// approve shortcut (CMD+Enter) - global for blocked actions
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
 			if (isBlocked) {
 				approveBlockingAction({ taskId: task._id });
-			} else if (recordingStatus === 'idle') {
+			}
+		},
+	});
+
+	// submit/request iteration shortcut (CMD+Enter) - only when textarea is focused
+	useKeyboardShortcut({
+		targetRef: textareaRef,
+		combo: { withCommand: true, key: 'Enter' },
+		callback: () => {
+			if (recordingStatus === 'idle') {
 				if (isEmpty) {
 					requestIteration({ taskId: task._id });
 				} else {
