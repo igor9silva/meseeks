@@ -91,6 +91,10 @@ export function createKnownReactions(skillReactions?: string[]) {
 			condition: 'any',
 		})) ?? [];
 
+	if (baseReactions.map((r) => r.skillKey).includes('iterate')) {
+		return baseReactions;
+	}
+
 	return baseReactions.concat({
 		skillKey: 'iterate',
 		args: {},
