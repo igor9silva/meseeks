@@ -14,7 +14,7 @@ export type MessageProps = {
 const Message = ({ children, className, isAuthorCurrentUser, ...props }: MessageProps) => (
 	<div
 		className={cn(
-			'flex gap-3', //
+			'flex gap-3 max-w-full overflow-auto', //
 			isAuthorCurrentUser ? 'justify-end' : 'justify-start',
 			className,
 		)}

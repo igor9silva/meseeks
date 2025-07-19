@@ -21,6 +21,7 @@ import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
 import { SkillAction } from '~/components/actions/SkillAction';
 import { StopAction } from '~/components/actions/StopAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
+import { TwitterSearchAction } from '~/components/actions/TwitterSearchAction';
 import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
 
 export type ActionComponentProps = {
@@ -47,6 +48,7 @@ export default {
 	analyze: AnalyzeAction,
 	searchWeb: SearchWebAction,
 	valyu_search: SearchWebAction,
+	twitter_search: TwitterSearchAction,
 	updateInstructions: UpdateInstructionsAction,
 	scrapeLink: ScrapeLinkAction,
 	searchPlaces: SearchPlacesAction,
