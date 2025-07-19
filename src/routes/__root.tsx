@@ -71,8 +71,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		],
 		scripts: [
 			{
-				src: 'https://cloud.umami.is/script.js',
-				dataWebsiteId: '52e8f61f-df67-4fe9-9e17-c6b979892db7',
+				'src': 'https://cloud.umami.is/script.js',
+				'data-website-id': '52e8f61f-df67-4fe9-9e17-c6b979892db7',
 			},
 		],
 	}),
