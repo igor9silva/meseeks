@@ -46,6 +46,7 @@ export type MessageContentProps = {
 	className?: string;
 	isMDX?: boolean;
 	shouldRenderComponents?: boolean;
+	onClickMDXFix?: (e: React.MouseEvent, error: Error) => void;
 } & React.HTMLProps<HTMLDivElement>;
 
 const MessageContent = ({
@@ -53,6 +54,7 @@ const MessageContent = ({
 	className,
 	isMDX = false,
 	shouldRenderComponents = false,
+	onClickMDXFix,
 	...props
 }: MessageContentProps) => {
 	//
@@ -60,6 +62,7 @@ const MessageContent = ({
 		<MDX
 			shouldRenderComponents={shouldRenderComponents}
 			text={text}
+			onClickFix={onClickMDXFix}
 			className={cn(
 				'rounded-xl p-2 text-foreground max-w-full md:max-w-[95%] break-normal hyphens-none whitespace-normal',
 				className,

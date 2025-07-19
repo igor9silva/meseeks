@@ -50,6 +50,8 @@ export default defineSchema({
 		'by_owner_isActive', ['owner', 'isActive'],
 	).index(
 		'by_owner_status', ['owner', 'status'],
+	).index(
+		'by_owner_energyAvailable', ['owner', 'energyBudget.available'],
 	),
 	// .index(
 	// 	'by_embeddingId', ['embeddingId'],

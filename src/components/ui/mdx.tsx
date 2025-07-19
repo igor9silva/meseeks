@@ -254,7 +254,7 @@ export default function MDX({
 	shouldRenderComponents = true,
 }: {
 	text: string;
-	onClickFix?: (e: React.MouseEvent) => void;
+	onClickFix?: (e: React.MouseEvent, error: Error) => void;
 	errorFallback?: React.ReactNode;
 	className?: string;
 	shouldRenderComponents?: boolean;
@@ -364,7 +364,7 @@ function MDXError({
 }: {
 	text: string;
 	error: Error;
-	onClickFix?: (e: React.MouseEvent) => void;
+	onClickFix?: (e: React.MouseEvent, error: Error) => void;
 }) {
 	//
 	const [shouldShowRaw, setShouldShowRaw] = React.useState(false);
@@ -377,7 +377,7 @@ function MDXError({
 
 	const handleFixClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
-		if (onClickFix) return onClickFix(e);
+		if (onClickFix) return onClickFix(e, error);
 		toast.error('Coming soon.');
 	};
 

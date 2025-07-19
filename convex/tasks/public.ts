@@ -39,6 +39,7 @@ export const findAll = query({
 	},
 });
 
+// sorted by available budget (descending, highest first)
 export const findAllPaginated = query({
 	args: {
 		paginationOpts: paginationOptionsSchema,
@@ -47,23 +48,11 @@ export const findAllPaginated = query({
 		//
 		const currentUser = await getCurrentUser(ctx, {});
 
-		const dbQuery = ctx.db
+		return await ctx.db
 			.query('tasks')
-			.withIndex('by_owner_isActive', (q) => q.eq('owner', currentUser._id).eq('isActive', true));
-
-		const result = await dbQuery.order('desc').paginate(paginationOpts);
-
-		// sort by available budget (descending)
-		const sortedPage = result.page.sort((a, b) => {
-			const aAvailable = a.energyBudget.available;
-			const bAvailable = b.energyBudget.available;
-			return Number(bAvailable - aAvailable); // Descending order
-		});
-
-		return {
-			...result,
-			page: sortedPage,
-		};
+			.withIndex('by_owner_energyAvailable', (q) => q.eq('owner', currentUser._id))
+			.order('desc')
+			.paginate(paginationOpts);
 	},
 });
 

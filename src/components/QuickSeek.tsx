@@ -140,8 +140,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	// Handle CMD+Enter shortcut like ActionComposer
 	useKeyboardShortcut({
-		global: false, // Only when this component is focused
-		targetRef: textareaRef,
+		global: true,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
 			if (recordingStatus === 'idle' && !isEmpty) {

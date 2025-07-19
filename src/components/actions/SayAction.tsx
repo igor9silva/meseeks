@@ -9,16 +9,26 @@ import { Button } from '~/components/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useTaskMutations } from '~/hooks/useTaskMutations';
 
 export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {
 	//
-	const { action, isAuthorCurrentUser, className, shouldRenderComponents = false, contentKey = 'message' } = props;
+	const {
+		action,
+		taskId,
+		isAuthorCurrentUser,
+		className,
+		shouldRenderComponents = false,
+		contentKey = 'message',
+	} = props;
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
 	const toggleFullscreen = (e?: React.MouseEvent) => {
 		e?.stopPropagation();
 		setIsFullscreen(!isFullscreen);
 	};
+
+	const { say } = useTaskMutations();
 
 	if (isFullscreen) {
 		return (
@@ -32,11 +42,20 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		);
 	}
 
+	const onClickFix = (e: React.MouseEvent, error: Error) => {
+		e.stopPropagation();
+		say({
+			taskId,
+			message: `The ${action.skillKey} action above failed. Error details: ${error.message}. Please fix it.`,
+		});
+	};
+
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'relative group')}>
 			<MessageContent
 				isMDX={true}
 				shouldRenderComponents={shouldRenderComponents}
+				onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
 				text={action.args[contentKey]}
 				className={cn({
 					'bg-primary text-primary-foreground': isAuthorCurrentUser,
