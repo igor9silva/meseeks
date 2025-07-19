@@ -1,3 +1,5 @@
+import { useNavigate } from '@tanstack/react-router';
+import { Bug } from 'lucide-react';
 import { useMemo } from 'react';
 import { ActionComponentProps } from '~/components/actions';
 import { cn } from '~/lib/utils';
@@ -8,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/component
 import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {
@@ -89,6 +92,7 @@ export function GenericAction(props: ActionComponentProps) {
 										isAuthorCurrentUser && action.skillKey === 'say',
 									'bg-muted rounded-xl p-2': isAuthorCurrentUser && action.skillKey !== 'say',
 								})}
+								actionId={action._id}
 							/>
 						) : (
 							<TextShimmer text={`Performing ${action.skillKey}()`} />
@@ -108,6 +112,7 @@ function Result({
 	className,
 	costs,
 	status,
+	actionId,
 }: {
 	result: string;
 	isAuthorCurrentUser: boolean;
@@ -120,6 +125,7 @@ function Result({
 	}>;
 	className?: string;
 	status: 'failed' | 'succeeded' | 'skipped';
+	actionId: string;
 }) {
 	if (status === 'failed') {
 		return (
@@ -137,17 +143,50 @@ function Result({
 		<Collapsible className={cn('text-sm', className)}>
 			<CollapsibleTrigger>
 				<div className={cn('text-muted-foreground', { 'line-through': status === 'skipped' })}>
-					Performed {skillKey}().
+					Performed {skillKey}({Object.keys(args).length > 0 ? `{ ${Object.keys(args).join(', ')} }` : ''}).
 				</div>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<p>
-					args: <code>{JSON.stringify(args)}</code>
-				</p>
-				<p>cost: {asDollars({ bigInt: costs.reduce((acc, cost) => acc + cost.amount, 0n) })}</p>
-				<p>result: {result.length < 280 ? mdx() : 'Too big to display. Use Dev Mode.'}</p>
+				<div className="flex items-center justify-between gap-2 my-2">
+					<div className="flex-1">{result.length < 280 ? mdx() : 'Too big to display. Use Dev Mode.'}</div>
+					<InspectButton actionId={actionId} />
+				</div>
 			</CollapsibleContent>
 		</Collapsible>
+	);
+}
+
+function InspectButton({ actionId }: { actionId: string }) {
+	//
+	const navigate = useNavigate();
+
+	const handleInspectClick = (e?: React.MouseEvent) => {
+		e?.stopPropagation();
+
+		// Navigate to dev mode with action anchor
+		navigate({
+			to: '/$',
+			search: (prev) => ({ ...prev, debug: true }),
+			hash: `action-${actionId}`,
+		});
+	};
+
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handleInspectClick}
+						className="h-8 w-8 p-0 flex-shrink-0"
+					>
+						<Bug className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Inspect in dev mode</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
 	);
 }
 

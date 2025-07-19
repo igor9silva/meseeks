@@ -141,7 +141,7 @@ function DebugButton({ action, className }: { action: ActionComponentProps['acti
 	const handleDebugClick = (e?: React.MouseEvent) => {
 		e?.stopPropagation();
 
-		// Navigate to debug mode with action anchor
+		// Navigate to dev mode with action anchor
 		navigate({
 			to: '/$',
 			search: (prev) => ({ ...prev, debug: true }),
@@ -162,7 +162,7 @@ function DebugButton({ action, className }: { action: ActionComponentProps['acti
 						<Bug className="h-4 w-4" />
 					</Button>
 				</TooltipTrigger>
-				<TooltipContent className="px-2 py-1 text-xs">Inspect in debug mode</TooltipContent>
+				<TooltipContent className="px-2 py-1 text-xs">Inspect in dev mode</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
