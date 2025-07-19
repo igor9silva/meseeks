@@ -73,7 +73,7 @@ export function IdleState({
 				<div className="flex items-center gap-2">
 					{/* Keyboard shortcut indicators */}
 					{isActing && <KeyboardShortcutIndicator keySymbol="⌫" text="to stop" />}
-					{isBlocked && <KeyboardShortcutIndicator keySymbol="⏎" text="to authorize" />}
+					{isBlocked && <KeyboardShortcutIndicator modifier="⌥" keySymbol="⏎" text="to authorize" />}
 					{isComposing && <KeyboardShortcutIndicator keySymbol="⏎" text="to act" />}
 					{canRequestIteration && <KeyboardShortcutIndicator keySymbol="⏎" text="to iterate" />}
 

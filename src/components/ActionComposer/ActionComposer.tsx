@@ -59,10 +59,10 @@ export function ActionComposer({
 		callback: () => textareaRef.current?.focus(),
 	});
 
-	// approve shortcut (CMD+Enter) - global for blocked actions
+	// authorize shortcut (⌥+Enter) - global for blocked actions
 	useKeyboardShortcut({
 		global: true,
-		combo: { withCommand: true, key: 'Enter' },
+		combo: { withAlt: true, key: 'Enter' },
 		callback: () => {
 			if (isBlocked) {
 				approveBlockingAction({ taskId: task._id });
@@ -76,7 +76,7 @@ export function ActionComposer({
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
 			if (recordingStatus === 'idle') {
-				if (isEmpty) {
+				if (isEmpty && !isBlocked) {
 					requestIteration({ taskId: task._id });
 				} else {
 					handleSubmit();
