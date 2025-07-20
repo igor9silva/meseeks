@@ -51,6 +51,7 @@ export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) 
 					onInstructionsChange={(value: string) => form.setValue('config.instructions', value)}
 					availableSkills={form.watch('config.availableSkills')}
 					onAvailableSkillsChange={(skills: string[]) => form.setValue('config.availableSkills', skills)}
+					isEditable={isEditable}
 				/>
 
 				{/* Form Actions */}

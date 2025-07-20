@@ -52,6 +52,9 @@ export interface HardSkillConfigProps {
 	// Known Reactions
 	knownReactions?: KnownReaction[];
 	onKnownReactionsChange?: (reactions: KnownReaction[]) => void;
+
+	// Editability
+	isEditable?: boolean;
 }
 
 export function HardSkillConfig({
@@ -80,6 +83,9 @@ export function HardSkillConfig({
 	// Known Reactions
 	knownReactions = [],
 	onKnownReactionsChange = () => {},
+
+	// Editability
+	isEditable = true,
 }: HardSkillConfigProps) {
 	//
 	// Temporary state for new header
@@ -192,7 +198,7 @@ export function HardSkillConfig({
 						<LabelWithTooltip htmlFor="method" tooltip="The HTTP method to use for the API request.">
 							HTTP Method
 						</LabelWithTooltip>
-						<Select value={method} onValueChange={onMethodChange}>
+						<Select value={method} onValueChange={onMethodChange} disabled={!isEditable}>
 							<SelectTrigger>
 								<SelectValue placeholder="Select method" />
 							</SelectTrigger>
@@ -215,6 +221,7 @@ export function HardSkillConfig({
 							onChange={(e) => onUrlChange(e.target.value)}
 							placeholder="https://api.example.com/endpoint"
 							required
+							disabled={!isEditable}
 						/>
 					</div>
 				</div>
@@ -300,6 +307,7 @@ export function HardSkillConfig({
 						onChange={(e) => onBodyTemplateChange(e.target.value)}
 						placeholder="{}"
 						className="font-mono h-32"
+						disabled={!isEditable}
 					/>
 				</div>
 

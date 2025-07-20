@@ -27,12 +27,19 @@ export const IntelligenceSelector = forwardRef<
 		value?: IntelligenceKey;
 		onChange: (value: IntelligenceKey) => void;
 		className?: string;
+		disabled?: boolean;
 	}
->(({ value, onChange, className }, ref) => {
+>(({ value, onChange, className, disabled = false }, ref) => {
 	//
 	return (
 		<Suspense fallback={<Skeleton className="w-60 h-8" />}>
-			<IntelligenceCombobox value={value} onChange={onChange} ref={ref} className={className} />
+			<IntelligenceCombobox
+				value={value}
+				onChange={onChange}
+				ref={ref}
+				className={className}
+				disabled={disabled}
+			/>
 		</Suspense>
 	);
 });
@@ -60,8 +67,9 @@ const IntelligenceCombobox = forwardRef<
 		value?: IntelligenceKey;
 		onChange: (value: IntelligenceKey) => void;
 		className?: string;
+		disabled?: boolean;
 	}
->(({ value, onChange, className }, ref) => {
+>(({ value, onChange, className, disabled = false }, ref) => {
 	//
 	const { intelligences } = useIntelligences();
 
@@ -98,6 +106,7 @@ const IntelligenceCombobox = forwardRef<
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
+					disabled={disabled}
 					className={cn(
 						'w-full justify-between rounded-xl px-3 py-2 text-sm',
 						'flex h-9 items-center shadow-sm ring-offset-background',

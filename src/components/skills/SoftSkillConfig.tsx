@@ -21,6 +21,7 @@ export interface SoftSkillConfigProps {
 	onInstructionsChange: (value: string) => void;
 	availableSkills?: string[];
 	onAvailableSkillsChange: (skills: string[]) => void;
+	isEditable?: boolean;
 }
 
 export default function SoftSkillConfig({
@@ -32,6 +33,7 @@ export default function SoftSkillConfig({
 	onInstructionsChange,
 	availableSkills = [],
 	onAvailableSkillsChange,
+	isEditable = true,
 }: SoftSkillConfigProps) {
 	//
 	const handleRemoveSkill = (skillToRemove: string) => {
@@ -52,7 +54,7 @@ export default function SoftSkillConfig({
 						>
 							Intelligence
 						</LabelWithTooltip>
-						<IntelligenceSelector value={model} onChange={onModelChange} />
+						<IntelligenceSelector value={model} onChange={onModelChange} disabled={!isEditable} />
 					</div>
 
 					<div className="space-y-2">
@@ -76,6 +78,7 @@ export default function SoftSkillConfig({
 								value={[temperature]}
 								onValueChange={(values) => onTemperatureChange(values[0])}
 								className="mt-2"
+								disabled={!isEditable}
 							/>
 						</div>
 					</div>
@@ -95,6 +98,7 @@ export default function SoftSkillConfig({
 						placeholder="Detailed instructions for the model"
 						className="min-h-[200px]"
 						required
+						disabled={!isEditable}
 					/>
 				</div>
 
@@ -114,6 +118,7 @@ export default function SoftSkillConfig({
 						}}
 						excludeSkills={availableSkills}
 						placeholder="Select a skill"
+						disabled={!isEditable}
 					/>
 
 					{availableSkills.length > 0 ? (
@@ -128,6 +133,7 @@ export default function SoftSkillConfig({
 											size="icon"
 											className="h-4 w-4 ml-1 p-0"
 											onClick={() => handleRemoveSkill(skill)}
+											disabled={!isEditable}
 										>
 											<X className="h-3 w-3" />
 										</Button>

@@ -51,6 +51,7 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 					onBodyTemplateChange={(value) => form.setValue('bodyTemplate', value)}
 					knownReactions={form.watch('knownReactions')}
 					onKnownReactionsChange={(reactions) => form.setValue('knownReactions', reactions)}
+					isEditable={isEditable}
 				/>
 
 				{/* Form Actions */}
