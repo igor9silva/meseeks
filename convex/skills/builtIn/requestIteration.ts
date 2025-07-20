@@ -3,7 +3,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const requestIteration = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Request a new iteration of the task',
+	description: 'Request a new iteration of the task.',
 	parameters: z.object({}),
 	knownReactions: [
 		{

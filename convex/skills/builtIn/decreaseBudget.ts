@@ -5,7 +5,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const decreaseBudget = defineSkill({
 	preApprovedCost: 'none',
-	description: 'Remove energy from the task',
+	description: 'Remove energy from the task.',
 	parameters: z.object({
 		amount: z.bigint().min(0n).describe('The amount of funds to remove, in energy.'),
 	}),

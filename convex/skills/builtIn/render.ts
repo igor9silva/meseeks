@@ -3,7 +3,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const render = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Render a React component',
+	description: 'Render a React component.',
 	parameters: z.object({
 		code: z
 			.string()

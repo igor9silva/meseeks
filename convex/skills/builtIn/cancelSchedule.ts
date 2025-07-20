@@ -6,7 +6,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const cancelSchedule = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Cancel an existing schedule',
+	description: 'Cancel an existing schedule.',
 	parameters: z.object({
 		scheduleId: z.string().describe('The ID of the schedule to cancel'),
 	}),

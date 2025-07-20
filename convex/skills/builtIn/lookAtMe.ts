@@ -3,7 +3,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const lookAtMe = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Onboard a new user with welcome messages and collect their personal information',
+	description: 'Onboard a new user with welcome messages and collect their personal information.',
 	parameters: z.object({}),
 	knownReactions: [
 		{

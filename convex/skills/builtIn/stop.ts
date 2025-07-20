@@ -3,7 +3,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const stop = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Stop the reaction chain',
+	description: 'Stop the reaction chain.',
 	parameters: z.object({}),
 	knownReactions: [],
 	use:
