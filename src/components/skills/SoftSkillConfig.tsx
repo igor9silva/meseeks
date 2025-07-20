@@ -1,5 +1,6 @@
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { Badge } from '~/components/ui/badge';
@@ -7,14 +8,16 @@ import { Button } from '~/components/ui/button';
 import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import { Slider } from '~/components/ui/slider';
+import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Textarea } from '~/components/ui/textarea';
 import { SkillSelector } from './shared/SkillSelector';
 
 type IntelligenceKey = z.infer<typeof modelsSchema>;
+type IntelligenceMode = 'automatic' | 'specific';
 
 export interface SoftSkillConfigProps {
-	model?: IntelligenceKey;
-	onModelChange: (value: IntelligenceKey) => void;
+	model?: IntelligenceKey | 'auto';
+	onModelChange: (value: IntelligenceKey | 'auto') => void;
 	temperature?: number;
 	onTemperatureChange: (value: number) => void;
 	instructions?: string;
@@ -36,6 +39,37 @@ export default function SoftSkillConfig({
 	isEditable = true,
 }: SoftSkillConfigProps) {
 	//
+	const [intelligenceMode, setIntelligenceMode] = useState<IntelligenceMode>(
+		model === 'auto' || !model ? 'automatic' : 'specific',
+	);
+
+	// Update intelligence mode when model changes externally
+	useEffect(() => {
+		if (model === 'auto' || !model) {
+			setIntelligenceMode('automatic');
+		} else {
+			setIntelligenceMode('specific');
+		}
+	}, [model]);
+
+	const handleIntelligenceModeChange = (mode: IntelligenceMode) => {
+		//
+		setIntelligenceMode(mode);
+		if (mode === 'automatic') {
+			onModelChange('auto');
+		} else {
+			// If switching to specific but current model is 'auto', use default
+			if (model === 'auto' || !model) {
+				onModelChange('anthropic/claude-4-sonnet'); // default
+			}
+		}
+	};
+
+	const handleSpecificModelChange = (value: IntelligenceKey) => {
+		//
+		onModelChange(value);
+	};
+
 	const handleRemoveSkill = (skillToRemove: string) => {
 		const updatedSkills = availableSkills.filter((skill) => skill !== skillToRemove);
 		onAvailableSkillsChange?.(updatedSkills);
@@ -50,11 +84,41 @@ export default function SoftSkillConfig({
 					<div className="space-y-2">
 						<LabelWithTooltip
 							htmlFor="model"
-							tooltip="The AI model that will power this skill. Different models have different capabilities and costs."
+							tooltip="Choose whether to use the task's selected intelligence automatically, or specify a particular model for this skill."
 						>
 							Intelligence
 						</LabelWithTooltip>
-						<IntelligenceSelector value={model} onChange={onModelChange} disabled={!isEditable} />
+						<div className="flex items-center gap-2">
+							<Tabs
+								value={intelligenceMode}
+								onValueChange={(value) => handleIntelligenceModeChange(value as IntelligenceMode)}
+								className="min-w-fit"
+							>
+								<TabsList className="grid grid-cols-2 min-w-fit">
+									<TabsTrigger value="automatic" disabled={!isEditable} className="px-4">
+										From task
+									</TabsTrigger>
+									<TabsTrigger value="specific" disabled={!isEditable} className="px-4">
+										Specific
+									</TabsTrigger>
+								</TabsList>
+							</Tabs>
+
+							{intelligenceMode === 'specific' && (
+								<IntelligenceSelector
+									value={model === 'auto' ? undefined : model}
+									onChange={handleSpecificModelChange}
+									disabled={!isEditable}
+									className=""
+								/>
+							)}
+
+							{intelligenceMode === 'automatic' && !isEditable && (
+								<div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-muted/50 text-sm text-muted-foreground">
+									Uses whatever intelligence is selected for the task
+								</div>
+							)}
+						</div>
 					</div>
 
 					<div className="space-y-2">
@@ -84,10 +148,11 @@ export default function SoftSkillConfig({
 					</div>
 				</div>
 
+				{/* Instructions section remains the same */}
 				<div className="space-y-2">
 					<LabelWithTooltip
 						htmlFor="instructions"
-						tooltip="Detailed instructions for the AI model on how to perform this skill. Be specific and comprehensive."
+						tooltip="Detailed instructions that will guide the AI model in making decisions and performing tasks."
 					>
 						Instructions
 					</LabelWithTooltip>
@@ -102,12 +167,13 @@ export default function SoftSkillConfig({
 					/>
 				</div>
 
+				{/* Available Skills section remains the same */}
 				<div className="space-y-2">
 					<LabelWithTooltip
 						htmlFor="availableSkills"
-						tooltip="Soft skills will always finish with exactly 1 reaction (never 0, never 2). This list is the set of options it has to choose from."
+						tooltip="Skills that the AI model can choose to use during task execution."
 					>
-						Available skills
+						Available Skills
 					</LabelWithTooltip>
 					<SkillSelector
 						value=""
@@ -121,29 +187,27 @@ export default function SoftSkillConfig({
 						disabled={!isEditable}
 					/>
 
-					{availableSkills.length > 0 ? (
-						<ScrollArea className="h-32 border rounded-xl p-4">
-							<div className="flex flex-wrap gap-2">
-								{availableSkills.map((skill) => (
-									<Badge key={skill} variant="secondary" className="flex items-center gap-1">
-										{skill}
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											className="h-4 w-4 ml-1 p-0"
-											onClick={() => handleRemoveSkill(skill)}
-											disabled={!isEditable}
-										>
-											<X className="h-3 w-3" />
-										</Button>
-									</Badge>
-								))}
-							</div>
-						</ScrollArea>
-					) : (
-						<div className="text-center p-4 border rounded-xl text-muted-foreground">
-							No skills connected
+					{availableSkills.length > 0 && (
+						<div className="mt-2">
+							<ScrollArea className="max-h-32 w-full">
+								<div className="flex flex-wrap gap-2">
+									{availableSkills.map((skill) => (
+										<Badge key={skill} variant="secondary" className="flex items-center gap-1">
+											{skill}
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												className="h-4 w-4 ml-1 p-0"
+												onClick={() => handleRemoveSkill(skill)}
+												disabled={!isEditable}
+											>
+												<X className="h-3 w-3" />
+											</Button>
+										</Badge>
+									))}
+								</div>
+							</ScrollArea>
 						</div>
 					)}
 				</div>

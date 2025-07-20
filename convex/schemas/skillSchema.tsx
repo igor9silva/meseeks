@@ -288,7 +288,7 @@ export const knownReactionsSchema = z
 	.describe('Pre-configured actions that will happen as a re-action to the use of this skill.');
 
 const coreSkillSchema = z.object({
-	key: z.string(),
+	key: z.string().min(3).describe('The key of the skill. Must be unique.'),
 	description: z.string(),
 	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
 	// outputSchema?: z.string(), // not yet
