@@ -15,6 +15,7 @@ import { ResolveAction } from '~/components/actions/ResolveAction';
 import { SayAction } from '~/components/actions/SayAction';
 import { ScheduleAction } from '~/components/actions/ScheduleAction';
 import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
+import { ScrapeTweetAction } from '~/components/actions/ScrapeTweetAction';
 import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
 import { SearchWebAction } from '~/components/actions/SearchWebAction';
 import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
@@ -49,6 +50,7 @@ export default {
 	searchWeb: SearchWebAction,
 	valyu_search: SearchWebAction,
 	twitter_search: TwitterSearchAction,
+	scrapeTweet: ScrapeTweetAction,
 	updateInstructions: UpdateInstructionsAction,
 	scrapeLink: ScrapeLinkAction,
 	searchPlaces: SearchPlacesAction,
