@@ -52,12 +52,12 @@ export function InnateSkillDetail({ skill }: { skill: InnateSkill }) {
 						<div className="space-y-3">
 							{skill.knownReactions.map((reaction, index) => (
 								<div key={index} className="flex items-start gap-3 p-3 border rounded-md">
-									<div className="flex-1">
-										<h4 className="font-medium text-sm">{reaction.skillKey}</h4>
-										<p className="text-xs text-muted-foreground mt-1">
-											<Condition condition={reaction.condition} />
-										</p>
-									</div>
+									<h4 className="font-medium text-sm">
+										{reaction.skillKey}{' '}
+										<span className="text-xs text-muted-foreground mt-1">
+											(<Condition condition={reaction.condition} />)
+										</span>
+									</h4>
 								</div>
 							))}
 						</div>
@@ -82,11 +82,11 @@ function Condition({ condition }: { condition: 'owner' | 'companion' | 'any' }) 
 	//
 	switch (condition) {
 		case 'owner':
-			return 'Occurs when performed by user';
+			return 'if performed by you';
 		case 'companion':
-			return 'Occurs when run by Meseeks';
+			return 'if performed by Meseeks';
 		case 'any':
-			return 'Occurs regardless of who performs it';
+			return 'always';
 		default:
 			return condition;
 	}

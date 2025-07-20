@@ -31,6 +31,22 @@ export default function RouteComponent() {
 			</div>
 			<div className="space-y-8">
 				<div>
+					<h2 className="text-lg font-semibold">Managed by you</h2>
+					<CardDescription>Skills you taught Meseeks yourself.</CardDescription>
+					<Separator className="mt-2 mb-4" />
+					<SkillList filter={'personal'} shouldShowLearnButton onShareSkill={handleShareSkill} />
+				</div>
+
+				<div>
+					<h2 className="text-lg font-semibold">Managed by us</h2>
+					<CardDescription>
+						Skills taught to Meseeks by <strong>isPro</strong> (the Meseeks team).
+					</CardDescription>
+					<Separator className="my-4" />
+					<SkillList filter={'public'} onShareSkill={handleShareSkill} />
+				</div>
+
+				<div>
 					<h2 className="text-lg font-semibold">Innate Skills</h2>
 					<CardDescription>Built-in capabilities that are always available to Meseeks.</CardDescription>
 					<Separator className="mt-2 mb-4" />
@@ -45,22 +61,6 @@ export default function RouteComponent() {
 					>
 						<InnateSkillsList />
 					</Suspense>
-				</div>
-
-				<div>
-					<h2 className="text-lg font-semibold">Managed by you</h2>
-					<CardDescription>Skills you taught Meseeks yourself.</CardDescription>
-					<Separator className="mt-2 mb-4" />
-					<SkillList filter={'personal'} shouldShowLearnButton onShareSkill={handleShareSkill} />
-				</div>
-
-				<div>
-					<h2 className="text-lg font-semibold">Managed by us</h2>
-					<CardDescription>
-						Skills taught to Meseeks by <strong>isPro</strong> (the Meseeks team).
-					</CardDescription>
-					<Separator className="my-4" />
-					<SkillList filter={'public'} onShareSkill={handleShareSkill} />
 				</div>
 			</div>
 			<ShareSkillRequestDialog

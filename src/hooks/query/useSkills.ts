@@ -8,6 +8,8 @@ export function usePersonalSkills() {
 	const query = convexQuery(api.skills.public.findAllPersonal, {});
 	const result = useSuspenseQuery(query);
 
+	result.data = result.data?.filter((skill) => !skill.isHidden);
+
 	return {
 		...result,
 		skills: result.data,
@@ -18,6 +20,8 @@ export function usePublicSkills() {
 	//
 	const query = convexQuery(api.skills.public.findAllPublic, {});
 	const result = useSuspenseQuery(query);
+
+	result.data = result.data?.filter((skill) => !skill.isHidden);
 
 	return {
 		...result,

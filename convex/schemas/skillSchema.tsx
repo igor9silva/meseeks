@@ -292,6 +292,7 @@ const coreSkillSchema = z.object({
 	kind: skillKindSchema,
 	owner: skillOwnerSchema,
 	author: skillAuthorSchema,
+	isHidden: z.boolean().optional().describe('Whether the skill is hidden from /skills.'),
 });
 
 export const builtInSkillSchema = coreSkillSchema.extend({
