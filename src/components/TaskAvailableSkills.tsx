@@ -1,6 +1,3 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Plus, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { Badge } from '~/components/ui/badge';
@@ -14,36 +11,13 @@ interface TaskAvailableSkillsProps {
 	onAvailableSkillsChange: (skills: string[]) => void;
 }
 
-function useInnateSkills() {
-	//
-	const query = convexQuery(api.skills.public.findAllInnate, {});
-	const result = useSuspenseQuery(query);
-
-	return {
-		...result,
-		skills: result.data,
-	};
-}
-
 function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }: TaskAvailableSkillsProps) {
 	//
-	// const { skills: personalSkills } = usePersonalSkills();
-	// const { skills: publicSkills } = usePublicSkills();
-	// const { skills: innateSkills } = useInnateSkills();
 	const { getEnabledSkills } = usePreferences();
 	const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
 	// Get enabled skills list
 	const enabledSkills = getEnabledSkills();
-
-	// // Combine all available skills and filter by enabled status
-	// const allSkills = [...(personalSkills ?? []), ...(publicSkills ?? []), ...(innateSkills ?? [])];
-	// const enabledSkillsData = allSkills.filter((skill) => enabledSkills.includes(skill.key));
-	// const skillOptions = enabledSkillsData.map((skill) => ({
-	// 	value: skill.key,
-	// 	label: skill.key,
-	// 	description: skill.description,
-	// }));
 
 	const handleAddSkill = (skillKey: string) => {
 		//
