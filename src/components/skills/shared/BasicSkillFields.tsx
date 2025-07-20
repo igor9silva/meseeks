@@ -1,6 +1,7 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
+import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 
@@ -58,7 +59,9 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="inputSchema"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>Input Schema</FormLabel>
+						<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly.">
+							Input Schema
+						</LabelWithTooltip>
 						<FormControl>
 							<Textarea
 								{...field}

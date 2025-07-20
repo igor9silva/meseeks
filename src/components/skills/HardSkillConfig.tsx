@@ -230,21 +230,24 @@ export function HardSkillConfig({
 					<Card>
 						<CardContent className="pt-4">
 							<div className="space-y-4">
-								<div className="flex gap-2">
+								<div className="flex flex-col sm:flex-row gap-2">
 									<Input
 										placeholder="Header name"
 										value={newHeader.key}
 										onChange={(e) => setNewHeader({ ...newHeader, key: e.target.value })}
+										className="flex-1"
 									/>
 									<Input
 										placeholder="Header value"
 										value={newHeader.value}
 										onChange={(e) => setNewHeader({ ...newHeader, value: e.target.value })}
+										className="flex-1"
 									/>
 									<Button
 										type="button"
 										onClick={handleAddHeader}
 										disabled={!newHeader.key || !newHeader.value}
+										className="sm:shrink-0"
 									>
 										Add
 									</Button>
@@ -255,16 +258,19 @@ export function HardSkillConfig({
 										{Object.entries(headers).map(([key, value]) => (
 											<div
 												key={key}
-												className="flex justify-between items-center p-2 rounded bg-muted/50"
+												className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
 											>
-												<div className="flex gap-2">
-													<span className="font-medium">{key}:</span>
-													<span>{value}</span>
+												<div className="flex flex-col gap-1 min-w-0 flex-1">
+													<span className="font-medium text-sm">{key}:</span>
+													<span className="text-sm break-all text-muted-foreground">
+														{value}
+													</span>
 												</div>
 												<Button
 													type="button"
 													variant="ghost"
 													size="icon"
+													className="shrink-0"
 													onClick={() => handleRemoveHeader(key)}
 												>
 													<Trash className="h-4 w-4" />
@@ -308,7 +314,7 @@ export function HardSkillConfig({
 					<Card>
 						<CardContent className="pt-4">
 							<div className="space-y-4">
-								<div className="flex gap-2 flex-wrap">
+								<div className="flex flex-col sm:flex-row gap-2">
 									<Select
 										value={newParamMapping.type}
 										onValueChange={(value) =>
@@ -318,7 +324,7 @@ export function HardSkillConfig({
 											})
 										}
 									>
-										<SelectTrigger className="w-28">
+										<SelectTrigger className="w-full sm:w-28">
 											<SelectValue placeholder="Type" />
 										</SelectTrigger>
 										<SelectContent>
@@ -352,6 +358,7 @@ export function HardSkillConfig({
 										type="button"
 										onClick={handleAddParamMapping}
 										disabled={!newParamMapping.source || !newParamMapping.target}
+										className="sm:shrink-0"
 									>
 										Add
 									</Button>
@@ -362,18 +369,21 @@ export function HardSkillConfig({
 										{paramMappings.map((param, index) => (
 											<div
 												key={index}
-												className="flex justify-between items-center p-2 rounded bg-muted/50"
+												className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
 											>
-												<div>
-													<Badge className="mr-2">{param.type}</Badge>
-													<span className="font-medium">{param.source}</span>
-													<span className="mx-2">→</span>
-													<span>{param.target}</span>
+												<div className="flex flex-col gap-1 min-w-0 flex-1">
+													<Badge className="self-start text-xs">{param.type}</Badge>
+													<div className="flex flex-wrap items-center gap-1 text-sm">
+														<span className="font-medium break-all">{param.source}</span>
+														<span className="text-muted-foreground">→</span>
+														<span className="break-all">{param.target}</span>
+													</div>
 												</div>
 												<Button
 													type="button"
 													variant="ghost"
 													size="icon"
+													className="shrink-0"
 													onClick={() => handleRemoveParamMapping(index)}
 												>
 													<Trash className="h-4 w-4" />

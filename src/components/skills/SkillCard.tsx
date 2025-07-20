@@ -66,7 +66,7 @@ export function SkillCard({
 			</CardHeader>
 			<CardContent className="flex-grow p-4 pt-2">
 				<div className="grid grid-rows-[auto_auto] gap-2 h-full">
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						{skill.kind === 'soft' ? (
 							<Badge variant="secondary" className="text-xs font-medium">
 								{skill.config.model}

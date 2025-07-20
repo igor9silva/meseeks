@@ -20,15 +20,15 @@ export default function RouteComponent() {
 
 	track('skills/innate/$key', {
 		skillKey: key,
-	})
+	});
 
 	return (
 		<div className="m-4">
 			<div className="flex flex-row items-center justify-between my-4">
 				<div>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<CardTitle className="text-2xl">{skill.key}</CardTitle>
-						<div className="flex items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2">
 							<Badge variant="secondary" className="text-xs">
 								Innate
 							</Badge>
@@ -46,7 +46,7 @@ export default function RouteComponent() {
 				<InnateSkillDetail skill={skill} />
 			</div>
 		</div>
-	)
+	);
 }
 
 function Pending() {
@@ -61,5 +61,5 @@ function Pending() {
 			</div>
 			<Skeleton className="h-96 w-full" />
 		</div>
-	)
+	);
 }

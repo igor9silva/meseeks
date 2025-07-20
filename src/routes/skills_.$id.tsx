@@ -31,9 +31,9 @@ export default function RouteComponent() {
 	return (
 		<div className="m-4">
 			<div className="flex flex-row items-center justify-between my-4">
-				<div className="flex items-center gap-3">
+				<div className="flex flex-wrap items-center gap-3">
 					<CardTitle className="text-2xl">{skill.key}</CardTitle>
-					<div className="flex items-center gap-1">
+					<div className="flex flex-wrap items-center gap-1">
 						{getSkillTypeBadges(skill.kind).map((badge) => (
 							<Badge key={badge} variant="secondary">
 								{badge}

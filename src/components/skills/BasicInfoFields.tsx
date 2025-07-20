@@ -177,11 +177,11 @@ function InputSchemaField({ disabled }: { disabled?: boolean }) {
 			name="inputSchema"
 			render={({ field }) => (
 				<FormItem>
-					<LabelWithTooltip tooltip="Define the expected input parameters using a Zod schema. This is usually written by Meseeks as part of a task. We do not recommend manually editing this unless you are familiar with Zod.">
+					<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly.">
 						Input Schema
 					</LabelWithTooltip>
 					<FormControl>
-						<Textarea {...field} placeholder="z.object({})" disabled={disabled} className="min-h-40" />
+						<Textarea {...field} placeholder="{}" disabled={disabled} className="min-h-40" />
 					</FormControl>
 					<FormMessage />
 				</FormItem>
