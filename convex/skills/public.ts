@@ -89,6 +89,11 @@ export const findOne = query({
 			throw new Error('Skill not found');
 		}
 
+		// remove headers from isPro hard skills, as they may contain passwords
+		if (skill.owner === 'isPro' && skill.kind === 'hard') {
+			skill.config.headers = {};
+		}
+
 		return {
 			...skill,
 			isEditable: skill.owner === currentUser._id,
