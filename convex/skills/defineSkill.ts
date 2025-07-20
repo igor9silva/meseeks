@@ -8,6 +8,8 @@ export type Skill<T extends z.AnyZodObject> = {
 	parameters: T;
 	knownReactions: Array<Reaction>;
 	use: (execution: ToolExecution) => (args: z.infer<T>) => Promise<ExecutionResult>;
+	hidden?: boolean;
+	priority?: number;
 };
 
 export type ToolExecution = {
@@ -31,4 +33,8 @@ export const executionResultSchema = z.object({
 export type ExecutionResult = z.infer<typeof executionResultSchema>;
 
 // for the types
-export const defineSkill = <T extends z.AnyZodObject>(skill: Skill<T>) => skill;
+export const defineSkill = <T extends z.AnyZodObject>(skill: Skill<T>) => ({
+	...skill,
+	hidden: skill.hidden ?? false,
+	priority: skill.priority ?? 999999999,
+});

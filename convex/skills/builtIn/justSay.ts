@@ -17,4 +17,5 @@ export const justSay = defineSkill({
 				reactions: execution.skill.knownReactions,
 			};
 		},
+	hidden: true,
 });

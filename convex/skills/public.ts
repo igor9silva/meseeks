@@ -43,16 +43,11 @@ function buildInSkillToDoc(
 export const findAllInnate = query({
 	handler: async (ctx) => {
 		//
-		const innateSkills = [];
+		const builtInTools = Object.entries(_builtInSkills)
+			.filter(([_, tool]) => !tool.hidden)
+			.sort(([_, a], [__, b]) => a.priority - b.priority);
 
-		for (const key in _builtInSkills) {
-			//
-			const builtInTool = _builtInSkills[key as keyof typeof _builtInSkills];
-
-			innateSkills.push(buildInSkillToDoc(key, builtInTool));
-		}
-
-		return innateSkills;
+		return builtInTools.map(([key, tool]) => buildInSkillToDoc(key, tool));
 	},
 });
 

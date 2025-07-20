@@ -88,4 +88,5 @@ export const lookAtMe = defineSkill({
 				reactions: execution.skill.knownReactions,
 			};
 		},
+	hidden: true,
 });

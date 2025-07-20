@@ -28,4 +28,5 @@ export const say = defineSkill({
 				reactions: execution.skill.knownReactions,
 			};
 		},
+	priority: 0,
 });

@@ -27,4 +27,5 @@ export const render = defineSkill({
 				reactions: execution.skill.knownReactions,
 			};
 		},
+	priority: 100,
 });
