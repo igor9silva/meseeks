@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { Doc } from 'convex/_generated/dataModel';
+import { Info } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { InnateSkillsList } from '~/components/skills/InnateSkillsList';
 import { ShareSkillRequestDialog } from '~/components/skills/ShareSkillRequestDialog';
 import { SkillCardSkeleton } from '~/components/skills/SkillCardSkeleton';
 import { SkillList } from '~/components/skills/SkillList';
-import { CardDescription, CardTitle } from '~/components/ui/card';
+import { Card, CardContent, CardDescription, CardTitle } from '~/components/ui/card';
 import { Separator } from '~/components/ui/separator';
 
 export const Route = createFileRoute('/skills')({
@@ -26,7 +27,20 @@ export default function RouteComponent() {
 			<div className="flex flex-row items-center justify-between my-4 gap-2">
 				<div>
 					<CardTitle className="text-2xl">Skills</CardTitle>
-					<CardDescription>The building blocks of Meseeks — they define what it can do.</CardDescription>
+					<CardDescription>
+						The building blocks of Meseeks — they define what it can do.
+						<Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 mt-4">
+							<CardContent className="flex items-center gap-3 p-4">
+								<Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+								<div className="text-blue-800 dark:text-blue-200 flex items-center justify-between w-full">
+									<div>
+										Meseeks can only use skills that are enabled below. Disabled skills can still be
+										selected by other skills.
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					</CardDescription>
 				</div>
 			</div>
 			<div className="space-y-8">
