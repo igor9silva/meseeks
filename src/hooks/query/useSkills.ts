@@ -36,6 +36,17 @@ export function useSkill(skillId: Id<'skills'>) {
 	};
 }
 
+export function useInnateSkill(skillKey: string) {
+	//
+	const query = convexQuery(api.skills.public.findOneInnate, { skillKey });
+	const result = useSuspenseQuery(query);
+
+	return {
+		...result,
+		skill: result.data,
+	};
+}
+
 export function useInnateSkills() {
 	//
 	const query = convexQuery(api.skills.public.findAllInnate, {});

@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
@@ -30,24 +31,31 @@ export function InnateSkillsList() {
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{filteredSkills?.map((skill) => (
-						<Card key={skill.key} className="flex flex-col p-4 gap-1">
-							<CardHeader className="p-0">
-								<div className="flex justify-between items-start gap-2">
-									<CardTitle className="text-lg">{skill.key}</CardTitle>
-									<div className="flex items-center gap-2 mt-1">
-										<Badge variant="secondary" className="text-xs">
-											Innate
-										</Badge>
-										<Badge variant="outline" className="text-xs">
-											Free
-										</Badge>
+						<Link
+							key={skill.key}
+							to="/skills/innate/$key"
+							params={{ key: skill.key }}
+							className="block transition-all focus:shadow-md outline-none"
+						>
+							<Card className="flex flex-col p-4 gap-1 hover:shadow-md transition-shadow h-full">
+								<CardHeader className="p-0">
+									<div className="flex justify-between items-start gap-2">
+										<CardTitle className="text-lg">{skill.key}</CardTitle>
+										<div className="flex items-center gap-2 mt-1">
+											<Badge variant="secondary" className="text-xs">
+												Innate
+											</Badge>
+											<Badge variant="outline" className="text-xs">
+												Free
+											</Badge>
+										</div>
 									</div>
-								</div>
-							</CardHeader>
-							<CardContent className="flex flex-1 p-0 items-center">
-								<CardDescription className="line-clamp-2">{skill.description}</CardDescription>
-							</CardContent>
-						</Card>
+								</CardHeader>
+								<CardContent className="flex flex-1 p-0 items-center">
+									<CardDescription className="line-clamp-2">{skill.description}</CardDescription>
+								</CardContent>
+							</Card>
+						</Link>
 					))}
 				</div>
 			)}

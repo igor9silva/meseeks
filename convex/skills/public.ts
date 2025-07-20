@@ -1,4 +1,5 @@
 import { zid } from 'convex-helpers/server/zod';
+import { z } from 'zod';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
@@ -22,6 +23,23 @@ export const findAllPersonal = query({
 	},
 });
 
+function buildInSkillToDoc(
+	key: string, //
+	skill: (typeof _builtInSkills)[keyof typeof _builtInSkills],
+) {
+	return builtInSkillSchema.parse({
+		key,
+		description: skill.description,
+		inputSchema: zodToString(skill.parameters),
+		preApprovedCost: skill.preApprovedCost,
+		knownReactions: skill.knownReactions,
+		kind: 'built-in',
+		owner: 'built-in',
+		author: 'built-in',
+		cost: 0n,
+	});
+}
+
 export const findAllInnate = query({
 	handler: async (ctx) => {
 		//
@@ -31,22 +49,22 @@ export const findAllInnate = query({
 			//
 			const builtInTool = _builtInSkills[key as keyof typeof _builtInSkills];
 
-			innateSkills.push(
-				builtInSkillSchema.parse({
-					key,
-					description: builtInTool.description,
-					inputSchema: zodToString(builtInTool.parameters),
-					preApprovedCost: builtInTool.preApprovedCost,
-					knownReactions: builtInTool.knownReactions,
-					kind: 'built-in',
-					owner: 'built-in',
-					author: 'built-in',
-					cost: 0n,
-				}),
-			);
+			innateSkills.push(buildInSkillToDoc(key, builtInTool));
 		}
 
 		return innateSkills;
+	},
+});
+
+export const findOneInnate = query({
+	args: {
+		skillKey: z.string(),
+	},
+	handler: async (ctx, { skillKey }) => {
+		//
+		const skill = _builtInSkills[skillKey as keyof typeof _builtInSkills];
+
+		return buildInSkillToDoc(skillKey, skill);
 	},
 });
 

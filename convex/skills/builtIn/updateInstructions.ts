@@ -4,7 +4,7 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const updateInstructions = defineSkill({
 	preApprovedCost: 0n,
-	description: 'Update the task instructions.',
+	description: 'Updates the task.',
 	parameters: z.object({
 		title: z
 			.string()
