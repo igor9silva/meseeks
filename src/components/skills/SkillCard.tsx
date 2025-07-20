@@ -26,6 +26,8 @@ export function SkillCard({
 	onShareSkill?: (skill: Doc<'skills'>) => void;
 }) {
 	//
+	const isSpecial = skill.priority !== undefined; // TODO: hack
+	const isActive = isEnabled || isSpecial;
 	const availableSkills = skill.kind === 'soft' ? skill.config?.availableSkills ?? [] : [];
 	const hasTaskSkills = availableSkills.includes('{{taskSkills}}');
 	const knownReactions = skill.kind === 'hard' ? skill.knownReactions ?? [] : [];
@@ -39,7 +41,7 @@ export function SkillCard({
 
 	// Card content to avoid duplication
 	const CardWrapper = ({ children }: { children: React.ReactNode }) => (
-		<Card className={cn('flex flex-col h-full transition-opacity', !isEnabled && 'opacity-50')}>{children}</Card>
+		<Card className={cn('flex flex-col h-full transition-opacity', !isActive && 'opacity-50')}>{children}</Card>
 	);
 
 	const cardContent = (
@@ -52,13 +54,15 @@ export function SkillCard({
 							{skill.description}
 						</CardDescription>
 					</div>
-					<ToggleSwitch
-						checked={isEnabled}
-						onClick={handleToggle}
-						tooltip={`${isEnabled ? 'Disable' : 'Enable'} skill (must be enabled to use)`}
-						aria-label={`${isEnabled ? 'Disable' : 'Enable'} ${skill.key} skill`}
-						className="mt-1"
-					/>
+					{!isSpecial && (
+						<ToggleSwitch
+							checked={isEnabled}
+							onClick={handleToggle}
+							tooltip={`${isEnabled ? 'Disable' : 'Enable'} skill (must be enabled to use)`}
+							aria-label={`${isEnabled ? 'Disable' : 'Enable'} ${skill.key} skill`}
+							className="mt-1"
+						/>
+					)}
 				</div>
 			</CardHeader>
 			<CardContent className="flex-grow p-4 pt-2">
