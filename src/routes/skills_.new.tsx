@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { UnifiedSkillForm } from '~/components/skills/UnifiedSkillForm';
+import { useState } from 'react';
+import { HardSkillForm } from '~/components/skills/HardSkillForm';
+import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
 import { CardDescription, CardTitle } from '~/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 
 export const Route = createFileRoute('/skills_/new')({
 	component: RouteComponent,
@@ -9,7 +12,9 @@ export const Route = createFileRoute('/skills_/new')({
 
 export default function RouteComponent() {
 	//
-	track('skills/new', {});
+	const [skillType, setSkillType] = useState<'soft' | 'hard'>('soft');
+
+	track('skills/new');
 
 	return (
 		<div className="m-6">
@@ -21,9 +26,26 @@ export default function RouteComponent() {
 					</CardDescription>
 				</div>
 			</div>
-			<div>
-				<UnifiedSkillForm />
-			</div>
+
+			<Tabs value={skillType} onValueChange={(value) => setSkillType(value as 'soft' | 'hard')}>
+				<TabsList>
+					<TabsTrigger value="soft">Soft</TabsTrigger>
+					<TabsTrigger value="hard">Hard</TabsTrigger>
+				</TabsList>
+
+				<CardDescription className="my-2">
+					{skillType === 'soft'
+						? 'Uses AI to make decisions, effectively controlling the reaction chain.'
+						: 'Uses HTTP to connect to external apps and execute specific actions.'}
+				</CardDescription>
+
+				<TabsContent value="soft">
+					<SoftSkillForm />
+				</TabsContent>
+				<TabsContent value="hard">
+					<HardSkillForm />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }

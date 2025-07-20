@@ -4,6 +4,7 @@ import { internalMutation, internalQuery } from '../lib';
 import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from '../schemas/skillSchema';
 import { _getUserPreferece, _setUserPreference } from '../users/preferences/private';
+import { ensureInputSchemaIsValid } from './builtIn/createSkill';
 import { _builtInSkills } from './builtIn/index';
 
 // all global skills + all user-defined skills
@@ -214,6 +215,8 @@ export const _create = internalMutation({
 		const existing = await _findOneSafe(ctx, { key: skill.key, owner: userId });
 		if (existing) throw new Error(`Skill key '${skill.key}' in use.`);
 
+		ensureInputSchemaIsValid(skill.inputSchema);
+
 		return await ctx.db.insert('skills', {
 			...skill,
 			owner: userId,
@@ -234,6 +237,8 @@ export const _update = internalMutation({
 		if (!existing) throw new Error('Skill not found');
 		if (existing.owner !== userId) throw new Error('Skill not found');
 		if (!('_id' in existing)) throw new Error('Skill not found'); // built-in skills do not have an _id
+
+		ensureInputSchemaIsValid(skill.inputSchema);
 
 		return await ctx.db.patch(existing._id, {
 			...skill,

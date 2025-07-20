@@ -260,35 +260,40 @@ export const decisionConfigSchema = z.object({
 		),
 });
 
+// Export individual schemas for reuse in forms and other contexts
+export const preApprovedCostSchema = z.union([
+	z.literal('none'),
+	z
+		.bigint()
+		.min(asBigInt({ dollars: 0 }))
+		.max(asBigInt({ dollars: 1000 }))
+		.describe(
+			'If the expected cost is less than or equal to this amount (pre-approved cost), it will be automatically authorized to execute. If can be set to "none" to disable pre-approval at all, forcing a human-approval before execution.',
+		),
+]);
+
+export const knownReactionsSchema = z
+	.array(
+		z.object({
+			skillKey: z.string().describe('The key of the skill to use'),
+			args: z.record(z.any()),
+			condition: z.enum([
+				'owner', // only react if the author is the owner
+				'companion', // only react if the author is a an action (i.e. companion did it)
+				'any', // always react
+			]),
+		}),
+	)
+	.optional()
+	.describe('Pre-configured actions that will happen as a re-action to the use of this skill.');
+
 const coreSkillSchema = z.object({
 	key: z.string(),
 	description: z.string(),
 	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
 	// outputSchema?: z.string(), // not yet
-	preApprovedCost: z.union([
-		z.literal('none'),
-		z
-			.bigint()
-			.min(asBigInt({ dollars: 0 }))
-			.max(asBigInt({ dollars: 1000 }))
-			.describe(
-				'If the expected cost is less than or equal to this amount (pre-approved cost), it will be automatically authorized to execute. If can be set to "none" to disable pre-approval at all, forcing a human-approval before execution.',
-			),
-	]),
-	knownReactions: z
-		.array(
-			z.object({
-				skillKey: z.string().describe('The key of the skill to use'),
-				args: z.record(z.any()),
-				condition: z.enum([
-					'owner', // only react if the author is the owner
-					'companion', // only react if the author is a an action (i.e. companion did it)
-					'any', // always react
-				]),
-			}),
-		)
-		.optional()
-		.describe('Pre-configured actions that will happen as a re-action to the use of this skill.'),
+	preApprovedCost: preApprovedCostSchema,
+	knownReactions: knownReactionsSchema,
 	kind: skillKindSchema,
 	owner: skillOwnerSchema,
 	author: skillAuthorSchema,

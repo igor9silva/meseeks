@@ -1,9 +1,10 @@
 import { Plus, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
+import { SkillCommandList } from '~/components/skills/shared/SkillCommandList';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '~/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
+import { Skeleton } from '~/components/ui/skeleton';
 import { usePreferences } from '~/hooks/usePreferences';
 
 interface TaskAvailableSkillsProps {
@@ -35,8 +36,17 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 	const availableSkillsToAdd = enabledSkills.filter((skillKey) => !availableSkills.includes(skillKey));
 	const hasSkills = availableSkills.length > 0;
 	const canAddMoreSkills = availableSkills.length < 16;
-	const hasSkillsToAdd = enabledSkills.length > 0;
+	const hasSkillsToAdd = availableSkillsToAdd.length > 0;
 	const hasAnyEnabledSkills = enabledSkills.length > 0;
+
+	const SkillCommandListSkeleton = () => (
+		<div className="p-4 space-y-2">
+			<Skeleton className="h-8 w-full" />
+			<Skeleton className="h-6 w-3/4" />
+			<Skeleton className="h-6 w-1/2" />
+			<Skeleton className="h-6 w-2/3" />
+		</div>
+	);
 
 	return (
 		<div className="px-2 pb-2">
@@ -72,27 +82,13 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 								</Button>
 							</PopoverTrigger>
 							<PopoverContent className="w-80 p-0" align="start">
-								<Command>
-									<CommandInput placeholder="Search skills..." autoFocus />
-									<CommandList className="max-h-72">
-										<CommandEmpty>No enabled skills found.</CommandEmpty>
-										<CommandGroup>
-											{availableSkillsToAdd.map((skillKey) => (
-												<CommandItem
-													key={skillKey}
-													value={skillKey}
-													onSelect={handleAddSkill}
-													className="flex flex-col items-start gap-0.5"
-												>
-													<span className="font-medium">{skillKey}</span>
-													{/* <span className="text-sm text-muted-foreground truncate w-full">
-														{skill.description}
-													</span> */}
-												</CommandItem>
-											))}
-										</CommandGroup>
-									</CommandList>
-								</Command>
+								<Suspense fallback={<SkillCommandListSkeleton />}>
+									<SkillCommandList
+										onSkillSelect={handleAddSkill}
+										excludeSkills={availableSkills}
+										placeholder="Search skills..."
+									/>
+								</Suspense>
 							</PopoverContent>
 						</Popover>
 					)}
@@ -107,27 +103,13 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 						</Button>
 					</PopoverTrigger>
 					<PopoverContent className="w-80 p-0" align="start">
-						<Command>
-							<CommandInput placeholder="Search skills..." autoFocus />
-							<CommandList className="max-h-72">
-								<CommandEmpty>No enabled skills found.</CommandEmpty>
-								<CommandGroup>
-									{availableSkillsToAdd.map((skillKey) => (
-										<CommandItem
-											key={skillKey}
-											value={skillKey}
-											onSelect={handleAddSkill}
-											className="flex flex-col items-start gap-0.5"
-										>
-											<span className="font-medium">{skillKey}</span>
-											{/* <span className="text-sm text-muted-foreground truncate w-full">
-												{skill.description}
-											</span> */}
-										</CommandItem>
-									))}
-								</CommandGroup>
-							</CommandList>
-						</Command>
+						<Suspense fallback={<SkillCommandListSkeleton />}>
+							<SkillCommandList
+								onSkillSelect={handleAddSkill}
+								excludeSkills={availableSkills}
+								placeholder="Search skills..."
+							/>
+						</Suspense>
 					</PopoverContent>
 				</Popover>
 			)}

@@ -12,6 +12,7 @@ import { useLockedBalance } from '~/hooks/query/useTransactions';
 import { useContainerBreakpoint } from '~/hooks/useContainerBreakpoint';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
+import { useSkillMutations } from '~/hooks/useSkillMutations';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
@@ -48,6 +49,7 @@ declare global {
 		useCurrentTask: typeof useCurrentTask;
 		useContainerBreakpoint: typeof useContainerBreakpoint;
 		useTaskMutations: typeof useTaskMutations;
+		useSkillMutations: typeof useSkillMutations;
 		useOptimisticTaskUpdate: typeof useOptimisticTaskUpdate;
 
 		// Utilities
@@ -95,6 +97,7 @@ export function useSetupWindowGlobals() {
 		window.useContainerBreakpoint = useContainerBreakpoint;
 
 		window.useTaskMutations = useTaskMutations;
+		window.useSkillMutations = useSkillMutations;
 		window.useOptimisticTaskUpdate = useOptimisticTaskUpdate;
 
 		// Utilities

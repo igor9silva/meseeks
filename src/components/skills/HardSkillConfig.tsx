@@ -1,15 +1,17 @@
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
+import { SkillSelector } from '~/components/skills/shared/SkillSelector';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
 import { Textarea } from '~/components/ui/textarea';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-export type ParameterType = 'search' | 'header' | 'path' | 'body';
+export type ParameterType = 'search' | 'header' | 'path' | 'body' | 'bodyPath';
 export type ReactionCondition = 'owner' | 'companion' | 'any';
 
 export interface ParamMapping {
@@ -50,9 +52,6 @@ export interface HardSkillConfigProps {
 	// Known Reactions
 	knownReactions?: KnownReaction[];
 	onKnownReactionsChange?: (reactions: KnownReaction[]) => void;
-
-	// Available skills for reactions
-	skillOptions?: Array<{ key: string; description: string }>;
 }
 
 export function HardSkillConfig({
@@ -81,9 +80,6 @@ export function HardSkillConfig({
 	// Known Reactions
 	knownReactions = [],
 	onKnownReactionsChange = () => {},
-
-	// Available skills for reactions
-	skillOptions = [],
 }: HardSkillConfigProps) {
 	//
 	// Temporary state for new header
@@ -135,6 +131,17 @@ export function HardSkillConfig({
 
 	const handleRemoveParamMapping = (index: number) => {
 		onParamMappingsChange(paramMappings.filter((_, i) => i !== index));
+	};
+
+	// Condition labels - defined once and reused
+	const CONDITION_LABELS: Record<ReactionCondition, string> = {
+		owner: 'if performed by you',
+		companion: 'if performed by Meseeks',
+		any: 'always',
+	};
+
+	const getConditionLabel = (condition: ReactionCondition) => {
+		return CONDITION_LABELS[condition] || condition;
 	};
 
 	// Reaction handlers
@@ -319,6 +326,7 @@ export function HardSkillConfig({
 											<SelectItem value="header">Header</SelectItem>
 											<SelectItem value="path">Path</SelectItem>
 											<SelectItem value="body">Body</SelectItem>
+											<SelectItem value="bodyPath">Body Path</SelectItem>
 										</SelectContent>
 									</Select>
 
@@ -391,19 +399,14 @@ export function HardSkillConfig({
 					>
 						Known reactions
 					</LabelWithTooltip>
-					<div className="flex gap-2 flex-wrap">
-						<Select value={newSkillKey} onValueChange={setNewSkillKey}>
-							<SelectTrigger className="flex-1">
-								<SelectValue placeholder="Select a skill" />
-							</SelectTrigger>
-							<SelectContent>
-								{skillOptions.map((skill) => (
-									<SelectItem key={skill.key} value={skill.key}>
-										{skill.key}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+					<div className="flex gap-2 items-center">
+						<div className="flex-1">
+							<SkillSelector
+								value={newSkillKey}
+								onValueChange={setNewSkillKey}
+								placeholder="Select a skill"
+							/>
+						</div>
 
 						<Select
 							value={newReactionCondition}
@@ -413,9 +416,9 @@ export function HardSkillConfig({
 								<SelectValue placeholder="Condition" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="owner">Owner</SelectItem>
-								<SelectItem value="companion">Companion</SelectItem>
-								<SelectItem value="any">Any</SelectItem>
+								<SelectItem value="owner">{CONDITION_LABELS.owner}</SelectItem>
+								<SelectItem value="companion">{CONDITION_LABELS.companion}</SelectItem>
+								<SelectItem value="any">{CONDITION_LABELS.any}</SelectItem>
 							</SelectContent>
 						</Select>
 
@@ -425,26 +428,36 @@ export function HardSkillConfig({
 					</div>
 
 					{knownReactions.length > 0 ? (
-						<div className="space-y-2 mt-2">
-							{knownReactions.map((reaction, index) => (
-								<div key={index} className="flex justify-between items-center p-2 rounded bg-muted/50">
-									<div>
-										<span className="font-medium">{reaction.skillKey}</span>
-										<Badge className="ml-2" variant="outline">
-											{reaction.condition}
-										</Badge>
-									</div>
-									<Button
-										type="button"
-										variant="ghost"
-										size="icon"
-										onClick={() => handleRemoveReaction(index)}
-									>
-										<Trash className="h-4 w-4" />
-									</Button>
-								</div>
-							))}
-						</div>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Skill</TableHead>
+									<TableHead>Condition</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{knownReactions.map((reaction, index) => (
+									<TableRow key={index}>
+										<TableCell className="font-medium">{reaction.skillKey}</TableCell>
+										<TableCell>
+											<Badge variant="outline">{getConditionLabel(reaction.condition)}</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												className="h-4 w-4 p-0"
+												onClick={() => handleRemoveReaction(index)}
+											>
+												<Trash className="h-3 w-3" />
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
 					) : (
 						<div className="text-center p-4 border rounded-xl text-muted-foreground mt-2">
 							No reactions defined

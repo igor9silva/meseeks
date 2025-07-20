@@ -1,64 +1,46 @@
+import { modelsSchema } from 'convex/schemas/skillSchema';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { z } from 'zod';
+import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
-import { Combobox, ComboboxOption } from '~/components/ui/combobox';
 import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { ScrollArea } from '~/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Slider } from '~/components/ui/slider';
 import { Textarea } from '~/components/ui/textarea';
+import { SkillSelector } from './shared/SkillSelector';
+
+type IntelligenceKey = z.infer<typeof modelsSchema>;
 
 export interface SoftSkillConfigProps {
-	model?: string;
-	onModelChange?: (value: string) => void;
+	model?: IntelligenceKey;
+	onModelChange: (value: IntelligenceKey) => void;
 	temperature?: number;
-	onTemperatureChange?: (value: number) => void;
+	onTemperatureChange: (value: number) => void;
 	instructions?: string;
-	onInstructionsChange?: (value: string) => void;
+	onInstructionsChange: (value: string) => void;
 	availableSkills?: string[];
-	onAvailableSkillsChange?: (skills: string[]) => void;
-	skillOptions?: Array<{ key: string; description: string }>;
+	onAvailableSkillsChange: (skills: string[]) => void;
 }
 
-export function SoftSkillConfig({
-	model = 'anthropic/claude-4-sonnet',
-	onModelChange = () => {},
+export default function SoftSkillConfig({
+	model,
+	onModelChange,
 	temperature = 0.7,
-	onTemperatureChange = () => {},
-	instructions = '',
-	onInstructionsChange = () => {},
+	onTemperatureChange,
+	instructions,
+	onInstructionsChange,
 	availableSkills = [],
-	onAvailableSkillsChange = () => {},
-	skillOptions = [],
+	onAvailableSkillsChange,
 }: SoftSkillConfigProps) {
 	//
-	const [newSkillKey, setNewSkillKey] = useState('');
-
-	// Model options for the combobox
-	const modelOptions: ComboboxOption[] = [
-		{ value: 'anthropic/claude-4-sonnet', label: 'Claude 4 Sonnet (Default)' },
-		{ value: 'xai/grok-3-mini', label: 'Grok 3 Mini' },
-		{ value: 'anthropic/claude-3.5-haiku', label: 'Claude 3.5 Haiku' },
-		{ value: 'anthropic/claude-4-opus', label: 'Claude 4 Opus' },
-		{ value: 'openai/gpt-4.1', label: 'GPT-4.1' },
-		{ value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-		{ value: 'deepseek/deepseek-v3', label: 'DeepSeek V3' },
-	];
-
-	const handleAddAvailableSkill = () => {
-		if (!newSkillKey || availableSkills.includes(newSkillKey)) return;
-
-		onAvailableSkillsChange([...availableSkills, newSkillKey]);
-		setNewSkillKey('');
-	};
-
-	const handleRemoveAvailableSkill = (skill: string) => {
-		onAvailableSkillsChange(availableSkills.filter((s) => s !== skill));
+	const handleRemoveSkill = (skillToRemove: string) => {
+		const updatedSkills = availableSkills.filter((skill) => skill !== skillToRemove);
+		onAvailableSkillsChange?.(updatedSkills);
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-6">
 			<h2 className="text-lg font-medium">AI Configuration</h2>
 
 			<div className="space-y-4">
@@ -70,12 +52,7 @@ export function SoftSkillConfig({
 						>
 							Intelligence
 						</LabelWithTooltip>
-						<Combobox
-							options={modelOptions}
-							value={model}
-							onChange={onModelChange}
-							placeholder="Select model"
-						/>
+						<IntelligenceSelector value={model} onChange={onModelChange} />
 					</div>
 
 					<div className="space-y-2">
@@ -128,25 +105,16 @@ export function SoftSkillConfig({
 					>
 						Available skills
 					</LabelWithTooltip>
-					<div className="flex gap-2">
-						<Select value={newSkillKey} onValueChange={setNewSkillKey}>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select a skill" />
-							</SelectTrigger>
-							<SelectContent>
-								{skillOptions
-									.filter((skill) => !availableSkills.includes(skill.key))
-									.map((skill) => (
-										<SelectItem key={skill.key} value={skill.key}>
-											{skill.key}
-										</SelectItem>
-									))}
-							</SelectContent>
-						</Select>
-						<Button type="button" onClick={handleAddAvailableSkill} disabled={!newSkillKey}>
-							Add
-						</Button>
-					</div>
+					<SkillSelector
+						value=""
+						onValueChange={(skillKey) => {
+							if (skillKey && !availableSkills.includes(skillKey)) {
+								onAvailableSkillsChange([...availableSkills, skillKey]);
+							}
+						}}
+						excludeSkills={availableSkills}
+						placeholder="Select a skill"
+					/>
 
 					{availableSkills.length > 0 ? (
 						<ScrollArea className="h-32 border rounded-xl p-4">
@@ -159,7 +127,7 @@ export function SoftSkillConfig({
 											variant="ghost"
 											size="icon"
 											className="h-4 w-4 ml-1 p-0"
-											onClick={() => handleRemoveAvailableSkill(skill)}
+											onClick={() => handleRemoveSkill(skill)}
 										>
 											<X className="h-3 w-3" />
 										</Button>
