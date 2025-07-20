@@ -37,7 +37,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 			preApprovedCost: 'none',
 			knownReactions: [],
 			config: {
-				model: 'anthropic/claude-4-sonnet',
+				model: 'auto',
 				temperature: 0.7,
 				instructions: '',
 				availableSkills: [],
@@ -57,7 +57,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 			'config' in skill
 				? skill.config
 				: {
-						model: 'anthropic/claude-4-sonnet',
+						model: 'auto',
 						temperature: 0.7,
 						instructions: '',
 						availableSkills: [],
@@ -120,7 +120,7 @@ export function buildSoftSkillFromForm(data: SoftSkillFormValues): NewSoftSkill 
 		knownReactions: data.knownReactions || [],
 		cost: 'dynamic',
 		config: {
-			model: data.config?.model || 'anthropic/claude-4-sonnet',
+			model: data.config?.model || 'auto',
 			instructions: data.config?.instructions || '',
 			temperature: data.config?.temperature || 0.7,
 			availableSkills: data.config?.availableSkills || [],
