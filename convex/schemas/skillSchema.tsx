@@ -293,6 +293,10 @@ const coreSkillSchema = z.object({
 	owner: skillOwnerSchema,
 	author: skillAuthorSchema,
 	isHidden: z.boolean().optional().describe('Whether the skill is hidden from /skills.'),
+	priority: z
+		.number()
+		.optional()
+		.describe('The priority of the skill, visual only. Used to sort the skills list. Lower = higher.'),
 });
 
 export const builtInSkillSchema = coreSkillSchema.extend({

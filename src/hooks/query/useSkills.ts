@@ -3,12 +3,16 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 
+const byPriority = (a: { priority?: number }, b: { priority?: number }) => {
+	return (a.priority ?? 999999999) - (b.priority ?? 999999999);
+};
+
 export function usePersonalSkills() {
 	//
 	const query = convexQuery(api.skills.public.findAllPersonal, {});
 	const result = useSuspenseQuery(query);
 
-	result.data = result.data?.filter((skill) => !skill.isHidden);
+	result.data = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
 
 	return {
 		...result,
@@ -21,7 +25,7 @@ export function usePublicSkills() {
 	const query = convexQuery(api.skills.public.findAllPublic, {});
 	const result = useSuspenseQuery(query);
 
-	result.data = result.data?.filter((skill) => !skill.isHidden);
+	result.data = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
 
 	return {
 		...result,
