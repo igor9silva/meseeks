@@ -297,7 +297,7 @@ export function HardSkillConfig({
 				<div className="space-y-2">
 					<LabelWithTooltip
 						htmlFor="bodyTemplate"
-						tooltip="JSON template for the request body. Use {'{parameter}'} for dynamic values."
+						tooltip="JSON template for the request body. Use {{parameter}} for dynamic values."
 					>
 						Body Template
 					</LabelWithTooltip>

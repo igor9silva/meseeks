@@ -6,6 +6,7 @@ import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Textarea } from '~/components/ui/textarea';
+import { InputSchemaDisplay } from './shared/InputSchemaDisplay';
 
 interface BasicInfoFieldsProps {
 	isHardSkill?: boolean;
@@ -181,7 +182,11 @@ function InputSchemaField({ disabled }: { disabled?: boolean }) {
 						Input Schema
 					</LabelWithTooltip>
 					<FormControl>
-						<Textarea {...field} placeholder="{}" disabled={disabled} className="min-h-40" />
+						{disabled ? (
+							<InputSchemaDisplay schema={field.value || '{}'} />
+						) : (
+							<Textarea {...field} placeholder="{}" disabled={disabled} className="min-h-40" />
+						)}
 					</FormControl>
 					<FormMessage />
 				</FormItem>

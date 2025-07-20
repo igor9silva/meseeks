@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/comp
 import { LabelWithTooltip } from '~/components/ui/form-tooltip';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
+import { InputSchemaDisplay } from './InputSchemaDisplay';
 
 interface BasicSkillFieldsProps {
 	form: UseFormReturn<any>;
@@ -63,13 +64,17 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 							Input Schema
 						</LabelWithTooltip>
 						<FormControl>
-							<Textarea
-								{...field}
-								disabled={!isEditable}
-								placeholder="{}"
-								rows={3}
-								className="font-mono"
-							/>
+							{isEditable ? (
+								<Textarea
+									{...field}
+									disabled={!isEditable}
+									placeholder="{}"
+									rows={3}
+									className="font-mono"
+								/>
+							) : (
+								<InputSchemaDisplay schema={field.value || '{}'} />
+							)}
 						</FormControl>
 						<FormMessage />
 					</FormItem>

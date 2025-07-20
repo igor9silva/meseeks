@@ -1,9 +1,8 @@
 import { asDollars } from 'convex/lib/money';
 import { builtInSkillSchema } from 'convex/schemas/skillSchema';
 import { z } from 'zod';
-import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import { parseJsonSchemaToProperties } from '~/lib/json-schema-parser';
+import { InputSchemaDisplay } from './shared/InputSchemaDisplay';
 
 type InnateSkill = z.infer<typeof builtInSkillSchema>;
 
@@ -36,7 +35,7 @@ export function InnateSkillDetail({ skill }: { skill: InnateSkill }) {
 					<CardDescription className="text-sm">Input info for this skill.</CardDescription>
 				</CardHeader>
 				<CardContent className="pt-0">
-					<InputSchema schema={skill.inputSchema} />
+					<InputSchemaDisplay schema={skill.inputSchema} />
 				</CardContent>
 			</Card>
 
@@ -90,59 +89,4 @@ function Condition({ condition }: { condition: 'owner' | 'companion' | 'any' }) 
 		default:
 			return condition;
 	}
-}
-
-function InputSchema({ schema }: { schema: string }) {
-	//
-	const properties = parseJsonSchemaToProperties(schema);
-
-	if (properties.length === 0) {
-		return <p className="text-sm text-muted-foreground">No parameters required</p>;
-	}
-
-	return (
-		<div className="overflow-x-auto">
-			<table className="w-full">
-				<thead>
-					<tr className="border-b">
-						<th className="text-left p-2 font-medium text-sm">Property</th>
-						<th className="text-left p-2 font-medium text-sm">Type</th>
-						<th className="text-left p-2 font-medium text-sm">Required</th>
-						<th className="text-left p-2 font-medium text-sm">Description</th>
-					</tr>
-				</thead>
-				<tbody>
-					{properties.map((prop) => (
-						<tr key={prop.name} className="border-b last:border-b-0">
-							<td className="p-2">
-								<code className="text-sm bg-muted px-1 py-0.5 rounded">{prop.name}</code>
-							</td>
-							<td className="p-2">
-								<Badge variant="outline" className="text-xs">
-									{prop.type}
-								</Badge>
-							</td>
-							<td className="p-2">
-								<Badge variant={prop.required ? 'destructive' : 'secondary'} className="text-xs">
-									{prop.required ? 'yes' : 'no'}
-								</Badge>
-							</td>
-							<td className="p-2 text-sm">
-								<div>
-									{prop.description}
-									{prop.constraints && (
-										<div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-											{prop.constraints.map((constraint, i) => (
-												<div key={i}>{constraint}</div>
-											))}
-										</div>
-									)}
-								</div>
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
-	);
 }
