@@ -99,7 +99,8 @@ export function createHTTPTool(
 					{
 						symbol: 'USD',
 						amount: skill.cost,
-						description: 'Skill cost (to provider)',
+						description:
+							skill.key === 'analyze' ? 'Free thanks to Daytona.io!' : 'Skill cost (to provider)',
 					},
 					{
 						symbol: 'USD',
