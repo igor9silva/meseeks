@@ -12,7 +12,17 @@ import { _create, _findAllByOwner, _update } from './private';
 
 export const findAllPublic = query({
 	handler: async (ctx) => {
-		return await _findAllByOwner(ctx, { owner: 'isPro' });
+		//
+		const skills = await _findAllByOwner(ctx, { owner: 'isPro' });
+
+		// remove headers from isPro hard skills, as they may contain passwords
+		for (const skill of skills) {
+			if (skill.owner === 'isPro' && skill.kind === 'hard') {
+				skill.config.headers = {};
+			}
+		}
+
+		return skills;
 	},
 });
 
