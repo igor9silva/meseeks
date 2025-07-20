@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { Doc } from 'convex/_generated/dataModel';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { InnateSkillsList } from '~/components/skills/InnateSkillsList';
 import { ShareSkillRequestDialog } from '~/components/skills/ShareSkillRequestDialog';
+import { SkillCardSkeleton } from '~/components/skills/SkillCardSkeleton';
 import { SkillList } from '~/components/skills/SkillList';
 import { CardDescription, CardTitle } from '~/components/ui/card';
 import { Separator } from '~/components/ui/separator';
@@ -28,6 +30,23 @@ export default function RouteComponent() {
 				</div>
 			</div>
 			<div className="space-y-8">
+				<div>
+					<h2 className="text-lg font-semibold">Innate Skills</h2>
+					<CardDescription>Built-in capabilities that are always available to Meseeks.</CardDescription>
+					<Separator className="mt-2 mb-4" />
+					<Suspense
+						fallback={
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+								{Array.from({ length: 6 }).map((_, i) => (
+									<SkillCardSkeleton key={i} />
+								))}
+							</div>
+						}
+					>
+						<InnateSkillsList />
+					</Suspense>
+				</div>
+
 				<div>
 					<h2 className="text-lg font-semibold">Managed by you</h2>
 					<CardDescription>Skills you taught Meseeks yourself.</CardDescription>

@@ -35,3 +35,14 @@ export function useSkill(skillId: Id<'skills'>) {
 		skill: result.data,
 	};
 }
+
+export function useInnateSkills() {
+	//
+	const query = convexQuery(api.skills.public.findAllInnate, {});
+	const result = useSuspenseQuery(query);
+
+	return {
+		...result,
+		skills: result.data,
+	};
+}

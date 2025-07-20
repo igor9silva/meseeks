@@ -44,7 +44,7 @@ export function SkillCard({
 
 	const cardContent = (
 		<>
-			<CardHeader className="pb-2">
+			<CardHeader className="p-4 pb-2">
 				<div className="flex justify-between items-start">
 					<div>
 						<CardTitle className="text-lg">{skill.key}</CardTitle>
@@ -57,10 +57,11 @@ export function SkillCard({
 						onClick={handleToggle}
 						tooltip={`${isEnabled ? 'Disable' : 'Enable'} skill (must be enabled to use)`}
 						aria-label={`${isEnabled ? 'Disable' : 'Enable'} ${skill.key} skill`}
+						className="mt-1"
 					/>
 				</div>
 			</CardHeader>
-			<CardContent className="flex-grow pt-2">
+			<CardContent className="flex-grow p-4 pt-2">
 				<div className="grid grid-rows-[auto_auto] gap-2 h-full">
 					<div className="flex items-center gap-2">
 						{skill.kind === 'soft' ? (
