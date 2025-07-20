@@ -29,7 +29,6 @@ export function SkillCard({
 	const isSpecial = skill.priority !== undefined; // TODO: hack
 	const isActive = isEnabled || isSpecial;
 	const availableSkills = skill.kind === 'soft' ? skill.config?.availableSkills ?? [] : [];
-	const hasTaskSkills = availableSkills.includes('{{taskSkills}}');
 	const knownReactions = skill.kind === 'hard' ? skill.knownReactions ?? [] : [];
 
 	const handleToggle = (event: React.MouseEvent) => {
@@ -82,12 +81,6 @@ export function SkillCard({
 								tooltipTitle="Model can choose between"
 								items={availableSkills}
 							/>
-						)}
-
-						{hasTaskSkills && (
-							<Badge variant="outline" className="text-xs">
-								Task skills
-							</Badge>
 						)}
 
 						{knownReactions.length > 0 && (
