@@ -3,9 +3,8 @@ export const CancellationFaq = {
 	answer: (
 		<div className="space-y-3 text-muted-foreground leading-relaxed">
 			<p>
-				Of course. Your access continues until the current billing period ends, and{' '}
-				<strong>you keep all unused credits</strong>
-				(since they never expire).
+				Of course. And you'll still have access to Meseeks, all your data, and all remaining credits (since they
+				never expire).
 			</p>
 		</div>
 	),

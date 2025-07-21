@@ -18,8 +18,8 @@ export const CreditsFaq = {
 				Pro subscribers get $10 worth of monthly <strong>credits that never expire</strong>.
 			</p>
 			<p>
-				You can top up as much credits as you need, with zero margin from us - $10 gets you exactly $10 worth of
-				credits.
+				You can top up as much credits as you need, with zero markup from us -{' '}
+				<strong>$10 gets you exactly $10 worth of credits.</strong>
 			</p>
 		</div>
 	),
