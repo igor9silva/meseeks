@@ -79,7 +79,7 @@ Allows Meseeks to render React-based code. The use cases are endless.
 - **Shareable** with embedded functionality (coming soon).
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/cbdc23b8-33a6-4c29-9631-3eb1c14f579a" controls width="75%" />
+  <video src="https://github.com/user-attachments/assets/8a30875e-8ced-4615-86ae-1d210b0e1514" controls width="75%" />
 </div>
 <!-- im a hacker https://github.com/orgs/community/discussions/19403#discussioncomment-8432916 -->
 
