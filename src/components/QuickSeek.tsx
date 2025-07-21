@@ -153,7 +153,12 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'i' },
-		callback: () => textareaRef.current?.focus(),
+		callback: () => {
+			textareaRef.current?.focus();
+			// Move cursor to end of text
+			const length = textareaRef.current?.value.length || 0;
+			textareaRef.current?.setSelectionRange(length, length);
+		},
 	});
 
 	// intelligence selector shortcut (CMD+/)

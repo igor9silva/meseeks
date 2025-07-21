@@ -18,7 +18,7 @@ export default function RouteComponent() {
 	track('skills/new');
 
 	return (
-		<div className="m-6">
+		<div className="m-4">
 			<div className="flex flex-row items-center justify-between my-4">
 				<div>
 					<CardTitle className="text-2xl">New skill</CardTitle>
@@ -28,7 +28,7 @@ export default function RouteComponent() {
 				</div>
 			</div>
 
-			<SkillLearningInfoBox />
+			<SkillLearningInfoBox query="Hi. Please, I want you to learn a new skill. It should..." />
 
 			<Tabs value={skillType} onValueChange={(value) => setSkillType(value as 'soft' | 'hard')}>
 				<TabsList>

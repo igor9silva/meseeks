@@ -7,7 +7,6 @@ import SoftSkillConfig from '~/components/skills/SoftSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
 import { Form } from '~/components/ui/form';
-import { Separator } from '~/components/ui/separator';
 import { useSkillFormSubmit } from '~/hooks/useSkillFormSubmit';
 import {
 	buildSoftSkillFromForm,
@@ -38,8 +37,6 @@ export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) 
 			<form onSubmit={form.handleSubmit(submitSkill, handleFormError)} className="space-y-6">
 				{/* Basic skill fields */}
 				<BasicSkillFields form={form} isEditable={isEditable} skill={skill} />
-
-				<Separator />
 
 				{/* Soft skill specific configuration */}
 				<SoftSkillConfig

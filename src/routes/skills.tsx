@@ -29,7 +29,7 @@ export default function RouteComponent() {
 					<CardTitle className="text-2xl">Skills</CardTitle>
 					<CardDescription>
 						The building blocks of Meseeks — they define what it can do.
-						<Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 mt-4">
+						<Card className="text-sm border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 mt-4">
 							<CardContent className="flex items-center gap-3 p-4">
 								<Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
 								<div className="text-blue-800 dark:text-blue-200 flex items-center justify-between w-full">

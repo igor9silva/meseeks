@@ -56,7 +56,12 @@ export function ActionComposer({
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'i' },
-		callback: () => textareaRef.current?.focus(),
+		callback: () => {
+			textareaRef.current?.focus();
+			// Move cursor to end of text
+			const length = textareaRef.current?.value.length || 0;
+			textareaRef.current?.setSelectionRange(length, length);
+		},
 	});
 
 	// authorize shortcut (⌥+Enter) - global for blocked actions

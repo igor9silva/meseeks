@@ -22,6 +22,9 @@ export function MessageComposer({
 
 	useEffect(() => {
 		textareaRef.current?.focus();
+		// Move cursor to end of text
+		const length = textareaRef.current?.value.length || 0;
+		textareaRef.current?.setSelectionRange(length, length);
 	}, []);
 
 	const handleSubmit = useHandleSubmit({

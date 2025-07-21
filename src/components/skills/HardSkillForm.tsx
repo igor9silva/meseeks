@@ -5,7 +5,6 @@ import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
 import { Form } from '~/components/ui/form';
-import { Separator } from '~/components/ui/separator';
 import { useSkillFormSubmit } from '~/hooks/useSkillFormSubmit';
 import {
 	buildHardSkillFromForm,
@@ -34,8 +33,6 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 			<form onSubmit={form.handleSubmit(submitSkill, handleFormError)} className="space-y-6">
 				{/* Basic skill fields */}
 				<BasicSkillFields form={form} isEditable={isEditable} skill={skill} />
-
-				<Separator />
 
 				{/* Hard skill specific configuration */}
 				<HardSkillConfig
