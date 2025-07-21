@@ -1,7 +1,7 @@
 <div align="center">
   <br />
   <br />
-  <img src="public/static/logo-dark-192.png" alt="Meseeks Logo">
+  <img src="public/github/logo.png" alt="Meseeks Logo">
   <br />
   <br />
 </div>
@@ -82,7 +82,7 @@ We make a fixed amount of money per subscription, which includes unlimited usage
 Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which controls how independent Meseeks is. You can also have tasks with 0 energy and handle everything yourself.
 
 <div align="center">
-  <video src="https://meseeks.app/static/autonomy-slider.mp4" controls width="75%" />
+  <video src="public/github/autonomy-slider.mp4" controls width="75%" />
 </div>
 
 
@@ -91,7 +91,7 @@ Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which 
 Transparency is a foundational principle of Meseeks, so you can always hit the `Dev Mode` button to see *everything* that's going on. Every token, every word, every byte, every cost, everything.
 
 <div align="center">
-  <img src="https://meseeks.app/static/dev-mode.png" />
+  <img src="public/github/dev-mode.png" />
 </div>
 
 ## 🚀 Getting Started
