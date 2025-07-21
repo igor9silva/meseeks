@@ -14,7 +14,7 @@ Throw in a task and it'll partner with you to achieve it.
 
 Organizing and expanding ideas, breaking down complexity, composing reports and presentations, sending emails, and whatever else your need — given that companions learn on the fly by trial and error (like you and me), gradually adapting to how you think, talk and act.
 
-Companions are *that thing* where you empty your mind at and rest in peace that it'll be handled — even if it requires you!
+Companions are [*that thing*](https://www.youtube.com/shorts/-B3j7NtqU5o) where you empty your mind at and rest in peace that it'll be handled — even if it requires you!
 
 Early on it **sort of feels like onboarding a new team member.** There is a lot of explaining and time investment; but overtime more and more gets absorbed, naturally earning your trust and gaining autonomy.
 
