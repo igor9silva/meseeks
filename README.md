@@ -166,6 +166,16 @@ Just open a pull request!
 
 Just plug into Vercel and everything works out of the box.
 
+## ⚠️ Disclaimer
+
+**Meseeks is a tool and, therefore, cannot be held accountable.** It takes actions **on your behalf**, meaning you are responsible for any outcomes.
+
+To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to a human decision that triggered it, directly or through a chain of reactions. **By using Meseeks, you agree that you are responsible for all outcomes.**
+
+If it earns money, it's yours. If it causes damages, you pay.
+
+Meseeks allows you to operate at infinite scale. **Be responsible.**
+
 ## 📄 License
 
 This project is licensed under the **AGPL-3.0 License** - see the [LICENSE.md](LICENSE.md) file for details.
