@@ -10,11 +10,11 @@
 
 Meseeks is **the first companion** — AI systems designed for long-term work, not mere conversation. Their goal is to replace your ToDo app, email client, Slack, or whatever you juggle to get things done.
 
-Throw in a task and it'll partner with you to get it done.
+Throw in a task and it'll partner with you to achieve it.
 
 Organizing and expanding ideas, breaking down complexity, composing reports and presentations, sending emails, and whatever else your need — given that companions learn on the fly by trial and error (like you and me), gradually adapting to how you think, talk and act.
 
-Companions are ~that thing~ where you empty your mind at and rest in peace that it'll be handled — even if it requires you!
+Companions are *that thing* where you empty your mind at and rest in peace that it'll be handled — even if it requires you!
 
 Early on it **sort of feels like onboarding a new team member.** There is a lot of explaining and time investment; but overtime more and more gets absorbed, naturally earning your trust and gaining autonomy.
 
@@ -39,7 +39,7 @@ This is our cloud offering of the platform that comes with a bunch of managed sk
 
 We make a fixed amount of money per subscription. After that, **you pay exactly what these services cost us** - zero markup.
 
-## ✨ Key Features
+## Features
 
 ### 🧱 Skills
 
@@ -69,22 +69,24 @@ Allows Meseeks to render React-based code. The use cases are endless.
 - **Games** from tic-tac-toe to complex 3D. Whatever runs in the browser.
 - **Shareable** with embedded functionality (coming soon).
 
+>Very soon Meseeks will allow you to update it's own UI 🤯
+
 ### ⚡ Energy
 
 The effort unit on Meseeks is called **energy** (or simply ⚡), which is equivalent to the US dollar, i.e. **1 energy = $1**. Energy supports up to 10 decimal places, so actions can cost as few as 0.0000000001⚡ (or 0).
 
-Energy is used to pay for AI compute and any other services (e.g. 0.002⚡ per web search with Tavily). Note that **we have ZERO markup on any of these services**, i.e. you pay exactly what these services cost us.
+Energy is used to pay for AI compute and any other services (e.g. 0.002⚡ per web search with Tavily). Note that **we have ZERO markup on any of these services**, you pay exactly what they cost us.
 
-We make a fixed amount of money per subscription, which includes unlimited usage of the platform and all it's innate skills. Skills that you teach it yourself are also free of charge.
+We make a fixed amount of money per subscription, which includes **unlimited usage of the platform and all it's innate skills**. Skills that you teach it yourself are also **free of charge**.
 
 **Very soon users will be able to share and earn from their skills.** If you are interested in participating in the early access program, please hit the share button on any of your personal skills and apply.
 
-Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which controls how independent Meseeks is. You can also have tasks with 0 energy and handle everything yourself.
-
 <div align="center">
-  <video src="public/github/autonomy-slider.mp4" controls width="75%" />
+  <video src="https://github.com/user-attachments/assets/3187f688-a0e4-4ad4-a1c4-2f7f54608b61" controls width="75%" />
 </div>
+<!-- im a hacker https://github.com/orgs/community/discussions/19403#discussioncomment-8432916 -->
 
+Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which controls how independent Meseeks is. You can also have tasks with 0 energy and handle everything yourself.
 
 ### 🧑‍💻 Dev Mode
 
@@ -94,9 +96,9 @@ Transparency is a foundational principle of Meseeks, so you can always hit the `
   <img src="public/github/dev-mode.png" />
 </div>
 
-## 🚀 Getting Started
+## 🚀 Running locally
 
-We haven't spent much energy making it easy to run locally yet, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
+We haven't yet spent much energy making it easy to run locally, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
 
 ### Self-Hosting Options
 
@@ -122,9 +124,9 @@ Meseeks is licensed under **AGPL-3**, which means you can do essentially anythin
 Meseeks is **end-to-end open**, i.e. every piece it relies on is also open source. From the backend core to the payment processor — no closed pieces.
 
 The foundational pillars are:
-- **Convex** - Real-time backend that abstracts database complexity and provides perfect the building blocks for AI apps.
-- **TanStack/Everything** - Start, Router and Query to power our frontend.
-- **AI SDK** - Multi-provider AI integration enabling seamless model switching.
+- **[Convex](https://github.com/get-convex/convex-backend)** - Real-time backend. Abstracts database complexity and provides the perfect building blocks for AI.
+- **[TanStack/Everything](https://tanstack.com/)** - Start, Router and Query to power our frontend.
+- **[AI SDK](https://github.com/vercel/ai)** - Multi-provider AI integration enabling seamless model switching.
 
 ### 🫶 Open Source 🫶
 
@@ -137,23 +139,6 @@ Convex provides the most important building blocks for AI applications, abstract
 **It's our mission to give back to the community that made all of this possible.**
 
 Meseeks has 1 listed contributor on GitHub, **but it's truly made by decades of human collaboration.**
-
-<!-- ## 🗺️ Vision & Roadmap
-
-### Coming Soon
-- **File Support**: Upload, index, and search through your documents
-- **Task Hierarchy**: Nested tasks with inherited context
-- **Scheduling**: Automated routines and event-driven actions
-- **Mobile App**: Native iOS/Android with incredible UX
-- **Voice/Video**: Real-time conversations with Meseeks
-- **Organizations**: Team collaboration features
-
-### Future Vision
-- **Decentralization**: Run Meseeks on your own infrastructure
-- **Custom Algorithms**: Build your own content feeds and filters
-- **Terminal Integration**: SSH into servers under your supervision
-- **Managed Skills**: Create and monetize your own skills
-- **Global Cache**: Shared knowledge across the Meseeks network -->
 
 ## 🤝 Contributing
 
