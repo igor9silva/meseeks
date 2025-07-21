@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/lib/money';
@@ -100,7 +100,6 @@ export function CommandMenuDialog() {
 
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
-	const { isPro } = useIsPro();
 
 	useEffect(() => {
 		setSearch(pathname + searchStr);
@@ -190,16 +189,9 @@ export function CommandMenuDialog() {
 						<Wallet className="mr-2" />
 						Balance & account
 					</CommandItem>
-					{!isPro && (
-						<CommandItem
-							value="/subscribe"
-							keywords={['subscribe', 'pro', 'upgrade', 'premium', 'plan', 'go pro']}
-							onSelect={onSelect}
-						>
-							<CreditCard className="mr-2" />
-							Go Pro (subscribe)
-						</CommandItem>
-					)}
+					<Suspense fallback={null}>
+						<SubscribeCommandItem onSelect={onSelect} />
+					</Suspense>
 					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 						<Sparkles className="mr-2" />
 						Manage skills
@@ -468,6 +460,24 @@ function DevModeCommandItem() {
 		>
 			<CodeXml className="mr-2" />
 			{isDebugMode ? 'Disable' : 'Enable'} Dev Mode
+		</CommandItem>
+	);
+}
+
+function SubscribeCommandItem({ onSelect }: { onSelect: (value: string) => void }) {
+	//
+	const { isPro } = useIsPro();
+
+	if (isPro) return null;
+
+	return (
+		<CommandItem
+			value="/subscribe"
+			keywords={['subscribe', 'pro', 'upgrade', 'premium', 'plan', 'go pro']}
+			onSelect={onSelect}
+		>
+			<CreditCard className="mr-2" />
+			Go Pro (subscribe)
 		</CommandItem>
 	);
 }

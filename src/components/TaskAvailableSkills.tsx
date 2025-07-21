@@ -126,13 +126,6 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 				</div>
 			)}
 
-			{!hasSkills && hasAnyEnabledSkills && hasSkillsToAdd && (
-				<div className="text-xs text-muted-foreground px-2">
-					No specific skills configured. Click the + button to add skills and limit which ones are available
-					for this task.
-				</div>
-			)}
-
 			{availableSkills.length >= 16 && (
 				<div className="text-xs text-muted-foreground px-2 mt-1">Maximum of 16 skills reached.</div>
 			)}

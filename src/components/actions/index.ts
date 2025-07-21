@@ -73,4 +73,5 @@ export default {
 
 	// hidden
 	requestIteration: null,
+	lookAtMe: null,
 };

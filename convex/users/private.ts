@@ -66,7 +66,7 @@ const _addInitialTask = async (
 	const initialTaskId = await _addWithActions(ctx, {
 		author: userId,
 		owner: userId,
-		title: 'ooh-wee, look at me!',
+		title: 'Look at me!',
 		instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
 
 I'd like you to gather details such as:
