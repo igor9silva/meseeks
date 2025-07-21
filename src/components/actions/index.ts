@@ -10,6 +10,7 @@ import { LearnAction } from '~/components/actions/LearnAction';
 import { MathAction } from '~/components/actions/MathAction';
 import { ReasonAction } from '~/components/actions/ReasonAction';
 import { RenderAction } from '~/components/actions/RenderAction';
+import { ReopenAction } from '~/components/actions/ReopenAction';
 import { RequestBudgetAction } from '~/components/actions/RequestBudgetAction';
 import { ResolveAction } from '~/components/actions/ResolveAction';
 import { SayAction } from '~/components/actions/SayAction';
@@ -45,6 +46,7 @@ export default {
 	done: DoneAction,
 	resolve: ResolveAction,
 	discard: DiscardAction,
+	reopen: ReopenAction,
 	askForClarification: SayAction,
 	analyze: AnalyzeAction,
 	searchWeb: SearchWebAction,
