@@ -1,3 +1,192 @@
-# Meseeks
+<div align="center">
+  <br />
+  <br />
+  <img src="public/static/logo-dark-192.png" alt="Meseeks Logo">
+  <br />
+  <br />
+</div>
 
-The first companion. Fully open (source, prompts, business).
+# Look at me!
+
+Meseeks is **the first companion** — AI systems designed for long-term work, not mere conversation. Their goal is to replace your ToDo app, email client, Slack, or whatever you juggle to get things done.
+
+Throw in a task and it'll partner with you to get it done.
+
+Organizing and expanding ideas, breaking down complexity, composing reports and presentations, sending emails, and whatever else your need — given that companions learn on the fly by trial and error (like you and me), gradually adapting to how you think, talk and act.
+
+Companions are ~that thing~ where you empty your mind at and rest in peace that it'll be handled — even if it requires you!
+
+Early on it **sort of feels like onboarding a new team member.** There is a lot of explaining and time investment; but overtime more and more gets absorbed, naturally earning your trust and gaining autonomy.
+
+Eventually, delegating entire projects are just a few words away.
+
+**Escape velocity has been reached. <br />**
+Enjoy the ride!
+
+>*Start scaling your decision-making today at [meseeks.app](https://meseeks.app).* Be free!
+
+## Platform vs App
+
+This repository is actually two things:
+
+**1. An open companion platform** - This entire repository is a reactive platform. It comes with innate skills like say(), reason(), render() and many others, but no managed skills like searching the web or scraping links (which relly on third-party services).
+
+It's purely the infrastructure. The **reactor** mechanics for assembling skill-based reaction chains, managing tasks, energy-controlled autonomy, and more. You add your own skills and loops, and make it behave the way you want. It can act like a chatbot (chatgpt), an agent (cursor, lovable), a deep researcher, or whatever else you want.
+
+**2. Meseeks, the app** - Our research preview available at [meseeks.app](https://meseeks.app).
+
+This is our cloud offering of the platform that comes with a bunch of managed skills like web searching with [Tavily](https://www.tavily.com), YouTube transcribing with Gemini, link scraping with [Firecrawl](https://firecrawl.dev), academic research with [Valyu](https://valyu.network), and many many more.
+
+We make a fixed amount of money per subscription. After that, **you pay exactly what these services cost us** - zero markup.
+
+## ✨ Key Features
+
+### 🧱 Skills
+
+The building blocks of Meseeks — they define what it can do.
+
+- **Hard skills**: Use HTTP to talk to other apps and external services. No MCP required.
+- **Soft skills**: AI-powered decision making. Any model, any provider.
+- **Innate skills**: Built-in capabilities like say(), reason(), render(), schedule(), updateInstructions(), and many others.
+- **Community skills**: Share and discover skills from other users (coming soon).
+
+When a skill is used, we call it an **action**. This can be performed directly by the user, or by Meseeks (via a soft skill re-action).
+
+### 🧪 Reactor
+
+Every time an action is performed, it may trigger a re-action, that may trigger another re-action, and so on. We refer to that as the **reaction chain**.
+
+- **Keep execution under control** with energy ⚡ budgeting, avoiding machines to take over.
+- **Learn new skills** during task execution.
+
+
+### 🎨 Compositions
+
+Allows Meseeks to render React-based code. The use cases are endless.
+
+- **Live dashboards** that update in real-time.
+- **Presentations** like slides, videos, charts, etc.
+- **Games** from tic-tac-toe to complex 3D. Whatever runs in the browser.
+- **Shareable** with embedded functionality (coming soon).
+
+### ⚡ Energy
+
+The effort unit on Meseeks is called **energy** (or simply ⚡), which is equivalent to the US dollar, i.e. **1 energy = $1**. Energy supports up to 10 decimal places, so actions can cost as few as 0.0000000001⚡ (or 0).
+
+Energy is used to pay for AI compute and any other services (e.g. 0.002⚡ per web search with Tavily). Note that **we have ZERO markup on any of these services**, i.e. you pay exactly what these services cost us.
+
+We make a fixed amount of money per subscription, which includes unlimited usage of the platform and all it's innate skills. Skills that you teach it yourself are also free of charge.
+
+**Very soon users will be able to share and earn from their skills.** If you are interested in participating in the early access program, please hit the share button on any of your personal skills and apply.
+
+Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which controls how independent Meseeks is. You can also have tasks with 0 energy and handle everything yourself.
+
+<div align="center">
+  <video src="https://meseeks.app/static/autonomy-slider.mp4" controls width="75%" />
+</div>
+
+
+### 🧑‍💻 Dev Mode
+
+Transparency is a foundational principle of Meseeks, so you can always hit the `Dev Mode` button to see *everything* that's going on. Every token, every word, every byte, every cost, everything.
+
+<div align="center">
+  <img src="https://meseeks.app/static/dev-mode.png" />
+</div>
+
+## 🚀 Getting Started
+
+We haven't spent much energy making it easy to run locally yet, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
+
+### Self-Hosting Options
+
+You can run Meseeks entirely offline on your own infrastructure:
+
+- **Fully Local**: Run Convex on your machine with open source databases (e.g. Postgres), use local AI models if your hardware supports them.
+- **Hybrid Cloud**: Mix and match services - use Convex's free tier, Google Gemini's free tier, and others to minimize costs.
+- **Your Own Server**: Deploy everything to your own servers with complete control.
+
+### AGPL-3 License Benefits
+
+Meseeks is licensed under **AGPL-3**, which means you can do essentially anything with it:
+- Clone, rebrand, and resell it
+- Modify it for any need
+- Run it locally or on servers
+- Compete with us (we'd love that!)
+- Literally anything
+
+**As long as you keep it open source.** Any modifications, even for internal use, must be open.
+
+## 🛠️ Tech Stack
+
+Meseeks is **end-to-end open**, i.e. every piece it relies on is also open source. From the backend core to the payment processor — no closed pieces.
+
+The foundational pillars are:
+- **Convex** - Real-time backend that abstracts database complexity and provides perfect the building blocks for AI apps.
+- **TanStack/Everything** - Start, Router and Query to power our frontend.
+- **AI SDK** - Multi-provider AI integration enabling seamless model switching.
+
+### 🫶 Open Source 🫶
+
+We're extremely grateful to the open source community. The massive efficiency gains we're seeing in the industry today are only possible because of incredible open source libraries collectively built and maintained by **millions of engineers around the globe**.
+
+AI couldn't write as much code as it does today without every layer below it. Think about how Tailwind, shadcn/ui, TanStack, and others are literally part of every LLM knowledge nowadays. Every model can write excellent React code, handle complex TypeScript types, and use useQuery/useMutation to its full extent.
+
+Convex provides the most important building blocks for AI applications, abstracting backend complexity, ensuring proper indexing, enforcing schema conformance with Zod, and making everything safe, fast, and scalable by default.
+
+**It's our mission to give back to the community that made all of this possible.**
+
+Meseeks has 1 listed contributor on GitHub, **but it's truly made by decades of human collaboration.**
+
+<!-- ## 🗺️ Vision & Roadmap
+
+### Coming Soon
+- **File Support**: Upload, index, and search through your documents
+- **Task Hierarchy**: Nested tasks with inherited context
+- **Scheduling**: Automated routines and event-driven actions
+- **Mobile App**: Native iOS/Android with incredible UX
+- **Voice/Video**: Real-time conversations with Meseeks
+- **Organizations**: Team collaboration features
+
+### Future Vision
+- **Decentralization**: Run Meseeks on your own infrastructure
+- **Custom Algorithms**: Build your own content feeds and filters
+- **Terminal Integration**: SSH into servers under your supervision
+- **Managed Skills**: Create and monetize your own skills
+- **Global Cache**: Shared knowledge across the Meseeks network -->
+
+## 🤝 Contributing
+
+Just open a pull request!
+
+- **Bun**: We use `bun` instead of npm/yarn/pnpm.
+- **TypeScript**: Everything must be type-safe (no `any`).
+- **Cursor**: The project comes with minimally decent cursor rules, so we suggest using Cursor.
+
+## 🚢 Deployment
+
+Just plug into Vercel and everything works out of the box.
+
+## 📄 License
+
+This project is licensed under the **AGPL-3.0 License** - see the [LICENSE.md](LICENSE.md) file for details.
+
+You can do literally anything with it, **as long as you keep it open source.**
+
+## 🌟 Community & Support
+
+- **Twitter**: [@MeseeksApp](https://x.com/MeseeksApp) and  [@igor9silva](https://x.com/igor9silva)
+- **GitHub**: [Issues](https://github.com/igor9silva/meseeks/issues/new)
+- **Discord**: [Server](https://discord.gg/nmagFVGvfE)
+- **Learn more**: [Vision blog post](https://igorsilva.pro/agi)
+
+## Thank you everyone!
+
+Meseeks is built collaboratively by the open-source community, and stands on the shoulders of projects like [Convex](https://github.com/get-convex/convex-backend), [TanStack](https://tanstack.com/), [AI SDK](https://github.com/vercel/ai), [Tailwind](https://github.com/tailwindlabs/tailwindcss), [shadcn/ui](https://github.com/shadcn-ui/ui), [Polar](https://github.com/polarsource/polar), and many, maaaaany others.
+
+---
+
+<div align="center">
+  <!-- <strong>Look at me! I'm Mr. Meseeks!</strong><br/> -->
+  <sub>Built with ❤️ by humankind.</sub>
+</div>
