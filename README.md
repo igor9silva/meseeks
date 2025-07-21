@@ -25,7 +25,7 @@ Enjoy the ride!
 
 >*Start scaling your decision-making today at [meseeks.app](https://meseeks.app).* Be free!
 
-[See it in action!](#-compositions)
+[See it in action 👇](#-compositions)
 
 ## Platform vs App
 
