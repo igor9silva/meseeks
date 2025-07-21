@@ -23,6 +23,8 @@ Eventually, delegating entire projects are just a few words away.
 **Escape velocity has been reached. <br />**
 Enjoy the ride!
 
+[See it in action!](#-compositions)
+
 >*Start scaling your decision-making today at [meseeks.app](https://meseeks.app).* Be free!
 
 ## Platform vs App
@@ -52,6 +54,10 @@ The building blocks of Meseeks — they define what it can do.
 
 When a skill is used, we call it an **action**. This can be performed directly by the user, or by Meseeks (via a soft skill re-action).
 
+<div align="center">
+  <img src="public/github/innate-skills.png" />
+</div>
+
 ### 🧪 Reactor
 
 Every time an action is performed, it may trigger a re-action, that may trigger another re-action, and so on. We refer to that as the **reaction chain**.
@@ -59,6 +65,9 @@ Every time an action is performed, it may trigger a re-action, that may trigger 
 - **Keep execution under control** with energy ⚡ budgeting, avoiding machines to take over.
 - **Learn new skills** during task execution.
 
+<div align="center">
+  <img src="public/github/skills.png" />
+</div>
 
 ### 🎨 Compositions
 
@@ -68,6 +77,11 @@ Allows Meseeks to render React-based code. The use cases are endless.
 - **Presentations** like slides, videos, charts, etc.
 - **Games** from tic-tac-toe to complex 3D. Whatever runs in the browser.
 - **Shareable** with embedded functionality (coming soon).
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/cbdc23b8-33a6-4c29-9631-3eb1c14f579a" controls width="75%" />
+</div>
+<!-- im a hacker https://github.com/orgs/community/discussions/19403#discussioncomment-8432916 -->
 
 >Very soon Meseeks will allow you to update it's own UI 🤯
 
