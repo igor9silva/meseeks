@@ -71,6 +71,9 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 			// Set initial height immediately to prevent flicker
 			textareaRef.current.style.height = `${singleLineHeight}px`;
 			textareaRef.current.focus();
+			// Move cursor to end of text
+			const length = textareaRef.current.value.length;
+			textareaRef.current.setSelectionRange(length, length);
 		}
 	}, [singleLineHeight]);
 

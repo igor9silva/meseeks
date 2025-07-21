@@ -235,47 +235,49 @@ export function HardSkillConfig({
 						Headers
 					</LabelWithTooltip>
 					<Card>
-						<CardContent className="pt-4">
-							<div className="space-y-4">
-								<div className="flex flex-col sm:flex-row gap-2">
-									<Input
-										placeholder="Header name"
-										value={newHeader.key}
-										onChange={(e) => setNewHeader({ ...newHeader, key: e.target.value })}
-										className="flex-1"
-										disabled={!isEditable}
-									/>
-									<Input
-										placeholder="Header value"
-										value={newHeader.value}
-										onChange={(e) => setNewHeader({ ...newHeader, value: e.target.value })}
-										className="flex-1"
-										disabled={!isEditable}
-									/>
-									<Button
-										type="button"
-										onClick={handleAddHeader}
-										disabled={!isEditable || !newHeader.key || !newHeader.value}
-										className="sm:shrink-0"
-									>
-										Add
-									</Button>
-								</div>
+						{!isEditable ? (
+							<div className="text-center p-2 text-muted-foreground">
+								Headers are hidden as they may contain passwords.
+							</div>
+						) : (
+							<CardContent className="pt-4">
+								<div className="space-y-4">
+									<div className="flex flex-col sm:flex-row gap-2">
+										<Input
+											placeholder="Header name"
+											value={newHeader.key}
+											onChange={(e) => setNewHeader({ ...newHeader, key: e.target.value })}
+											className="flex-1"
+										/>
+										<Input
+											placeholder="Header value"
+											value={newHeader.value}
+											onChange={(e) => setNewHeader({ ...newHeader, value: e.target.value })}
+											className="flex-1"
+										/>
+										<Button
+											type="button"
+											onClick={handleAddHeader}
+											disabled={!newHeader.key || !newHeader.value}
+											className="sm:shrink-0"
+										>
+											Add
+										</Button>
+									</div>
 
-								{Object.keys(headers).length > 0 ? (
-									<div className="space-y-2">
-										{Object.entries(headers).map(([key, value]) => (
-											<div
-												key={key}
-												className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
-											>
-												<div className="flex flex-col gap-1 min-w-0 flex-1">
-													<span className="font-medium text-sm">{key}:</span>
-													<span className="text-sm break-all text-muted-foreground">
-														{value}
-													</span>
-												</div>
-												{isEditable && (
+									{Object.keys(headers).length > 0 ? (
+										<div className="space-y-2">
+											{Object.entries(headers).map(([key, value]) => (
+												<div
+													key={key}
+													className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
+												>
+													<div className="flex flex-col gap-1 min-w-0 flex-1">
+														<span className="font-medium text-sm">{key}:</span>
+														<span className="text-sm break-all text-muted-foreground">
+															{value}
+														</span>
+													</div>
 													<Button
 														type="button"
 														variant="ghost"
@@ -285,15 +287,15 @@ export function HardSkillConfig({
 													>
 														<Trash className="h-4 w-4" />
 													</Button>
-												)}
-											</div>
-										))}
-									</div>
-								) : (
-									<div className="text-center p-4 text-muted-foreground">No headers defined</div>
-								)}
-							</div>
-						</CardContent>
+												</div>
+											))}
+										</div>
+									) : (
+										<div className="text-center p-4 text-muted-foreground">No headers defined</div>
+									)}
+								</div>
+							</CardContent>
+						)}
 					</Card>
 				</div>
 
