@@ -89,7 +89,7 @@ Allows Meseeks to render React-based code. The use cases are endless.
 
 The effort unit on Meseeks is called **energy** (or simply ⚡), which is equivalent to the US dollar, i.e. **1 energy = $1**. Energy supports up to 10 decimal places, so actions can cost as few as 0.0000000001⚡ (or 0).
 
-Energy is used to pay for AI compute and any other services (e.g. 0.002⚡ per web search with Tavily). Note that **we have ZERO markup on any of these services**, you pay exactly what they cost us.
+Energy is used to pay for AI compute and any other services (e.g. 0.008⚡ per web search with Tavily). Note that **we have ZERO markup on any of these services**, you pay exactly what they cost us.
 
 We make a fixed amount of money per subscription, which includes **unlimited usage of the platform and all it's innate skills**. Skills that you teach it yourself are also **free of charge**.
 

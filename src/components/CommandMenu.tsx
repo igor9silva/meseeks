@@ -16,6 +16,7 @@ import {
 	CircleCheckBig,
 	CircleX,
 	CodeXml,
+	CreditCard,
 	Github,
 	Inbox,
 	LogOut,
@@ -36,6 +37,7 @@ import {
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
+import { useIsPro } from '~/hooks/useIsPro';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
@@ -98,6 +100,7 @@ export function CommandMenuDialog() {
 
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
+	const { isPro } = useIsPro();
 
 	useEffect(() => {
 		setSearch(pathname + searchStr);
@@ -187,6 +190,16 @@ export function CommandMenuDialog() {
 						<Wallet className="mr-2" />
 						Balance & account
 					</CommandItem>
+					{!isPro && (
+						<CommandItem
+							value="/subscribe"
+							keywords={['subscribe', 'pro', 'upgrade', 'premium', 'plan', 'go pro']}
+							onSelect={onSelect}
+						>
+							<CreditCard className="mr-2" />
+							Go Pro (subscribe)
+						</CommandItem>
+					)}
 					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 						<Sparkles className="mr-2" />
 						Manage skills
