@@ -150,13 +150,13 @@ function DescriptionField({ disabled }: { disabled?: boolean }) {
 			name="description"
 			render={({ field }) => (
 				<FormItem>
-					<LabelWithTooltip tooltip="A clear description of what this skill does. This is visible to Meseeks, so it must include instructions on how to use that skill, how to fill in input params, etc.">
+					<LabelWithTooltip tooltip="This description is exposed to the AI when selecting skills. It should clearly explain what the skill does and when to use it, as the AI uses this information to decide whether to use this skill during task execution.">
 						Description
 					</LabelWithTooltip>
 					<FormControl>
 						<Textarea
 							{...field}
-							placeholder="Describe what this skill does"
+							placeholder="Describe what this skill does and when/how to use it..."
 							className="min-h-24"
 							disabled={disabled}
 						/>

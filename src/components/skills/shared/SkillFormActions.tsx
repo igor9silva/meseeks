@@ -7,9 +7,11 @@ interface SkillFormActionsProps {
 
 export function SkillFormActions({ isSubmitting, isEditable }: SkillFormActionsProps) {
 	//
+	if (!isEditable) return null;
+
 	return (
 		<div className="flex justify-end">
-			<Button type="submit" disabled={!isEditable || isSubmitting}>
+			<Button type="submit" disabled={isSubmitting}>
 				{isSubmitting ? 'Saving...' : 'Save'}
 			</Button>
 		</div>

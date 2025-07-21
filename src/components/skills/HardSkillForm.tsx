@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Doc } from 'convex/_generated/dataModel';
 import { useForm } from 'react-hook-form';
+import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
 import { Form } from '~/components/ui/form';
@@ -37,7 +38,7 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 				<Separator />
 
 				{/* Hard skill specific configuration */}
-				{/* <HardSkillConfig
+				<HardSkillConfig
 					url={form.watch('config.url')}
 					onUrlChange={(value) => form.setValue('config.url', value)}
 					method={form.watch('config.method')}
@@ -51,7 +52,7 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 					knownReactions={form.watch('knownReactions')}
 					onKnownReactionsChange={(reactions) => form.setValue('knownReactions', reactions)}
 					isEditable={isEditable}
-				/> */}
+				/>
 
 				{/* Form Actions */}
 				<SkillFormActions isSubmitting={isSubmitting} isEditable={isEditable} />

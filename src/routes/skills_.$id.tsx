@@ -3,6 +3,7 @@ import { track } from '@vercel/analytics/react';
 import { Id } from 'convex/_generated/dataModel';
 import { BasicError } from '~/components/BasicError';
 import { HardSkillForm } from '~/components/skills/HardSkillForm';
+import { SkillLearningInfoBox } from '~/components/skills/SkillLearningInfoBox';
 import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
 import { Badge } from '~/components/ui/badge';
 import { CardDescription, CardTitle } from '~/components/ui/card';
@@ -53,6 +54,8 @@ export default function RouteComponent() {
 					)}
 				</CardDescription>
 			</div>
+
+			{skill.isEditable && <SkillLearningInfoBox skillName={skill.key} />}
 
 			<div>
 				{skill.kind === 'soft' ? (

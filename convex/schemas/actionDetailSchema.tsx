@@ -41,6 +41,8 @@ const httpActionDetailSchema = baseActionDetailSchema
 				url: z.string().url().describe('Full URL that was called (including query params)'),
 				requestBodySize: z.number().min(0).optional().describe('Size of request body in bytes'),
 
+				// note: request headers and body are not stored as they may contain sensitive information
+
 				// response details
 				statusCode: z.number().min(100).max(599).describe('HTTP response status code'),
 				statusText: z.string().describe('HTTP response status message'),

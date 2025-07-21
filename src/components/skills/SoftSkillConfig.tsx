@@ -194,16 +194,17 @@ export default function SoftSkillConfig({
 									{availableSkills.map((skill) => (
 										<Badge key={skill} variant="secondary" className="flex items-center gap-1">
 											{skill}
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												className="h-4 w-4 ml-1 p-0"
-												onClick={() => handleRemoveSkill(skill)}
-												disabled={!isEditable}
-											>
-												<X className="h-3 w-3" />
-											</Button>
+											{isEditable && (
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-4 w-4 ml-1 p-0"
+													onClick={() => handleRemoveSkill(skill)}
+												>
+													<X className="h-3 w-3" />
+												</Button>
+											)}
 										</Badge>
 									))}
 								</div>

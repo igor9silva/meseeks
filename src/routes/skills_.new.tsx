@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { useState } from 'react';
 import { HardSkillForm } from '~/components/skills/HardSkillForm';
+import { SkillLearningInfoBox } from '~/components/skills/SkillLearningInfoBox';
 import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
 import { CardDescription, CardTitle } from '~/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
@@ -26,6 +27,8 @@ export default function RouteComponent() {
 					</CardDescription>
 				</div>
 			</div>
+
+			<SkillLearningInfoBox />
 
 			<Tabs value={skillType} onValueChange={(value) => setSkillType(value as 'soft' | 'hard')}>
 				<TabsList>

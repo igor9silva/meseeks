@@ -243,17 +243,19 @@ export function HardSkillConfig({
 										value={newHeader.key}
 										onChange={(e) => setNewHeader({ ...newHeader, key: e.target.value })}
 										className="flex-1"
+										disabled={!isEditable}
 									/>
 									<Input
 										placeholder="Header value"
 										value={newHeader.value}
 										onChange={(e) => setNewHeader({ ...newHeader, value: e.target.value })}
 										className="flex-1"
+										disabled={!isEditable}
 									/>
 									<Button
 										type="button"
 										onClick={handleAddHeader}
-										disabled={!newHeader.key || !newHeader.value}
+										disabled={!isEditable || !newHeader.key || !newHeader.value}
 										className="sm:shrink-0"
 									>
 										Add
@@ -273,15 +275,17 @@ export function HardSkillConfig({
 														{value}
 													</span>
 												</div>
-												<Button
-													type="button"
-													variant="ghost"
-													size="icon"
-													className="shrink-0"
-													onClick={() => handleRemoveHeader(key)}
-												>
-													<Trash className="h-4 w-4" />
-												</Button>
+												{isEditable && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="shrink-0"
+														onClick={() => handleRemoveHeader(key)}
+													>
+														<Trash className="h-4 w-4" />
+													</Button>
+												)}
 											</div>
 										))}
 									</div>
@@ -331,6 +335,7 @@ export function HardSkillConfig({
 												type: value as ParameterType,
 											})
 										}
+										disabled={!isEditable}
 									>
 										<SelectTrigger className="w-full sm:w-28">
 											<SelectValue placeholder="Type" />
@@ -351,6 +356,7 @@ export function HardSkillConfig({
 											setNewParamMapping({ ...newParamMapping, source: e.target.value })
 										}
 										className="flex-1"
+										disabled={!isEditable}
 									/>
 
 									<Input
@@ -360,12 +366,13 @@ export function HardSkillConfig({
 											setNewParamMapping({ ...newParamMapping, target: e.target.value })
 										}
 										className="flex-1"
+										disabled={!isEditable}
 									/>
 
 									<Button
 										type="button"
 										onClick={handleAddParamMapping}
-										disabled={!newParamMapping.source || !newParamMapping.target}
+										disabled={!isEditable || !newParamMapping.source || !newParamMapping.target}
 										className="sm:shrink-0"
 									>
 										Add
@@ -387,15 +394,17 @@ export function HardSkillConfig({
 														<span className="break-all">{param.target}</span>
 													</div>
 												</div>
-												<Button
-													type="button"
-													variant="ghost"
-													size="icon"
-													className="shrink-0"
-													onClick={() => handleRemoveParamMapping(index)}
-												>
-													<Trash className="h-4 w-4" />
-												</Button>
+												{isEditable && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="shrink-0"
+														onClick={() => handleRemoveParamMapping(index)}
+													>
+														<Trash className="h-4 w-4" />
+													</Button>
+												)}
 											</div>
 										))}
 									</div>
@@ -423,12 +432,14 @@ export function HardSkillConfig({
 								value={newSkillKey}
 								onValueChange={setNewSkillKey}
 								placeholder="Select a skill"
+								disabled={!isEditable}
 							/>
 						</div>
 
 						<Select
 							value={newReactionCondition}
 							onValueChange={(value) => setNewReactionCondition(value as ReactionCondition)}
+							disabled={!isEditable}
 						>
 							<SelectTrigger className="w-40">
 								<SelectValue placeholder="Condition" />
@@ -440,7 +451,7 @@ export function HardSkillConfig({
 							</SelectContent>
 						</Select>
 
-						<Button type="button" onClick={handleAddReaction} disabled={!newSkillKey}>
+						<Button type="button" onClick={handleAddReaction} disabled={!isEditable || !newSkillKey}>
 							Add
 						</Button>
 					</div>
@@ -462,15 +473,17 @@ export function HardSkillConfig({
 											<Badge variant="outline">{getConditionLabel(reaction.condition)}</Badge>
 										</TableCell>
 										<TableCell className="text-right">
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												className="h-4 w-4 p-0"
-												onClick={() => handleRemoveReaction(index)}
-											>
-												<Trash className="h-3 w-3" />
-											</Button>
+											{isEditable && (
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-4 w-4 p-0"
+													onClick={() => handleRemoveReaction(index)}
+												>
+													<Trash className="h-3 w-3" />
+												</Button>
+											)}
 										</TableCell>
 									</TableRow>
 								))}

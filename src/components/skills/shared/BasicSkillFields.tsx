@@ -40,12 +40,14 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="description"
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>Description</FormLabel>
+						<LabelWithTooltip tooltip="This description is exposed to the AI when selecting skills. It should clearly explain what the skill does and when to use it, as the AI uses this information to decide whether to use this skill during task execution.">
+							Description
+						</LabelWithTooltip>
 						<FormControl>
 							<Textarea
 								{...field}
 								disabled={!isEditable}
-								placeholder="Describe what this skill does..."
+								placeholder="Describe what this skill does and when to use it..."
 								rows={3}
 							/>
 						</FormControl>
@@ -60,7 +62,7 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="inputSchema"
 				render={({ field }) => (
 					<FormItem>
-						<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly.">
+						<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly. You if have no idea what this is, you'll be better served by asking Meseeks to learn it, instead of trying to fill manually.">
 							Input Schema
 						</LabelWithTooltip>
 						<FormControl>
