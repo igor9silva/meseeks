@@ -23,9 +23,9 @@ Eventually, delegating entire projects are just a few words away.
 **Escape velocity has been reached. <br />**
 Enjoy the ride!
 
-[See it in action!](#-compositions)
-
 >*Start scaling your decision-making today at [meseeks.app](https://meseeks.app).* Be free!
+
+[See it in action!](#-compositions)
 
 ## Platform vs App
 
