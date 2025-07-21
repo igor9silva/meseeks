@@ -33,7 +33,7 @@ export const _seedIfNeeded = async (
 		description: 'Welcome credits',
 	});
 
-	await _addWelcomeMessages(ctx, userId);
+	await _addInitialTask(ctx, userId);
 
 	const markAreReady = () => {
 		//
@@ -58,12 +58,12 @@ export const _seedIfNeeded = async (
 	markAreReady();
 };
 
-const _addWelcomeMessages = async (
+const _addInitialTask = async (
 	ctx: MutationCtx, //
 	userId: Id<'users'>,
 ) => {
 	//
-	await _addWithActions(ctx, {
+	const initialTaskId = await _addWithActions(ctx, {
 		author: userId,
 		owner: userId,
 		title: 'ooh-wee, look at me!',
@@ -95,6 +95,10 @@ I'm also curious about Meseeks and would love to learn more about its capabiliti
 			},
 		],
 	});
+
+	await ctx.db.patch(userId, { initialTaskId });
+
+	return initialTaskId;
 };
 
 const _setDefaultPreferences = async (

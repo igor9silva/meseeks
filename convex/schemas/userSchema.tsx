@@ -15,6 +15,7 @@ export const userSchema = z.object({
 	isReady: z.boolean().default(false),
 	balanceUSD: z.bigint().default(0n),
 	isFounder: z.boolean().default(false),
+	initialTaskId: zid('tasks').optional(),
 });
 
 export const userPreferencesSchema = z.object({
