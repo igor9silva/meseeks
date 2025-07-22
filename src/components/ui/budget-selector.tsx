@@ -4,6 +4,7 @@ import { Slider } from '~/components/ui/slider';
 
 export const BUDGET_STEPS = [
 	0, //
+	0.02,
 	0.2,
 	0.5,
 	1,

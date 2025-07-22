@@ -29,8 +29,8 @@ import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 // $0.22 - $2.00: Claude Sonnet (balanced performance/cost)
 // $2.01+: Claude Opus (premium option)
 const BUDGET_INTELLIGENCE_CONFIG = [
-	{ maxBudget: 0.51, intelligence: 'moonshot/kimi-2' as const },
-	{ maxBudget: 5.0, intelligence: 'anthropic/claude-4-sonnet' as const },
+	{ maxBudget: 1.01, intelligence: 'moonshot/kimi-2' as const },
+	{ maxBudget: 10.01, intelligence: 'anthropic/claude-4-sonnet' as const },
 	{ maxBudget: Infinity, intelligence: 'anthropic/claude-4-opus' as const },
 ];
 
