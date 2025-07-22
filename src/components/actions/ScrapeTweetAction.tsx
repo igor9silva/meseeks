@@ -56,7 +56,6 @@ function Success(props: ActionComponentProps) {
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'flex flex-col gap-0.5')}>
-			<div className="text-sm text-muted-foreground mb-2">🐦 Scraped tweet.</div>
 			<TweetCard tweet={tweet} fixedHeight={false} />
 		</Message>
 	);
