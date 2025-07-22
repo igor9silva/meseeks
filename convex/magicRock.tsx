@@ -179,7 +179,7 @@ function languageModelFrom(
 		// Google
 		'google/gemini-2.5-pro': google('gemini-2.5-pro', googleConfig),
 		'google/gemini-2.5-flash': google('gemini-2.5-flash', googleConfig),
-		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite-preview-06-17', googleConfig), // TODO: experimental model
+		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite', googleConfig),
 
 		// xAI
 		'xai/grok-3': xai('grok-3'),

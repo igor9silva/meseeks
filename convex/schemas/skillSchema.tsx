@@ -135,11 +135,11 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 
 		// Google
 		case 'google/gemini-2.5-pro':
-			return pricePerMillionTokens({ input: 2.5, output: 15 });
+			return pricePerMillionTokens({ input: 1.25, output: 10 });
 		case 'google/gemini-2.5-flash':
-			return pricePerMillionTokens({ input: 0.1, output: 0.6 });
+			return pricePerMillionTokens({ input: 0.3, output: 2.5 });
 		case 'google/gemini-2.5-flash-lite':
-			return pricePerMillionTokens({ input: 0.075, output: 0.3 });
+			return pricePerMillionTokens({ input: 0.1, output: 0.4 });
 
 		// xAI
 		case 'xai/grok-3':
