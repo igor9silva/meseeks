@@ -21,7 +21,7 @@ export function TweetCard({ tweet, className, fixedHeight = true }: TweetCardPro
 			rel="noopener noreferrer"
 			className={cn(
 				'flex flex-col min-w-80 max-w-80 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors',
-				'cursor-pointer overflow-hidden flex-shrink-0',
+				'cursor-pointer overflow-auto flex-shrink-0',
 				fixedHeight ? 'h-96' : 'min-h-0',
 				className,
 			)}

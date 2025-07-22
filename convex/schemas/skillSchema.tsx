@@ -161,7 +161,7 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 
 		// Moonshot
 		case 'moonshot/kimi-2':
-			return pricePerMillionTokens({ input: 0.15, output: 2.5 });
+			return pricePerMillionTokens({ input: 0.6, output: 2.5 });
 
 		// Cerebras
 		case 'cerebras/qwen3-235b':

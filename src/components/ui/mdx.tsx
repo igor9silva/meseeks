@@ -10,7 +10,6 @@ import { Balance } from '~/components/Balance';
 import { EasterEgg } from '~/components/EasterEgg';
 import { Inbox } from '~/components/Inbox';
 import { Task } from '~/components/layout/Task';
-import { Loading } from '~/components/Loading';
 import { QuickSeek } from '~/components/QuickSeek';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
@@ -102,6 +101,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { Slider } from '~/components/ui/slider';
 import { Switch } from '~/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { TextShimmer } from '~/components/ui/text-shimmer';
 import { Textarea } from '~/components/ui/textarea';
 import { Toggle } from '~/components/ui/toggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
@@ -264,7 +264,7 @@ export default function MDX({
 
 	const { Component, error, isPending } = useMDX(text.trim(), shouldRenderComponents);
 
-	if (isPending) return <Loading />;
+	if (isPending) return <TextShimmer text="Rendering..." />;
 	if (error) return errorFallback ?? <MDXError text={text} error={error} onClickFix={onClickFix} />;
 
 	if (!Component) throw new Error('No component found');
