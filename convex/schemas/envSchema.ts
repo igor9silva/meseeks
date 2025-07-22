@@ -90,11 +90,11 @@ export const env = createEnv({
 			.describe('The maximum number of consecutive companion actions.')
 			.default('20'),
 
-		DEFAULT_CONTEXT_SIZE: z
+		MAX_CONTEXT_ACTIONS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
-			.describe('The default context size.')
+			.describe('The maximum number of actions to load before token-based cropping.')
 			.default('40'),
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),

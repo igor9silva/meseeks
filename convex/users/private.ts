@@ -37,7 +37,7 @@ export const _seedIfNeeded = async (
 
 	const markAreReady = () => {
 		//
-		const delay = 10000; // ms, fake delay for fun
+		const delay = 4000; // ms, fake delay for fun
 		ctx.scheduler.runAfter(delay, internal.users.private._markAreReady, { userId });
 		// TODO: at somepoint, we'd like users to spawn their own Convex instance for full isolation and control
 	};

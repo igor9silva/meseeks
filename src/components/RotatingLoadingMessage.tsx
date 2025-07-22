@@ -25,11 +25,11 @@ export function RotatingLoadingMessage({ className }: { className?: string }) {
 		//
 		const interval = setInterval(() => {
 			setCurrentMessage((prev) => {
-				const currentIndex = loadingMessages.indexOf(prev);
-				const nextIndex = (currentIndex + 1) % loadingMessages.length;
-				return loadingMessages[nextIndex];
+				const availableMessages = loadingMessages.filter((msg) => msg !== prev);
+				const randomIndex = Math.floor(Math.random() * availableMessages.length);
+				return availableMessages[randomIndex];
 			});
-		}, 2000);
+		}, 1000);
 
 		return () => clearInterval(interval);
 	}, [loadingMessages]);

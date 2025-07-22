@@ -40,6 +40,28 @@ const moonshot = createOpenAICompatible({
 	baseURL: 'https://api.moonshot.ai/v1',
 });
 
+// hardcoded for now, TODO: make it dynamic per intelligence config
+const MAX_CONTEXT_TOKENS = 128_000;
+
+function estimateTokenCount(message: CoreMessage): number {
+	//
+	let content = '';
+
+	if (typeof message.content === 'string') {
+		content = message.content;
+	} else if (Array.isArray(message.content)) {
+		// handle TextPart, ImagePart, etc.
+		for (const part of message.content) {
+			if ('text' in part && typeof part.text === 'string') {
+				content += part.text;
+			}
+		}
+	}
+
+	// use the CHAR_PER_TOKEN env variable for estimation
+	return Math.ceil(content.length / env.CHAR_PER_TOKEN);
+}
+
 export type MagicRockContext = Parameters<typeof generateText>[0];
 
 export async function _prepareContext(
@@ -251,6 +273,26 @@ async function loadTools(
 	return tools;
 }
 
+function cropHistoryToTokenLimit(history: CoreMessage[], maxTokens: number = MAX_CONTEXT_TOKENS): CoreMessage[] {
+	//
+	const totalTokens = history.reduce((sum, message) => sum + estimateTokenCount(message), 0);
+
+	console.debug('cropHistoryToTokenLimit', totalTokens, maxTokens);
+	if (totalTokens <= maxTokens || history.length === 0) return history;
+
+	// remove oldest message and recurse
+	const [, ...remaining] = history;
+	const removedTokens = estimateTokenCount(history[0]);
+
+	console.debug(
+		`Cropped oldest message.`,
+		`Removed ${removedTokens} tokens.`,
+		`Remaining: ${totalTokens - removedTokens} tokens, ${remaining.length} messages.`,
+	);
+
+	return cropHistoryToTokenLimit(remaining);
+}
+
 async function renderHistory(
 	ctx: ActionCtx | MutationCtx, //
 	task: Doc<'tasks'>,
@@ -260,24 +302,31 @@ async function renderHistory(
 	//
 	const actions = await ctx.runQuery(internal.action.private._findLastActions, {
 		taskId: task._id,
-		amount: env.DEFAULT_CONTEXT_SIZE,
+		amount: env.MAX_CONTEXT_ACTIONS,
 	});
 
-	const history = actions
-		// remove unfinished or skipped actions
-		.filter((action) => ['succeeded', 'failed', 'pending authorization'].includes(action.status))
-		// remove the current action
-		.filter((a) => a._id !== action._id)
-		// render
-		.map((action) => renderAction(action, task.owner === action.author))
-		// filter out undefined
-		.filter((action) => action !== undefined)
-		// flatten
-		.flatMap((message) => message)
-		// reverse to show the most recent actions last
-		.reverse();
+	// filter, render, crop and flatten
+	const history = cropHistoryToTokenLimit(
+		actions
+			// remove unfinished or skipped actions
+			.filter((action) => ['succeeded', 'failed', 'pending authorization'].includes(action.status))
+			// remove the current action
+			.filter((a) => a._id !== action._id)
+			// reverse to show the most recent actions last
+			.reverse()
+			// render each action
+			.map((action) => renderAction(action, task.owner === action.author))
+			// filter out undefined
+			.filter((action) => action !== undefined)
+			// flatten
+			.flatMap((message) => message),
+	);
 
-	console.debug(`rendered last ${actions.length} actions as history`, history);
+	const finalTokens = history.reduce((sum, message) => sum + estimateTokenCount(message), 0);
+
+	console.debug(
+		`Rendered last ${history.length} actions as history (${finalTokens} tokens, max ${MAX_CONTEXT_TOKENS})`,
+	);
 
 	return history;
 }
