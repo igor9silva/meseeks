@@ -45,7 +45,6 @@ const SearchResultSchema = z.object({
 		z.object({
 			url: z.string().optional(),
 			title: z.string().optional(),
-			content: z.string().optional(),
 		}),
 	),
 });
