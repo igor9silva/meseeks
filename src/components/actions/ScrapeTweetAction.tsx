@@ -55,7 +55,10 @@ function Success(props: ActionComponentProps) {
 	}
 
 	return (
-		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'flex flex-col gap-0.5')}>
+		<Message
+			isAuthorCurrentUser={isAuthorCurrentUser}
+			className={cn(className, 'flex flex-col gap-0.5 max-h-[30rem]')}
+		>
 			<TweetCard tweet={tweet} fixedHeight={false} />
 		</Message>
 	);
