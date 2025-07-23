@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { ActionComponentProps } from '~/components/actions';
 
+import { Link } from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
+import MDX from '~/components/ui/mdx';
+import { Message, SimpleMessage } from '~/components/ui/message';
 
 export function ScrapeLinkAction(props: ActionComponentProps) {
 	//
@@ -62,12 +64,20 @@ const ScrapeResultSchema = z.object({
 });
 
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
+	//
+	const url = action.args['url'] as string;
+
 	return (
-		<FailedMessage
-			text={`🚫 Failed to read "${action.args['url']}"`}
-			error={action.result?.text ?? ''}
-			isAuthorCurrentUser={isAuthorCurrentUser}
-		/>
+		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
+			<div className="text-sm text-muted-foreground flex items-center">
+				🚫 Failed to read "
+				<Link to={url} target="_blank" rel="noopener noreferrer" className="break-all hover:underline">
+					{url}
+				</Link>
+				"
+			</div>
+			{action.result?.text && <div className="text-sm text-destructive mt-1">{action.result.text}</div>}
+		</Message>
 	);
 }
 
@@ -84,15 +94,25 @@ function Success(props: ActionComponentProps) {
 
 	const { data } = response.data;
 	const [isOpen, setIsOpen] = useState(false);
+	const url = action.args['url'] as string;
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen} className="min-w-0 w-full">
-				<CollapsibleTrigger className="flex gap-0 items-center min-w-0">
-					<MessageContent
-						className="text-sm text-muted-foreground text-left break-all overflow-wrap-anywhere min-w-0"
-						text={`🧵 Read "${action.args['url']}"`}
-					/>
+				<CollapsibleTrigger className="flex gap-0 items-center min-w-0 w-full">
+					<div className="text-sm text-muted-foreground text-left break-all overflow-wrap-anywhere min-w-0 flex items-center flex-1">
+						🧵 Read "
+						<Link
+							to={url}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="break-all hover:underline"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{url}
+						</Link>
+						"
+					</div>
 					<Button
 						variant="link"
 						size="sm"
@@ -102,8 +122,10 @@ function Success(props: ActionComponentProps) {
 						{isOpen ? <ChevronUp /> : <ChevronDown />}
 					</Button>
 				</CollapsibleTrigger>
-				<CollapsibleContent className="min-w-0 overflow-x-auto">
-					<SimpleMessage text={data.markdown} isAuthorCurrentUser={isAuthorCurrentUser} />
+				<CollapsibleContent className="min-w-0 overflow-hidden">
+					<div className="max-w-full max-h-96 overflow-auto bg-muted/30 rounded-md p-4 mt-2">
+						<MDX text={data.markdown} shouldRenderComponents={false} />
+					</div>
 				</CollapsibleContent>
 			</Collapsible>
 		</Message>
