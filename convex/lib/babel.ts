@@ -26,21 +26,3 @@ export const _transpileCode = internalAction({
 			.replace(/export\s+default\s+/g, 'window.default = ');
 	},
 });
-
-// export function transpileCode(code: string) {
-// 	//
-// 	const result = transform(code, {
-// 		presets: [require('@babel/preset-react')],
-// 		filename: 'component.jsx',
-// 	});
-
-// 	if (!result || !result.code) {
-// 		throw new Error('Babel transformation returned no code');
-// 	}
-
-// 	// simple post-processing to convert export statements to global assignments
-// 	return result.code
-// 		.replace(/export\s+const\s+(\w+)\s*=/g, 'window.$1 = ')
-// 		.replace(/export\s+function\s+(\w+)/g, 'window.$1 = function $1')
-// 		.replace(/export\s+default\s+/g, 'window.default = ');
-// }

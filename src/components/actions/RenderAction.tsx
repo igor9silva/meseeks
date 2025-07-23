@@ -3,32 +3,59 @@ import { cn } from '~/lib/utils';
 
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActionComponentProps } from '~/components/actions';
+import { GenericAction } from '~/components/actions/GenericAction';
 import { RenderActionControls } from '~/components/actions/RenderActionControls';
+import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
 import { useIframeRenderer } from '~/hooks/useIframeRenderer';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 
 export function RenderAction(props: ActionComponentProps) {
 	//
-	return (
-		<Suspense fallback={<TextShimmer text="Rendering..." />}>
-			<ErrorBoundary
-				fallbackRender={({ error, resetErrorBoundary }) => (
-					<div className="p-4">
-						<div className="text-red-600 mb-2">Unknown error during render.</div>
-						<button
-							onClick={resetErrorBoundary}
-							className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-						>
-							Retry
-						</button>
-					</div>
-				)}
-			>
-				<RenderActionContent {...props} />
-			</ErrorBoundary>
-		</Suspense>
-	);
+	const { action, isAuthorCurrentUser } = props;
+
+	switch (action.status) {
+		//
+		case 'enqueued':
+		case 'skipped':
+			return null;
+
+		case 'pending authorization':
+			return <GenericAction {...props} />;
+
+		case 'failed':
+			return (
+				<FailedMessage
+					text="🚫 Failed to render composition"
+					error={action.result?.text ?? 'Compilation failed'}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+				/>
+			);
+
+		case 'running':
+			return <SimpleMessage running text="Compiling..." isAuthorCurrentUser={isAuthorCurrentUser} />;
+
+		case 'succeeded':
+			return (
+				<Suspense fallback={<TextShimmer text="Rendering..." />}>
+					<ErrorBoundary
+						fallbackRender={({ error, resetErrorBoundary }) => (
+							<div className="p-4">
+								<div className="text-red-600 mb-2">Unknown error during render.</div>
+								<button
+									onClick={resetErrorBoundary}
+									className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+								>
+									Retry
+								</button>
+							</div>
+						)}
+					>
+						<RenderActionContent {...props} />
+					</ErrorBoundary>
+				</Suspense>
+			);
+	}
 }
 
 function RenderActionContent(props: ActionComponentProps) {
