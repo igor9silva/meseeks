@@ -11,6 +11,7 @@ import { EasterEgg } from '~/components/EasterEgg';
 import { Inbox } from '~/components/Inbox';
 import { Task } from '~/components/layout/Task';
 import { QuickSeek } from '~/components/QuickSeek';
+import { RenderActionTestSuite } from '~/components/RenderActionTestSuite';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
@@ -244,6 +245,7 @@ const components = {
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
+	RenderActionTestSuite,
 };
 
 export default function MDX({

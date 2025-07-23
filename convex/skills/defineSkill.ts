@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Doc } from '../_generated/dataModel';
-import { ActionCtx, MutationCtx } from '../_generated/server';
+import { ActionCtx } from '../_generated/server';
 
 export type Skill<T extends z.AnyZodObject> = {
 	preApprovedCost: bigint | 'none';
@@ -13,7 +13,7 @@ export type Skill<T extends z.AnyZodObject> = {
 };
 
 export type ToolExecution = {
-	ctx: ActionCtx | MutationCtx; //
+	ctx: ActionCtx; //
 	task: Doc<'tasks'>;
 	action: Doc<'actions'>;
 	skill: Skill<z.AnyZodObject>;

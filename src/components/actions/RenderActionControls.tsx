@@ -1,0 +1,97 @@
+import { useNavigate } from '@tanstack/react-router';
+import { Doc } from 'convex/_generated/dataModel';
+import { Bug, Expand, Minimize2 } from 'lucide-react';
+import { CopyButton } from '~/components/CopyButton';
+import { Button } from '~/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+
+interface RenderActionControlsProps {
+	//
+	action: Doc<'actions'>;
+	code: string;
+	isFullscreen: boolean;
+	onToggleFullscreen: () => void;
+	className?: string;
+}
+
+export function RenderActionControls({
+	action,
+	code,
+	isFullscreen,
+	onToggleFullscreen,
+	className,
+}: RenderActionControlsProps) {
+	//
+	const navigate = useNavigate();
+
+	const handleDebugClick = (e?: React.MouseEvent) => {
+		e?.stopPropagation();
+
+		// Navigate to dev mode with action anchor
+		navigate({
+			to: '/$',
+			search: (prev) => ({ ...prev, debug: true }),
+			hash: `action-${action._id}`,
+		});
+	};
+
+	return (
+		<div className={className}>
+			<DebugButton onClick={handleDebugClick} />
+			{isFullscreen ? (
+				<MinimizeButton onClick={onToggleFullscreen} />
+			) : (
+				<ExpandButton onClick={onToggleFullscreen} />
+			)}
+			<CopyButton textToCopy={code} />
+		</div>
+	);
+}
+
+function ExpandButton({ onClick }: { onClick: () => void }) {
+	//
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" onClick={onClick} className="h-6 w-6 border">
+						<Expand className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Expand to fullscreen</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function MinimizeButton({ onClick }: { onClick: () => void }) {
+	//
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" onClick={onClick} className="h-6 w-6 border">
+						<Minimize2 className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Exit fullscreen</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function DebugButton({ onClick }: { onClick: (e?: React.MouseEvent) => void }) {
+	//
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" onClick={onClick} className="h-6 w-6 border">
+						<Bug className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Inspect in dev mode</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
