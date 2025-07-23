@@ -66,17 +66,44 @@ const ScrapeResultSchema = z.object({
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	//
 	const url = action.args['url'] as string;
+	const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
-			<div className="text-sm text-muted-foreground flex items-center">
-				🚫 Failed to read "
-				<Link to={url} target="_blank" rel="noopener noreferrer" className="break-all hover:underline">
-					{url}
-				</Link>
-				"
-			</div>
-			{action.result?.text && <div className="text-sm text-destructive mt-1">{action.result.text}</div>}
+			<Collapsible open={isOpen} onOpenChange={setIsOpen} className="min-w-0 w-full">
+				<CollapsibleTrigger className="flex items-start gap-2 min-w-0 w-full text-left">
+					<div className="text-sm text-muted-foreground min-w-0 flex-1">
+						<div className="break-words">
+							🚫 Failed to read "
+							<Link
+								to={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="break-all hover:underline"
+								onClick={(e) => e.stopPropagation()}
+							>
+								{url}
+							</Link>
+							"
+						</div>
+					</div>
+					<Button
+						variant="link"
+						size="sm"
+						className="text-muted-foreground p-1 flex-shrink-0 mt-0"
+						onClick={() => setIsOpen(!isOpen)}
+					>
+						{isOpen ? <ChevronUp /> : <ChevronDown />}
+					</Button>
+				</CollapsibleTrigger>
+				{action.result?.text && (
+					<CollapsibleContent className="min-w-0 overflow-hidden">
+						<div className="text-sm text-destructive mt-2 p-3 bg-destructive/10 rounded-md break-words">
+							{action.result.text}
+						</div>
+					</CollapsibleContent>
+				)}
+			</Collapsible>
 		</Message>
 	);
 }
@@ -99,24 +126,26 @@ function Success(props: ActionComponentProps) {
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
 			<Collapsible open={isOpen} onOpenChange={setIsOpen} className="min-w-0 w-full">
-				<CollapsibleTrigger className="flex gap-0 items-center min-w-0 w-full">
-					<div className="text-sm text-muted-foreground text-left break-all overflow-wrap-anywhere min-w-0 flex items-center flex-1">
-						🧵 Read "
-						<Link
-							to={url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="break-all hover:underline"
-							onClick={(e) => e.stopPropagation()}
-						>
-							{url}
-						</Link>
-						"
+				<CollapsibleTrigger className="flex items-start gap-2 min-w-0 w-full text-left">
+					<div className="text-sm text-muted-foreground min-w-0 flex-1">
+						<div className="break-words">
+							🧵 Read "
+							<Link
+								to={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="break-all hover:underline"
+								onClick={(e) => e.stopPropagation()}
+							>
+								{url}
+							</Link>
+							"
+						</div>
 					</div>
 					<Button
 						variant="link"
 						size="sm"
-						className="text-muted-foreground p-1 flex-shrink-0"
+						className="text-muted-foreground p-1 flex-shrink-0 mt-0"
 						onClick={() => setIsOpen(!isOpen)}
 					>
 						{isOpen ? <ChevronUp /> : <ChevronDown />}
