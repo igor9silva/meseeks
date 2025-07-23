@@ -1,5 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
+import { internal } from '../_generated/api';
 import { _addMany as _addActions } from '../action/private';
 import { internalMutation, internalQuery } from '../lib';
 import { InsufficientAccountFunds, NotFound } from '../lib/errors';
@@ -288,8 +289,9 @@ export const _updateInstructions = internalMutation({
 		instructions: z.string().optional(),
 		summary: z.string().optional(),
 		availableSkills: z.array(z.string()).max(16).optional(),
+		owner: zid('users'),
 	},
-	handler: async (ctx, { taskId, title, instructions, summary, availableSkills }) => {
+	handler: async (ctx, { taskId, title, instructions, summary, availableSkills, owner }) => {
 		//
 		if (
 			title === undefined &&
@@ -298,6 +300,25 @@ export const _updateInstructions = internalMutation({
 			availableSkills === undefined
 		) {
 			throw new Error('Nothing to do');
+		}
+
+		// make sure the skills are valid
+		if (availableSkills) {
+			//
+			// get enabled skills - this is what the AI actually sees as available options
+			const enabledSkills = await ctx.runQuery(internal.skills.private._listEnabledSkillsWithDetails, {
+				userId: owner,
+			});
+
+			// create a set of enabled skill keys for fast lookup
+			const enabledSkillKeys = new Set(enabledSkills.map((skill) => skill.key));
+
+			// find invalid skills (skills that are not enabled for the user)
+			const invalidSkills = availableSkills.filter((skillKey) => !enabledSkillKeys.has(skillKey));
+
+			if (invalidSkills.length > 0) {
+				throw new Error(`Selected invalid skills: ${invalidSkills.join(', ')}`);
+			}
 		}
 
 		// TODO: we're only updating if not undefined, shouldn't we replace instead?

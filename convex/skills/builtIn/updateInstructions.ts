@@ -46,6 +46,7 @@ export const updateInstructions = defineSkill({
 				instructions: args.instructions,
 				summary: args.summary,
 				availableSkills: args.availableSkills,
+				owner: execution.task.owner,
 			});
 
 			return {
