@@ -146,7 +146,7 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 						console.error('Error in AI-generated code:', error);
 						document.getElementById('root').innerHTML = 
 							'<div style="color: red; padding: 1rem; font-family: sans-serif">' +
-							'Unknown error during render.' +
+							'Error during render: ' + error
 							'</div>';
 					}
 				</script>

@@ -166,7 +166,7 @@ function Result({
 	return (
 		<Collapsible className={cn('text-sm', className)}>
 			<CollapsibleTrigger>
-				<div className={cn('text-muted-foreground', { 'line-through': status === 'skipped' })}>
+				<div className={cn('text-muted-foreground text-start', { 'line-through': status === 'skipped' })}>
 					Performed {skillKey}({argsString}).
 				</div>
 			</CollapsibleTrigger>
