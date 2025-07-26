@@ -12,6 +12,12 @@ import { taskStatusSchema } from '../schemas/taskSchema';
 import { _addFundTask, _addRefundTask } from '../transactions/private';
 import { _findOne as _findOneUser } from '../users/private';
 
+type EnabledSkillDetail = {
+	key: string;
+	description: string;
+	inputSchema: string;
+};
+
 export const _findOne = internalQuery({
 	args: {
 		taskId: zid('tasks'),
@@ -306,18 +312,22 @@ export const _updateInstructions = internalMutation({
 		if (availableSkills) {
 			//
 			// get enabled skills - this is what the AI actually sees as available options
-			const enabledSkills = await ctx.runQuery(internal.skills.private._listEnabledSkillsWithDetails, {
-				userId: owner,
-			});
+			const enabledSkills: EnabledSkillDetail[] = await ctx.runQuery(
+				internal.skills.private._listEnabledSkillsWithDetails,
+				{
+					userId: owner,
+				},
+			);
 
 			// create a set of enabled skill keys for fast lookup
-			const enabledSkillKeys = new Set(enabledSkills.map((skill) => skill.key));
+			const enabledSkillKeys: Set<string> = new Set(enabledSkills.map((skill: EnabledSkillDetail) => skill.key));
 
 			// find invalid skills (skills that are not enabled for the user)
-			const invalidSkills = availableSkills.filter((skillKey) => !enabledSkillKeys.has(skillKey));
+			const validSkills = availableSkills.filter((skillKey) => enabledSkillKeys.has(skillKey));
 
-			if (invalidSkills.length > 0) {
-				throw new Error(`Selected invalid skills: ${invalidSkills.join(', ')}`);
+			if (validSkills.length !== availableSkills.length) {
+				console.warn(`Invalid skills were selected: ${availableSkills.join(', ')}. Ignored them.`);
+				availableSkills = validSkills;
 			}
 		}
 
