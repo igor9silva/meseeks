@@ -1,5 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { z } from 'zod';
+import { cn } from '~/lib/utils';
 import { RenderAction } from './actions/RenderAction';
 
 // Test examples for comprehensive coverage
@@ -640,7 +641,7 @@ const testExamples: TestExample[] = [
 export function RenderActionTestSuite({ className }: { className?: string }) {
 	//
 	return (
-		<div className={(className, 'space-y-4')}>
+		<div className={cn(className)}>
 			{testExamples.map((example, index) => (
 				<div key={index}>
 					<div className="bg-muted px-3 py-2 text-sm font-medium">
