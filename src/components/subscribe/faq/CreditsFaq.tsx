@@ -12,10 +12,10 @@ export const CreditsFaq = {
 			<p>
 				1 credit = 1 US Dollar, and <strong>we put no margin on the provider price</strong>. i.e. if Tavily
 				charges us $0.008/usage, we charge you exactly that. The same goes for any AI usage, you pay exactly
-				their advertised price.
+				their advertised price is.
 			</p>
 			<p>
-				Pro subscribers get $10 worth of monthly <strong>credits that never expire</strong>.
+				Pro subscribers get $10 worth of <strong>credits that never expire</strong>, every month.
 			</p>
 			<p>
 				You can top up as much credits as you need, with zero markup from us -{' '}

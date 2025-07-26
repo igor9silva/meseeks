@@ -1,9 +1,10 @@
+import { type ReactNode } from 'react';
 import { QuestionDialog } from '~/components/QuestionDialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
 
 import { faqs } from './index';
 
-export function FaqSection() {
+export function FaqSection({ questionComponent }: { questionComponent?: ReactNode }) {
 	//
 	return (
 		<div className="w-full max-w-4xl mx-auto space-y-4 mt-2">
@@ -24,7 +25,7 @@ export function FaqSection() {
 
 			<div className="text-center flex flex-col items-center gap-1 pt-4">
 				<p className="text-muted-foreground">Still have questions? We're here to help!</p>
-				<QuestionDialog />
+				{questionComponent || <QuestionDialog />}
 			</div>
 		</div>
 	);

@@ -1,8 +1,7 @@
-import { useAuthActions } from '@convex-dev/auth/react';
 import { QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useRouter } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
@@ -11,9 +10,9 @@ import { CommandMenuDialog } from '~/components/CommandMenu';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
+import { Onboarding } from '~/components/Onboarding';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
 import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
-import { Button } from '~/components/ui/button';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
@@ -113,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<Loading className="h-svh" />
 			</AuthLoading>
 			<Unauthenticated>
-				<AccessDenied />
+				<AccessDenied>{children}</AccessDenied>
 			</Unauthenticated>
 			<Authenticated>
 				<Main>{children}</Main>
@@ -167,34 +166,20 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function AccessDenied() {
+function AccessDenied({ children }: { children: React.ReactNode }) {
 	//
-	const { signIn } = useAuthActions();
+	const router = useRouter();
+	const currentPath = router.state.location.pathname;
 
-	return (
-		<div className="h-screen w-full flex flex-col items-center justify-center gap-4">
-			<Button onClick={() => signIn('google', { redirectTo: location.href })}>Continue with Google</Button>
-			<footer className="absolute bottom-4 text-sm text-muted-foreground flex gap-4">
-				<a
-					href="/static/privacy-policy.md"
-					className="hover:underline"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Privacy Policy
-				</a>
-				<span>•</span>
-				<a
-					href="https://github.com/igor9silva/meseeks"
-					className="hover:underline"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					GitHub
-				</a>
-			</footer>
-		</div>
-	);
+	if (currentPath === '/pricing') {
+		return (
+			<div className="h-svh overflow-auto">
+				<main className="flex-1 flex flex-col">{children}</main>
+			</div>
+		);
+	}
+
+	return <Onboarding />;
 }
 
 // TODO: on .webmanifest:
