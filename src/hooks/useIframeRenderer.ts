@@ -29,13 +29,7 @@ export function useIframeRenderer({ code }: UseIframeRendererProps) {
 		const url = 'data:text/html;charset=utf-8,' + encodeURIComponent(isolatedHtml);
 
 		setDataUrl(url);
-
-		// Cleanup previous data URL
-		return () => {
-			if (dataUrl) {
-				URL.revokeObjectURL(dataUrl);
-			}
-		};
+		//
 	}, [code, themeVariables]);
 
 	return {
