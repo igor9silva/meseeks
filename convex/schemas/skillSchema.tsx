@@ -93,7 +93,7 @@ export const modelsSchema = z.enum([
 	'cerebras/qwen3-235b',
 
 	// DeepInfra
-	// 'deepinfra/deepseek-v3',
+	'deepinfra/qwen-3-coder',
 
 	// Together
 	// 'together/llama-4-maverick',
@@ -168,8 +168,8 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 			return pricePerMillionTokens({ input: 0, output: 0 });
 
 		// DeepInfra
-		// case 'deepinfra/deepseek-v3':
-		// 	return pricePerMillionTokens({ input: 0.4, output: 0.89 });
+		case 'deepinfra/qwen-3-coder':
+			return pricePerMillionTokens({ input: 0.4, output: 1.6 });
 
 		// Together
 		// case 'together/llama-4-maverick':

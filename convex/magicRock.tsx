@@ -1,5 +1,6 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { cerebras } from '@ai-sdk/cerebras';
+import { deepinfra } from '@ai-sdk/deepinfra';
 import { deepseek } from '@ai-sdk/deepseek';
 import { google } from '@ai-sdk/google';
 import { groq } from '@ai-sdk/groq';
@@ -201,7 +202,7 @@ function languageModelFrom(
 		'cerebras/qwen3-235b': cerebras('qwen-3-235b-a22b'),
 
 		// DeepInfra
-		// 'deepinfra/deepseek-v3': deepinfra('deepseek-ai/DeepSeek-V3-0324'),
+		'deepinfra/qwen-3-coder': deepinfra('Qwen/Qwen3-Coder-480B-A35B-Instruct'),
 
 		// Together
 		// 'together/llama-4-maverick': togetherai('meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8'),
