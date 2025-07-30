@@ -326,7 +326,8 @@ export const _updateInstructions = internalMutation({
 			const validSkills = availableSkills.filter((skillKey) => enabledSkillKeys.has(skillKey));
 
 			if (validSkills.length !== availableSkills.length) {
-				console.warn(`Invalid skills were selected: ${availableSkills.join(', ')}. Ignored them.`);
+				const invalidSkills = availableSkills.filter((skillKey) => !enabledSkillKeys.has(skillKey));
+				console.debug(`Invalid skills were selected: ${invalidSkills.join(', ')}. Ignored them.`);
 				availableSkills = validSkills;
 			}
 		}
