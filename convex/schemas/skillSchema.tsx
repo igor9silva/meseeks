@@ -94,6 +94,12 @@ export const modelsSchema = z.enum([
 
 	// DeepInfra
 	'deepinfra/qwen-3-coder',
+	'deepinfra/glm-4.5',
+
+	// OpenRouter
+	'openrouter/qwen-3-coder',
+	'openrouter/GLM-4.5-Air',
+	'openrouter/GLM-4.5',
 
 	// Together
 	// 'together/llama-4-maverick',
@@ -170,6 +176,16 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 		// DeepInfra
 		case 'deepinfra/qwen-3-coder':
 			return pricePerMillionTokens({ input: 0.4, output: 1.6 });
+		case 'deepinfra/glm-4.5':
+			return pricePerMillionTokens({ input: 0.6, output: 2.2 });
+
+		// OpenRouter
+		case 'openrouter/qwen-3-coder':
+			return pricePerMillionTokens({ input: 0.6, output: 2.5 });
+		case 'openrouter/GLM-4.5-Air':
+			return pricePerMillionTokens({ input: 0.2, output: 1.1 });
+		case 'openrouter/GLM-4.5':
+			return pricePerMillionTokens({ input: 0.6, output: 2.2 });
 
 		// Together
 		// case 'together/llama-4-maverick':
