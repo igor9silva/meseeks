@@ -7,6 +7,7 @@ import { groq } from '@ai-sdk/groq';
 import { openai } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { xai } from '@ai-sdk/xai';
+import { openrouter } from '@openrouter/ai-sdk-provider';
 import { type CoreMessage, generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { internal } from './_generated/api';
@@ -195,7 +196,7 @@ function languageModelFrom(
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
 
 		// Moonshot
-		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'),
+		'moonshot/kimi-2': moonshot('kimi-k2-turbo-preview'),
 		// 'moonshot/kimi-2': groq('moonshotai/kimi-k2-instruct'),
 
 		// Cerebras
@@ -203,6 +204,12 @@ function languageModelFrom(
 
 		// DeepInfra
 		'deepinfra/qwen-3-coder': deepinfra('Qwen/Qwen3-Coder-480B-A35B-Instruct'),
+		'deepinfra/glm-4.5': deepinfra('zai-org/GLM-4.5-Air'),
+
+		// OpenRouter
+		'openrouter/qwen-3-coder': openrouter('openrouter/horizon-alpha'),
+		'openrouter/GLM-4.5-Air': openrouter('z-ai/glm-4.5-air'),
+		'openrouter/GLM-4.5': openrouter('z-ai/glm-4.5'),
 
 		// Together
 		// 'together/llama-4-maverick': togetherai('meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8'),
