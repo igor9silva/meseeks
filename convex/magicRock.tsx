@@ -177,6 +177,8 @@ function languageModelFrom(
 		'openai/gpt-4.1': openai('gpt-4.1', openAIconfig),
 		'openai/gpt-4.1-mini': openai('gpt-4.1-mini', openAIconfig),
 		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
+		'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b'),
+		'openai/gpt-oss-20b': openrouter('openai/gpt-oss-20b'),
 
 		// Google
 		'google/gemini-2.5-pro': google('gemini-2.5-pro', googleConfig),
