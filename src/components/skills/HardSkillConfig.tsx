@@ -428,35 +428,35 @@ export function HardSkillConfig({
 					>
 						Known reactions
 					</LabelWithTooltip>
-					<div className="flex gap-2 items-center">
-						<div className="flex-1">
-							<SkillSelector
-								value={newSkillKey}
-								onValueChange={setNewSkillKey}
-								placeholder="Select a skill"
-								disabled={!isEditable}
-							/>
+					{isEditable && (
+						<div className="flex gap-2 items-center">
+							<div className="flex-1">
+								<SkillSelector
+									value={newSkillKey}
+									onValueChange={setNewSkillKey}
+									placeholder="Select a skill"
+								/>
+							</div>
+
+							<Select
+								value={newReactionCondition}
+								onValueChange={(value) => setNewReactionCondition(value as ReactionCondition)}
+							>
+								<SelectTrigger className="w-40">
+									<SelectValue placeholder="Condition" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="owner">{CONDITION_LABELS.owner}</SelectItem>
+									<SelectItem value="companion">{CONDITION_LABELS.companion}</SelectItem>
+									<SelectItem value="any">{CONDITION_LABELS.any}</SelectItem>
+								</SelectContent>
+							</Select>
+
+							<Button type="button" onClick={handleAddReaction} disabled={!newSkillKey}>
+								Add
+							</Button>
 						</div>
-
-						<Select
-							value={newReactionCondition}
-							onValueChange={(value) => setNewReactionCondition(value as ReactionCondition)}
-							disabled={!isEditable}
-						>
-							<SelectTrigger className="w-40">
-								<SelectValue placeholder="Condition" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="owner">{CONDITION_LABELS.owner}</SelectItem>
-								<SelectItem value="companion">{CONDITION_LABELS.companion}</SelectItem>
-								<SelectItem value="any">{CONDITION_LABELS.any}</SelectItem>
-							</SelectContent>
-						</Select>
-
-						<Button type="button" onClick={handleAddReaction} disabled={!isEditable || !newSkillKey}>
-							Add
-						</Button>
-					</div>
+					)}
 
 					{knownReactions.length > 0 ? (
 						<Table>
