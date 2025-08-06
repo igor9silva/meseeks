@@ -17,16 +17,16 @@ export function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'f
 			<div className="flex-grow flex flex-col justify-center px-6 pb-4">
 				<div className="text-center">
 					<div className="text-4xl font-bold">$500</div>
-					<span className="text-lg font-normal text-muted-foreground">(limited to 500 founders)</span>
+					<span className="text-lg font-normal text-muted-foreground">(limited to 1000 founders)</span>
 				</div>
 			</div>
 			<CardContent className="space-y-6 content-end flex-grow">
 				<ul className="space-y-3">
-					<FeatureItem text="24 months of Pro subscription ($240)" icon={Star} />
-					<FeatureItem text="$200 worth of credits, immediately" icon={DollarSign} />
+					<FeatureItem text="$300 in credits today + $10 every month" icon={Zap} />
+					<FeatureItem text="24 months of Pro subscription (worth $240)" icon={Star} />
+					<FeatureItem text="Total of $780 worth of value over 24 months" icon={DollarSign} />
 					<FeatureItem text="Exclusive [founder] badge" icon={BadgeCheck} />
-					<FeatureItem text="Early access to new features, forever" icon={Zap} />
-					<FeatureItem text="Directly support our open research" icon={Heart} />
+					<FeatureItem text="Directly support our independent research" icon={Heart} />
 				</ul>
 			</CardContent>
 			<CardFooter>

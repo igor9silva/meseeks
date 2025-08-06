@@ -32,14 +32,14 @@ export const SafetyFaq = {
 						Meseeks is a tool and, therefore, cannot be held accountable. It takes actions{' '}
 						<strong>on your behalf</strong>, meaning you are responsible for any outcomes.
 					</p>
-					<p>
-						To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to
-						a human decision that triggered it, directly or through a chain of reactions.{' '}
-						<strong>By using Meseeks, you agree that you are responsible for all outcomes.</strong>
-					</p>
 					<p>If it earns money, it's yours. If it causes damages, you pay.</p>
 					<p>
-						Meseeks allows you to operate at infinite scale. <strong>Be responsible.</strong>
+						To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to
+						a human decision that triggered it, directly or through a reaction chain.{' '}
+						<strong>By using Meseeks, you agree that you are responsible for all outcomes.</strong>
+					</p>
+					<p>
+						Meseeks allows you to operate at infinite scale. Please, <strong>be responsible.</strong>
 					</p>
 				</div>
 			</div>
