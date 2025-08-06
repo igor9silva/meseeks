@@ -55,7 +55,7 @@ export function SubscribePage({ route }: { route: typeof Route }) {
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
-					This is a <strong>research preview</strong> app. Expect issues.
+					This is a <strong>research preview</strong>. Expect issues.
 				</p>
 				<p>© 2025 isPro. All rights reserved.</p>
 			</div>
