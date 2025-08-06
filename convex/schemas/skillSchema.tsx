@@ -82,6 +82,8 @@ export const modelsSchema = z.enum([
 	// 'groq/llama-4-scout',
 	// 'groq/llama-4-maverick',
 	'groq/qwen3-32b',
+	'openai/gpt-oss-120b',
+	// 'openai/gpt-oss-20b',
 
 	// DeepSeek
 	'deepseek/deepseek-v3',
@@ -160,6 +162,10 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 		// 	return pricePerMillionTokens({ input: 0.2, output: 0.6 });
 		case 'groq/qwen3-32b':
 			return pricePerMillionTokens({ input: 0.29, output: 0.59 });
+		case 'openai/gpt-oss-120b':
+			return pricePerMillionTokens({ input: 0.25, output: 0.75 });
+		// case 'openai/gpt-oss-20b':
+		// 	return pricePerMillionTokens({ input: 0.1, output: 0.5 });
 
 		// DeepSeek
 		case 'deepseek/deepseek-v3':

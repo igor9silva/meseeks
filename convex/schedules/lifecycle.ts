@@ -28,6 +28,7 @@ export const _executeOneTime = internalMutation({
 			skillKey,
 			args,
 			depth,
+			status: 'enqueued',
 		});
 
 		await ctx.db.delete(scheduleId);
@@ -55,6 +56,7 @@ export const _executeRecurring = internalMutation({
 			skillKey,
 			args,
 			depth,
+			status: 'enqueued',
 		});
 
 		const nextRunAt = computeNextRun(cronExpression, timeZone);

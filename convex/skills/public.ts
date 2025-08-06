@@ -108,6 +108,18 @@ export const availableIntelligences = query({
 			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
+					key: 'openai/gpt-oss-120b',
+					name: 'GPT-OSS 120B',
+					provider: 'OpenAI',
+					description: 'Best performance per energy',
+				},
+				// {
+				// 	key: 'openai/gpt-oss-20b',
+				// 	name: 'GPT-OSS 20B',
+				// 	provider: 'OpenAI',
+				// 	description: 'Best performance per energy',
+				// },
+				{
 					key: 'anthropic/claude-4-sonnet',
 					name: 'Claude 4 Sonnet',
 					provider: 'Anthropic',
@@ -131,18 +143,37 @@ export const availableIntelligences = query({
 					provider: 'Anthropic',
 					description: 'Surprisingly very good',
 				},
-				{
-					key: 'groq/qwen3-32b',
-					name: 'Qwen 32B',
-					provider: 'Groq',
-					description: 'Cheap and faaaast, a bit dumb',
-				},
 			],
 			all: [
+				{
+					key: 'openrouter/qwen-3-coder',
+					name: 'Qwen 3 Coder',
+					provider: 'OpenRouter',
+				},
+				{
+					key: 'openrouter/GLM-4.5-Air',
+					name: 'GLM 4.5 Air',
+					provider: 'OpenRouter',
+				},
+				{
+					key: 'openrouter/GLM-4.5',
+					name: 'GLM 4.5',
+					provider: 'OpenRouter',
+				},
+				{
+					key: 'deepinfra/glm-4.5',
+					name: 'GLM 4.5',
+					provider: 'DeepInfra',
+				},
 				{
 					key: 'cerebras/qwen3-235b',
 					name: 'Qwen 235B',
 					provider: 'Cerebras',
+				},
+				{
+					key: 'groq/qwen3-32b',
+					name: 'Qwen 32B',
+					provider: 'Groq',
 				},
 				{
 					key: 'anthropic/claude-4-opus',

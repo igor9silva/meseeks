@@ -40,6 +40,10 @@ export function createAITool(
 				usage,
 				warnings,
 				providerMetadata,
+				reasoning,
+				reasoningDetails,
+				sources,
+				files,
 				//
 			} = await _askMagicRock(context);
 
@@ -55,6 +59,7 @@ export function createAITool(
 				author: action._id,
 				owner: task.owner,
 				depth: action.depth + 1,
+				status: 'enqueued',
 			});
 
 			let reason = finishReason;
@@ -63,6 +68,19 @@ export function createAITool(
 				console.warn(
 					`(${context.model.modelId}) Has tool calls but finish reason is 'stop': ${toolCalls.map((call) => call.toolName).join(', ')}`,
 				);
+			}
+
+			if (reasoning) {
+				reactions.push({
+					skillKey: 'reason',
+					args: { reasoning },
+					taskId: task._id,
+					author: action._id,
+					owner: task.owner,
+					depth: action.depth + 1,
+					status: 'succeeded',
+					result: reasoning,
+				});
 			}
 
 			switch (reason) {
@@ -94,6 +112,7 @@ export function createAITool(
 						author: action._id,
 						owner: task.owner,
 						depth: action.depth + 1,
+						status: 'enqueued',
 					});
 					break;
 
@@ -101,7 +120,7 @@ export function createAITool(
 				case 'stop': say(text); break;
 
 				// prettier-ignore
-				case 'error': say(text); break;
+				case 'error': say(`Error: ${text}`); break;
 
 				// prettier-ignore
 				case 'content-filter': say(`[damn @sama] Content filter hit: ${warnings}`); break;

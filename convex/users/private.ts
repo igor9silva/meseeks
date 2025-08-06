@@ -88,10 +88,12 @@ I'm also curious about Meseeks and would love to learn more about its capabiliti
 					amount: asBigInt({ dollars: 1 }),
 					shouldIterate: false,
 				},
+				status: 'enqueued' as const,
 			},
 			{
 				skillKey: 'lookAtMe',
 				args: {},
+				status: 'enqueued' as const,
 			},
 		],
 	});
