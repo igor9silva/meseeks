@@ -24,7 +24,7 @@ export const SkillsAndLoopsFaq = {
 			</p>
 			<p>And you can add as many skills as you want. Of any kind, using any API.</p>
 			<p>
-				Meseeks is built on top of a <strong>reaction engine</strong>, where each action performed can trigger a
+				Meseeks is built on top of a <strong>reactor</strong>, where each action performed can trigger a
 				re-action. That way you can create a <strong>loop</strong> between skills, and let Meseeks work
 				autonomously.
 			</p>

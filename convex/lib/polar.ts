@@ -55,7 +55,7 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 						await activateSubscription(
 							ctx,
 							paidPayload.data.checkout_id,
-							200, // USD
+							300, // USD
 							24, // months
 							true, // isFounder
 						);

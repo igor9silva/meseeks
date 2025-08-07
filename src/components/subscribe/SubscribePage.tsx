@@ -47,15 +47,15 @@ export function SubscribePage({ route }: { route: typeof Route }) {
 			</div>
 
 			<div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-				<ProCard onSubscribe={handleSubscribe} />
 				<FounderCard onSubscribe={handleSubscribe} />
+				<ProCard onSubscribe={handleSubscribe} />
 			</div>
 
 			<FaqSection />
 
 			<div className="text-center text-sm text-muted-foreground pb-4">
 				<p>
-					This is a <strong>research preview</strong> app. Expect issues.
+					This is a <strong>research preview</strong>. Expect issues.
 				</p>
 				<p>© 2025 isPro. All rights reserved.</p>
 			</div>

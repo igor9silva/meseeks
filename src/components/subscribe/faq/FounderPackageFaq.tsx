@@ -9,7 +9,10 @@ export const FounderPackageFaq = {
 				passion. So we designed the <strong>Founder Package</strong> for those willing to help our free, open
 				and transparent research!
 			</p>
-			<p>You make a one-time payment for 24 months of Pro access (worth $240), plus $200 credits immediately.</p>
+			<p>
+				You make a one-time payment for 24 months of Pro access (worth $240), plus $300 credits immediately,
+				plus $10 every month for 24 months, totaling <strong>$780 worth of value</strong>.
+			</p>
 			<p>
 				<h4 className="font-semibold">You also get:</h4>
 				<ul className="list-disc pl-5">
@@ -21,7 +24,10 @@ export const FounderPackageFaq = {
 					<li className="font-bold">A very special place on our hearts 🤍🩶🖤🤎💜🩵💙💚💛🧡🩷.</li>
 				</ul>
 			</p>
-			<p>We are limiting that offer to 500 founders so we can properly support them.</p>
+			<p>
+				We are limiting that offer to 1000 founders so we can properly support each one of them. We'll make sure
+				founders won't regret trusting us 😁
+			</p>
 		</div>
 	),
 };
