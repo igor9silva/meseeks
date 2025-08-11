@@ -1,14 +1,17 @@
 import { Link } from '@tanstack/react-router';
+import { Doc } from 'convex/_generated/dataModel';
 import { AlertTriangle } from 'lucide-react';
+import { ExternalLink } from '~/components/subscribe/ExternalLink';
 import { TopUpCard } from '~/components/TopUpCard';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 
 interface TopUpSectionProps {
 	isPro: boolean;
+	user: Doc<'users'>;
 }
 
-export function TopUpSection({ isPro }: TopUpSectionProps) {
+export function TopUpSection({ isPro, user }: TopUpSectionProps) {
 	//
 	if (!isPro) {
 		return (
@@ -29,9 +32,16 @@ export function TopUpSection({ isPro }: TopUpSectionProps) {
 	}
 
 	return (
-		<div className="space-y-2">
-			<h2 className="text-lg font-semibold">Top Up</h2>
-			<TopUpCard />
+		<div className="space-y-5">
+			<ExternalLink
+				href="https://polar.sh/ispro/portal"
+				text={`Manage subscription for ${user.email ?? user.name ?? user._id}`}
+				className="underline-offset-2"
+			/>
+			<div className="space-y-2">
+				<h2 className="text-lg font-semibold">Top Up</h2>
+				<TopUpCard />
+			</div>
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { Id } from '../_generated/dataModel';
+import { Doc, Id } from '../_generated/dataModel';
 import { internalMutation, internalQuery } from '../lib';
 import { NotFound } from '../lib/errors';
 import { _addSubscriptionCredits } from '../transactions/private';
@@ -29,29 +29,47 @@ export const _activate = internalMutation({
 		months: z.number(),
 		credits: z.bigint(),
 		isFounder: z.boolean().optional(),
+		isRenewal: z.boolean().optional().default(false),
+		polarSubscriptionId: z.string().optional(),
 	},
-	handler: async (ctx, { checkoutId, months, credits, isFounder }) => {
+	handler: async (ctx, args) => {
 		//
-		const sub = await _findOneByPaymentId(ctx, { paymentId: checkoutId });
+		const { checkoutId, months, credits, isFounder, isRenewal, polarSubscriptionId } = args;
+		const subscription = await _findOneByPaymentId(ctx, { paymentId: checkoutId });
 
-		if (!sub) throw NotFound();
-		if (sub.status !== 'pending') throw new Error('Subscription not pending');
+		if (!subscription) throw NotFound();
+		if (!isRenewal && subscription.status !== 'pending') throw new Error('Subscription not pending');
 
-		await ctx.db.patch(sub._id, {
-			status: 'active',
-			validUntil: Date.now() + months * 30 * 24 * 60 * 60 * 1000,
-		});
+		const now = Date.now();
+		const validUntil = now + months * 30 * 24 * 60 * 60 * 1000; // months to milliseconds
 
-		if (Boolean(isFounder)) {
-			await _setFounder(ctx, { userId: sub.owner, isFounder: true });
+		const updateData: Partial<Doc<'subscriptions'>> = {
+			status: 'active' as const,
+			isFounder: subscription.isFounder || isFounder,
+			validUntil,
+		};
+
+		if (isRenewal) {
+			updateData.renewalCount = (subscription.renewalCount ?? 0) + 1;
+			updateData.lastRenewalDate = now;
+		}
+
+		if (polarSubscriptionId) {
+			updateData.polarSubscriptionId = polarSubscriptionId;
+		}
+
+		await ctx.db.patch(subscription._id, updateData);
+
+		if (isFounder) {
+			await _setFounder(ctx, { userId: subscription.owner, isFounder: true });
 		}
 
 		if (credits > 0n) {
 			await _addSubscriptionCredits(ctx, {
-				owner: sub.owner,
+				owner: subscription.owner,
 				value: { symbol: 'USD', amount: credits },
 				description: 'Subscription credits',
-				subscriptionId: sub._id,
+				subscriptionId: subscription._id,
 			});
 		}
 	},
@@ -95,3 +113,80 @@ export const _findActive = internalQuery({
 			.then((subs) => subs.filter((s) => (s.validUntil ?? 0) > now));
 	},
 });
+
+export const _findByPolarSubscriptionId = internalQuery({
+	args: {
+		polarSubscriptionId: z.string(),
+	},
+	handler: async (ctx, { polarSubscriptionId }) => {
+		//
+		return await ctx.db
+			.query('subscriptions')
+			.withIndex('by_polarSubscriptionId', (q) => q.eq('polarSubscriptionId', polarSubscriptionId))
+			.first();
+	},
+});
+
+export const _handleRevocation = internalMutation({
+	args: {
+		polarSubscriptionId: z.string(),
+	},
+	handler: async (ctx, { polarSubscriptionId }) => {
+		//
+		const subscription = await _findByPolarSubscriptionId(ctx, { polarSubscriptionId });
+
+		if (!subscription) {
+			throw NotFound(`Subscription not found for revocation: ${polarSubscriptionId}`);
+		}
+
+		await ctx.db.patch(subscription._id, {
+			status: 'revoked',
+			validUntil: Date.now(), // Immediate revocation
+		});
+
+		console.debug('Subscription revoked immediately', {
+			subscriptionId: subscription._id,
+			polarSubscriptionId,
+		});
+	},
+});
+
+// export const _handleRefund = internalMutation({
+// 	args: {
+// 		checkoutId: z.string(),
+// 		amount: z.number(),
+// 		description: z.string().optional(),
+// 	},
+// 	handler: async (ctx, { checkoutId, amount, description = 'Subscription refund' }) => {
+// 		//
+// 		const subscription = await _findOneByPaymentId(ctx, { paymentId: checkoutId });
+
+// 		if (!subscription) {
+// 			console.warn('Subscription not found for refund', { checkoutId });
+// 			return;
+// 		}
+
+// 		// Add negative transaction for refund
+// 		await _addSubscriptionCredits(ctx, {
+// 			owner: subscription.owner,
+// 			value: { symbol: 'USD', amount: -BigInt(Math.round(amount * 100)) },
+// 			description,
+// 			subscriptionId: subscription._id,
+// 		});
+
+// 		// If subscription is still active and refund is significant, consider canceling
+// 		const refundThreshold = 5; // $5 threshold
+// 		if (subscription.status === 'active' && amount >= refundThreshold) {
+// 			await ctx.db.patch(subscription._id, {
+// 				status: 'canceled',
+// 				validUntil: Date.now(),
+// 			});
+// 		}
+
+// 		console.debug('Subscription refund processed', {
+// 			subscriptionId: subscription._id,
+// 			amount,
+// 			description,
+// 		});
+// 	},
+// });
