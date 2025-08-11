@@ -132,6 +132,10 @@ export async function _askMagicRock(args: MagicRockContext) {
 	} = await generateText({
 		...args,
 		providerOptions: {
+			openai: {
+				reasoningEffort: 'high',
+				reasoningSummary: 'detailed',
+			},
 			openrouter: {
 				reasoning: { effort: 'high' },
 				provider: {
@@ -199,6 +203,9 @@ function languageModelFrom(
 		// OpenAI
 		// 'openai/gpt-4o': openai('gpt-4o', openAIconfig),
 		// 'openai/gpt-4o-mini': openai('gpt-4o-mini', openAIconfig),
+		'openai/gpt-5': openai('gpt-5', openAIconfig),
+		'openai/gpt-5-mini': openai('gpt-5-mini', openAIconfig),
+		'openai/gpt-5-nano': openai('gpt-5-nano', openAIconfig),
 		'openai/gpt-4.1': openai('gpt-4.1', openAIconfig),
 		'openai/gpt-4.1-mini': openai('gpt-4.1-mini', openAIconfig),
 		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
@@ -218,9 +225,9 @@ function languageModelFrom(
 		// 'groq/llama-4-scout': groq('meta-llama/llama-4-scout-17b-16e-instruct'),
 		// 'groq/llama-4-maverick': groq('meta-llama/llama-4-maverick-17b-128e-instruct'),
 		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
-		'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b', {
-			// reasoning: { enabled: false, effort: 'high' },
-		}),
+		// 'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b', {
+		// 	// reasoning: { enabled: false, effort: 'high' },
+		// }),
 		// 'openai/gpt-oss-20b': openrouter('openai/gpt-oss-20b', {
 		// 	// reasoning: { enabled: false, effort: 'high' },
 		// }),

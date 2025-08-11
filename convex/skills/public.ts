@@ -108,6 +108,24 @@ export const availableIntelligences = query({
 			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
+					key: 'openai/gpt-5',
+					name: 'GPT-5',
+					provider: 'OpenAI',
+					description: 'Best performance per energy',
+				},
+				{
+					key: 'openai/gpt-5-mini',
+					name: 'GPT-5 Mini',
+					provider: 'OpenAI',
+					description: 'Best performance per energy',
+				},
+				{
+					key: 'openai/gpt-5-nano',
+					name: 'GPT-5 Nano',
+					provider: 'OpenAI',
+					description: 'Best performance per energy',
+				},
+				{
 					key: 'openai/gpt-oss-120b',
 					name: 'GPT-OSS 120B',
 					provider: 'OpenAI',
