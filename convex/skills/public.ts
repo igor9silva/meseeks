@@ -152,35 +152,9 @@ export const availableIntelligences = query({
 					description: 'Insanely faaaast, but not very smart',
 				},
 				{
-					key: 'openrouter/qwen-3-coder',
-					name: 'Qwen 3 Coder',
-					provider: 'OpenRouter',
-				},
-				{
-					key: 'openrouter/GLM-4.5-Air',
-					name: 'GLM 4.5 Air',
-					provider: 'OpenRouter',
-				},
-				{
-					key: 'openrouter/GLM-4.5',
-					name: 'GLM 4.5',
-					provider: 'OpenRouter',
-				},
-				{
-					key: 'deepinfra/glm-4.5',
-					name: 'GLM 4.5',
-					provider: 'DeepInfra',
-				},
-				{
 					key: 'cerebras/qwen3-235b',
 					name: 'Qwen 235B',
 					provider: 'Cerebras',
-				},
-				{
-					key: 'groq/qwen3-32b',
-					name: 'Qwen 32B',
-					provider: 'Groq',
-					description: 'Cheap and faaaast, a bit dumb',
 				},
 				{
 					key: 'google/gemini-2.5-pro',
