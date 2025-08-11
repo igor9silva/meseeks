@@ -161,7 +161,6 @@ export const availableIntelligences = query({
 					name: 'Gemini 2.5 Pro',
 					provider: 'Google',
 				},
-
 				{
 					key: 'google/gemini-2.5-flash-lite',
 					name: 'Gemini 2.5 Flash Lite',

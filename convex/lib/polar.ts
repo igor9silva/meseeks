@@ -1,8 +1,8 @@
 import { Webhook, WebhookVerificationError } from 'standardwebhooks';
-import { z } from 'zod';
 import { internal } from '../_generated/api';
 import { ActionCtx, httpAction } from '../_generated/server';
 import { env } from '../schemas/envSchema';
+import { orderPaidSchema, subscriptionRevokedSchema, webhookEventSchema } from '../schemas/polarEventSchema';
 import { asBigInt } from './money';
 
 export const handlePolarWebhook = httpAction(async (ctx, request) => {
@@ -25,11 +25,33 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 		// persist all events
 		await ctx.runMutation(internal.topUps.private._persistPolarEvent, { polarEvent: json });
 
-		switch (json.type) {
+		// will throw if invalid schema
+		const parsed = webhookEventSchema.safeParse(json);
+
+		if (!parsed.success) {
+			console.debug('Ignored webhook event', json, parsed.error);
+			return new Response(null, { status: 200 });
+		}
+
+		const event = parsed.data;
+
+		switch (event.type) {
 			//
 			case 'order.paid':
 				//
-				const paidPayload = webhookPayloadSchema.parse(json);
+				const paidPayload = orderPaidSchema.parse(json);
+
+				const billingReason = paidPayload.data.billing_reason;
+				const isRenewal = billingReason === 'subscription_cycle';
+				const isNewSubscription = billingReason === 'subscription_create';
+
+				console.debug('Processing order.paid', {
+					productId: paidPayload.data.product_id,
+					billingReason,
+					isRenewal,
+					isNewSubscription,
+					subscriptionId: paidPayload.data.subscription_id,
+				});
 
 				switch (paidPayload.data.product_id) {
 					//
@@ -37,28 +59,32 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 						await finishTopUp(
 							ctx, //
 							paidPayload.data.checkout_id,
-							paidPayload.data.net_amount,
+							paidPayload.data.net_amount / 100, // cents to dollars
 						);
 						break;
 
-					// TODO: look at .billing_reason to find out it it's a renewal
 					case env.POLAR_SUBSCRIPTION_ID:
-						await activateSubscription(
+						await activateSubscription({
 							ctx,
-							paidPayload.data.checkout_id,
-							10, // USD
-							1, // months
-						);
+							checkoutId: paidPayload.data.checkout_id,
+							amount: paidPayload.data.net_amount / 100, // cents to dollars
+							durationMonths: 1, // TODO: use `data.current_period_end` instead of computing
+							isFounder: false,
+							isRenewal,
+							polarSubscriptionId: paidPayload.data.subscription_id,
+						});
 						break;
 
 					case env.POLAR_FOUNDER_PACK_ID:
-						await activateSubscription(
+						await activateSubscription({
 							ctx,
-							paidPayload.data.checkout_id,
-							300, // USD
-							24, // months
-							true, // isFounder
-						);
+							checkoutId: paidPayload.data.checkout_id,
+							amount: paidPayload.data.net_amount / 100, // Convert cents to dollars
+							durationMonths: 24,
+							isFounder: true,
+							isRenewal,
+							polarSubscriptionId: paidPayload.data.subscription_id,
+						});
 						break;
 
 					default:
@@ -67,12 +93,24 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 				break;
 
 			case 'order.refunded':
-				const refundedPayload = webhookPayloadSchema.parse(json);
-				console.warn('Polar order refunded', refundedPayload);
+				// TODO: implement automatic refund handling
+				console.error('Not implemented: order.refunded', json);
 				break;
 
-			default:
-				console.debug(`Unhandled Polar '${json.type}' event received.`, body);
+			// case 'subscription.canceled':
+			// just let it expire naturally
+			// this will work but subscriptions will appear "active" but won't be treated as valid because of `validUntil`
+			// TODO: schedule a mutation to set 'canceled'
+
+			case 'subscription.revoked':
+				const revokedPayload = subscriptionRevokedSchema.parse(json);
+				await handleImmediateRevocation({
+					ctx,
+					polarSubscriptionId: revokedPayload.data.id,
+					customerId: revokedPayload.data.customer.external_id,
+					productId: revokedPayload.data.product_id,
+				});
+				break;
 		}
 
 		return new Response(null, { status: 200 });
@@ -101,22 +139,52 @@ async function finishTopUp(
 ) {
 	return await ctx.runMutation(internal.topUps.private._finish, {
 		checkoutId,
-		amount: asBigInt({ dollars: amount / 100 }),
+		amount: asBigInt({ dollars: amount }),
 	});
 }
 
-async function activateSubscription(
-	ctx: ActionCtx, //
-	checkoutId: string,
-	credits: number,
-	months: number,
-	isFounder: boolean = false,
-) {
+async function activateSubscription(params: {
+	ctx: ActionCtx;
+	checkoutId: string;
+	amount: number;
+	durationMonths: number;
+	isFounder: boolean;
+	isRenewal: boolean;
+	polarSubscriptionId?: string;
+}) {
+	const { ctx, checkoutId, amount, durationMonths, isFounder, isRenewal, polarSubscriptionId } = params;
+
+	console.debug('Activating subscription', {
+		checkoutId,
+		amount,
+		durationMonths,
+		isFounder,
+		isRenewal,
+		polarSubscriptionId,
+	});
+
 	return await ctx.runMutation(internal.subscriptions.private._activate, {
 		checkoutId,
-		months,
-		credits: asBigInt({ dollars: credits }),
-		isFounder: isFounder,
+		months: durationMonths,
+		credits: asBigInt({ dollars: amount }),
+		isFounder,
+		isRenewal,
+		polarSubscriptionId,
+	});
+}
+
+async function handleImmediateRevocation(params: {
+	ctx: ActionCtx;
+	polarSubscriptionId: string;
+	customerId: string;
+	productId: string;
+}) {
+	const { ctx, polarSubscriptionId } = params;
+
+	console.debug('Processing subscription revocation', { polarSubscriptionId });
+
+	return await ctx.runMutation(internal.subscriptions.private._handleRevocation, {
+		polarSubscriptionId,
 	});
 }
 
@@ -140,32 +208,3 @@ const validateEvent = (
 	const webhook = new Webhook(base64Secret);
 	return webhook.verify(body, headers);
 };
-
-const webhookPayloadSchema = z.object({
-	type: z.enum([
-		'order.paid', //
-		'order.refunded',
-	]),
-	data: z.object({
-		id: z.string(),
-		net_amount: z.number().describe('Amount in cents, after discounts but before taxes.'),
-		status: z.enum([
-			'pending', //
-			'paid',
-			'refunded',
-			'partially_refunded',
-		]),
-		paid: z.boolean(),
-		billing_reason: z.enum([
-			'purchase', //
-			'subscription_create',
-			'subscription_cycle',
-			'subscription_update',
-		]),
-		product_id: z.string(),
-		checkout_id: z.string(),
-		customer: z.object({
-			external_id: z.string(),
-		}),
-	}),
-});

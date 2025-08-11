@@ -65,6 +65,9 @@ export const modelsSchema = z.enum([
 	// OpenAI
 	// 'openai/gpt-4o',
 	// 'openai/gpt-4o-mini',
+	'openai/gpt-5',
+	'openai/gpt-5-mini',
+	'openai/gpt-5-nano',
 	'openai/gpt-4.1',
 	'openai/gpt-4.1-mini',
 	'openai/gpt-4.1-nano',
@@ -130,10 +133,12 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 			return pricePerMillionTokens({ input: 0.8, output: 4 });
 
 		// OpenAI
-		// case 'openai/gpt-4o':
-		// 	return pricePerMillionTokens({ input: 2.5, output: 10 });
-		// case 'openai/gpt-4o-mini':
-		// 	return pricePerMillionTokens({ input: 0.15, output: 0.6 });
+		case 'openai/gpt-5':
+			return pricePerMillionTokens({ input: 1.25, output: 10 });
+		case 'openai/gpt-5-mini':
+			return pricePerMillionTokens({ input: 0.25, output: 2 });
+		case 'openai/gpt-5-nano':
+			return pricePerMillionTokens({ input: 0.05, output: 0.4 });
 		case 'openai/gpt-4.1':
 			return pricePerMillionTokens({ input: 2.0, output: 8.0 });
 		case 'openai/gpt-4.1-mini':

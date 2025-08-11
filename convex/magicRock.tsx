@@ -174,6 +174,9 @@ function languageModelFrom(
 		// OpenAI
 		// 'openai/gpt-4o': openai('gpt-4o', openAIconfig),
 		// 'openai/gpt-4o-mini': openai('gpt-4o-mini', openAIconfig),
+		'openai/gpt-5': openai('gpt-5', openAIconfig),
+		'openai/gpt-5-mini': openai('gpt-5-mini', openAIconfig),
+		'openai/gpt-5-nano': openai('gpt-5-nano', openAIconfig),
 		'openai/gpt-4.1': openai('gpt-4.1', openAIconfig),
 		'openai/gpt-4.1-mini': openai('gpt-4.1-mini', openAIconfig),
 		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
