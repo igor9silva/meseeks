@@ -26,7 +26,6 @@ export const act = mutation({
 			author: currentUser._id,
 			owner: currentUser._id,
 			shouldReopen,
-			status: 'enqueued',
 		});
 	},
 });

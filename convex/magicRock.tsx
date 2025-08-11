@@ -124,29 +124,8 @@ export async function _askMagicRock(args: MagicRockContext) {
 		usage,
 		warnings,
 		providerMetadata,
-		reasoning,
-		reasoningDetails,
-		sources,
-		files,
 		//
-	} = await generateText({
-		...args,
-		providerOptions: {
-			openrouter: {
-				reasoning: { effort: 'high' },
-				provider: {
-					// only: ['baseten'], // "Not Found", no tools support
-					// only: ['novitaai'], // "Not Found", no tools support
-					// only: ['together'], // broken, possibly related to Harmony.
-					// only: ['fireworks'], // sort of works, but no nice. Possibly related to Harmony.
-					// only: ['parasail'], // "Not Found", no tools support
-					only: ['groq'], // the best yet, but not reliable.
-					allow_fallbacks: false,
-					require_parameters: true,
-				},
-			},
-		},
-	});
+	} = await generateText(args);
 
 	const result = {
 		finishReason,
@@ -155,10 +134,6 @@ export async function _askMagicRock(args: MagicRockContext) {
 		usage,
 		warnings,
 		providerMetadata,
-		reasoning,
-		reasoningDetails,
-		sources,
-		files,
 	};
 
 	console.debug('askMagicRock', result);
@@ -218,12 +193,6 @@ function languageModelFrom(
 		// 'groq/llama-4-scout': groq('meta-llama/llama-4-scout-17b-16e-instruct'),
 		// 'groq/llama-4-maverick': groq('meta-llama/llama-4-maverick-17b-128e-instruct'),
 		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
-		'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b', {
-			// reasoning: { enabled: false, effort: 'high' },
-		}),
-		// 'openai/gpt-oss-20b': openrouter('openai/gpt-oss-20b', {
-		// 	// reasoning: { enabled: false, effort: 'high' },
-		// }),
 
 		// DeepSeek
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),

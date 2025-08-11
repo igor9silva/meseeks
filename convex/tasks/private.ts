@@ -131,14 +131,12 @@ export const _add = internalMutation({
 						{
 							skillKey: 'increaseBudget',
 							args: { amount: initialFunds, shouldIterate: false },
-							status: 'enqueued' as const,
 						},
 					]
 				: []),
 			{
 				skillKey: 'say',
 				args: { message },
-				status: 'enqueued' as const,
 			},
 		];
 
@@ -166,8 +164,6 @@ export const _addWithActions = internalMutation({
 			z.object({
 				skillKey: z.string().describe('The key of the skill to use'),
 				args: z.record(z.any()),
-				status: z.enum(['enqueued', 'succeeded']),
-				result: z.string().optional(),
 			}),
 		),
 	},

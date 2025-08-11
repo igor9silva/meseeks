@@ -10,8 +10,6 @@ export const newActionSchema = z.object({
 	skillKey: z.string().describe('The key of the skill to use'),
 	args: z.record(z.any()),
 	depth: z.number().min(0).max(1000),
-	status: z.enum(['enqueued', 'succeeded']).default('enqueued').optional(),
-	result: z.string().optional(),
 });
 
 const coreActionSchema = z.object({

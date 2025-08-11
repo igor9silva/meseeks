@@ -22,7 +22,7 @@ export const _add = internalMutation({
 			owner,
 			depth,
 			shouldReopen,
-			skills: [{ skillKey, args, status: 'enqueued' }],
+			skills: [{ skillKey, args }],
 		});
 
 		return actionIds[0];
@@ -39,8 +39,6 @@ export const _addMany = internalMutation({
 			z.object({
 				skillKey: z.string().describe('The key of the skill to use'),
 				args: z.record(z.any()),
-				status: z.enum(['enqueued', 'succeeded']),
-				result: z.string().optional(),
 			}),
 		),
 	},
@@ -55,41 +53,22 @@ export const _addMany = internalMutation({
 
 		// reopen if needed and requested
 		if (!task.isActive && shouldReopen) {
-			skills.unshift({ skillKey: 'reopen', args: {}, status: 'enqueued' });
+			skills.unshift({ skillKey: 'reopen', args: {} });
 		}
 
 		const actionIds = await Promise.all(
-			skills.map((skill) => {
-				if (skill.status === 'enqueued') {
-					return ctx.db.insert('actions', {
-						taskId,
-						author,
-						owner,
-						depth,
-						status: 'enqueued',
-						result: null,
-						skillKey: skill.skillKey,
-						args: skill.args,
-					});
-				}
-
-				if (!skill.result) throw new Error('Skill result is required for succeeded actions.');
-
-				return ctx.db.insert('actions', {
+			skills.map((skill) =>
+				ctx.db.insert('actions', {
 					taskId,
 					author,
 					owner,
 					depth,
-					status: skill.status,
-					result: {
-						text: skill.result,
-						reactions: [],
-					},
+					status: 'enqueued',
+					result: null,
 					skillKey: skill.skillKey,
 					args: skill.args,
-					costs: [],
-				});
-			}),
+				}),
+			),
 		);
 
 		await _runNextActionIfNeeded(ctx, taskId);

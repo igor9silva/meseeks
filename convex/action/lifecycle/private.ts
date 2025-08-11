@@ -241,8 +241,6 @@ export const _resolve = internalMutation({
 				skills: result.reactions.map((reaction) => ({
 					skillKey: reaction.skillKey,
 					args: reaction.args,
-					status: reaction.status,
-					result: reaction.result,
 				})),
 			});
 		}

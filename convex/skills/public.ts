@@ -108,24 +108,6 @@ export const availableIntelligences = query({
 			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
-					key: 'openai/gpt-oss-120b',
-					name: 'GPT-OSS 120B',
-					provider: 'OpenAI',
-					description: 'Best performance per energy',
-				},
-				// {
-				// 	key: 'openai/gpt-oss-20b',
-				// 	name: 'GPT-OSS 20B',
-				// 	provider: 'OpenAI',
-				// 	description: 'Best performance per energy',
-				// },
-				{
-					key: 'anthropic/claude-4-sonnet',
-					name: 'Claude 4 Sonnet',
-					provider: 'Anthropic',
-					description: 'Best overall',
-				},
-				{
 					key: 'moonshot/kimi-2',
 					name: 'Kimi 2',
 					provider: 'Moonshot',
@@ -195,11 +177,16 @@ export const availableIntelligences = query({
 					provider: 'Cerebras',
 				},
 				{
+					key: 'groq/qwen3-32b',
+					name: 'Qwen 32B',
+					provider: 'Groq',
+					description: 'Cheap and faaaast, a bit dumb',
+				},
+				{
 					key: 'google/gemini-2.5-pro',
 					name: 'Gemini 2.5 Pro',
 					provider: 'Google',
 				},
-
 				{
 					key: 'google/gemini-2.5-flash-lite',
 					name: 'Gemini 2.5 Flash Lite',
