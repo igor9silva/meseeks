@@ -8,7 +8,7 @@
 
 # Look at me!
 
-Meseeks is **the first companion** — AI systems designed for long-term work, not mere conversation. Their goal is to replace your ToDo app, email client, Slack, or whatever you juggle to get things done.
+Meseeks is **the first companion** — AI systems designed for long-term collaborative work. Their goal is to replace your ToDo app, email client, Slack, or whatever you juggle to get things done.
 
 Throw in a task and it'll partner with you to achieve it.
 

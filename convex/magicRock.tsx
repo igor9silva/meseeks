@@ -84,10 +84,11 @@ export async function _prepareContext(
 	console.debug('instructions', instructions);
 
 	const isAnthropic = model.provider.toLowerCase().includes('anthropic');
+	const isGPT5 = model.modelId.toLowerCase().includes('gpt-5');
 
 	return {
 		model,
-		temperature: skill.config.temperature,
+		temperature: isGPT5 ? 1 : skill.config.temperature, // GPT-5 doesnt support temperature
 		maxTokens: skill.config.maxTokens ?? undefined,
 		frequencyPenalty: skill.config.frequencyPenalty ?? undefined,
 		maxRetries: skill.config.maxRetries ?? undefined,
@@ -174,9 +175,14 @@ function languageModelFrom(
 		// OpenAI
 		// 'openai/gpt-4o': openai('gpt-4o', openAIconfig),
 		// 'openai/gpt-4o-mini': openai('gpt-4o-mini', openAIconfig),
+		'openai/gpt-5': openai('gpt-5', openAIconfig),
+		'openai/gpt-5-mini': openai('gpt-5-mini', openAIconfig),
+		'openai/gpt-5-nano': openai('gpt-5-nano', openAIconfig),
 		'openai/gpt-4.1': openai('gpt-4.1', openAIconfig),
 		'openai/gpt-4.1-mini': openai('gpt-4.1-mini', openAIconfig),
 		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
+		'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b'),
+		'openai/gpt-oss-20b': openrouter('openai/gpt-oss-20b'),
 
 		// Google
 		'google/gemini-2.5-pro': google('gemini-2.5-pro', googleConfig),
@@ -196,7 +202,7 @@ function languageModelFrom(
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
 
 		// Moonshot
-		'moonshot/kimi-2': moonshot('kimi-k2-turbo-preview'),
+		'moonshot/kimi-2': moonshot('kimi-k2-0711-preview'),
 		// 'moonshot/kimi-2': groq('moonshotai/kimi-k2-instruct'),
 
 		// Cerebras

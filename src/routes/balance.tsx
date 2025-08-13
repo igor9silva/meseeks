@@ -80,7 +80,7 @@ function RouteComponent() {
 			</Link>
 
 			<LowBalanceWarning balance={user.balanceUSD ?? 0n} />
-			<TopUpSection isPro={isPro} />
+			<TopUpSection isPro={isPro} user={user} />
 
 			<Tabs value={currentTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
 				<TabsList className="grid w-full grid-cols-2">

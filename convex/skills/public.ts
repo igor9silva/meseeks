@@ -108,55 +108,57 @@ export const availableIntelligences = query({
 			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
-					key: 'anthropic/claude-4-sonnet',
-					name: 'Claude 4 Sonnet',
-					provider: 'Anthropic',
-					description: 'Best overall',
-				},
-				{
 					key: 'moonshot/kimi-2',
 					name: 'Kimi 2',
 					provider: 'Moonshot',
-					description: '10x cheaper than Sonnet, a bit slow',
+					description: 'Best cost/performance ratio — a bit slow.',
+				},
+				{
+					key: 'anthropic/claude-4-sonnet',
+					name: 'Claude 4 Sonnet',
+					provider: 'Anthropic',
+					description: 'Best overall — 15x more costly than Kimi.',
+				},
+				{
+					key: 'anthropic/claude-4-opus',
+					name: 'Claude 4 Opus',
+					provider: 'Anthropic',
+					description: 'GOAT — use for extreme tasks, expensive!',
+				},
+			],
+			all: [
+				{
+					key: 'google/gemini-2.5-flash',
+					name: 'Gemini 2.5 Flash',
+					provider: 'Google',
+					description: 'Nicely balanced, cheap and fast',
 				},
 				{
 					key: 'xai/grok-3-mini',
 					name: 'Grok 3 Mini',
 					provider: 'xAI',
-					description: 'Best performance per energy',
+					description: 'Cheap and fast, can be useful',
 				},
 				{
 					key: 'anthropic/claude-3.5-haiku',
 					name: 'Claude 3.5 Haiku',
 					provider: 'Anthropic',
-					description: 'Surprisingly very good',
+					description: 'Surprisingly very good, very cheap',
 				},
 				{
 					key: 'groq/qwen3-32b',
 					name: 'Qwen 32B',
 					provider: 'Groq',
-					description: 'Cheap and faaaast, a bit dumb',
+					description: 'Insanely faaaast, but not very smart',
 				},
-			],
-			all: [
 				{
 					key: 'cerebras/qwen3-235b',
 					name: 'Qwen 235B',
 					provider: 'Cerebras',
 				},
 				{
-					key: 'anthropic/claude-4-opus',
-					name: 'Claude 4 Opus',
-					provider: 'Anthropic',
-				},
-				{
 					key: 'google/gemini-2.5-pro',
 					name: 'Gemini 2.5 Pro',
-					provider: 'Google',
-				},
-				{
-					key: 'google/gemini-2.5-flash',
-					name: 'Gemini 2.5 Flash',
 					provider: 'Google',
 				},
 				{

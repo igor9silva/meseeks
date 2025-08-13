@@ -95,7 +95,7 @@ export function GenericAction(props: ActionComponentProps) {
 								actionId={action._id}
 							/>
 						) : (
-							<TextShimmer text={`Performing ${action.skillKey}()`} />
+							<TextShimmer text={`Performing ${action.skillKey}(${formatArgs(action.args)})`} />
 						)}
 					</>
 				)}
@@ -139,29 +139,7 @@ function Result({
 
 	const mdx = () => <MDX text={result} errorFallback={<pre className="whitespace-pre-wrap">{result}</pre>} />;
 
-	const argsString = useMemo(() => {
-		//
-		if (Object.keys(args).length === 0) return '';
-
-		if (Object.keys(args).length === 1) {
-			//
-			const key = Object.keys(args)[0];
-			const value = args[key];
-			const type = typeof value;
-
-			switch (type) {
-				case 'string':
-					return `"${value}"`;
-				case 'number':
-					return `${value}`;
-				case 'boolean':
-					return `${value ? 'true' : 'false'}`;
-			}
-		}
-
-		return `{ ${Object.keys(args).join(', ')} }`;
-		//
-	}, [args]);
+	const argsString = useMemo(() => formatArgs(args), [args]);
 
 	return (
 		<Collapsible className={cn('text-sm', className)}>
@@ -263,4 +241,27 @@ function StructuredValue({ value, depth = 0 }: { value: any; depth?: number }) {
 	}
 
 	return <span className="text-muted-foreground">{String(value)}</span>;
+}
+
+function formatArgs(args: Record<string, any>): string {
+	//
+	if (Object.keys(args).length === 0) return '';
+
+	if (Object.keys(args).length === 1) {
+		//
+		const key = Object.keys(args)[0];
+		const value = args[key];
+		const type = typeof value;
+
+		switch (type) {
+			case 'string':
+				return `"${value}"`;
+			case 'number':
+				return `${value}`;
+			case 'boolean':
+				return `${value ? 'true' : 'false'}`;
+		}
+	}
+
+	return `{ ${Object.keys(args).join(', ')} }`;
 }

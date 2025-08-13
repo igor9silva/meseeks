@@ -120,11 +120,10 @@ export default function SoftSkillConfig({
 							</TabsList>
 						</Tabs>
 
-						{intelligenceMode === 'specific' && (
+						{intelligenceMode === 'specific' && isEditable && (
 							<IntelligenceSelector
 								value={model === 'auto' ? undefined : model}
 								onChange={handleSpecificModelChange}
-								disabled={!isEditable}
 								className="min-w-0"
 							/>
 						)}
@@ -158,7 +157,7 @@ export default function SoftSkillConfig({
 				</div>
 			</div>
 
-			{/* Available Skills section remains the same */}
+			{/* Available Skills section */}
 			<div className="space-y-2">
 				<LabelWithTooltip
 					htmlFor="availableSkills"
@@ -166,17 +165,19 @@ export default function SoftSkillConfig({
 				>
 					Available Skills
 				</LabelWithTooltip>
-				<SkillSelector
-					value=""
-					onValueChange={(skillKey) => {
-						if (skillKey && !availableSkills.includes(skillKey)) {
-							onAvailableSkillsChange([...availableSkills, skillKey]);
-						}
-					}}
-					excludeSkills={availableSkills}
-					placeholder="Select a skill"
-					disabled={!isEditable}
-				/>
+
+				{isEditable && (
+					<SkillSelector
+						value=""
+						onValueChange={(skillKey) => {
+							if (skillKey && !availableSkills.includes(skillKey)) {
+								onAvailableSkillsChange([...availableSkills, skillKey]);
+							}
+						}}
+						excludeSkills={availableSkills}
+						placeholder="Select a skill"
+					/>
+				)}
 
 				{availableSkills.length > 0 && (
 					<div className="mt-2">

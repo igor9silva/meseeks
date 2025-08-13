@@ -118,6 +118,8 @@ export default defineSchema({
 		'by_owner_status', ['owner', 'status'],
 	).index(
 		'by_paymentId', ['paymentId'],
+	).index(
+		'by_polarSubscriptionId', ['polarSubscriptionId'],
 	),
 
 	topUps: defineTable(
