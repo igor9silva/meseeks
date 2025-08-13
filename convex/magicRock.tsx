@@ -84,10 +84,11 @@ export async function _prepareContext(
 	console.debug('instructions', instructions);
 
 	const isAnthropic = model.provider.toLowerCase().includes('anthropic');
+	const isGPT5 = model.modelId.toLowerCase().includes('gpt-5');
 
 	return {
 		model,
-		temperature: skill.config.temperature,
+		temperature: isGPT5 ? 1 : skill.config.temperature, // GPT-5 doesnt support temperature
 		maxTokens: skill.config.maxTokens ?? undefined,
 		frequencyPenalty: skill.config.frequencyPenalty ?? undefined,
 		maxRetries: skill.config.maxRetries ?? undefined,
