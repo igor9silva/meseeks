@@ -50,8 +50,8 @@ export function RouteComponent() {
 			</div>
 
 			<div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-				<ProCard onSubscribe={handleSubscribe} />
 				<FounderCard onSubscribe={handleSubscribe} />
+				<ProCard onSubscribe={handleSubscribe} />
 			</div>
 
 			<FaqSection />
