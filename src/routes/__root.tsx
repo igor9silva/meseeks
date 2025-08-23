@@ -1,8 +1,8 @@
 import { useAuthActions } from '@convex-dev/auth/react';
 import { QueryClient } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+// import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
@@ -83,8 +83,8 @@ function RootComponent() {
 	return (
 		<RootDocument>
 			<Outlet />
-			<TanStackRouterDevtools position="bottom-right" />
-			<ReactQueryDevtools />
+			{/* <TanStackRouterDevtools position="bottom-right" />
+			<ReactQueryDevtools /> */}
 		</RootDocument>
 	);
 }
