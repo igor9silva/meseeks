@@ -48,7 +48,7 @@ export const BudgetSelector = React.forwardRef<HTMLInputElement, BudgetSelectorP
 
 		return (
 			<div className={`flex flex-row gap-2 ${className}`}>
-				<EnergyTooltip className="flex flex-col flex-shrink-0 items-end cursor-auto">
+				<EnergyTooltip className="flex flex-col flex-shrink-0 items-end cursor-auto" tabIndex={-1}>
 					<p className="text-sm text-muted-foreground">Max. energy</p>
 					<p className="text-sm font-medium">⚡ {currentValue.toFixed(2)}</p>
 				</EnergyTooltip>

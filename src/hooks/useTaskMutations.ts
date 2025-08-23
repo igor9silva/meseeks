@@ -1,8 +1,40 @@
+import { useMutation as useTanStackMutation } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { asBigInt } from 'convex/lib/money';
 import { useMutation } from 'convex/react';
 import { modelsSchema } from 'convex/schemas/skillSchema';
 import { z } from 'zod';
+import { BudgetStep } from '~/components/ui/budget-selector';
+
+export function useAddTask() {
+	//
+	const addTask = useMutation(api.tasks.public.add);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			message,
+			initialFunds,
+			intelligence,
+		}: {
+			message: string;
+			initialFunds: BudgetStep;
+			intelligence: z.infer<typeof modelsSchema> | undefined;
+		}) => {
+			//
+			return await addTask({
+				message: message.trim(),
+				initialFunds: asBigInt({ dollars: initialFunds }),
+				preferredIntelligence: intelligence,
+			});
+		},
+	});
+
+	return {
+		addTask: mutation.mutate,
+		...mutation,
+	};
+}
 
 export function useTaskMutations() {
 	//

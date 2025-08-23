@@ -1,7 +1,4 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
-import { asBigInt } from 'convex/lib/money';
-import { useMutation } from 'convex/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -13,6 +10,7 @@ import { ArrowUp, Mic } from 'lucide-react';
 import { RecordingState } from '~/components/ActionComposer/RecordingState';
 import { TranscribingState } from '~/components/ActionComposer/TranscribingState';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
+import { Loading } from '~/components/Loading';
 import { SkillsLink } from '~/components/SkillsLink';
 import { ActionButton } from '~/components/ui/action-button';
 import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
@@ -20,6 +18,7 @@ import { Card, CardContent } from '~/components/ui/card';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useAddTask } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
 // Configuration for automatic intelligence selection based on budget
@@ -57,7 +56,7 @@ export function QuickSeek({ className }: { className?: string }) {
 export function QuickSeekContent({ className }: { className?: string }) {
 	//
 	const navigate = useNavigate();
-	const addTask = useMutation(api.tasks.public.add);
+	const { addTask, isPending } = useAddTask();
 	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
 	const { q } = useSearch({ strict: false });
@@ -103,37 +102,39 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		}
 	};
 
-	const handleSubmit = async () => {
+	const handleSubmit = () => {
 		//
+		if (isPending) return;
 		if (!message.trim()) {
 			toast.error('Message is required');
 			return;
 		}
 
-		try {
-			//
-			const taskId = await addTask({
-				message: message.trim(),
-				initialFunds: asBigInt({ dollars: initialFunds }),
-				preferredIntelligence: intelligence,
-			});
+		const task = {
+			message: message.trim(),
+			initialFunds,
+			intelligence,
+		};
 
-			navigate({ to: '/$', params: { _splat: `/task/${taskId}` } });
-			//
-		} catch (error: unknown) {
-			//
-			if (isError(INSUFFICIENT_ACCOUNT_FUNDS_ERROR, error)) {
-				toast.error('Account funds are insufficient.', {
-					description: 'Top up or decrease the task energy budget.',
-					action: {
-						label: 'Top up',
-						onClick: () => navigate({ to: '/top-up' }),
-					},
-				});
-			} else {
-				toast.error('An unknown error occurred while starting the task.');
-			}
-		}
+		addTask(task, {
+			onSuccess: (taskId) => {
+				navigate({ to: '/$', params: { _splat: `/task/${taskId}` } });
+			},
+			onError: (error: unknown) => {
+				//
+				if (isError(INSUFFICIENT_ACCOUNT_FUNDS_ERROR, error)) {
+					toast.error('Account funds are insufficient.', {
+						description: 'Top up or decrease the task energy budget.',
+						action: {
+							label: 'Top up',
+							onClick: () => navigate({ to: '/top-up' }),
+						},
+					});
+				} else {
+					toast.error('An unknown error occurred while starting the task.');
+				}
+			},
+		});
 	};
 
 	const showVoiceInterface = recordingStatus !== 'idle';
@@ -143,7 +144,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		global: true,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
-			if (recordingStatus === 'idle' && !isEmpty) {
+			if (recordingStatus === 'idle' && !isEmpty && !isPending) {
 				handleSubmit();
 			}
 		},
@@ -167,6 +168,8 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		combo: { withCommand: true, key: '/' },
 		callback: () => intelligenceSelectorRef.current?.click(),
 	});
+
+	if (isPending) return <Loading />;
 
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none p-4', className)}>
@@ -223,13 +226,14 @@ export function QuickSeekContent({ className }: { className?: string }) {
 											<ActionButton
 												icon={<Mic className="size-5" />}
 												onClick={handleStartRecording}
+												disabled={isPending}
 												tooltip="Transcribe voice"
 												variant="secondary"
 											/>
 											<ActionButton
 												icon={<ArrowUp className="size-5" />}
 												onClick={handleSubmit}
-												disabled={isEmpty}
+												disabled={isEmpty || isPending}
 												tooltip="Seek"
 											/>
 										</div>
