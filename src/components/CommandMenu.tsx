@@ -38,6 +38,7 @@ import {
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { useIsPro } from '~/hooks/useIsPro';
+import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useTaskMutations } from '~/hooks/useTaskMutations';
@@ -74,20 +75,14 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		[isOpen],
 	);
 
-	React.useEffect(() => {
-		//
-		const down = (e: KeyboardEvent) => {
-			//
-			if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-				e.preventDefault();
-				setIsOpen((open) => !open);
-			}
-		};
-
-		document.addEventListener('keydown', down);
-		return () => document.removeEventListener('keydown', down);
-		//
-	}, []);
+	// command menu toggle shortcut (CMD+K)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: 'k' },
+		callback: () => {
+			setIsOpen((open) => !open);
+		},
+	});
 
 	return <CommandMenuContext.Provider value={value}>{children}</CommandMenuContext.Provider>;
 }
@@ -100,6 +95,16 @@ export function CommandMenuDialog() {
 
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
+
+	// new task shortcut (⌥+N)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: 'j' },
+		callback: (e) => {
+			console.log('new task shortcut triggered', e);
+			navigate({ to: '/$', params: { _splat: '/new' } });
+		},
+	});
 
 	useEffect(() => {
 		setSearch(pathname + searchStr);
