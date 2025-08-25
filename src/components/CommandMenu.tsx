@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import * as React from 'react';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/lib/money';
@@ -80,7 +80,10 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		global: true,
 		combo: { withCommand: true, key: 'k' },
 		callback: () => {
-			setIsOpen((open) => !open);
+			// use startTransition to mark this as non-urgent and prevent blocking
+			startTransition(() => {
+				setIsOpen((open) => !open);
+			});
 		},
 	});
 
@@ -102,7 +105,10 @@ export function CommandMenuDialog() {
 		combo: { withCommand: true, key: 'j' },
 		callback: (e) => {
 			console.log('new task shortcut triggered', e);
-			navigate({ to: '/$', params: { _splat: '/new' } });
+			// use startTransition to mark navigation as non-urgent
+			startTransition(() => {
+				navigate({ to: '/$', params: { _splat: '/new' } });
+			});
 		},
 	});
 
