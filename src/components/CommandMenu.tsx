@@ -262,13 +262,13 @@ export function CommandMenuDialog() {
 function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { resolve, isPending } = useResolve();
+	const { resolve, isResolving } = useResolve();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
-		if (isPending) return;
+		if (isResolving) return;
 		resolve({ taskId: currentTask._id });
 		close();
 	};
@@ -284,7 +284,7 @@ function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { discard, isPending: isDiscarding } = useDiscard();
+	const { discard, isDiscarding } = useDiscard();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
@@ -307,14 +307,14 @@ function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { increaseBudget, isPending } = useIncreaseBudget();
+	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || currentTask.isActive) return null;
 
 	const handleSelect = () => {
 		//
-		if (isPending) return;
+		if (isIncreasingBudget) return;
 		increaseBudget({ taskId: currentTask._id, amount: asBigInt({ dollars: 0.5 }) });
 		close();
 	};
@@ -378,13 +378,13 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { decreaseBudget, isPending } = useDecreaseBudget();
+	const { decreaseBudget, isDecreasingBudget } = useDecreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive || currentTask.energyBudget.available <= 0n) return null;
 
 	const handleSelect = () => {
-		if (isPending) return;
+		if (isDecreasingBudget) return;
 		decreaseBudget({ taskId: currentTask._id, amount: currentTask.energyBudget.available });
 		close();
 	};

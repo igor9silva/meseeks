@@ -56,7 +56,7 @@ export function QuickSeek({ className }: { className?: string }) {
 export function QuickSeekContent({ className }: { className?: string }) {
 	//
 	const navigate = useNavigate();
-	const { addTask, isPending } = useAddTask();
+	const { addTask, isAdding } = useAddTask();
 	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
 	const { q } = useSearch({ strict: false });
@@ -104,7 +104,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const handleSubmit = () => {
 		//
-		if (isPending) return;
+		if (isAdding) return;
 		if (!message.trim()) {
 			toast.error('Message is required');
 			return;
@@ -144,7 +144,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		global: true,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
-			if (recordingStatus === 'idle' && !isEmpty && !isPending) {
+			if (recordingStatus === 'idle' && !isEmpty && !isAdding) {
 				handleSubmit();
 			}
 		},
@@ -169,7 +169,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		callback: () => intelligenceSelectorRef.current?.click(),
 	});
 
-	if (isPending) return <Loading />;
+	if (isAdding) return <Loading />;
 
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none p-4', className)}>
@@ -226,14 +226,14 @@ export function QuickSeekContent({ className }: { className?: string }) {
 											<ActionButton
 												icon={<Mic className="size-5" />}
 												onClick={handleStartRecording}
-												disabled={isPending}
+												disabled={isAdding}
 												tooltip="Transcribe voice"
 												variant="secondary"
 											/>
 											<ActionButton
 												icon={<ArrowUp className="size-5" />}
 												onClick={handleSubmit}
-												disabled={isEmpty || isPending}
+												disabled={isEmpty || isAdding}
 												tooltip="Seek"
 											/>
 										</div>

@@ -19,10 +19,10 @@ export function ActionComposer({
 	onSubmit?: (message: string) => void;
 	className?: string;
 }) {
-	const { say, isPending: isSayPending } = useSay();
-	const { stop, isPending: isStopPending } = useStop();
-	const { requestIteration, isPending: isRequestIterationPending } = useRequestIteration();
-	const { approveBlockingAction, isPending: isApproveBlockingPending } = useApproveBlockingAction();
+	const { say, isSaying } = useSay();
+	const { stop, isStopping } = useStop();
+	const { requestIteration, isRequestingIteration } = useRequestIteration();
+	const { approveBlockingAction, isApprovingBlockingAction } = useApproveBlockingAction();
 	const {
 		textareaRef,
 		value: message,
@@ -42,7 +42,7 @@ export function ActionComposer({
 		onTranscriptionComplete: setMessage,
 	});
 
-	const isAnyMutationPending = isSayPending || isStopPending || isRequestIterationPending || isApproveBlockingPending;
+	const isAnyMutationPending = isSaying || isStopping || isRequestingIteration || isApprovingBlockingAction;
 
 	const handleSubmit = () => {
 		//
@@ -74,7 +74,7 @@ export function ActionComposer({
 		global: true,
 		combo: { withAlt: true, key: 'Enter' },
 		callback: () => {
-			if (isBlocked && !isApproveBlockingPending) {
+			if (isBlocked && !isApprovingBlockingAction) {
 				approveBlockingAction({ taskId: task._id });
 			}
 		},
@@ -101,7 +101,7 @@ export function ActionComposer({
 		combo: { withCommand: true, key: 'Backspace' },
 		skipPreventDefault: true,
 		callback: (e) => {
-			if (task.status === 'acting' && !isStopPending) {
+			if (task.status === 'acting' && !isStopping) {
 				stop({ taskId: task._id });
 				e.preventDefault();
 			}

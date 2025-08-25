@@ -32,6 +32,7 @@ export function useAddTask() {
 
 	return {
 		addTask: mutation.mutate,
+		isAdding: mutation.isPending,
 		...mutation,
 	};
 }
@@ -62,6 +63,7 @@ export function useSay() {
 
 	return {
 		say: mutation.mutate,
+		isSaying: mutation.isPending,
 		...mutation,
 	};
 }
@@ -87,6 +89,7 @@ export function useRequestIteration() {
 
 	return {
 		requestIteration: mutation.mutate,
+		isRequestingIteration: mutation.isPending,
 		...mutation,
 	};
 }
@@ -112,6 +115,7 @@ export function useStop() {
 
 	return {
 		stop: mutation.mutate,
+		isStopping: mutation.isPending,
 		...mutation,
 	};
 }
@@ -133,6 +137,7 @@ export function useApproveBlockingAction() {
 
 	return {
 		approveBlockingAction: mutation.mutate,
+		isApprovingBlockingAction: mutation.isPending,
 		...mutation,
 	};
 }
@@ -165,6 +170,7 @@ export function useIncreaseBudget() {
 
 	return {
 		increaseBudget: mutation.mutate,
+		isIncreasingBudget: mutation.isPending,
 		...mutation,
 	};
 }
@@ -195,6 +201,7 @@ export function useDecreaseBudget() {
 
 	return {
 		decreaseBudget: mutation.mutate,
+		isDecreasingBudget: mutation.isPending,
 		...mutation,
 	};
 }
@@ -220,6 +227,7 @@ export function useResolve() {
 
 	return {
 		resolve: mutation.mutate,
+		isResolving: mutation.isPending,
 		...mutation,
 	};
 }
@@ -245,6 +253,7 @@ export function useDiscard() {
 
 	return {
 		discard: mutation.mutate,
+		isDiscarding: mutation.isPending,
 		...mutation,
 	};
 }

@@ -17,7 +17,7 @@ export function TaskItem({
 	className?: string;
 }) {
 	//
-	const { resolve, isPending: isResolving } = useResolve();
+	const { resolve, isResolving } = useResolve();
 	const { reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 

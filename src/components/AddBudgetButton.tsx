@@ -26,13 +26,13 @@ export function AddBudgetButton(props: {
 	//
 	const { amount, shouldIterate, variant, text } = props;
 	const { taskId } = useSplatParams();
-	const { increaseBudget, isPending } = useIncreaseBudget();
+	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 
 	if (!taskId) throw new Error('Must be used within a task');
 	if (amount === undefined) return <AddCustomBudgetButton />;
 
 	const handleAddBudget = () => {
-		if (isPending) return;
+		if (isIncreasingBudget) return;
 		increaseBudget({
 			taskId,
 			amount: asBigInt({ dollars: amount }),
@@ -45,7 +45,7 @@ export function AddBudgetButton(props: {
 			size="sm"
 			variant={variant ?? 'default'}
 			onClick={handleAddBudget}
-			loading={isPending}
+			loading={isIncreasingBudget}
 			loadingText="Adding..."
 			icon={<span className="mr-2">⚡</span>}
 			className="flex items-center"

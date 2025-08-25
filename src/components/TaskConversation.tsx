@@ -46,9 +46,9 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const { task } = useCurrentTask();
 
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
-	const { discard, isPending: isDiscarding } = useDiscard();
-	const { resolve, isPending: isResolving } = useResolve();
-	const { increaseBudget, isPending: isIncreasingBudget } = useIncreaseBudget();
+	const { discard, isDiscarding } = useDiscard();
+	const { resolve, isResolving } = useResolve();
+	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
 
 	const user = useCurrentUser();

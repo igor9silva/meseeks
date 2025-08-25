@@ -19,7 +19,7 @@ export default function TaskDetail({
 	showExpand?: boolean;
 }) {
 	const { task } = useCurrentTask();
-	const { resolve, isPending: isResolving } = useResolve();
+	const { resolve, isResolving } = useResolve();
 	const { updateInstructions, reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
