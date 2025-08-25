@@ -9,7 +9,7 @@ import { Button } from '~/components/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useSay } from '~/hooks/useTaskMutations';
 
 export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {
 	//
@@ -28,7 +28,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		setIsFullscreen(!isFullscreen);
 	};
 
-	const { say } = useTaskMutations();
+	const { say, isSaying } = useSay();
 
 	if (isFullscreen) {
 		return (
@@ -44,6 +44,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 
 	const onClickFix = (e: React.MouseEvent, error: Error) => {
 		e.stopPropagation();
+		if (isSaying) return;
 		say({
 			taskId,
 			message: `The ${action.skillKey} action above failed. Error details: ${error.message}. Please fix it.`,

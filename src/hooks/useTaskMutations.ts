@@ -264,21 +264,6 @@ export function useTaskMutations() {
 	const authorize = useMutation(api.action.public.authorize);
 	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
 
-	const say = ({
-		taskId, //
-		message,
-	}: {
-		taskId: Id<'tasks'>;
-		message: string;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'say',
-			args: { message },
-			shouldReopen: true,
-		});
-	};
-
 	const stop = ({
 		taskId, //
 	}: {
@@ -389,7 +374,6 @@ export function useTaskMutations() {
 	};
 
 	return {
-		say,
 		stop,
 		updateInstructions,
 		reopen,
