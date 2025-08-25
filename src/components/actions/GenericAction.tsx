@@ -7,16 +7,18 @@ import { cn } from '~/lib/utils';
 import { asDollars } from 'convex/lib/money';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { LoadingButton } from '~/components/ui/loading-button';
 import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className } = props;
-	const { approveAction, rejectAction } = useTaskMutations();
+	const { approveAction, isApprovingAction } = useApproveAction();
+	const { rejectAction, isRejectingAction } = useRejectAction();
 	const isNew = useMemo(() => {
 		return new Date(action._creationTime) > initialRenderDate;
 	}, [action, initialRenderDate]);
@@ -26,10 +28,12 @@ export function GenericAction(props: ActionComponentProps) {
 	}
 
 	const handleApprove = () => {
+		if (isApprovingAction) return;
 		approveAction({ taskId, actionId: action._id });
 	};
 
 	const handleReject = () => {
+		if (isRejectingAction) return;
 		rejectAction({ taskId, actionId: action._id });
 	};
 
@@ -68,12 +72,24 @@ export function GenericAction(props: ActionComponentProps) {
 							This action requires your authorization
 						</div> */}
 						<div className="flex gap-2">
-							<Button size="sm" variant="default" onClick={handleApprove}>
+							<LoadingButton
+								size="sm"
+								variant="default"
+								onClick={handleApprove}
+								loading={isApprovingAction}
+								loadingText="Authorizing..."
+							>
 								Authorize
-							</Button>
-							<Button size="sm" variant="destructive" onClick={handleReject}>
+							</LoadingButton>
+							<LoadingButton
+								size="sm"
+								variant="destructive"
+								onClick={handleReject}
+								loading={isRejectingAction}
+								loadingText="Skipping..."
+							>
 								Skip
-							</Button>
+							</LoadingButton>
 						</div>
 					</div>
 				) : (

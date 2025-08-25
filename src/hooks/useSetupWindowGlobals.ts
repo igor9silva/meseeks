@@ -13,7 +13,6 @@ import { useContainerBreakpoint } from '~/hooks/useContainerBreakpoint';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useSkillMutations } from '~/hooks/useSkillMutations';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 // declare global window interface for runtime globals
@@ -48,7 +47,6 @@ declare global {
 		// Other hooks
 		useCurrentTask: typeof useCurrentTask;
 		useContainerBreakpoint: typeof useContainerBreakpoint;
-		useTaskMutations: typeof useTaskMutations;
 		useSkillMutations: typeof useSkillMutations;
 		useOptimisticTaskUpdate: typeof useOptimisticTaskUpdate;
 
@@ -96,7 +94,6 @@ export function useSetupWindowGlobals() {
 		window.useCurrentTask = useCurrentTask;
 		window.useContainerBreakpoint = useContainerBreakpoint;
 
-		window.useTaskMutations = useTaskMutations;
 		window.useSkillMutations = useSkillMutations;
 		window.useOptimisticTaskUpdate = useOptimisticTaskUpdate;
 

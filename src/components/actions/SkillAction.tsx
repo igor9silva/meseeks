@@ -4,9 +4,9 @@ import { cn } from '~/lib/utils';
 import { simplifiedSkillSchema } from 'convex/schemas/skillSchema';
 import { z } from 'zod';
 import { ActionComponentProps } from '~/components/actions';
-import { Button } from '~/components/ui/button';
+import { LoadingButton } from '~/components/ui/loading-button';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function SkillAction(props: ActionComponentProps) {
 	//
@@ -60,17 +60,20 @@ function PendingAuthorization({
 	taskId: Id<'tasks'>;
 	initialRenderDate: Date;
 }) {
-	const { approveAction, rejectAction } = useTaskMutations();
+	const { approveAction, isApprovingAction } = useApproveAction();
+	const { rejectAction, isRejectingAction } = useRejectAction();
 	// const isNew = useMemo(() => {
 	// 	return new Date(action._creationTime) > initialRenderDate;
 	// }, [action, initialRenderDate]);
 	const isNew = true;
 
 	const handleApprove = () => {
+		if (isApprovingAction) return;
 		approveAction({ taskId, actionId: action._id });
 	};
 
 	const handleReject = () => {
+		if (isRejectingAction) return;
 		rejectAction({ taskId, actionId: action._id });
 	};
 
@@ -149,12 +152,23 @@ function PendingAuthorization({
 
 			{/* Action Buttons */}
 			<div className="flex gap-2 pt-2">
-				<Button size="sm" onClick={handleApprove}>
+				<LoadingButton
+					size="sm"
+					onClick={handleApprove}
+					loading={isApprovingAction}
+					loadingText="Authorizing..."
+				>
 					Authorize
-				</Button>
-				<Button size="sm" variant="outline" onClick={handleReject}>
+				</LoadingButton>
+				<LoadingButton
+					size="sm"
+					variant="outline"
+					onClick={handleReject}
+					loading={isRejectingAction}
+					loadingText="Cancelling..."
+				>
 					Cancel
-				</Button>
+				</LoadingButton>
 			</div>
 		</div>
 	);

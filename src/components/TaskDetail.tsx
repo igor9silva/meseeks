@@ -4,7 +4,13 @@ import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
-import { useReopen, useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
+import {
+	useReopen,
+	useResolve,
+	useUpdateAvailableSkills,
+	useUpdateInstructions,
+	useUpdateTitle,
+} from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
@@ -21,7 +27,9 @@ export default function TaskDetail({
 	const { task } = useCurrentTask();
 	const { resolve, isResolving } = useResolve();
 	const { reopen, isReopening } = useReopen();
-	const { updateInstructions } = useTaskMutations();
+	const { updateTitle, isUpdatingTitle } = useUpdateTitle();
+	const { updateInstructions, isUpdatingInstructions } = useUpdateInstructions();
+	const { updateAvailableSkills, isUpdatingAvailableSkills } = useUpdateAvailableSkills();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (hasChecked: boolean) => {
@@ -37,7 +45,8 @@ export default function TaskDetail({
 
 	const handleAvailableSkillsChange = (availableSkills: string[]) => {
 		//
-		updateInstructions({
+		if (isUpdatingAvailableSkills) return;
+		updateAvailableSkills({
 			taskId: task._id,
 			availableSkills,
 		});
@@ -64,10 +73,17 @@ export default function TaskDetail({
 							<EditableContent
 								key={task.title}
 								value={task.title ?? ''}
-								onSave={(newTitle) => updateInstructions({ taskId: task._id, title: newTitle })}
+								onSave={(newTitle) => updateTitle({ taskId: task._id, title: newTitle })}
+								isPending={isUpdatingTitle}
 								viewClassName="text-2xl font-bold leading-none break-words overflow-wrap-anywhere min-w-0 flex-1"
-								asView={({ value, className, isEmpty }) => (
-									<h1 className={cn(!task.isActive && 'line-through', className)}>
+								asView={({ value, className, isEmpty, isPending }) => (
+									<h1
+										className={cn(
+											!task.isActive && 'line-through',
+											isPending && 'opacity-50',
+											className,
+										)}
+									>
 										{isEmpty ? <span className="text-muted-foreground">Untitled task</span> : value}
 									</h1>
 								)}
@@ -81,6 +97,7 @@ export default function TaskDetail({
 					<TaskAvailableSkills
 						availableSkills={task.availableSkills ?? []}
 						onAvailableSkillsChange={handleAvailableSkillsChange}
+						isPending={isUpdatingAvailableSkills}
 					/>
 				</div>
 			</CardHeader>
@@ -91,9 +108,10 @@ export default function TaskDetail({
 					onSave={(newInstructions) =>
 						updateInstructions({ taskId: task._id, instructions: newInstructions })
 					}
+					isPending={isUpdatingInstructions}
 					multiline
-					asView={({ value, enterEditMode, className, isEmpty }) => (
-						<div className={cn(className)}>
+					asView={({ value, enterEditMode, className, isEmpty, isPending }) => (
+						<div className={cn(isPending && 'opacity-50', className)}>
 							{isEmpty ? (
 								<div className="text-muted-foreground text-sm">No instructions.</div>
 							) : (

@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { SkillCommandList } from '~/components/skills/shared/SkillCommandList';
 import { Badge } from '~/components/ui/badge';
@@ -10,9 +10,14 @@ import { usePreferences } from '~/hooks/usePreferences';
 interface TaskAvailableSkillsProps {
 	availableSkills: string[];
 	onAvailableSkillsChange: (skills: string[]) => void;
+	isPending?: boolean;
 }
 
-function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }: TaskAvailableSkillsProps) {
+function TaskAvailableSkillsContent({
+	availableSkills,
+	onAvailableSkillsChange,
+	isPending = false,
+}: TaskAvailableSkillsProps) {
 	//
 	const { getEnabledSkills } = usePreferences();
 	const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -22,7 +27,7 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 
 	const handleAddSkill = (skillKey: string) => {
 		//
-		if (!skillKey || availableSkills.includes(skillKey)) return;
+		if (isPending || !skillKey || availableSkills.includes(skillKey)) return;
 
 		onAvailableSkillsChange([...availableSkills, skillKey]);
 		setIsPopoverOpen(false);
@@ -30,6 +35,7 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 
 	const handleRemoveSkill = (skillKey: string) => {
 		//
+		if (isPending) return;
 		onAvailableSkillsChange(availableSkills.filter((s) => s !== skillKey));
 	};
 
@@ -59,7 +65,8 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 								type="button"
 								variant="ghost"
 								size="icon"
-								className="h-2 w-2 p-0 hover:bg-destructive/20"
+								disabled={isPending}
+								className="h-2 w-2 p-0 hover:bg-destructive/20 disabled:opacity-50"
 								onClick={() => handleRemoveSkill(skillKey)}
 								aria-label={`Remove ${skillKey} skill`}
 							>
@@ -75,10 +82,15 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 									type="button"
 									size="icon"
 									variant="outline"
-									className="h-6 w-6"
+									disabled={isPending}
+									className="h-6 w-6 disabled:opacity-50"
 									aria-label="Add skill"
 								>
-									<Plus className="h-3 w-3" />
+									{isPending ? (
+										<Loader2 className="h-3 w-3 animate-spin" />
+									) : (
+										<Plus className="h-3 w-3" />
+									)}
 								</Button>
 							</PopoverTrigger>
 							<PopoverContent className="w-80 p-0" align="start">
@@ -133,7 +145,7 @@ function TaskAvailableSkillsContent({ availableSkills, onAvailableSkillsChange }
 	);
 }
 
-export function TaskAvailableSkills({ availableSkills, onAvailableSkillsChange }: TaskAvailableSkillsProps) {
+export function TaskAvailableSkills({ availableSkills, onAvailableSkillsChange, isPending }: TaskAvailableSkillsProps) {
 	//
 	return (
 		<Suspense
@@ -146,6 +158,7 @@ export function TaskAvailableSkills({ availableSkills, onAvailableSkillsChange }
 			<TaskAvailableSkillsContent
 				availableSkills={availableSkills}
 				onAvailableSkillsChange={onAvailableSkillsChange}
+				isPending={isPending}
 			/>
 		</Suspense>
 	);

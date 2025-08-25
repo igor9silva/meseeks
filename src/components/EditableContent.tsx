@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
@@ -9,11 +10,13 @@ type EditableContentProps = {
 	multiline?: boolean;
 	viewClassName?: string;
 	editClassName?: string;
+	isPending?: boolean;
 	asView?: (props: {
 		value: string; //
 		className?: string;
 		enterEditMode: (e: React.MouseEvent | React.TouchEvent) => void;
 		isEmpty: boolean;
+		isPending?: boolean;
 	}) => React.ReactNode;
 	as?: keyof JSX.IntrinsicElements;
 };
@@ -24,6 +27,7 @@ export function EditableContent({
 	multiline = false,
 	viewClassName,
 	editClassName,
+	isPending = false,
 	asView,
 	as: Component = 'div',
 }: EditableContentProps) {
@@ -32,12 +36,16 @@ export function EditableContent({
 	const [editedValue, setEditedValue] = useState(value);
 
 	const enterEditMode = (e: React.MouseEvent | React.TouchEvent) => {
+		//
+		if (isPending) return;
 		e.preventDefault();
 		e.stopPropagation();
 		setIsEditing(true);
 	};
 
 	const saveChanges = () => {
+		//
+		if (isPending) return;
 		setIsEditing(false);
 
 		// only save if the value has changed
@@ -72,8 +80,10 @@ export function EditableContent({
 				onChange={(e) => setEditedValue(e.target.value)}
 				onBlur={saveChanges}
 				onKeyDown={handleKeyDown}
+				disabled={isPending}
 				className={cn(
 					'w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary',
+					isPending && 'opacity-50 cursor-not-allowed',
 					editClassName,
 				)}
 				autoFocus
@@ -81,21 +91,40 @@ export function EditableContent({
 		);
 	}
 
+	// Show new content during pending state, old content otherwise
+	const displayValue = isPending ? editedValue : value;
+	const displayIsEmpty = !displayValue || !displayValue.trim();
+
 	return (
-		<Component
-			className={cn('cursor-magic', viewClassName)}
-			onMouseUp={(e) => {
-				//
-				// middle click
-				if (e.button === 1) enterEditMode(e);
-			}}
-			onTouchStart={(e) => {
-				//
-				// three finger tap
-				if (e.touches.length === 3) enterEditMode(e);
-			}}
-		>
-			{asView ? asView({ value, enterEditMode, className: viewClassName, isEmpty }) : editedValue}
-		</Component>
+		<div className="relative">
+			<Component
+				className={cn('cursor-magic', isPending && 'opacity-50 cursor-not-allowed', viewClassName)}
+				onMouseUp={(e) => {
+					//
+					// middle click
+					if (e.button === 1) enterEditMode(e);
+				}}
+				onTouchStart={(e) => {
+					//
+					// three finger tap
+					if (e.touches.length === 3) enterEditMode(e);
+				}}
+			>
+				{asView
+					? asView({
+							value: displayValue,
+							enterEditMode,
+							className: viewClassName,
+							isEmpty: displayIsEmpty,
+							isPending,
+						})
+					: displayValue}
+			</Component>
+			{isPending && (
+				<div className="absolute top-2 right-2 pointer-events-none">
+					<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+				</div>
+			)}
+		</div>
 	);
 }

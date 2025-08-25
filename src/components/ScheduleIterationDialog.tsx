@@ -7,10 +7,11 @@ import { Button } from '~/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { LoadingButton } from '~/components/ui/loading-button';
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
 import { Textarea } from '~/components/ui/textarea';
 import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useScheduleIteration } from '~/hooks/useTaskMutations';
 
 interface ScheduleIterationDialogProps {
 	//
@@ -21,7 +22,7 @@ interface ScheduleIterationDialogProps {
 
 export function ScheduleIterationDialog({ taskId, open, onOpenChange }: ScheduleIterationDialogProps) {
 	//
-	const { scheduleIteration } = useTaskMutations();
+	const { scheduleIteration, isSchedulingIteration } = useScheduleIteration();
 	const submitHotkey = useSubmitHotkey();
 
 	// Initialize with current date/time + 15 minutes
@@ -35,7 +36,6 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 	const [scheduledTime, setScheduledTime] = useState(defaultTime);
 	const [cronExpression, setCronExpression] = useState('0 9 * * 1'); // every Monday at 9:00 AM
 	const [instructions, setInstructions] = useState('');
-	const [isLoading, setIsLoading] = useState(false);
 
 	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -78,7 +78,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 	const handleSubmit = async (e?: React.FormEvent) => {
 		//
 		if (e) e.preventDefault();
-		setIsLoading(true);
+		if (isSchedulingIteration) return;
 
 		try {
 			//
@@ -103,25 +103,25 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 				scheduleArgs.cronExpression = cronExpression;
 			}
 
-			await scheduleIteration(scheduleArgs);
-			onOpenChange(false);
-
-			// Reset form to defaults
-			setScheduledDate(defaultDate);
-			setScheduledTime(defaultTime);
-			setCronExpression('0 9 * * 1');
-			setInstructions('');
-			setScheduleType('one-time');
-			//
-		} finally {
-			//
-			setIsLoading(false);
+			scheduleIteration(scheduleArgs, {
+				onSuccess: () => {
+					onOpenChange(false);
+					// Reset form to defaults
+					setScheduledDate(defaultDate);
+					setScheduledTime(defaultTime);
+					setCronExpression('0 9 * * 1');
+					setInstructions('');
+					setScheduleType('one-time');
+				},
+			});
+		} catch (error) {
+			console.error('Failed to schedule iteration:', error);
 		}
 	};
 
 	const isOneTimeValid = scheduleType === 'one-time' && scheduledDate && scheduledTime;
 	const isRecurringValid = scheduleType === 'recurring' && cronExpression.trim();
-	const canSubmit = (isOneTimeValid || isRecurringValid) && !isLoading;
+	const canSubmit = (isOneTimeValid || isRecurringValid) && !isSchedulingIteration;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -284,13 +284,18 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								type="button"
 								variant="outline"
 								onClick={() => onOpenChange(false)}
-								disabled={isLoading}
+								disabled={isSchedulingIteration}
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={!canSubmit}>
-								{isLoading ? 'Scheduling...' : 'Schedule'}
-							</Button>
+							<LoadingButton
+								type="submit"
+								disabled={!canSubmit}
+								loading={isSchedulingIteration}
+								loadingText="Scheduling..."
+							>
+								Schedule
+							</LoadingButton>
 						</div>
 					</div>
 				</form>

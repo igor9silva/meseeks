@@ -284,102 +284,217 @@ export function useReopen() {
 	};
 }
 
-export function useTaskMutations() {
+export function useApproveAction() {
 	//
-	const act = useMutation(api.action.public.act);
 	const authorize = useMutation(api.action.public.authorize);
-	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
 
-	const updateInstructions = ({
-		taskId, //
-		title,
-		instructions,
-		availableSkills,
-	}: {
-		taskId: Id<'tasks'>;
-		title?: string;
-		instructions?: string;
-		availableSkills?: string[];
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'updateInstructions',
-			args: { title, instructions, availableSkills },
-			shouldReopen: true,
-		});
-	};
-
-	const scheduleIteration = ({
-		taskId,
-		scheduleType,
-		scheduledAt,
-		cronExpression,
-		timeZone,
-		instructions,
-	}: {
-		taskId: Id<'tasks'>;
-		scheduleType: 'one-time' | 'recurring';
-		scheduledAt?: string;
-		cronExpression?: string;
-		timeZone: string;
-		instructions?: string;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'schedule',
-			args: {
-				scheduleType,
-				scheduledAt,
-				cronExpression,
-				timeZone,
-				instructions,
-			},
-		});
-	};
-
-	const approveAction = ({
-		taskId, //
-		actionId,
-	}: {
-		taskId: Id<'tasks'>;
-		actionId: Id<'actions'>;
-	}) => {
-		return authorize({
-			taskId,
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
 			actionId,
-			hasApproved: true,
-		});
-	};
-
-	const rejectAction = ({
-		taskId, //
-		actionId,
-	}: {
-		taskId: Id<'tasks'>;
-		actionId: Id<'actions'>;
-	}) => {
-		return authorize({
-			taskId,
-			actionId,
-			hasApproved: false,
-		});
-	};
-
-	const setPreferredIntelligence = ({
-		taskId, //
-		preferredIntelligence,
-	}: {
-		taskId: Id<'tasks'>;
-		preferredIntelligence: z.infer<typeof modelsSchema>;
-	}) => {
-		return setPreferredIntelligenceMutation({ taskId, preferredIntelligence });
-	};
+		}: {
+			taskId: Id<'tasks'>;
+			actionId: Id<'actions'>;
+		}) => {
+			//
+			return await authorize({
+				taskId,
+				actionId,
+				hasApproved: true,
+			});
+		},
+	});
 
 	return {
-		updateInstructions,
-		scheduleIteration,
-		approveAction,
-		rejectAction,
-		setPreferredIntelligence,
+		approveAction: mutation.mutate,
+		isApprovingAction: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useRejectAction() {
+	//
+	const authorize = useMutation(api.action.public.authorize);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			actionId,
+		}: {
+			taskId: Id<'tasks'>;
+			actionId: Id<'actions'>;
+		}) => {
+			//
+			return await authorize({
+				taskId,
+				actionId,
+				hasApproved: false,
+			});
+		},
+	});
+
+	return {
+		rejectAction: mutation.mutate,
+		isRejectingAction: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateInstructions() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			instructions,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			instructions: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'updateInstructions',
+				args: { instructions },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateInstructions: mutation.mutate,
+		isUpdatingInstructions: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateTitle() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			title,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			title: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'updateInstructions',
+				args: { title },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateTitle: mutation.mutate,
+		isUpdatingTitle: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateAvailableSkills() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			availableSkills,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			availableSkills: string[];
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'updateInstructions',
+				args: { availableSkills },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateAvailableSkills: mutation.mutate,
+		isUpdatingAvailableSkills: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useScheduleIteration() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			scheduleType,
+			scheduledAt,
+			cronExpression,
+			timeZone,
+			instructions,
+		}: {
+			taskId: Id<'tasks'>;
+			scheduleType: 'one-time' | 'recurring';
+			scheduledAt?: string;
+			cronExpression?: string;
+			timeZone: string;
+			instructions?: string;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'schedule',
+				args: {
+					scheduleType,
+					scheduledAt,
+					cronExpression,
+					timeZone,
+					instructions,
+				},
+			});
+		},
+	});
+
+	return {
+		scheduleIteration: mutation.mutate,
+		isSchedulingIteration: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useSetPreferredIntelligence() {
+	//
+	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			preferredIntelligence,
+		}: {
+			taskId: Id<'tasks'>;
+			preferredIntelligence: z.infer<typeof modelsSchema>;
+		}) => {
+			//
+			return await setPreferredIntelligenceMutation({ taskId, preferredIntelligence });
+		},
+	});
+
+	return {
+		setPreferredIntelligence: mutation.mutate,
+		isSettingPreferredIntelligence: mutation.isPending,
+		...mutation,
 	};
 }

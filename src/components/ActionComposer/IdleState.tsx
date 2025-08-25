@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
 import { ActionButton } from '~/components/ui/action-button';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useSetPreferredIntelligence } from '~/hooks/useTaskMutations';
 import { KeyboardShortcutIndicator } from './KeyboardShortcutIndicator';
 
 interface IdleStateProps {
@@ -43,8 +43,9 @@ export function IdleState({
 	handleStop,
 }: IdleStateProps) {
 	//
-	const { setPreferredIntelligence } = useTaskMutations();
+	const { setPreferredIntelligence, isSettingPreferredIntelligence } = useSetPreferredIntelligence();
 	const handleIntelligenceChange = (key: z.infer<typeof modelsSchema>) => {
+		if (isSettingPreferredIntelligence) return;
 		setPreferredIntelligence({ taskId: task._id, preferredIntelligence: key });
 	};
 
