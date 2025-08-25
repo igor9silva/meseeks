@@ -18,74 +18,76 @@ export function getColorValue(variable: keyof ThemeVariables, themeVariables: Th
  */
 export function generateThemeStyles(themeVariables: ThemeVariables): string {
 	//
-	const getColor = (variable: keyof ThemeVariables) => getColorValue(variable, themeVariables);
+	const get = (v: keyof ThemeVariables) => getColorValue(v, themeVariables);
+	const raw = (v: keyof ThemeVariables) => themeVariables[v] ?? '';
 
 	return `
 		:root {
-			${(Object.entries(themeVariables) as [string, string][]).map(([key, value]) => `${key}: ${value};`).join('\n			')}
+			${(Object.entries(themeVariables) as [string, string][]).map(([k, v]) => `${k}: ${v};`).join('\n\t\t\t')}
 		}
-		
-		/* Custom theme classes that work with Tailwind CDN */
-		.bg-background { background-color: ${getColor('--background')} !important; }
-		.bg-foreground { background-color: ${getColor('--foreground')} !important; }
-		.bg-primary { background-color: ${getColor('--primary')} !important; }
-		.bg-secondary { background-color: ${getColor('--secondary')} !important; }
-		.bg-accent { background-color: ${getColor('--accent')} !important; }
-		.bg-muted { background-color: ${getColor('--muted')} !important; }
-		.bg-card { background-color: ${getColor('--background')} !important; }
-		
-		.text-background { color: ${getColor('--background')} !important; }
-		.text-foreground { color: ${getColor('--foreground')} !important; }
-		.text-primary { color: ${getColor('--primary')} !important; }
-		.text-primary-foreground { color: ${getColor('--primary-foreground')} !important; }
-		.text-secondary-foreground { color: ${getColor('--secondary-foreground')} !important; }
-		.text-accent-foreground { color: ${getColor('--accent-foreground')} !important; }
-		.text-muted-foreground { color: ${getColor('--muted-foreground')} !important; }
-		.text-card-foreground { color: ${getColor('--foreground')} !important; }
-		
-		.border-border { border-color: ${getColor('--border')} !important; }
-		.border-input { border-color: ${getColor('--input')} !important; }
-		.border-primary { border-color: ${getColor('--primary')} !important; }
-		
-		.ring-ring { --tw-ring-color: ${getColor('--ring')} !important; }
-		
-		/* Hover states */
-		.hover\\:bg-primary\\/90:hover { background-color: ${getColor('--primary')}e6 !important; }
-		.hover\\:bg-secondary\\/80:hover { background-color: ${getColor('--secondary')}cc !important; }
-		.hover\\:bg-accent\\/80:hover { background-color: ${getColor('--accent')}cc !important; }
-		.hover\\:bg-accent:hover { background-color: ${getColor('--accent')} !important; }
-		.hover\\:text-accent-foreground:hover { color: ${getColor('--accent-foreground')} !important; }
-		.hover\\:text-foreground:hover { color: ${getColor('--foreground')} !important; }
-		
-		* { border-color: ${getColor('--border')}; }
-		html, body { 
-			background: ${getColor('--background')};
-			color: ${getColor('--foreground')};
-			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-			margin: 0;
-			padding: 0;
-			width: 100%;
-			height: 100%;
-			overflow: auto;
+
+		/* SVG text should use CSS color */
+		svg text { fill: currentColor; }
+
+		/* Backgrounds */
+		.bg-background { background-color: ${get('--background')} !important; }
+		.bg-foreground { background-color: ${get('--foreground')} !important; }
+		.bg-primary { background-color: ${get('--primary')} !important; }
+		.bg-secondary { background-color: ${get('--secondary')} !important; }
+		.bg-accent { background-color: ${get('--accent')} !important; }
+		.bg-muted { background-color: ${get('--muted')} !important; }
+		.bg-card { background-color: ${get('--card')} !important; } /* FIX */
+
+		/* Text (HTML) */
+		.text-background { color: ${get('--background')} !important; }
+		.text-foreground { color: ${get('--foreground')} !important; }
+		.text-primary { color: ${get('--primary')} !important; }
+		.text-primary-foreground { color: ${get('--primary-foreground')} !important; }
+		.text-secondary-foreground { color: ${get('--secondary-foreground')} !important; }
+		.text-accent-foreground { color: ${get('--accent-foreground')} !important; }
+		.text-muted-foreground { color: ${get('--muted-foreground')} !important; }
+		.text-card-foreground { color: ${get('--card-foreground')} !important; } /* FIX */
+
+		/* SVG fills (needed for charts) */
+		.fill-background { fill: ${get('--background')} !important; }
+		.fill-foreground { fill: ${get('--foreground')} !important; }
+		.fill-primary { fill: ${get('--primary')} !important; }
+		.fill-secondary { fill: ${get('--secondary')} !important; }
+		.fill-accent { fill: ${get('--accent')} !important; }
+		.fill-muted { fill: ${get('--muted')} !important; }
+		.fill-card { fill: ${get('--card')} !important; }
+		.fill-primary-foreground { fill: ${get('--primary-foreground')} !important; }
+		.fill-secondary-foreground { fill: ${get('--secondary-foreground')} !important; }
+		.fill-accent-foreground { fill: ${get('--accent-foreground')} !important; }
+		.fill-muted-foreground { fill: ${get('--muted-foreground')} !important; }
+		.fill-card-foreground { fill: ${get('--card-foreground')} !important; }
+
+		/* Optional: SVG strokes */
+		.stroke-foreground { stroke: ${get('--foreground')} !important; }
+		.stroke-muted-foreground { stroke: ${get('--muted-foreground')} !important; }
+		.stroke-primary { stroke: ${get('--primary')} !important; }
+
+		/* Borders / rings */
+		.border-border { border-color: ${get('--border')} !important; }
+		.border-input { border-color: ${get('--input')} !important; }
+		.border-primary { border-color: ${get('--primary')} !important; }
+		.ring-ring { --tw-ring-color: ${get('--ring')} !important; }
+
+		/* Hovers (use HSL alpha syntax; no hex suffix on hsl(...)) */
+		.hover\\:bg-primary\\/90:hover { background-color: hsl(${raw('--primary')} / 0.90) !important; }
+		.hover\\:bg-secondary\\/80:hover { background-color: hsl(${raw('--secondary')} / 0.80) !important; }
+		.hover\\:bg-accent\\/80:hover { background-color: hsl(${raw('--accent')} / 0.80) !important; }
+		.hover\\:bg-accent:hover { background-color: ${get('--accent')} !important; }
+		.hover\\:text-accent-foreground:hover { color: ${get('--accent-foreground')} !important; }
+		.hover\\:text-foreground:hover { color: ${get('--foreground')} !important; }
+
+		html, body {
+			background: ${get('--background')};
+			color: ${get('--foreground')};
+			font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+			margin: 0; padding: 0; width: 100%; height: 100%; overflow: auto;
 		}
-		
-		#root {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-		}
-		
-		/* Focus states */
-		.focus\\:ring-2:focus {
-			--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-			--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-			box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-			--tw-ring-color: ${getColor('--ring')};
-		}
-		.focus\\:border-transparent:focus { border-color: transparent !important; }
+		#root { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 	`;
 }
 

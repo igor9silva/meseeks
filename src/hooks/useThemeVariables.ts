@@ -15,6 +15,8 @@ export interface ThemeVariables {
 	'--input': string;
 	'--ring': string;
 	'--radius': string;
+	'--card': string;
+	'--card-foreground': string;
 }
 
 /**
@@ -68,6 +70,8 @@ export function useThemeVariables() {
 			'--input': computed.getPropertyValue('--input'),
 			'--ring': computed.getPropertyValue('--ring'),
 			'--radius': computed.getPropertyValue('--radius'),
+			'--card': computed.getPropertyValue('--card'),
+			'--card-foreground': computed.getPropertyValue('--card-foreground'),
 		};
 	}, [themeUpdateKey]);
 
