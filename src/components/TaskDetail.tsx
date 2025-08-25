@@ -4,7 +4,7 @@ import { Checkbox } from '~/components/ui/checkbox';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
@@ -19,11 +19,14 @@ export default function TaskDetail({
 	showExpand?: boolean;
 }) {
 	const { task } = useCurrentTask();
-	const { updateInstructions, resolve, reopen } = useTaskMutations();
+	const { resolve, isPending: isResolving } = useResolve();
+	const { updateInstructions, reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (hasChecked: boolean) => {
 		//
+		if (isResolving) return;
+
 		// Optimistically update UI
 		updateTaskStatus({ task, isActive: !hasChecked });
 
@@ -54,6 +57,7 @@ export default function TaskDetail({
 								id={`task-checkbox-${task._id}`}
 								checked={!task.isActive}
 								onCheckedChange={handleCheckboxChange}
+								disabled={isResolving}
 								className="flex-shrink-0"
 							/>
 							<EditableContent

@@ -42,7 +42,7 @@ export function useSay() {
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
-			taskId,
+			taskId, //
 			message,
 			shouldReopen = true,
 		}: {
@@ -143,7 +143,7 @@ export function useIncreaseBudget() {
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
-			taskId,
+			taskId, //
 			amount,
 			shouldIterate,
 			shouldReopen = true,
@@ -175,7 +175,7 @@ export function useDecreaseBudget() {
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
-			taskId,
+			taskId, //
 			amount,
 			shouldReopen = false,
 		}: {
@@ -195,6 +195,31 @@ export function useDecreaseBudget() {
 
 	return {
 		decreaseBudget: mutation.mutate,
+		...mutation,
+	};
+}
+
+export function useResolve() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'resolve',
+				args: {},
+			});
+		},
+	});
+
+	return {
+		resolve: mutation.mutate,
 		...mutation,
 	};
 }
@@ -248,18 +273,6 @@ export function useTaskMutations() {
 			skillKey: 'updateInstructions',
 			args: { title, instructions, availableSkills },
 			shouldReopen: true,
-		});
-	};
-
-	const resolve = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'resolve',
-			args: {},
 		});
 	};
 
@@ -357,7 +370,6 @@ export function useTaskMutations() {
 		say,
 		stop,
 		updateInstructions,
-		resolve,
 		discard,
 		reopen,
 		scheduleIteration,

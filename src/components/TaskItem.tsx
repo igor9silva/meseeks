@@ -1,4 +1,3 @@
-import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
@@ -7,7 +6,7 @@ import { Checkbox } from '~/components/ui/checkbox';
 import { Separator } from '~/components/ui/separator';
 import { TextShimmer } from '~/components/ui/text-shimmer';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 export function TaskItem({
@@ -18,12 +17,14 @@ export function TaskItem({
 	className?: string;
 }) {
 	//
-	const navigate = useNavigate();
-	const { resolve, reopen } = useTaskMutations();
+	const { resolve, isPending: isResolving } = useResolve();
+	const { reopen } = useTaskMutations();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (checked: boolean) => {
 		//
+		if (isResolving) return;
+
 		// Optimistically update UI before the server responds
 		updateTaskStatus({ task, isActive: !checked });
 
@@ -46,6 +47,7 @@ export function TaskItem({
 						id={`task-list-checkbox-${task._id}`}
 						checked={!task.isActive}
 						onCheckedChange={handleCheckboxChange}
+						disabled={isResolving}
 					/>
 				</div>
 				<div className="min-w-0 flex-1">

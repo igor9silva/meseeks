@@ -41,7 +41,7 @@ import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useDecreaseBudget, useIncreaseBudget, useTaskMutations } from '~/hooks/useTaskMutations';
+import { useDecreaseBudget, useIncreaseBudget, useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
@@ -256,13 +256,13 @@ export function CommandMenuDialog() {
 function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { resolve } = useTaskMutations();
+	const { resolve, isPending } = useResolve();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
-		//
+		if (isPending) return;
 		resolve({ taskId: currentTask._id });
 		close();
 	};
