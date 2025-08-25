@@ -224,6 +224,31 @@ export function useResolve() {
 	};
 }
 
+export function useDiscard() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'discard',
+				args: {},
+			});
+		},
+	});
+
+	return {
+		discard: mutation.mutate,
+		...mutation,
+	};
+}
+
 export function useTaskMutations() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -273,18 +298,6 @@ export function useTaskMutations() {
 			skillKey: 'updateInstructions',
 			args: { title, instructions, availableSkills },
 			shouldReopen: true,
-		});
-	};
-
-	const discard = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'discard',
-			args: {},
 		});
 	};
 
@@ -370,7 +383,6 @@ export function useTaskMutations() {
 		say,
 		stop,
 		updateInstructions,
-		discard,
 		reopen,
 		scheduleIteration,
 		approveAction,

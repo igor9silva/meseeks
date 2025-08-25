@@ -16,7 +16,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { LoadingButton } from '~/components/ui/loading-button';
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { useIncreaseBudget, useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
+import { useDiscard, useIncreaseBudget, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 import { Loading } from '~/components/Loading';
@@ -46,7 +46,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const { task } = useCurrentTask();
 
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
-	const { discard } = useTaskMutations();
+	const { discard, isPending: isDiscarding } = useDiscard();
 	const { resolve, isPending: isResolving } = useResolve();
 	const { increaseBudget, isPending: isIncreasingBudget } = useIncreaseBudget();
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
@@ -122,15 +122,20 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 							>
 								Resolve
 							</LoadingButton>
-							<Button
+							<LoadingButton
 								size="sm"
 								variant="ghost"
-								onClick={() => discard({ taskId: task._id })}
-								className="flex items-center gap-1"
+								onClick={() => {
+									if (isDiscarding) return;
+									discard({ taskId: task._id });
+								}}
+								loading={isDiscarding}
+								loadingText="Discarding..."
+								icon={<Archive className="mr-2 h-4 w-4" />}
+								className="flex items-center"
 							>
-								<Archive className="h-4 w-4" />
 								Discard
-							</Button>
+							</LoadingButton>
 							<AddCustomBudgetButton variant="ghost" text="Add Energy" />
 						</>
 					) : (
