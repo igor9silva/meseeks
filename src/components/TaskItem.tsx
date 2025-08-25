@@ -6,7 +6,7 @@ import { Checkbox } from '~/components/ui/checkbox';
 import { Separator } from '~/components/ui/separator';
 import { TextShimmer } from '~/components/ui/text-shimmer';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
-import { useResolve, useTaskMutations } from '~/hooks/useTaskMutations';
+import { useReopen, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 export function TaskItem({
@@ -18,12 +18,12 @@ export function TaskItem({
 }) {
 	//
 	const { resolve, isResolving } = useResolve();
-	const { reopen } = useTaskMutations();
+	const { reopen, isReopening } = useReopen();
 	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (checked: boolean) => {
 		//
-		if (isResolving) return;
+		if (isResolving || isReopening) return;
 
 		// Optimistically update UI before the server responds
 		updateTaskStatus({ task, isActive: !checked });
@@ -47,7 +47,7 @@ export function TaskItem({
 						id={`task-list-checkbox-${task._id}`}
 						checked={!task.isActive}
 						onCheckedChange={handleCheckboxChange}
-						disabled={isResolving}
+						disabled={isResolving || isReopening}
 					/>
 				</div>
 				<div className="min-w-0 flex-1">

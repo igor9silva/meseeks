@@ -258,23 +258,37 @@ export function useDiscard() {
 	};
 }
 
+export function useReopen() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'reopen',
+				args: {},
+			});
+		},
+	});
+
+	return {
+		reopen: mutation.mutate,
+		isReopening: mutation.isPending,
+		...mutation,
+	};
+}
+
 export function useTaskMutations() {
 	//
 	const act = useMutation(api.action.public.act);
 	const authorize = useMutation(api.action.public.authorize);
 	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
-
-	const stop = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'stop',
-			args: {},
-		});
-	};
 
 	const updateInstructions = ({
 		taskId, //
@@ -292,18 +306,6 @@ export function useTaskMutations() {
 			skillKey: 'updateInstructions',
 			args: { title, instructions, availableSkills },
 			shouldReopen: true,
-		});
-	};
-
-	const reopen = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'reopen',
-			args: {},
 		});
 	};
 
@@ -374,9 +376,7 @@ export function useTaskMutations() {
 	};
 
 	return {
-		stop,
 		updateInstructions,
-		reopen,
 		scheduleIteration,
 		approveAction,
 		rejectAction,

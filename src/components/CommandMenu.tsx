@@ -41,13 +41,7 @@ import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import {
-	useDecreaseBudget,
-	useDiscard,
-	useIncreaseBudget,
-	useResolve,
-	useTaskMutations,
-} from '~/hooks/useTaskMutations';
+import { useDecreaseBudget, useDiscard, useIncreaseBudget, useResolve, useStop } from '~/hooks/useTaskMutations';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
@@ -330,13 +324,14 @@ function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function StopReactionsCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { stop } = useTaskMutations();
+	const { stop, isStopping } = useStop();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || currentTask.status !== 'acting') return null;
 
 	const handleSelect = () => {
 		//
+		if (isStopping) return;
 		stop({ taskId: currentTask._id });
 		close();
 	};
