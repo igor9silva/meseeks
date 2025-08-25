@@ -36,11 +36,143 @@ export function useAddTask() {
 	};
 }
 
+export function useSay() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId,
+			message,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			message: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'say',
+				args: { message },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		say: mutation.mutate,
+		...mutation,
+	};
+}
+
+export function useRequestIteration() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'requestIteration',
+				args: {},
+			});
+		},
+	});
+
+	return {
+		requestIteration: mutation.mutate,
+		...mutation,
+	};
+}
+
+export function useStop() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'stop',
+				args: {},
+			});
+		},
+	});
+
+	return {
+		stop: mutation.mutate,
+		...mutation,
+	};
+}
+
+export function useApproveBlockingAction() {
+	//
+	const approveBlocking = useMutation(api.action.public.approveBlockingAction);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await approveBlocking({ taskId });
+		},
+	});
+
+	return {
+		approveBlockingAction: mutation.mutate,
+		...mutation,
+	};
+}
+
+export function useIncreaseBudget() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId,
+			amount,
+			shouldIterate,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			amount: bigint;
+			shouldIterate?: boolean;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'increaseBudget',
+				args: { amount, shouldIterate },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		increaseBudget: mutation.mutate,
+		...mutation,
+	};
+}
+
 export function useTaskMutations() {
 	//
 	const act = useMutation(api.action.public.act);
 	const authorize = useMutation(api.action.public.authorize);
-	const approveBlocking = useMutation(api.action.public.approveBlockingAction);
 	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
 
 	const say = ({
@@ -125,23 +257,6 @@ export function useTaskMutations() {
 		});
 	};
 
-	const increaseBudget = ({
-		taskId, //
-		amount,
-		shouldIterate,
-	}: {
-		taskId: Id<'tasks'>;
-		amount: bigint;
-		shouldIterate?: boolean;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'increaseBudget',
-			args: { amount, shouldIterate },
-			shouldReopen: true,
-		});
-	};
-
 	const decreaseBudget = ({
 		taskId, //
 		amount,
@@ -154,18 +269,6 @@ export function useTaskMutations() {
 			skillKey: 'decreaseBudget',
 			args: { amount },
 			shouldReopen: false,
-		});
-	};
-
-	const requestIteration = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'requestIteration',
-			args: {},
 		});
 	};
 
@@ -225,16 +328,6 @@ export function useTaskMutations() {
 		});
 	};
 
-	const approveBlockingAction = ({
-		taskId, //
-	}: {
-		taskId: Id<'tasks'>;
-	}) => {
-		return approveBlocking({
-			taskId,
-		});
-	};
-
 	const setPreferredIntelligence = ({
 		taskId, //
 		preferredIntelligence,
@@ -252,13 +345,10 @@ export function useTaskMutations() {
 		resolve,
 		discard,
 		reopen,
-		increaseBudget,
 		decreaseBudget,
-		requestIteration,
 		scheduleIteration,
 		approveAction,
 		rejectAction,
-		approveBlockingAction,
 		setPreferredIntelligence,
 	};
 }

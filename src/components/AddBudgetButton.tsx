@@ -1,8 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import { asBigInt } from 'convex/lib/money';
 import { Button } from '~/components/ui/button';
+import { LoadingButton } from '~/components/ui/loading-button';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useIncreaseBudget } from '~/hooks/useTaskMutations';
 
 export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; text?: string }) {
 	//
@@ -25,13 +26,13 @@ export function AddBudgetButton(props: {
 	//
 	const { amount, shouldIterate, variant, text } = props;
 	const { taskId } = useSplatParams();
-	const { increaseBudget } = useTaskMutations();
+	const { increaseBudget, isPending } = useIncreaseBudget();
 
 	if (!taskId) throw new Error('Must be used within a task');
 	if (amount === undefined) return <AddCustomBudgetButton />;
 
 	const handleAddBudget = () => {
-		//
+		if (isPending) return;
 		increaseBudget({
 			taskId,
 			amount: asBigInt({ dollars: amount }),
@@ -40,9 +41,16 @@ export function AddBudgetButton(props: {
 	};
 
 	return (
-		<Button size="sm" variant={variant ?? 'default'} onClick={handleAddBudget} className="flex items-center gap-1">
-			<span>⚡</span>
+		<LoadingButton
+			size="sm"
+			variant={variant ?? 'default'}
+			onClick={handleAddBudget}
+			loading={isPending}
+			loadingText="Adding..."
+			icon={<span className="mr-2">⚡</span>}
+			className="flex items-center"
+		>
 			{text ?? `Add ${amount.toFixed(2)}`}
-		</Button>
+		</LoadingButton>
 	);
 }

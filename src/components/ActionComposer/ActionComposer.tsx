@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useApproveBlockingAction, useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 import { cn } from '~/lib/utils';
 import { IdleState } from './IdleState';
@@ -19,7 +19,10 @@ export function ActionComposer({
 	onSubmit?: (message: string) => void;
 	className?: string;
 }) {
-	const { say, stop, requestIteration, approveBlockingAction } = useTaskMutations();
+	const { say, isPending: isSayPending } = useSay();
+	const { stop, isPending: isStopPending } = useStop();
+	const { requestIteration, isPending: isRequestIterationPending } = useRequestIteration();
+	const { approveBlockingAction, isPending: isApproveBlockingPending } = useApproveBlockingAction();
 	const {
 		textareaRef,
 		value: message,
@@ -38,6 +41,8 @@ export function ActionComposer({
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
 		onTranscriptionComplete: setMessage,
 	});
+
+	const isAnyMutationPending = isSayPending || isStopPending || isRequestIterationPending || isApproveBlockingPending;
 
 	const handleSubmit = () => {
 		//
@@ -69,7 +74,7 @@ export function ActionComposer({
 		global: true,
 		combo: { withAlt: true, key: 'Enter' },
 		callback: () => {
-			if (isBlocked) {
+			if (isBlocked && !isApproveBlockingPending) {
 				approveBlockingAction({ taskId: task._id });
 			}
 		},
@@ -80,7 +85,7 @@ export function ActionComposer({
 		targetRef: textareaRef,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
-			if (recordingStatus === 'idle') {
+			if (recordingStatus === 'idle' && !isAnyMutationPending) {
 				if (isEmpty && !isBlocked) {
 					requestIteration({ taskId: task._id });
 				} else {
@@ -96,7 +101,7 @@ export function ActionComposer({
 		combo: { withCommand: true, key: 'Backspace' },
 		skipPreventDefault: true,
 		callback: (e) => {
-			if (task.status === 'acting') {
+			if (task.status === 'acting' && !isStopPending) {
 				stop({ taskId: task._id });
 				e.preventDefault();
 			}

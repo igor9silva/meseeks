@@ -41,7 +41,7 @@ import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useIncreaseBudget, useTaskMutations } from '~/hooks/useTaskMutations';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
@@ -300,13 +300,14 @@ function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { increaseBudget } = useTaskMutations();
+	const { increaseBudget, isPending } = useIncreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || currentTask.isActive) return null;
 
 	const handleSelect = () => {
 		//
+		if (isPending) return;
 		increaseBudget({ taskId: currentTask._id, amount: asBigInt({ dollars: 0.5 }) });
 		close();
 	};

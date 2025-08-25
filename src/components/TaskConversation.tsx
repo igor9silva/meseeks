@@ -13,9 +13,10 @@ import { DebugAction } from '~/components/DebugAction';
 import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
 import { Button } from '~/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '~/components/ui/drawer';
+import { LoadingButton } from '~/components/ui/loading-button';
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { useTaskMutations } from '~/hooks/useTaskMutations';
+import { useIncreaseBudget, useTaskMutations } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 import { Loading } from '~/components/Loading';
@@ -45,7 +46,8 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const { task } = useCurrentTask();
 
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
-	const { resolve, discard, increaseBudget, stop } = useTaskMutations();
+	const { resolve, discard } = useTaskMutations();
+	const { increaseBudget, isPending: isIncreasingBudget } = useIncreaseBudget();
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
 
 	const user = useCurrentUser();
@@ -64,11 +66,13 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const initialRenderDate = useMemo(() => new Date(), []);
 
 	const handleReopenTask = (amount: number) => {
+		if (isIncreasingBudget) return;
 		increaseBudget({ taskId: task._id, amount: asBigInt({ dollars: amount }) });
 	};
 
 	const handleBudgetConfirm = () => {
 		//
+		if (isIncreasingBudget) return;
 		increaseBudget({ taskId: task._id, amount: asBigInt({ dollars: selectedBudget }) });
 		navigate({ to: '.', search: (prev) => ({ ...prev, isBudgetDrawerOpen: undefined }) });
 	};
@@ -125,28 +129,38 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 						</>
 					) : (
 						<>
-							<Button size="sm" onClick={() => handleReopenTask(0.5)} className="flex items-center gap-1">
-								<RotateCcw className="h-4 w-4" />
+							<LoadingButton
+								size="sm"
+								onClick={() => handleReopenTask(0.5)}
+								loading={isIncreasingBudget}
+								loadingText="Reopening..."
+								icon={<RotateCcw className="mr-2 h-4 w-4" />}
+								className="flex items-center"
+							>
 								Reopen with $0.50
-							</Button>
-							<Button
+							</LoadingButton>
+							<LoadingButton
 								variant="outline"
 								size="sm"
 								onClick={() => handleReopenTask(2)}
-								className="flex items-center gap-1"
+								loading={isIncreasingBudget}
+								loadingText="Reopening..."
+								icon={<RotateCcw className="mr-2 h-4 w-4" />}
+								className="flex items-center"
 							>
-								<RotateCcw className="h-4 w-4" />
 								Reopen with $2.00
-							</Button>
-							<Button
+							</LoadingButton>
+							<LoadingButton
 								variant="outline"
 								size="sm"
 								onClick={() => handleReopenTask(5)}
-								className="flex items-center gap-1"
+								loading={isIncreasingBudget}
+								loadingText="Reopening..."
+								icon={<RotateCcw className="mr-2 h-4 w-4" />}
+								className="flex items-center"
 							>
-								<RotateCcw className="h-4 w-4" />
 								Reopen with $5.00
-							</Button>
+							</LoadingButton>
 						</>
 					)}
 				</div>
