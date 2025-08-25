@@ -169,6 +169,36 @@ export function useIncreaseBudget() {
 	};
 }
 
+export function useDecreaseBudget() {
+	//
+	const act = useMutation(api.action.public.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId,
+			amount,
+			shouldReopen = false,
+		}: {
+			taskId: Id<'tasks'>;
+			amount: bigint;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skillKey: 'decreaseBudget',
+				args: { amount },
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		decreaseBudget: mutation.mutate,
+		...mutation,
+	};
+}
+
 export function useTaskMutations() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -257,21 +287,6 @@ export function useTaskMutations() {
 		});
 	};
 
-	const decreaseBudget = ({
-		taskId, //
-		amount,
-	}: {
-		taskId: Id<'tasks'>;
-		amount: bigint;
-	}) => {
-		return act({
-			taskId,
-			skillKey: 'decreaseBudget',
-			args: { amount },
-			shouldReopen: false,
-		});
-	};
-
 	const scheduleIteration = ({
 		taskId,
 		scheduleType,
@@ -345,7 +360,6 @@ export function useTaskMutations() {
 		resolve,
 		discard,
 		reopen,
-		decreaseBudget,
 		scheduleIteration,
 		approveAction,
 		rejectAction,

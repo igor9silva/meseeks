@@ -41,7 +41,7 @@ import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useIncreaseBudget, useTaskMutations } from '~/hooks/useTaskMutations';
+import { useDecreaseBudget, useIncreaseBudget, useTaskMutations } from '~/hooks/useTaskMutations';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
@@ -371,13 +371,13 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
 	const { close } = useCommandMenu();
-	const { decreaseBudget } = useTaskMutations();
+	const { decreaseBudget, isPending } = useDecreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive || currentTask.energyBudget.available <= 0n) return null;
 
 	const handleSelect = () => {
-		//
+		if (isPending) return;
 		decreaseBudget({ taskId: currentTask._id, amount: currentTask.energyBudget.available });
 		close();
 	};
