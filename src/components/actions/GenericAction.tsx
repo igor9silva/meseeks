@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Bug } from 'lucide-react';
 import { useMemo } from 'react';
 import { ActionComponentProps } from '~/components/actions';
+import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { cn } from '~/lib/utils';
 
 import { asDollars } from 'convex/lib/money';
@@ -36,6 +37,17 @@ export function GenericAction(props: ActionComponentProps) {
 		if (isRejectingAction) return;
 		rejectAction({ taskId, actionId: action._id });
 	};
+
+	// ⌥+Enter shortcut to authorize
+	useKeyboardShortcut({
+		global: true,
+		combo: { withAlt: true, key: 'Enter' },
+		callback: () => {
+			if (action.status === 'pending authorization' && !isApprovingAction) {
+				handleApprove();
+			}
+		},
+	});
 
 	return (
 		<div

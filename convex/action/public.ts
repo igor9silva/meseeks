@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { mutation, query } from '../lib';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from '../tasks/public';
-import { _add, _authorize, _findAllPaginated, _findAllRunning, _findOne, _findPendingAuthorization } from './private';
+import { _add, _authorize, _findAllPaginated, _findAllRunning, _findOne } from './private';
 
 export const act = mutation({
 	args: {
@@ -46,31 +46,6 @@ export const authorize = mutation({
 			approver: currentUser._id,
 			hasApproved,
 		});
-	},
-});
-
-export const approveBlockingAction = mutation({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: async (ctx, { taskId }) => {
-		//
-		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
-
-		// Find the most recent pending authorization action
-		const pendingAction = await _findPendingAuthorization(ctx, { taskId });
-
-		if (!pendingAction) throw new Error('No pending authorization actions found');
-
-		// Approve it
-		await _authorize(ctx, {
-			taskId,
-			actionId: pendingAction._id,
-			approver: currentUser._id,
-			hasApproved: true,
-		});
-
-		return pendingAction._id;
 	},
 });
 

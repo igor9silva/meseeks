@@ -120,28 +120,6 @@ export function useStop() {
 	};
 }
 
-export function useApproveBlockingAction() {
-	//
-	const approveBlocking = useMutation(api.action.public.approveBlockingAction);
-
-	const mutation = useTanStackMutation({
-		mutationFn: async ({
-			taskId, //
-		}: {
-			taskId: Id<'tasks'>;
-		}) => {
-			//
-			return await approveBlocking({ taskId });
-		},
-	});
-
-	return {
-		approveBlockingAction: mutation.mutate,
-		isApprovingBlockingAction: mutation.isPending,
-		...mutation,
-	};
-}
-
 export function useIncreaseBudget() {
 	//
 	const act = useMutation(api.action.public.act);

@@ -3,7 +3,7 @@ import { useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
-import { useApproveBlockingAction, useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
+import { useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 import { cn } from '~/lib/utils';
 import { IdleState } from './IdleState';
@@ -22,7 +22,6 @@ export function ActionComposer({
 	const { say, isSaying } = useSay();
 	const { stop, isStopping } = useStop();
 	const { requestIteration, isRequestingIteration } = useRequestIteration();
-	const { approveBlockingAction, isApprovingBlockingAction } = useApproveBlockingAction();
 	const {
 		textareaRef,
 		value: message,
@@ -42,7 +41,7 @@ export function ActionComposer({
 		onTranscriptionComplete: setMessage,
 	});
 
-	const isAnyMutationPending = isSaying || isStopping || isRequestingIteration || isApprovingBlockingAction;
+	const isAnyMutationPending = isSaying || isStopping || isRequestingIteration;
 
 	const handleSubmit = () => {
 		//
@@ -66,17 +65,6 @@ export function ActionComposer({
 			// Move cursor to end of text
 			const length = textareaRef.current?.value.length || 0;
 			textareaRef.current?.setSelectionRange(length, length);
-		},
-	});
-
-	// authorize shortcut (⌥+Enter) - global for blocked actions
-	useKeyboardShortcut({
-		global: true,
-		combo: { withAlt: true, key: 'Enter' },
-		callback: () => {
-			if (isBlocked && !isApprovingBlockingAction) {
-				approveBlockingAction({ taskId: task._id });
-			}
 		},
 	});
 
