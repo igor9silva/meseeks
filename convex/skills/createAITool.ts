@@ -70,7 +70,7 @@ export function createAITool(
 				case 'tool-calls':
 					//
 					if (toolCalls.length > 1) {
-						console.warn('Multiple tool calls', toolCalls);
+						console.warn(`Multiple tool calls (model: ${context.model.modelId})`, toolCalls);
 					}
 
 					if (toolCalls.length === 0) {
