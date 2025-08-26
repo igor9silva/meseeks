@@ -2,10 +2,9 @@ import { Doc } from 'convex/_generated/dataModel';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Checkbox } from '~/components/ui/checkbox';
+import { LoadingCheckbox } from '~/components/ui/loading-checkbox';
 import { Separator } from '~/components/ui/separator';
 import { TextShimmer } from '~/components/ui/text-shimmer';
-import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useReopen, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
@@ -19,16 +18,11 @@ export function TaskItem({
 	//
 	const { resolve, isResolving } = useResolve();
 	const { reopen, isReopening } = useReopen();
-	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (checked: boolean) => {
 		//
 		if (isResolving || isReopening) return;
 
-		// Optimistically update UI before the server responds
-		updateTaskStatus({ task, isActive: !checked });
-
-		// Execute the actual mutation
 		checked ? resolve({ taskId: task._id }) : reopen({ taskId: task._id });
 	};
 
@@ -43,11 +37,11 @@ export function TaskItem({
 					}}
 					className="flex-shrink-0"
 				>
-					<Checkbox
+					<LoadingCheckbox
 						id={`task-list-checkbox-${task._id}`}
 						checked={!task.isActive}
 						onCheckedChange={handleCheckboxChange}
-						disabled={isResolving || isReopening}
+						loading={isResolving || isReopening}
 					/>
 				</div>
 				<div className="min-w-0 flex-1">

@@ -1,9 +1,8 @@
 import { TimeAgo } from '~/components/TimeAgo';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
-import { Checkbox } from '~/components/ui/checkbox';
+import { LoadingCheckbox } from '~/components/ui/loading-checkbox';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
-import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import {
 	useReopen,
 	useResolve,
@@ -30,16 +29,11 @@ export default function TaskDetail({
 	const { updateTitle, isUpdatingTitle } = useUpdateTitle();
 	const { updateInstructions, isUpdatingInstructions } = useUpdateInstructions();
 	const { updateAvailableSkills, isUpdatingAvailableSkills } = useUpdateAvailableSkills();
-	const { updateTaskStatus } = useOptimisticTaskUpdate();
 
 	const handleCheckboxChange = (hasChecked: boolean) => {
 		//
 		if (isResolving || isReopening) return;
 
-		// Optimistically update UI
-		updateTaskStatus({ task, isActive: !hasChecked });
-
-		// Execute the actual mutation
 		hasChecked ? resolve({ taskId: task._id }) : reopen({ taskId: task._id });
 	};
 
@@ -63,11 +57,11 @@ export default function TaskDetail({
 				<div className="flex flex-col">
 					<div className="flex flex-row justify-between gap-2 items-center min-w-0">
 						<div className="flex items-center gap-2 min-w-0 flex-1">
-							<Checkbox
+							<LoadingCheckbox
 								id={`task-checkbox-${task._id}`}
 								checked={!task.isActive}
 								onCheckedChange={handleCheckboxChange}
-								disabled={isResolving || isReopening}
+								loading={isResolving || isReopening}
 								className="flex-shrink-0"
 							/>
 							<EditableContent
