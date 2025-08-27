@@ -174,7 +174,7 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 
 		// DeepSeek
 		case 'deepseek/deepseek-v3':
-			return pricePerMillionTokens({ input: 0.27, output: 1.1 });
+			return pricePerMillionTokens({ input: 0.56, output: 1.68 });
 
 		// Moonshot
 		case 'moonshot/kimi-2':
