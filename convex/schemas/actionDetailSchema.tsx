@@ -1,6 +1,15 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { modelsSchema, skillKindSchema } from './skillSchema';
+import { skillKindSchema } from './skillSchema';
+
+const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
+const httpStatusCodeSchema = z.number().min(100).max(599);
+const bodySizeSchema = z.number().min(0);
+
+const toolCallSchema = z.object({
+	toolName: z.string(),
+	args: z.record(z.unknown()),
+});
 
 const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');
 
@@ -37,23 +46,26 @@ const httpActionDetailSchema = baseActionDetailSchema
 		http: z
 			.object({
 				// request details (sanitized for security)
-				method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']).describe('HTTP method used'),
-				url: z.string().url().describe('Full URL that was called (including query params)'),
-				requestBodySize: z.number().min(0).optional().describe('Size of request body in bytes'),
+				method: httpMethodSchema.optional().describe('HTTP method used'),
+				url: z.string().url().optional().describe('Full URL that was called (including query params)'),
+				requestBodySize: bodySizeSchema.optional().describe('Size of request body in bytes'),
 
 				// note: request headers and body are not stored as they may contain sensitive information
 
 				// response details
-				statusCode: z.number().min(100).max(599).describe('HTTP response status code'),
-				statusText: z.string().describe('HTTP response status message'),
-				responseBodySize: z.number().min(0).optional().describe('Size of response body in bytes'),
+				statusCode: httpStatusCodeSchema.optional().describe('HTTP response status code'),
+				statusText: z.string().optional().describe('HTTP response status message'),
+				responseBodySize: bodySizeSchema.optional().describe('Size of response body in bytes'),
 				responseBody: z
 					.string()
 					.optional()
 					.describe(
 						'Full HTTP response body (truncated based on MAX_HTTP_RESPONSE_BODY_BYTES env setting for safety within Convex 1MB document limit)',
 					),
-				responseHeaders: z.record(z.string()).describe('HTTP response headers (generally safe to store)'),
+				responseHeaders: z
+					.record(z.string())
+					.optional()
+					.describe('HTTP response headers (generally safe to store)'),
 			})
 			.describe('HTTP request/response details with security-conscious data filtering'),
 	})
@@ -66,7 +78,7 @@ const llmActionDetailSchema = baseActionDetailSchema
 		llm: z
 			.object({
 				// model configuration
-				model: modelsSchema.describe('Specific model that was used for this execution'),
+				model: z.string().describe('Specific model that was used for this execution'),
 				provider: z.string().describe('AI provider (extracted from model)'),
 				temperature: temperatureSchema.describe('Temperature setting used for this call'),
 				maxTokens: z.number().min(1).optional().describe('Maximum tokens limit set for generation'),
@@ -96,22 +108,15 @@ const llmActionDetailSchema = baseActionDetailSchema
 				availableTools: z.array(z.string()).describe('List of tool keys that were made available to the model'),
 
 				// execution results
-				finishReason: z.string().describe('Why the model stopped generating (stop, length, tool-calls, etc.)'),
-				text: z.string().optional().describe('Direct text response from the model'),
-				toolCalls: z
-					.array(
-						z
-							.object({
-								toolName: z.string().describe('Name of the tool the model chose to call'),
-								args: z.record(z.unknown()).describe('Arguments passed to the tool'),
-							})
-							.describe('Individual tool call made by the model'),
-					)
+				finishReason: z
+					.string()
 					.optional()
-					.describe('List of tool calls made by the model'),
+					.describe('Why the model stopped generating (stop, length, tool-calls, etc.)'),
+				text: z.string().optional().describe('Direct text response from the model'),
+				toolCalls: z.array(toolCallSchema).optional().describe('List of tool calls made by the model'),
 
 				// comprehensive usage statistics
-				usage: tokenUsageSchema.describe('Detailed token usage breakdown for cost analysis'),
+				usage: tokenUsageSchema.optional().describe('Detailed token usage breakdown for cost analysis'),
 
 				// warnings and metadata (preserved as-is for debugging)
 				warnings: z.array(z.unknown()).optional().describe('AI SDK warnings (can be complex objects)'),
@@ -125,7 +130,30 @@ export const actionDetailSchema = z
 	.union([httpActionDetailSchema, llmActionDetailSchema])
 	.describe('Complete action execution details for debugging and transparency');
 
-// Export individual schemas for type inference
-export type HttpActionDetail = z.infer<typeof httpActionDetailSchema>;
-export type LlmActionDetail = z.infer<typeof llmActionDetailSchema>;
-export type ActionDetail = z.infer<typeof actionDetailSchema>;
+const llmUpdateFields = z.object({
+	finishReason: z.string().optional(),
+	text: z.string().optional(),
+	toolCalls: z.array(toolCallSchema).optional(),
+	usage: tokenUsageSchema.optional(),
+	warnings: z.array(z.unknown()).optional(),
+	providerMetadata: z.record(z.unknown()).optional(),
+});
+
+const httpUpdateFields = z.object({
+	requestBodySize: bodySizeSchema.optional(),
+	statusCode: httpStatusCodeSchema.optional(),
+	statusText: z.string().optional(),
+	responseBodySize: bodySizeSchema.optional(),
+	responseBody: z.string().optional(),
+	responseHeaders: z.record(z.string()).optional(),
+});
+
+// Update schema - only mutable fields can be updated
+export const actionDetailUpdateSchema = z.union([
+	z.object({
+		llm: llmUpdateFields,
+	}),
+	z.object({
+		http: httpUpdateFields,
+	}),
+]);

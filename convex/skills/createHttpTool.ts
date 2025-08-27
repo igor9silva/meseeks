@@ -157,24 +157,18 @@ async function _persistDetails({
 
 	console.debug('Attempting to persist HTTP action details for action:', action._id);
 
-	const actionDetail = {
+	// Update existing action details with response data
+	await ctx.runMutation(internal.action_details.private._update, {
 		actionId: action._id,
-		skillKind: 'hard' as const,
-		skillKey: skill.key,
-		skillDescription: skill.description,
-		http: {
-			method: config.method,
-			url: url.toString(),
-			requestBodySize,
-			statusCode: response.status,
-			statusText: response.statusText,
-			responseBodySize,
-			responseBody,
-			responseHeaders,
+		updates: {
+			http: {
+				requestBodySize,
+				statusCode: response.status,
+				statusText: response.statusText,
+				responseBodySize,
+				responseBody,
+				responseHeaders,
+			},
 		},
-	};
-
-	await ctx.runMutation(internal.action_details.private._persist, {
-		details: actionDetail,
 	});
 }

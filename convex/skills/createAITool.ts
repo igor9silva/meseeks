@@ -116,14 +116,9 @@ export function createAITool(
 
 			if (warnings?.length) console.warn('Decision skill warnings', warnings);
 
-			// TODO: persist initially on prepareContext(), consdering sometimes its interrupted of fail
 			await _persistDetails({
 				ctx,
 				action,
-				skill,
-				task,
-				model: modelFrom(skill.config.model, task.preferredIntelligence),
-				context,
 				finishReason: reason,
 				text,
 				toolCalls,
@@ -262,13 +257,10 @@ export function modelFrom(
 	return skillModel;
 }
 
+// Update existing action details with response data
 async function _persistDetails({
 	ctx,
 	action,
-	skill,
-	task,
-	model,
-	context,
 	finishReason,
 	text,
 	toolCalls,
@@ -278,10 +270,6 @@ async function _persistDetails({
 }: {
 	ctx: ActionCtx | MutationCtx;
 	action: Doc<'actions'>;
-	skill: z.infer<typeof softSkillSchema>;
-	task: Doc<'tasks'>;
-	model: z.infer<typeof modelsSchema>;
-	context?: MagicRockContext;
 	finishReason?: string;
 	text?: string;
 	toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>;
@@ -290,30 +278,11 @@ async function _persistDetails({
 	providerMetadata?: Record<string, unknown>;
 }) {
 	//
-	// Extract provider from model string (e.g., "anthropic/claude-4-sonnet" -> "anthropic")
-	const provider = model.split('/')[0] || 'unknown';
-
-	await ctx.runMutation(internal.action_details.private._persist, {
-		details: {
-			actionId: action._id,
-			skillKind: 'soft' as const,
-			skillKey: skill.key,
-			skillDescription: skill.description,
+	await ctx.runMutation(internal.action_details.private._update, {
+		actionId: action._id,
+		updates: {
 			llm: {
-				model,
-				provider,
-				temperature: context?.temperature ?? 0.7,
-				maxTokens: context?.maxTokens,
-				systemInstructions: context?.system || '',
-				historyLength: Array.isArray(context?.messages) ? context?.messages.length : 0,
-				history: Array.isArray(context?.messages)
-					? context.messages.map((msg) => ({
-							role: msg.role,
-							content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-						}))
-					: [],
-				availableTools: context?.tools ? Object.keys(context?.tools) : [],
-				finishReason: finishReason || 'unknown',
+				finishReason,
 				text,
 				toolCalls: toolCalls.map((call) => ({
 					toolName: call.toolName,
