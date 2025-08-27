@@ -1,9 +1,9 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowLeft, Inbox, SquarePen } from 'lucide-react';
+import { ArrowLeft, Inbox, Loader2, SquarePen } from 'lucide-react';
+import { useTransition } from 'react';
 import { cn } from '~/lib/utils';
 
 import { Id } from 'convex/_generated/dataModel';
-import { toast } from 'sonner';
 import { Balance } from '~/components/Balance';
 import { useCommandMenu } from '~/components/CommandMenu';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
@@ -19,12 +19,18 @@ export function MainHeader({ className }: { className?: string }) {
 	const { open: openCommandDialog } = useCommandMenu();
 	const { taskId } = useSplatParams();
 	const navigate = useNavigate();
+	const [isNavigating, startTransition] = useTransition();
 
 	const goBack = () => history.back();
-	const goUp = () => navigate({ to: '/$', params: { _splat: `` } });
-	const share = () => {
-		navigator.clipboard.writeText(window.location.href);
-		toast.success('Link copied to clipboard.');
+	const goUp = () => {
+		startTransition(() => {
+			navigate({ to: '/$', params: { _splat: `` } });
+		});
+	};
+	const goToNewTask = () => {
+		startTransition(() => {
+			navigate({ to: '/$', params: { _splat: '/new' } });
+		});
 	};
 
 	return (
@@ -50,8 +56,9 @@ export function MainHeader({ className }: { className?: string }) {
 						size="lg"
 						onClick={goUp}
 						tooltipContent="Inbox"
+						disabled={isNavigating}
 					>
-						<Inbox />
+						{isNavigating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Inbox />}
 					</TooltipButton>
 				</div>
 
@@ -94,10 +101,11 @@ export function MainHeader({ className }: { className?: string }) {
 						className="p-2 [&_svg]:size-5"
 						variant="ghost"
 						size="lg"
-						onClick={() => navigate({ to: '/$', params: { _splat: '/new' } })}
+						onClick={goToNewTask}
 						tooltipContent="New task"
+						disabled={isNavigating}
 					>
-						<SquarePen />
+						{isNavigating ? <Loader2 className="h-5 w-5 animate-spin" /> : <SquarePen />}
 					</TooltipButton>
 					{/* {taskId && (
 						<Suspense fallback={null}>
