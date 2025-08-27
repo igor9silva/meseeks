@@ -292,7 +292,7 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 					<textarea
 						value={jsonString}
 						readOnly
-						className="w-full min-h-32 max-h-96 p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
 						style={{ fontFamily: 'ui-monospace, monospace' }}
 					/>
 				)}
@@ -327,7 +327,7 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 						<textarea
 							value={result.text!}
 							readOnly
-							className="w-full min-h-32 max-h-96 p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
+							className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
 							style={{ fontFamily: 'inherit' }}
 						/>
 					)}
@@ -514,7 +514,14 @@ function MessageHistorySection({
 }: {
 	messages: Array<{ role: string; content: string }>;
 }) {
-	if (!messages || messages.length === 0) return null;
+	if (!messages || messages.length === 0) {
+		return (
+			<div>
+				<div className="text-sm font-medium mb-2">History</div>
+				<div className="text-muted-foreground text-sm italic">No conversation history</div>
+			</div>
+		);
+	}
 
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -579,7 +586,7 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 				</div>
 			</div>
 
-			{llm.history && llm.history.length > 0 && <MessageHistorySection messages={llm.history} />}
+			<MessageHistorySection messages={llm.history} />
 
 			{llm.availableTools && llm.availableTools.length > 0 && (
 				<div>
@@ -596,11 +603,18 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 
 			{llm.systemInstructions && (
 				<div>
-					<div className="text-sm font-medium mb-2">System Instructions</div>
+					<div className="flex items-baseline justify-between text-sm font-medium mb-2">
+						<div>System Instructions</div>
+						<span className="text-muted-foreground font-normal text-xs">
+							{/* TODO: use env var CHAR_PER_TOKEN (currently server only) */}(
+							{llm.systemInstructions.length} chars ~{Math.ceil(llm.systemInstructions.length / 3.5)}{' '}
+							tokens)
+						</span>
+					</div>
 					<textarea
 						value={llm.systemInstructions}
 						readOnly
-						className="w-full min-h-32 max-h-96 p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
 						style={{ fontFamily: 'inherit' }}
 					/>
 				</div>
@@ -612,7 +626,7 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 					<textarea
 						value={JSON.stringify(llm.toolCalls, null, 2)}
 						readOnly
-						className="w-full min-h-32 max-h-96 p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
 						style={{ fontFamily: 'ui-monospace, monospace' }}
 					/>
 				</div>
@@ -624,7 +638,7 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 					<textarea
 						value={llm.text}
 						readOnly
-						className="w-full min-h-32 max-h-96 p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
 						style={{ fontFamily: 'inherit' }}
 					/>
 				</div>
@@ -716,7 +730,7 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 						<textarea
 							value={http.responseBody}
 							readOnly
-							className="w-full min-h-32 max-h-96 p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+							className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
 							style={{ fontFamily: 'ui-monospace, monospace' }}
 						/>
 					)}
