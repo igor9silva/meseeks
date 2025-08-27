@@ -74,6 +74,26 @@ const llmActionDetailSchema = baseActionDetailSchema
 				// context information
 				systemInstructions: z.string().describe('System prompt that was provided to the model'),
 				historyLength: z.number().min(0).describe('Number of conversation messages in context'),
+				history: z
+					.array(
+						z
+							.object({
+								role: z
+									.enum([
+										'system', //
+										'user',
+										'assistant',
+										'tool',
+										'data',
+										'function',
+									])
+									.describe('Role of the message sender'),
+								content: z.string().describe('Content of the message'),
+							})
+							.describe('Individual message in the conversation history'),
+					)
+					.optional()
+					.describe('Complete conversation history that was sent to the model'),
 				availableTools: z.array(z.string()).describe('List of tool keys that were made available to the model'),
 
 				// execution results

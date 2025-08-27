@@ -32,7 +32,6 @@ const formatLocalDate = (timestamp: number) => {
 	});
 };
 
-// Status dot colors
 const getStatusDot = (status: string) => {
 	const statusMap: Record<string, string> = {
 		'succeeded': 'bg-green-500',
@@ -121,7 +120,6 @@ function ApprovalSection({ action, isAuthorCurrentUser }: { action: Doc<'actions
 	);
 }
 
-// Author display component
 function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
 	//
 	if (!action.author) return null;
@@ -196,7 +194,6 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 	);
 }
 
-// Arguments display component
 function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 	//
 	if (!args || Object.keys(args).length === 0) return null;
@@ -229,7 +226,6 @@ function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 	);
 }
 
-// Individual reaction component
 function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 	//
 	const [isOpen, setIsOpen] = useState(false);
@@ -271,7 +267,6 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 	);
 }
 
-// Result display component
 function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 	//
 	if (!result) return null;
@@ -351,7 +346,6 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 	);
 }
 
-// Cost display component
 function CostSection({ action }: { action: Doc<'actions'> }) {
 	//
 	const hasEstimatedCost = typeof action.estimatedCost === 'bigint';
@@ -439,7 +433,113 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 	);
 }
 
-// LLM details section
+function MessageHistoryItem({
+	message, //
+	index,
+}: {
+	message: { role: string; content: string };
+	index: number;
+}) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+
+	const getRoleColor = (role: string) => {
+		switch (role) {
+			case 'system':
+				return 'text-red-600 dark:text-red-400';
+			case 'user':
+				return 'text-blue-600 dark:text-blue-400';
+			case 'assistant':
+				return 'text-green-600 dark:text-green-400';
+			case 'tool':
+				return 'text-purple-600 dark:text-purple-400';
+			case 'function':
+				return 'text-orange-600 dark:text-orange-400';
+			default:
+				return 'text-gray-600 dark:text-gray-400';
+		}
+	};
+
+	const getRoleIcon = (role: string) => {
+		switch (role) {
+			case 'system':
+				return '🔧';
+			case 'user':
+				return '👤';
+			case 'assistant':
+				return '🤖';
+			case 'tool':
+				return '🔨';
+			case 'function':
+				return '⚙️';
+			default:
+				return '💬';
+		}
+	};
+
+	return (
+		<div className="border rounded-lg p-3 bg-card">
+			<div
+				className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-2 -m-2"
+				onClick={() => setIsOpen(!isOpen)}
+			>
+				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+				<span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
+				<span className={`text-sm font-medium ${getRoleColor(message.role)}`}>
+					{getRoleIcon(message.role)} {message.role}
+				</span>
+				<div className="flex-1" />
+				<span className="text-xs text-muted-foreground">
+					{/* TODO: use env var CHAR_PER_TOKEN (currently server only) */}
+					{message.content.length} chars (~{Math.ceil(message.content.length / 3.5)} tokens)
+				</span>
+			</div>
+
+			{isOpen && (
+				<div className="mt-3 pt-3 border-t">
+					<textarea
+						value={message.content}
+						readOnly
+						className="w-full min-h-24 max-h-64 p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
+						style={{ fontFamily: 'inherit' }}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function MessageHistorySection({
+	messages, //
+}: {
+	messages: Array<{ role: string; content: string }>;
+}) {
+	if (!messages || messages.length === 0) return null;
+
+	const [isOpen, setIsOpen] = useState(false);
+
+	return (
+		<div>
+			<div
+				className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+				onClick={() => setIsOpen(!isOpen)}
+			>
+				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+				History
+				<span className="text-muted-foreground font-normal text-xs">({messages.length} messages)</span>
+			</div>
+
+			{isOpen && (
+				<div className="space-y-3">
+					{messages.map((message, index) => (
+						<MessageHistoryItem key={index} message={message} index={index} />
+					))}
+				</div>
+			)}
+		</div>
+	);
+}
+
 function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 	//
 	if (!actionDetails.llm) return null;
@@ -478,6 +578,8 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 					</Tooltip>
 				</div>
 			</div>
+
+			{llm.history && llm.history.length > 0 && <MessageHistorySection messages={llm.history} />}
 
 			{llm.availableTools && llm.availableTools.length > 0 && (
 				<div>
@@ -666,7 +768,6 @@ function ActionDetailsContent({
 	//
 	const { actionDetails } = useActionDetails(action._id);
 
-	// Pass the data back to parent component
 	useEffect(() => {
 		//
 		if (actionDetails && onDataLoaded) {
@@ -705,7 +806,6 @@ const serializeActionToJSON = (action: Doc<'actions'>, actionDetails?: any) => {
 	return JSON.stringify(serializable, null, 2);
 };
 
-// Main action row component
 function ActionRow({
 	action,
 	isExpanded,

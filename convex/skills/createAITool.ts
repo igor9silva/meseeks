@@ -306,7 +306,12 @@ async function _persistDetails({
 				maxTokens: context?.maxTokens,
 				systemInstructions: context?.system || '',
 				historyLength: Array.isArray(context?.messages) ? context?.messages.length : 0,
-				// TODO: persist the whole history
+				history: Array.isArray(context?.messages)
+					? context.messages.map((msg) => ({
+							role: msg.role,
+							content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+						}))
+					: [],
 				availableTools: context?.tools ? Object.keys(context?.tools) : [],
 				finishReason: finishReason || 'unknown',
 				text,
