@@ -10,6 +10,7 @@ import { _prepareContext, type MagicRockContext } from '../../magicRock';
 import { newActionSchema } from '../../schemas/actionSchema';
 import { env } from '../../schemas/envSchema';
 import type { skillSchema } from '../../schemas/skillSchema';
+import { builtInSkillSchema } from '../../schemas/skillSchema';
 import { tokenSchema } from '../../schemas/topUpSchema';
 import { estimateCostFor } from '../../skills/createAITool';
 import { createReactions } from '../../skills/createReactions';
@@ -57,6 +58,9 @@ export const _perform = internalAction({
 			//
 			// prepare context if needed
 			const context = skill.kind === 'soft' ? await _prepareContext(ctx, task, action, skill) : undefined;
+
+			// persist initial action details with request context
+			await _persistInitialActionDetails(ctx, action, skill, context);
 
 			// check budget
 			const expectedCost = await _ensureWithinBudget(ctx, task, action, skill, context);
@@ -117,7 +121,14 @@ export const _load = internalQuery({
 		taskId: zid('tasks'),
 		actionId: zid('actions'),
 	},
-	handler: async (ctx, { taskId, actionId }) => {
+	handler: async (
+		ctx,
+		{ taskId, actionId },
+	): Promise<{
+		task: Doc<'tasks'>;
+		action: Doc<'actions'>;
+		skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>;
+	}> => {
 		//
 		const [task, action] = await Promise.all([
 			_findOneTask(ctx, { taskId }), //
@@ -487,4 +498,62 @@ export async function _runNextActionIfNeeded(
 		taskId,
 		action: nextAction,
 	});
+}
+
+async function _persistInitialActionDetails(
+	ctx: ActionCtx | MutationCtx,
+	action: Doc<'actions'>,
+	skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>,
+	context?: MagicRockContext,
+) {
+	try {
+		if (skill.kind === 'soft') {
+			//
+			if (!context) {
+				throw new Error('Context is required for soft skills during initial persistence');
+			}
+
+			await ctx.runMutation(internal.action_details.private._persist, {
+				details: {
+					actionId: action._id,
+					skillKind: 'soft' as const,
+					skillKey: skill.key,
+					skillDescription: skill.description,
+					llm: {
+						model: context.model?.modelId || 'unknown',
+						provider: context.model?.provider || 'unknown',
+						temperature: context.temperature || 0.7,
+						maxTokens: context.maxTokens,
+						systemInstructions: context.system || '',
+						historyLength: Array.isArray(context.messages) ? context.messages.length : 0,
+						history: Array.isArray(context.messages)
+							? context.messages.map((msg) => ({
+									role: msg.role,
+									content:
+										typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+								}))
+							: [],
+						availableTools: context.tools ? Object.keys(context.tools) : [],
+					},
+				},
+			});
+		} else if (skill.kind === 'hard') {
+			//
+			await ctx.runMutation(internal.action_details.private._persist, {
+				details: {
+					actionId: action._id,
+					skillKind: 'hard' as const,
+					skillKey: skill.key,
+					skillDescription: skill.description,
+					http: {
+						method: skill.config.method,
+						url: skill.config.url,
+					},
+				},
+			});
+		}
+	} catch (error) {
+		// If persistence fails, log but don't fail the action
+		console.warn(`Failed to persist initial action details for ${action._id}:`, error);
+	}
 }

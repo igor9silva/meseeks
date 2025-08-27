@@ -565,25 +565,27 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 				<div>
 					<span className="text-muted-foreground">Finish Reason</span>
 					<div className="font-mono truncate" title={llm.finishReason}>
-						{llm.finishReason}
+						{llm.finishReason || 'N/A'}
 					</div>
 				</div>
-				<div>
-					<span className="text-muted-foreground">Tokens</span>
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<div className="font-mono cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
-								{llm.usage.input.total} → {llm.usage.output.total}
-							</div>
-						</TooltipTrigger>
-						<TooltipContent side="bottom" align="center" className="max-w-sm">
-							<div className="space-y-1 text-xs">
-								<div>Input tokens: {llm.usage.input.total.toLocaleString()}</div>
-								<div>Output tokens: {llm.usage.output.total.toLocaleString()}</div>
-							</div>
-						</TooltipContent>
-					</Tooltip>
-				</div>
+				{llm.usage && (
+					<div>
+						<span className="text-muted-foreground">Tokens</span>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="font-mono cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+									{llm.usage.input.total} → {llm.usage.output.total}
+								</div>
+							</TooltipTrigger>
+							<TooltipContent side="bottom" align="center" className="max-w-sm">
+								<div className="space-y-1 text-xs">
+									<div>Input tokens: {llm.usage.input.total.toLocaleString()}</div>
+									<div>Output tokens: {llm.usage.output.total.toLocaleString()}</div>
+								</div>
+							</TooltipContent>
+						</Tooltip>
+					</div>
+				)}
 			</div>
 
 			<MessageHistorySection messages={llm.history} />
