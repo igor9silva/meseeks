@@ -157,7 +157,3 @@ export const actionDetailUpdateSchema = z.union([
 		http: httpUpdateFields,
 	}),
 ]);
-
-// Export individual schemas for type inference
-export type ActionDetail = z.infer<typeof actionDetailSchema>;
-export type ActionDetailUpdate = z.infer<typeof actionDetailUpdateSchema>;
