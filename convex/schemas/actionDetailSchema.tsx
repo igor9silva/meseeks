@@ -92,7 +92,6 @@ const llmActionDetailSchema = baseActionDetailSchema
 							})
 							.describe('Individual message in the conversation history'),
 					)
-					.optional()
 					.describe('Complete conversation history that was sent to the model'),
 				availableTools: z.array(z.string()).describe('List of tool keys that were made available to the model'),
 
