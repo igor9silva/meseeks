@@ -130,25 +130,6 @@ export const actionDetailSchema = z
 	.union([httpActionDetailSchema, llmActionDetailSchema])
 	.describe('Complete action execution details for debugging and transparency');
 
-// Update schemas for partial updates
-export const llmUpdateSchema = z.object({
-	finishReason: z.string().optional(),
-	text: z.string().optional(),
-	toolCalls: z.array(toolCallSchema).optional(),
-	usage: tokenUsageSchema.optional(),
-	warnings: z.array(z.unknown()).optional(),
-	providerMetadata: z.record(z.unknown()).optional(),
-});
-
-export const httpUpdateSchema = z.object({
-	requestBodySize: bodySizeSchema.optional(),
-	statusCode: httpStatusCodeSchema.optional(),
-	statusText: z.string().optional(),
-	responseBodySize: bodySizeSchema.optional(),
-	responseBody: z.string().optional(),
-	responseHeaders: z.record(z.string()).optional(),
-});
-
 const llmUpdateFields = z.object({
 	finishReason: z.string().optional(),
 	text: z.string().optional(),
@@ -178,9 +159,5 @@ export const actionDetailUpdateSchema = z.union([
 ]);
 
 // Export individual schemas for type inference
-export type HttpActionDetail = z.infer<typeof httpActionDetailSchema>;
-export type LlmActionDetail = z.infer<typeof llmActionDetailSchema>;
 export type ActionDetail = z.infer<typeof actionDetailSchema>;
-export type LlmUpdate = z.infer<typeof llmUpdateSchema>;
-export type HttpUpdate = z.infer<typeof httpUpdateSchema>;
 export type ActionDetailUpdate = z.infer<typeof actionDetailUpdateSchema>;
