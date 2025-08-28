@@ -527,11 +527,13 @@ async function _persistInitialActionDetails(
 						systemInstructions: context.system || '',
 						historyLength: Array.isArray(context.messages) ? context.messages.length : 0,
 						history: Array.isArray(context.messages)
-							? context.messages.map((msg) => ({
-									role: msg.role,
-									content:
-										typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-								}))
+							? context.messages
+									.filter((msg) => msg.role !== 'system')
+									.map((msg) => ({
+										role: msg.role,
+										content:
+											typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+									}))
 							: [],
 						availableTools: context.tools ? Object.keys(context.tools) : [],
 					},
