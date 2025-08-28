@@ -13,7 +13,7 @@
 		"dev:db": "npx convex dev",
 		"build": "vite build",
 		"start": "bun .output/server/index.mjs",
-		"lint": "prettier --check '**/*' --ignore-unknown && eslint --ext .ts,.tsx ./app",
+		"lint": "prettier --check '**/*' --ignore-unknown && eslint --ext .ts,.tsx ./src",
 		"format": "prettier --write '**/*' --ignore-unknown"
 	},
 	"keywords": [],
