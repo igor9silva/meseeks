@@ -1,14 +1,11 @@
-import { Link } from '@tanstack/react-router';
 import { Id } from 'convex/_generated/dataModel';
 import { Suspense } from 'react';
+import { TaskList } from '~/components/Inbox';
 import { Loading } from '~/components/Loading';
-import { QuickSeek } from '~/components/QuickSeek';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
-import { TaskItem } from '~/components/TaskItem';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
-import { useSubtasks } from '~/hooks/query/useSubtasks';
 import { useCurrentTask, useCurrentTaskId } from '~/hooks/useCurrentTask';
 import { useIsMobile } from '~/hooks/useIsMobile';
 import { usePreferences } from '~/hooks/usePreferences';
@@ -66,7 +63,7 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 					className="hidden md:block"
 				>
 					<Suspense fallback={<Loading />}>
-						<TaskList parentTaskId={parentTaskId} />
+						<TaskListWrapper parentTaskId={parentTaskId} />
 					</Suspense>
 				</ResizablePanel>
 			)}
@@ -107,26 +104,9 @@ function TaskDetailWithConditionalRendering({
 	);
 }
 
-function TaskList({ parentTaskId = 'inbox' }: { parentTaskId?: Id<'tasks'> | 'inbox' }) {
+function TaskListWrapper({ parentTaskId = 'inbox' }: { parentTaskId?: Id<'tasks'> | 'inbox' }) {
 	//
 	const currentTaskId = useCurrentTaskId();
-	const { subtasks } = useSubtasks(parentTaskId === 'inbox' ? undefined : parentTaskId);
 
-	return (
-		<div className="overflow-auto h-full">
-			{subtasks.length === 0 && <QuickSeek />}
-			{subtasks.map((task) => (
-				<Link
-					key={task._id}
-					to="/$"
-					params={{ _splat: `/task/${task._id}` }}
-					search={(prev) => prev}
-					resetScroll={false}
-					className="block min-w-0"
-				>
-					<TaskItem className={cn(currentTaskId === task._id && 'bg-muted')} task={task} />
-				</Link>
-			))}
-		</div>
-	);
+	return <TaskList parentTaskId={parentTaskId} currentTaskId={currentTaskId} />;
 }

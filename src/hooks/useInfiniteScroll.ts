@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect } from 'react';
+import { RefObject, useCallback, useEffect, useLayoutEffect } from 'react';
 
 interface UseInfiniteScrollProps {
 	loadMore: (numItems: number) => void;
@@ -35,6 +35,22 @@ export function useInfiniteScroll({
 		//
 	}, [loadMore, hasMore, isLoading, scrollContainerRef, threshold, pageSize]);
 
+	const checkContentHeight = useCallback(() => {
+		//
+		if (!hasMore || isLoading) return;
+
+		const container = scrollContainerRef.current;
+		if (!container) return;
+
+		const { scrollHeight, clientHeight } = container;
+
+		// If content doesn't fill the container, load more automatically
+		if (scrollHeight <= clientHeight) {
+			loadMore(pageSize);
+		}
+		//
+	}, [loadMore, hasMore, isLoading, scrollContainerRef, pageSize]);
+
 	useEffect(() => {
 		//
 		const container = scrollContainerRef.current;
@@ -47,6 +63,18 @@ export function useInfiniteScroll({
 		};
 		//
 	}, [handleScroll]);
+
+	// Check content height after loading state changes or hasMore changes
+	useLayoutEffect(() => {
+		//
+		// Use requestAnimationFrame to ensure DOM is fully rendered
+		const animationFrameId = requestAnimationFrame(() => {
+			checkContentHeight();
+		});
+
+		return () => cancelAnimationFrame(animationFrameId);
+		//
+	}, [checkContentHeight, isLoading, hasMore]);
 
 	return {};
 }

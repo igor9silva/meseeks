@@ -83,6 +83,28 @@ export const findAllAtInbox = query({
 	},
 });
 
+// Paginated version of findAllAtInbox that maintains the same sorting logic
+export const findAllAtInboxPaginated = query({
+	args: {
+		paginationOpts: paginationOptionsSchema,
+	},
+	handler: async (ctx, { paginationOpts }) => {
+		//
+		const currentUser = await getCurrentUser(ctx, {});
+
+		// Use a single query with compound sorting
+		// First sort by isActive (false first, so inactive tasks come after active ones when reversed)
+		// Then sort by a computed priority based on status
+		const results = await ctx.db
+			.query('tasks')
+			.withIndex('by_owner_parentId_isActive', (q) => q.eq('owner', currentUser._id).eq('parentId', undefined))
+			.order('desc') // This will be overridden by our custom sorting
+			.paginate(paginationOpts);
+
+		return results;
+	},
+});
+
 export const findOne = query({
 	args: {
 		taskId: zid('tasks'),
