@@ -100,9 +100,7 @@ function RenderActionContent(props: ActionComponentProps) {
 						title="Rendered Composition"
 						className={cn(
 							'border-none rounded-lg pointer-events-auto',
-							isFullscreen
-								? 'fixed inset-0 z-50 w-full h-full'
-								: 'max-w-full min-w-80 min-h-64 overflow-auto',
+							isFullscreen ? 'fixed inset-0 z-50 w-full h-full' : 'w-[90%] min-h-96 overflow-auto',
 							{
 								'bg-primary text-primary-foreground': isAuthorCurrentUser && !isFullscreen,
 								'bg-secondary text-secondary-foreground': !isAuthorCurrentUser && !isFullscreen,
