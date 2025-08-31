@@ -190,6 +190,7 @@ function languageModelFrom(
 		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite', googleConfig),
 
 		// xAI
+		'xai/grok-code-fast-1': xai('grok-code-fast-1'),
 		'xai/grok-3': xai('grok-3'),
 		'xai/grok-3-mini': xai('grok-3-mini'),
 

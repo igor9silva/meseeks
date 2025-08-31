@@ -108,6 +108,12 @@ export const availableIntelligences = query({
 			default: env.DEFAULT_MODEL,
 			recommended: [
 				{
+					key: 'xai/grok-code-fast-1',
+					name: 'Grok Code Fast 1',
+					provider: 'xAI',
+					description: 'Best cost/performance ratio — a bit slow.',
+				},
+				{
 					key: 'moonshot/kimi-2',
 					name: 'Kimi 2',
 					provider: 'Moonshot',

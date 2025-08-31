@@ -80,6 +80,7 @@ export const modelsSchema = z.enum([
 	'google/gemini-2.5-flash-lite',
 
 	// xAI
+	'xai/grok-code-fast-1',
 	'xai/grok-3',
 	'xai/grok-3-mini',
 
@@ -159,6 +160,8 @@ export function pricingFor(model: z.infer<typeof modelsSchema>): {
 			return pricePerMillionTokens({ input: 0.1, output: 0.4 });
 
 		// xAI
+		case 'xai/grok-code-fast-1':
+			return pricePerMillionTokens({ input: 0.2, output: 1.5 });
 		case 'xai/grok-3':
 			return pricePerMillionTokens({ input: 3, output: 15 });
 		case 'xai/grok-3-mini':
