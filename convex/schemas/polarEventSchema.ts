@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const polarEventSchema = z.object({
 	type: z.string(),
+	timestamp: z.string().optional(),
 	data: z.record(z.any()),
 });
 
