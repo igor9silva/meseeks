@@ -99,12 +99,6 @@ export const env = createEnv({
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
 
-		DEFAULT_MODEL: z
-			.string()
-			.min(1)
-			.describe('Default AI model to use when no preference is set.')
-			.default('anthropic/claude-4-sonnet'),
-
 		ACTIVE_TASKS_RENDER_LIMIT: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))

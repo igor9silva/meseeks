@@ -1,5 +1,5 @@
 import { Doc } from 'convex/_generated/dataModel';
-import { modelsSchema } from 'convex/schemas/skillSchema';
+import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
 import { ArrowUp, Mic, Sparkles, Square } from 'lucide-react';
 import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
@@ -44,7 +44,7 @@ export function IdleState({
 }: IdleStateProps) {
 	//
 	const { setPreferredIntelligence, isSettingPreferredIntelligence } = useSetPreferredIntelligence();
-	const handleIntelligenceChange = (key: z.infer<typeof modelsSchema>) => {
+	const handleIntelligenceChange = (key: z.infer<typeof intelligenceKeys>) => {
 		if (isSettingPreferredIntelligence) return;
 		setPreferredIntelligence({ taskId: task._id, preferredIntelligence: key });
 	};

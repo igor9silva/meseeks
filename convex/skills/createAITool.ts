@@ -8,7 +8,8 @@ import { stringToZod } from '../lib/zodToString';
 import { _askMagicRock, type MagicRockContext } from '../magicRock';
 import type { newActionSchema } from '../schemas/actionSchema';
 import { env } from '../schemas/envSchema';
-import { modelsSchema, pricingFor, type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
+import { DEFAULT_INTELLIGENCE, INTELLIGENCES, intelligenceKeys } from '../schemas/intelligenceSchema';
+import { type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
 import type { AITool } from '../schemas/toolSchema';
 
 export function createAITool(
@@ -200,7 +201,7 @@ export function calculateProviderCost({
 	inputTokens,
 	outputTokens,
 }: {
-	model: z.infer<typeof modelsSchema>;
+	model: z.infer<typeof intelligenceKeys>;
 	inputTokens: {
 		uncached: number;
 		cached?: number;
@@ -212,13 +213,13 @@ export function calculateProviderCost({
 }) {
 	// TODO: account for cached tokens
 	// inspect loggged providerMetadata to get the cached tokens path
-	const pricing = pricingFor(model);
+	const pricing = INTELLIGENCES[model].pricing;
 
 	console.debug('Input tokens', inputTokens);
 	console.debug('Output tokens', outputTokens);
 
-	const inputCost = BigInt(inputTokens.uncached) * pricing.inputToken;
-	const outputCost = BigInt(outputTokens.uncached) * pricing.outputToken;
+	const inputCost = BigInt(inputTokens.uncached) * pricing.inputPerToken;
+	const outputCost = BigInt(outputTokens.uncached) * pricing.outputPerToken;
 	const totalProviderCost = inputCost + outputCost;
 
 	console.debug('Decision provider cost', asDollars({ bigInt: totalProviderCost, precision: 6 }));
@@ -248,11 +249,11 @@ function computeHistoryLength(messages: Array<CoreMessage>) {
 }
 
 export function modelFrom(
-	skillModel: z.infer<typeof modelsSchema> | 'auto', //
-	taskPreferredIntelligence?: z.infer<typeof modelsSchema>,
-): z.infer<typeof modelsSchema> {
+	skillModel: z.infer<typeof intelligenceKeys> | 'auto', //
+	taskPreferredIntelligence?: z.infer<typeof intelligenceKeys>,
+): z.infer<typeof intelligenceKeys> {
 	//
-	if (skillModel === 'auto') return taskPreferredIntelligence ?? modelsSchema.parse(env.DEFAULT_MODEL);
+	if (skillModel === 'auto') return taskPreferredIntelligence ?? DEFAULT_INTELLIGENCE;
 
 	return skillModel;
 }

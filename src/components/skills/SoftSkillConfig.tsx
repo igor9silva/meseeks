@@ -1,4 +1,4 @@
-import { modelsSchema } from 'convex/schemas/skillSchema';
+import { intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
@@ -12,7 +12,6 @@ import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { Textarea } from '~/components/ui/textarea';
 import { SkillSelector } from './shared/SkillSelector';
 
-type IntelligenceKey = z.infer<typeof modelsSchema>;
 type IntelligenceMode = 'automatic' | 'specific';
 
 export interface SoftSkillConfigProps {

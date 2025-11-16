@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { authorSchema } from './authorSchema';
-import { modelsSchema } from './skillSchema';
+import { intelligenceKeys } from './intelligenceSchema';
 
 export const taskStatusSchema = z.enum([
 	'idle', //
@@ -38,7 +38,7 @@ export const taskSchema = z
 		// lastReadAction: zid('actions').optional().describe('The last action that was "read" by the user.'),
 		energyBudget: taskBudgetSchema,
 		embeddingId: zid('taskEmbeddings').optional(),
-		preferredIntelligence: modelsSchema.optional().describe('The preferred intelligence to use for this task.'),
+		preferredIntelligence: intelligenceKeys.optional().describe('The preferred intelligence to use for this task.'),
 		availableSkills: z
 			.array(z.string())
 			.max(16)

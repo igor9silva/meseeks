@@ -7,7 +7,7 @@ import { InsufficientAccountFunds, NotFound } from '../lib/errors';
 import { asBigInt, asDollars } from '../lib/money';
 import { _cancelAllForTask } from '../schedules/private';
 import { authorSchema } from '../schemas/authorSchema';
-import { modelsSchema } from '../schemas/skillSchema';
+import { intelligenceKeys } from '../schemas/intelligenceSchema';
 import { taskStatusSchema } from '../schemas/taskSchema';
 import { _addFundTask, _addRefundTask } from '../transactions/private';
 import { _findOne as _findOneUser } from '../users/private';
@@ -98,7 +98,7 @@ export const _add = internalMutation({
 		owner: zid('users'),
 		message: z.string().optional(),
 		parentId: zid('tasks').optional(),
-		preferredIntelligence: modelsSchema.optional(),
+		preferredIntelligence: intelligenceKeys.optional(),
 		initialFunds: z
 			.bigint()
 			.min(0n)
@@ -159,7 +159,7 @@ export const _addWithActions = internalMutation({
 		title: z.string().optional(),
 		instructions: z.string().optional(),
 		parentId: zid('tasks').optional(),
-		preferredIntelligence: modelsSchema.optional(),
+		preferredIntelligence: intelligenceKeys.optional(),
 		skills: z.array(
 			z.object({
 				skillKey: z.string().describe('The key of the skill to use'),
@@ -565,7 +565,7 @@ export const _move = internalMutation({
 export const _setPreferredIntelligence = internalMutation({
 	args: {
 		taskId: zid('tasks'),
-		preferredIntelligence: modelsSchema,
+		preferredIntelligence: intelligenceKeys,
 	},
 	handler: async (ctx, { taskId, preferredIntelligence }) => {
 		//

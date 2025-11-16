@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { cn } from '~/lib/utils';
 
 import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'convex/lib/errors';
-import { modelsSchema } from 'convex/schemas/skillSchema';
+import { INTELLIGENCE_PROGRESSION, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
 import { ArrowUp, Mic } from 'lucide-react';
 import { RecordingState } from '~/components/ActionComposer/RecordingState';
 import { TranscribingState } from '~/components/ActionComposer/TranscribingState';
@@ -20,29 +20,6 @@ import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useAddTask } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
-
-// Configuration for automatic intelligence selection based on budget
-// TODO: allow user to set this up
-// Automatically selects model based on budget ranges:
-// $0.00 - $0.21: Kimi 2 (cheapest option)
-// $0.22 - $2.00: Claude Sonnet (balanced performance/cost)
-// $2.01+: Claude Opus (premium option)
-const BUDGET_INTELLIGENCE_CONFIG = [
-	{ maxBudget: 1.01, intelligence: 'xai/grok-code-fast-1' as const },
-	{ maxBudget: 10.01, intelligence: 'anthropic/claude-4-sonnet' as const },
-	{ maxBudget: Infinity, intelligence: 'anthropic/claude-4-opus' as const },
-];
-
-function getIntelligenceForBudget(budget: BudgetStep): z.infer<typeof modelsSchema> {
-	//
-	for (const config of BUDGET_INTELLIGENCE_CONFIG) {
-		if (budget <= config.maxBudget) {
-			return config.intelligence;
-		}
-	}
-	// Fallback to the most expensive option
-	return BUDGET_INTELLIGENCE_CONFIG[BUDGET_INTELLIGENCE_CONFIG.length - 1].intelligence;
-}
 
 export function QuickSeek({ className }: { className?: string }) {
 	//
@@ -61,7 +38,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const { q } = useSearch({ strict: false });
 
-	const [intelligence, setIntelligence] = useState<z.infer<typeof modelsSchema> | undefined>(undefined);
+	const [intelligence, setIntelligence] = useState<IntelligenceKey | undefined>(undefined);
 	const [initialFunds, setInitialFunds] = useState<BudgetStep>(0.2);
 	const [hasUserSelectedIntelligence, setHasUserSelectedIntelligence] = useState(false);
 
@@ -74,7 +51,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	}, [initialFunds, hasUserSelectedIntelligence]);
 
 	// Handle manual intelligence selection - marks user as having made a manual choice
-	const handleIntelligenceChange = (newIntelligence: z.infer<typeof modelsSchema>) => {
+	const handleIntelligenceChange = (newIntelligence: IntelligenceKey) => {
 		//
 		setIntelligence(newIntelligence);
 		setHasUserSelectedIntelligence(true);
@@ -246,6 +223,17 @@ export function QuickSeekContent({ className }: { className?: string }) {
 			</CardContent>
 		</Card>
 	);
+}
+
+function getIntelligenceForBudget(budget: BudgetStep) {
+	//
+	for (const [key, budgetThreshold] of Object.entries(INTELLIGENCE_PROGRESSION)) {
+		if (budget <= budgetThreshold) {
+			return key as IntelligenceKey;
+		}
+	}
+
+	throw new Error(`Invalid intelligence progression setup for budget ${budget}`);
 }
 
 function randomPlaceholder() {

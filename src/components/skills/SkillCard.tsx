@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'convex/lib/money';
-import { pricingFor } from 'convex/schemas/skillSchema';
+import { INTELLIGENCES } from 'convex/schemas/intelligenceSchema';
 import { Share } from 'lucide-react';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -105,7 +105,13 @@ export function SkillCard({
 	);
 }
 
-function CardFooter({ skill, onShareSkill }: { skill: Doc<'skills'>; onShareSkill?: (skill: Doc<'skills'>) => void }) {
+function CardFooter({ 
+	skill,
+	onShareSkill,
+}: {
+	skill: Doc<'skills'>; //
+	onShareSkill?: (skill: Doc<'skills'>) => void;
+}) {
 	//
 	const isUserOwnedSkill = skill.owner !== 'isPro' && skill.owner !== 'built-in';
 
@@ -192,12 +198,12 @@ function Pricing({ skill }: { skill: Doc<'skills'> }) {
 		);
 	}
 
-	const price = pricingFor(skill.config.model);
+	const price = INTELLIGENCES[skill.config.model].pricing;
 
 	return (
 		<div className="flex items-center justify-between w-full">
-			<span>{asDollars({ bigInt: price.inputToken * 1_000_000n })}$/million tokens in</span>
-			<span>{asDollars({ bigInt: price.outputToken * 1_000_000n })}$/million tokens out</span>
+			<span>{asDollars({ bigInt: price.inputPerMillionToken })}$/million tokens in</span>
+			<span>{asDollars({ bigInt: price.outputPerMillionToken })}$/million tokens out</span>
 		</div>
 	);
 }

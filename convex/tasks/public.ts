@@ -4,8 +4,8 @@ import { Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
 import { asBigInt } from '../lib/money';
+import { intelligenceKeys } from '../schemas/intelligenceSchema';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
-import { modelsSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
 import { _add, _markAsRead, _setPreferredIntelligence } from './private';
 
@@ -131,7 +131,7 @@ export const add = mutation({
 	args: {
 		message: z.string().optional(),
 		parentId: zid('tasks').optional(),
-		preferredIntelligence: modelsSchema.optional(),
+		preferredIntelligence: intelligenceKeys.optional(),
 		initialFunds: z
 			.bigint()
 			.min(0n)
@@ -167,7 +167,7 @@ export const markAsRead = mutation({
 export const setPreferredIntelligence = mutation({
 	args: {
 		taskId: zid('tasks'),
-		preferredIntelligence: modelsSchema,
+		preferredIntelligence: intelligenceKeys,
 	},
 	handler: async (ctx, { taskId, preferredIntelligence }) => {
 		//

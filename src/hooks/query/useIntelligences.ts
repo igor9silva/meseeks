@@ -1,14 +1,6 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
+import { INTELLIGENCES } from 'convex/schemas/intelligenceSchema';
 
 export function useIntelligences() {
 	//
-	const query = convexQuery(api.skills.public.availableIntelligences, {});
-	const result = useSuspenseQuery(query);
-
-	return {
-		...result,
-		intelligences: result.data,
-	};
+	return { intelligences: INTELLIGENCES };
 }

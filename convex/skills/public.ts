@@ -4,7 +4,6 @@ import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
 import { zodToString } from '../lib/zodToString';
-import { env } from '../schemas/envSchema';
 import { builtInSkillSchema, newSkillSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
 import { _builtInSkills } from './builtIn';
@@ -97,107 +96,6 @@ export const findOne = query({
 		return {
 			...skill,
 			isEditable: skill.owner === currentUser._id,
-		};
-	},
-});
-
-export const availableIntelligences = query({
-	handler: async (ctx) => {
-		// TODO: make this list dynamic
-		return {
-			default: env.DEFAULT_MODEL,
-			recommended: [
-				{
-					key: 'xai/grok-code-fast-1',
-					name: 'Grok Code Fast 1',
-					provider: 'xAI',
-					description: 'Best cost/performance ratio — a bit slow.',
-				},
-				{
-					key: 'moonshot/kimi-2',
-					name: 'Kimi 2',
-					provider: 'Moonshot',
-					description: 'Best cost/performance ratio — a bit slow.',
-				},
-				{
-					key: 'anthropic/claude-4-sonnet',
-					name: 'Claude 4 Sonnet',
-					provider: 'Anthropic',
-					description: 'Best overall — 15x more costly than Kimi.',
-				},
-				{
-					key: 'anthropic/claude-4-opus',
-					name: 'Claude 4 Opus',
-					provider: 'Anthropic',
-					description: 'GOAT — use for extreme tasks, expensive!',
-				},
-			],
-			all: [
-				{
-					key: 'google/gemini-2.5-flash',
-					name: 'Gemini 2.5 Flash',
-					provider: 'Google',
-					description: 'Nicely balanced, cheap and fast',
-				},
-				{
-					key: 'xai/grok-3-mini',
-					name: 'Grok 3 Mini',
-					provider: 'xAI',
-					description: 'Cheap and fast, can be useful',
-				},
-				{
-					key: 'anthropic/claude-3.5-haiku',
-					name: 'Claude 3.5 Haiku',
-					provider: 'Anthropic',
-					description: 'Surprisingly very good, very cheap',
-				},
-				{
-					key: 'groq/qwen3-32b',
-					name: 'Qwen 32B',
-					provider: 'Groq',
-					description: 'Insanely faaaast, but not very smart',
-				},
-				{
-					key: 'cerebras/qwen3-235b',
-					name: 'Qwen 235B',
-					provider: 'Cerebras',
-				},
-				{
-					key: 'google/gemini-2.5-pro',
-					name: 'Gemini 2.5 Pro',
-					provider: 'Google',
-				},
-				{
-					key: 'google/gemini-2.5-flash-lite',
-					name: 'Gemini 2.5 Flash Lite',
-					provider: 'Google',
-				},
-				{
-					key: 'openai/gpt-4.1',
-					name: 'GPT-4.1',
-					provider: 'OpenAI',
-				},
-				{
-					key: 'openai/gpt-4.1-mini',
-					name: 'GPT-4.1 Mini',
-					provider: 'OpenAI',
-				},
-				{
-					key: 'openai/gpt-4.1-nano',
-					name: 'GPT-4.1 Nano',
-					provider: 'OpenAI',
-				},
-				{
-					key: 'xai/grok-3',
-					name: 'Grok 3',
-					provider: 'xAI',
-				},
-				{
-					key: 'deepseek/deepseek-v3',
-					name: 'DeepSeek V3',
-					provider: 'DeepSeek',
-				},
-			],
 		};
 	},
 });

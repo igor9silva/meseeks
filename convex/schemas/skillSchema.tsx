@@ -2,6 +2,7 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { asBigInt } from '../lib/money';
 import { authorSchema } from './authorSchema';
+import { intelligenceKeys } from './intelligenceSchema';
 
 export const skillOwnerSchema = z.union([
 	z.literal('built-in'), // built-in to Meseeks
@@ -54,162 +55,6 @@ export const httpConfigSchema = z.object({
 		.optional(),
 });
 
-export const modelsSchema = z.enum([
-	//
-	// Anthropic
-	'anthropic/claude-4-opus',
-	'anthropic/claude-3.7-sonnet',
-	'anthropic/claude-4-sonnet',
-	'anthropic/claude-3.5-haiku',
-
-	// OpenAI
-	// 'openai/gpt-4o',
-	// 'openai/gpt-4o-mini',
-	'openai/gpt-5',
-	'openai/gpt-5-mini',
-	'openai/gpt-5-nano',
-	'openai/gpt-4.1',
-	'openai/gpt-4.1-mini',
-	'openai/gpt-4.1-nano',
-	'openai/gpt-oss-120b',
-	'openai/gpt-oss-20b',
-
-	// Google
-	'google/gemini-2.5-pro',
-	'google/gemini-2.5-flash',
-	'google/gemini-2.5-flash-lite',
-
-	// xAI
-	'xai/grok-code-fast-1',
-	'xai/grok-3',
-	'xai/grok-3-mini',
-
-	// Groq
-	// 'groq/llama-4-scout',
-	// 'groq/llama-4-maverick',
-	'groq/qwen3-32b',
-
-	// DeepSeek
-	'deepseek/deepseek-v3',
-
-	// Moonshot
-	'moonshot/kimi-2',
-
-	// Cerebras
-	'cerebras/qwen3-235b',
-
-	// DeepInfra
-	'deepinfra/qwen-3-coder',
-	'deepinfra/glm-4.5',
-
-	// OpenRouter
-	'openrouter/qwen-3-coder',
-	'openrouter/GLM-4.5-Air',
-	'openrouter/GLM-4.5',
-
-	// Together
-	// 'together/llama-4-maverick',
-]);
-
-function pricePerMillionTokens({ input, output }: { input: number; output: number }) {
-	return {
-		inputToken: asBigInt({ dollars: input }) / 1_000_000n,
-		outputToken: asBigInt({ dollars: output }) / 1_000_000n,
-	};
-}
-
-export function pricingFor(model: z.infer<typeof modelsSchema>): {
-	inputToken: bigint;
-	outputToken: bigint;
-} {
-	switch (model) {
-		//
-		// Anthropic
-		case 'anthropic/claude-4-opus':
-			return pricePerMillionTokens({ input: 15, output: 75 });
-		case 'anthropic/claude-4-sonnet':
-		case 'anthropic/claude-3.7-sonnet':
-			return pricePerMillionTokens({ input: 3, output: 15 });
-		case 'anthropic/claude-3.5-haiku':
-			return pricePerMillionTokens({ input: 0.8, output: 4 });
-
-		// OpenAI
-		case 'openai/gpt-5':
-			return pricePerMillionTokens({ input: 1.25, output: 10 });
-		case 'openai/gpt-5-mini':
-			return pricePerMillionTokens({ input: 0.25, output: 2 });
-		case 'openai/gpt-5-nano':
-			return pricePerMillionTokens({ input: 0.05, output: 0.4 });
-		case 'openai/gpt-4.1':
-			return pricePerMillionTokens({ input: 2.0, output: 8.0 });
-		case 'openai/gpt-4.1-mini':
-			return pricePerMillionTokens({ input: 0.4, output: 1.6 });
-		case 'openai/gpt-4.1-nano':
-			return pricePerMillionTokens({ input: 0.1, output: 0.4 });
-		case 'openai/gpt-oss-120b':
-			return pricePerMillionTokens({ input: 0.25, output: 0.75 });
-		case 'openai/gpt-oss-20b':
-			return pricePerMillionTokens({ input: 0.1, output: 0.5 });
-
-		// Google
-		case 'google/gemini-2.5-pro':
-			return pricePerMillionTokens({ input: 1.25, output: 10 });
-		case 'google/gemini-2.5-flash':
-			return pricePerMillionTokens({ input: 0.3, output: 2.5 });
-		case 'google/gemini-2.5-flash-lite':
-			return pricePerMillionTokens({ input: 0.1, output: 0.4 });
-
-		// xAI
-		case 'xai/grok-code-fast-1':
-			return pricePerMillionTokens({ input: 0.2, output: 1.5 });
-		case 'xai/grok-3':
-			return pricePerMillionTokens({ input: 3, output: 15 });
-		case 'xai/grok-3-mini':
-			return pricePerMillionTokens({ input: 0.3, output: 0.5 });
-
-		// Groq
-		// case 'groq/llama-4-scout':
-		// 	return pricePerMillionTokens({ input: 0.11, output: 0.34 });
-		// case 'groq/llama-4-maverick':
-		// 	return pricePerMillionTokens({ input: 0.2, output: 0.6 });
-		case 'groq/qwen3-32b':
-			return pricePerMillionTokens({ input: 0.29, output: 0.59 });
-
-		// DeepSeek
-		case 'deepseek/deepseek-v3':
-			return pricePerMillionTokens({ input: 0.56, output: 1.68 });
-
-		// Moonshot
-		case 'moonshot/kimi-2':
-			return pricePerMillionTokens({ input: 0.6, output: 2.5 });
-
-		// Cerebras
-		case 'cerebras/qwen3-235b':
-			return pricePerMillionTokens({ input: 0, output: 0 });
-
-		// DeepInfra
-		case 'deepinfra/qwen-3-coder':
-			return pricePerMillionTokens({ input: 0.4, output: 1.6 });
-		case 'deepinfra/glm-4.5':
-			return pricePerMillionTokens({ input: 0.6, output: 2.2 });
-
-		// OpenRouter
-		case 'openrouter/qwen-3-coder':
-			return pricePerMillionTokens({ input: 0.6, output: 2.5 });
-		case 'openrouter/GLM-4.5-Air':
-			return pricePerMillionTokens({ input: 0.2, output: 1.1 });
-		case 'openrouter/GLM-4.5':
-			return pricePerMillionTokens({ input: 0.6, output: 2.2 });
-
-		// Together
-		// case 'together/llama-4-maverick':
-		// 	return pricePerMillionTokens({ inputPrice: 0.27, outputPrice: 0.85 });
-
-		default:
-			throw new Error(`Unknown model: ${model}`);
-	}
-}
-
 export const instructionVariableSchema = z.union([
 	z.literal('task').describe('The full task structure, in a XML-like format'),
 	z.literal('task.id'),
@@ -237,7 +82,7 @@ export const instructionVariableSchema = z.union([
 ]);
 
 export const decisionConfigSchema = z.object({
-	model: modelsSchema.or(z.literal('auto')),
+	model: intelligenceKeys.or(z.literal('auto')),
 	instructions: z.string().describe('Instructions for the decision-making process'),
 	temperature: z.number().min(0).max(2).describe('Temperature to use'),
 	availableSkills: z.array(z.string()).describe('Skills that can be used to make the decision'),

@@ -3,7 +3,7 @@ import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
 import { useMutation } from 'convex/react';
-import { modelsSchema } from 'convex/schemas/skillSchema';
+import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
 import { z } from 'zod';
 import { BudgetStep } from '~/components/ui/budget-selector';
 
@@ -19,7 +19,7 @@ export function useAddTask() {
 		}: {
 			message: string;
 			initialFunds: BudgetStep;
-			intelligence: z.infer<typeof modelsSchema> | undefined;
+			intelligence: z.infer<typeof intelligenceKeys> | undefined;
 		}) => {
 			//
 			return await addTask({
@@ -463,7 +463,7 @@ export function useSetPreferredIntelligence() {
 			preferredIntelligence,
 		}: {
 			taskId: Id<'tasks'>;
-			preferredIntelligence: z.infer<typeof modelsSchema>;
+			preferredIntelligence: z.infer<typeof intelligenceKeys>;
 		}) => {
 			//
 			return await setPreferredIntelligenceMutation({ taskId, preferredIntelligence });

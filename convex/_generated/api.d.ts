@@ -36,6 +36,7 @@ import type * as schemas_actionSchema from "../schemas/actionSchema.js";
 import type * as schemas_authorSchema from "../schemas/authorSchema.js";
 import type * as schemas_componentSchema from "../schemas/componentSchema.js";
 import type * as schemas_envSchema from "../schemas/envSchema.js";
+import type * as schemas_intelligenceSchema from "../schemas/intelligenceSchema.js";
 import type * as schemas_paginationOptionsSchema from "../schemas/paginationOptionsSchema.js";
 import type * as schemas_polarEventSchema from "../schemas/polarEventSchema.js";
 import type * as schemas_scheduleSchema from "../schemas/scheduleSchema.js";
@@ -140,6 +141,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/authorSchema": typeof schemas_authorSchema;
   "schemas/componentSchema": typeof schemas_componentSchema;
   "schemas/envSchema": typeof schemas_envSchema;
+  "schemas/intelligenceSchema": typeof schemas_intelligenceSchema;
   "schemas/paginationOptionsSchema": typeof schemas_paginationOptionsSchema;
   "schemas/polarEventSchema": typeof schemas_polarEventSchema;
   "schemas/scheduleSchema": typeof schemas_scheduleSchema;

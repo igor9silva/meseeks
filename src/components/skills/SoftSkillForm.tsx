@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Doc } from 'convex/_generated/dataModel';
-import { modelsSchema } from 'convex/schemas/skillSchema';
+import { intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import SoftSkillConfig from '~/components/skills/SoftSkillConfig';
@@ -14,8 +14,6 @@ import {
 	softSkillFormSchema,
 	SoftSkillFormValues,
 } from '~/lib/skill-form-utils';
-
-type IntelligenceKey = z.infer<typeof modelsSchema>;
 
 interface SoftSkillFormProps {
 	skill?: Doc<'skills'>;

@@ -15,7 +15,8 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
 import { asDollars } from './lib/money';
 import { env } from './schemas/envSchema';
-import type { instructionVariableSchema, modelsSchema, softSkillSchema } from './schemas/skillSchema';
+import { IntelligenceKey, intelligenceKeys } from './schemas/intelligenceSchema';
+import type { instructionVariableSchema, softSkillSchema } from './schemas/skillSchema';
 import type { AITool } from './schemas/toolSchema';
 import { modelFrom } from './skills/createAITool';
 import { _toolsForMagicRock } from './skills/tools';
@@ -143,8 +144,8 @@ export async function _askMagicRock(args: MagicRockContext) {
 }
 
 function languageModelFrom(
-	skillModel: z.infer<typeof modelsSchema> | 'auto', //
-	taskPreferredIntelligence?: z.infer<typeof modelsSchema>,
+	skillModel: IntelligenceKey | 'auto', //
+	taskPreferredIntelligence?: IntelligenceKey,
 ): LanguageModel {
 	//
 	const model = modelFrom(skillModel, taskPreferredIntelligence);
@@ -164,7 +165,7 @@ function languageModelFrom(
 		],
 	};
 
-	const map = {
+	const map: Record<IntelligenceKey, LanguageModel> = {
 		//
 		// Anthropic
 		'anthropic/claude-4-opus': anthropic('claude-4-opus-20250514'),
@@ -173,8 +174,6 @@ function languageModelFrom(
 		'anthropic/claude-3.5-haiku': anthropic('claude-3-5-haiku-latest'),
 
 		// OpenAI
-		// 'openai/gpt-4o': openai('gpt-4o', openAIconfig),
-		// 'openai/gpt-4o-mini': openai('gpt-4o-mini', openAIconfig),
 		'openai/gpt-5': openai('gpt-5', openAIconfig),
 		'openai/gpt-5-mini': openai('gpt-5-mini', openAIconfig),
 		'openai/gpt-5-nano': openai('gpt-5-nano', openAIconfig),
@@ -195,8 +194,6 @@ function languageModelFrom(
 		'xai/grok-3-mini': xai('grok-3-mini'),
 
 		// Groq
-		// 'groq/llama-4-scout': groq('meta-llama/llama-4-scout-17b-16e-instruct'),
-		// 'groq/llama-4-maverick': groq('meta-llama/llama-4-maverick-17b-128e-instruct'),
 		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
 
 		// DeepSeek
