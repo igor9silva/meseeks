@@ -44,20 +44,27 @@ export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-code-fast-1';
 
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
-	'xai/grok-code-fast-1': 1.01,
-	'anthropic/claude-4-sonnet': 10.01,
-	'anthropic/claude-4-opus': Infinity,
+	'xai/grok-4-fast-non-reasoning': 5.0,
+	'anthropic/claude-4.5-sonnet': 100.0,
+	'anthropic/claude-4.1-opus': Infinity,
 } as const;
 
 export const intelligenceKeys = z.enum([
 	//
 	// Anthropic
+	'anthropic/claude-4.1-opus',
+	'anthropic/claude-4.5-sonnet',
+	'anthropic/claude-4.5-haiku',
 	'anthropic/claude-4-opus',
 	'anthropic/claude-4-sonnet',
 	'anthropic/claude-3.7-sonnet',
 	'anthropic/claude-3.5-haiku',
 
 	// OpenAI
+	// 'openai/gpt-5.1',
+	// 'openai/gpt-5.1-chat',
+	// 'openai/gpt-5.1-codex',
+	// 'openai/gpt-5.1-codex-mini',
 	'openai/gpt-5',
 	'openai/gpt-5-mini',
 	'openai/gpt-5-nano',
@@ -73,6 +80,8 @@ export const intelligenceKeys = z.enum([
 	'google/gemini-2.5-flash-lite',
 
 	// xAI
+	'xai/grok-4',
+	'xai/grok-4-fast-non-reasoning',
 	'xai/grok-code-fast-1',
 	'xai/grok-3',
 	'xai/grok-3-mini',
@@ -105,10 +114,36 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//           Anthropic
 	// ==============================
+	'anthropic/claude-4.1-opus': {
+		key: 'anthropic/claude-4.1-opus',
+		name: 'Claude 4.1 Opus',
+		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
+		provider: 'Anthropic',
+		pricing: buildPricing({ input: 15, output: 75 }),
+		context: buildContext(128000),
+		intelligenceLevel: 9,
+	},
+	'anthropic/claude-4.5-sonnet': {
+		key: 'anthropic/claude-4.5-sonnet',
+		name: 'Claude 4.5 Sonnet',
+		description: 'Best overall — way more costly than Grok.',
+		provider: 'Anthropic',
+		pricing: buildPricing({ input: 0.25, output: 2 }),
+		context: buildContext(128000),
+		intelligenceLevel: 7,
+	},
+	'anthropic/claude-4.5-haiku': {
+		key: 'anthropic/claude-4.5-haiku',
+		name: 'Claude 4.5 Haiku',
+		description: 'Cheap',
+		provider: 'Anthropic',
+		pricing: buildPricing({ input: 0.05, output: 0.4 }),
+		context: buildContext(128000),
+		intelligenceLevel: 5,
+	},
 	'anthropic/claude-4-opus': {
 		key: 'anthropic/claude-4-opus',
 		name: 'Claude 4 Opus',
-		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 15, output: 75 }),
 		context: buildContext(200000),
@@ -117,7 +152,6 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	'anthropic/claude-4-sonnet': {
 		key: 'anthropic/claude-4-sonnet',
 		name: 'Claude 4 Sonnet',
-		description: 'Best overall — way more costly than Grok.',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 3, output: 15 }),
 		context: buildContext(256000),
@@ -243,6 +277,24 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//              xAI
 	// ==============================
+	'xai/grok-4': {
+		key: 'xai/grok-4',
+		name: 'Grok 4',
+		description: 'Great cost/performance ratio — for daily use.',
+		provider: 'xAI',
+		pricing: buildPricing({ input: 3, output: 15 }),
+		context: buildContext(256000),
+		intelligenceLevel: 5,
+	},
+	'xai/grok-4-fast-non-reasoning': {
+		key: 'xai/grok-4-fast-non-reasoning',
+		name: 'Grok 4 Fast',
+		description: 'Great cost/performance ratio — for daily use.',
+		provider: 'xAI',
+		pricing: buildPricing({ input: 0.2, output: 0.5 }),
+		context: buildContext(2000000),
+		intelligenceLevel: 5,
+	},
 	'xai/grok-code-fast-1': {
 		key: 'xai/grok-code-fast-1',
 		name: 'Grok Code Fast 1',

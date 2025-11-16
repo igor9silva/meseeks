@@ -1,4 +1,4 @@
-import { intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { DEFAULT_INTELLIGENCE, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
@@ -59,7 +59,7 @@ export default function SoftSkillConfig({
 		} else {
 			// If switching to specific but current model is 'auto', use default
 			if (model === 'auto' || !model) {
-				onModelChange('anthropic/claude-4-sonnet'); // default
+				onModelChange(DEFAULT_INTELLIGENCE); // default
 			}
 		}
 	};

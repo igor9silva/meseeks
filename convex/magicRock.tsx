@@ -165,9 +165,13 @@ function languageModelFrom(
 		],
 	};
 
+	// TODO: move this into @intelligenceSchema.ts
 	const map: Record<IntelligenceKey, LanguageModel> = {
 		//
 		// Anthropic
+		'anthropic/claude-4.1-opus': anthropic('claude-opus-4-1-20250805'),
+		'anthropic/claude-4.5-sonnet': anthropic('claude-sonnet-4-5-20250929'),
+		'anthropic/claude-4.5-haiku': anthropic('claude-haiku-4-5-20251001'),
 		'anthropic/claude-4-opus': anthropic('claude-4-opus-20250514'),
 		'anthropic/claude-4-sonnet': anthropic('claude-4-sonnet-20250514'),
 		'anthropic/claude-3.7-sonnet': anthropic('claude-4-sonnet-20250514'), // 3.7 kept for retro-compatibility
@@ -189,7 +193,9 @@ function languageModelFrom(
 		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite', googleConfig),
 
 		// xAI
-		'xai/grok-code-fast-1': xai('grok-code-fast-1'),
+		'xai/grok-4': xai('grok-4-0709'),
+		'xai/grok-4-fast-non-reasoning': xai('grok-4-fast-non-reasoning'),
+		'xai/grok-code-fast-1': xai('grok-code-fast-1-0825'),
 		'xai/grok-3': xai('grok-3'),
 		'xai/grok-3-mini': xai('grok-3-mini'),
 
