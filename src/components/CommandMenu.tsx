@@ -117,9 +117,26 @@ export function CommandMenuDialog() {
 		setSearch(pathname + searchStr);
 	}, [pathname, searchStr]);
 
-	const shouldFilter = useMemo(() => {
+	const isSearching = useMemo(() => {
 		return search !== pathname + searchStr;
 	}, [search, pathname, searchStr]);
+
+	const searchQuery = useMemo(() => {
+		//
+		if (!isSearching) return undefined;
+		
+		return search;
+		//
+	}, [isSearching, search]);
+
+	const shouldFilter = useMemo(() => {
+		//
+		// Disable client-side filtering when doing server-side search
+		if (searchQuery) return false;
+		
+		return isSearching;
+		//
+	}, [searchQuery, isSearching]);
 
 	const onSelect = useCallback(
 		(value: string) => {
@@ -134,14 +151,13 @@ export function CommandMenuDialog() {
 
 	// TODO: implement FN+Up/Down to navigate through the list
 
-	// TODO: server-side search
 	const {
 		results: tasks,
 		status: paginationStatus,
 		loadMore,
 	} = usePaginatedQuery(
 		api.tasks.public.findAllPaginated,
-		{ paginationOpts: { numItems: PAGE_SIZE, cursor: null } },
+		{ search: searchQuery },
 		{ initialNumItems: PAGE_SIZE },
 	);
 

@@ -43,11 +43,21 @@ export const findAll = query({
 export const findAllPaginated = query({
 	args: {
 		paginationOpts: paginationOptionsSchema,
+		search: z.string().optional(),
 	},
-	handler: async (ctx, { paginationOpts }) => {
+	handler: async (ctx, { paginationOpts, search }) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
 
+		// Use search index if search term is provided
+		if (search && search.trim()) {
+			return await ctx.db
+				.query('tasks')
+				.withSearchIndex('search_tasks', (q) => q.search('title', search.trim()).eq('owner', currentUser._id))
+				.paginate(paginationOpts);
+		}
+
+		// Default query sorted by available budget (descending, highest first)
 		return await ctx.db
 			.query('tasks')
 			.withIndex('by_owner_energyAvailable', (q) => q.eq('owner', currentUser._id))

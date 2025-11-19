@@ -52,6 +52,11 @@ export default defineSchema({
 		'by_owner_status', ['owner', 'status'],
 	).index(
 		'by_owner_energyAvailable', ['owner', 'energyBudget.available'],
+	).searchIndex(
+		'search_tasks', {
+			searchField: 'title',
+			filterFields: ['owner'],
+		}
 	),
 	// .index(
 	// 	'by_embeddingId', ['embeddingId'],
