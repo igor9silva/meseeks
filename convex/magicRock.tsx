@@ -211,6 +211,7 @@ function languageModelFrom(
 
 		// Cerebras
 		'cerebras/qwen3-235b': cerebras('qwen-3-235b-a22b'),
+		'cerebras/zai-glm-4.6': cerebras('zai-glm-4.6'),
 
 		// DeepInfra
 		'deepinfra/qwen-3-coder': deepinfra('Qwen/Qwen3-Coder-480B-A35B-Instruct'),

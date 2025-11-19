@@ -36,20 +36,15 @@ export function IntelligenceOption({
 			<div className="flex flex-col w-full gap-1">
 				<div className="flex w-full justify-between items-center">
 					<span className={cn(isRecommended && 'font-medium')}>{intelligence.name}</span>
-					<span className="text-xs text-muted-foreground flex-shrink-0">
-						by {intelligence.provider}
-					</span>
+					<span className="text-xs text-muted-foreground flex-shrink-0">by {intelligence.provider}</span>
 				</div>
 				{shouldShowDescription && intelligence.description && (
-					<span className="text-xs text-muted-foreground leading-relaxed">
-						{intelligence.description}
-					</span>
+					<span className="text-xs text-muted-foreground leading-relaxed">{intelligence.description}</span>
 				)}
 				{/* Mobile-only: Show some key details inline */}
 				<div className="md:hidden text-xs text-muted-foreground">
 					<span>
-						⚡ ~${formattedPricing.estimatedPerMillionWords} per million words,
-						up to ~{formattedMaxWords}.
+						⚡ ~${formattedPricing.estimatedPerMillionWords} per million words, up to ~{formattedMaxWords}.
 					</span>
 				</div>
 			</div>

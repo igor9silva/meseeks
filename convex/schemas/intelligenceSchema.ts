@@ -10,7 +10,7 @@ const INPUT_COST_WEIGHT = 80n; // input weights for ≈80% of the cost
 const OUTPUT_COST_WEIGHT = 20n; // output weights for ≈20% of the cost
 
 const buildContext = (maxTokens: number) => ({
-	maxTokens, 
+	maxTokens,
 	maxWords: Math.round(maxTokens * TOKEN_TO_WORD_RATIO),
 });
 
@@ -38,7 +38,7 @@ const buildPricing = ({ input, output }: { input: number; output: number }) => {
 		outputPerMillionToken,
 		estimatedPerMillionWords,
 	};
-}
+};
 
 export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-code-fast-1';
 
@@ -97,6 +97,7 @@ export const intelligenceKeys = z.enum([
 
 	// Cerebras
 	'cerebras/qwen3-235b',
+	'cerebras/zai-glm-4.6',
 
 	// DeepInfra
 	'deepinfra/qwen-3-coder',
@@ -128,7 +129,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Claude 4.5 Sonnet',
 		description: 'Best overall — way more costly than Grok.',
 		provider: 'Anthropic',
-		pricing: buildPricing({ input: 0.25, output: 2 }),
+		pricing: buildPricing({ input: 3, output: 15 }),
 		context: buildContext(128000),
 		intelligenceLevel: 7,
 	},
@@ -137,7 +138,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Claude 4.5 Haiku',
 		description: 'Cheap',
 		provider: 'Anthropic',
-		pricing: buildPricing({ input: 0.05, output: 0.4 }),
+		pricing: buildPricing({ input: 1, output: 5 }),
 		context: buildContext(128000),
 		intelligenceLevel: 5,
 	},
@@ -369,6 +370,15 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		pricing: buildPricing({ input: 0, output: 0 }),
 		context: buildContext(128000),
 		intelligenceLevel: 8,
+	},
+	'cerebras/zai-glm-4.6': {
+		key: 'cerebras/zai-glm-4.6',
+		name: 'GLM 4.6',
+		description: 'Faaaaaast',
+		provider: 'Cerebras',
+		pricing: buildPricing({ input: 2.25, output: 2.75 }),
+		context: buildContext(128000),
+		intelligenceLevel: 7,
 	},
 
 	// ==============================

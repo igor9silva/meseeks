@@ -25,7 +25,7 @@ export function IntelligenceDetailsPanel({ intelligence }: IntelligenceDetailsPa
 	}
 
 	const {
-		name,
+		name, //
 		provider,
 		intelligenceLevel,
 		context,
@@ -88,7 +88,7 @@ export function IntelligenceDetailsPanel({ intelligence }: IntelligenceDetailsPa
 						<div className="flex justify-between items-center text-sm">
 							<span className="text-muted-foreground">Output</span>
 							<span className="font-medium text-card-foreground">
-									${formattedPricing.output}/million tokens
+								${formattedPricing.output}/million tokens
 							</span>
 						</div>
 					</div>

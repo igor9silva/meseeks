@@ -34,8 +34,8 @@ export function IntelligenceList({
 	onHover,
 }: IntelligenceListProps) {
 	//
-	const recommendedOptions = options.filter(option => option.key in INTELLIGENCE_PROGRESSION);
-	const otherOptions = options.filter(option => !(option.key in INTELLIGENCE_PROGRESSION));
+	const recommendedOptions = options.filter((option) => option.key in INTELLIGENCE_PROGRESSION);
+	const otherOptions = options.filter((option) => !(option.key in INTELLIGENCE_PROGRESSION));
 
 	return (
 		<div className="flex-1 min-w-0 md:border-r">

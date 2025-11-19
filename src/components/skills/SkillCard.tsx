@@ -105,7 +105,7 @@ export function SkillCard({
 	);
 }
 
-function CardFooter({ 
+function CardFooter({
 	skill,
 	onShareSkill,
 }: {

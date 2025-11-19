@@ -60,7 +60,7 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 		}, [commandValue, selected]);
 
 		const selectedOption = Object.values(intelligences).find(
-			(intelligence) => intelligence.key === selected,
+			(intelligence) => intelligence.key === selected, //
 		);
 
 		const displayedIntelligence = Object.values(intelligences).find(
