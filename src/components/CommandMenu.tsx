@@ -1,8 +1,9 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
+import { Loading } from '~/components/Loading';
 import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
-import { useQuery } from 'convex/react';
+import { usePaginatedQuery, useQuery } from 'convex/react';
 import * as React from 'react';
 import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -28,7 +29,7 @@ import {
 	Wallet,
 } from 'lucide-react';
 import {
-	CommandDialog,
+	CommandDialog, //
 	CommandGroup,
 	CommandInput,
 	CommandItem,
@@ -128,10 +129,42 @@ export function CommandMenuDialog() {
 		[navigate, close],
 	);
 
-	const tasks = useQuery(api.tasks.public.findAll, {}); // TODO: server-side search
+	const PAGE_SIZE = 20;
+	const SCROLL_THRESHOLD = 200; // pixels from the bottom of the list to trigger loading more
+
+	// TODO: implement FN+Up/Down to navigate through the list
+
+	// TODO: server-side search
+	const {
+		results: tasks,
+		status: paginationStatus,
+		loadMore,
+	} = usePaginatedQuery(
+		api.tasks.public.findAllPaginated,
+		{ paginationOpts: { numItems: PAGE_SIZE, cursor: null } },
+		{ initialNumItems: PAGE_SIZE },
+	);
+
 	const { taskId: currentTaskId } = useSplatParams();
 
 	const { signOut } = useAuthActions();
+
+	const hasMore = paginationStatus === 'CanLoadMore';
+	const isLoadingMore = paginationStatus === 'LoadingMore';
+
+	const handleScroll = useCallback(
+		(e: React.UIEvent<HTMLDivElement>) => {
+			//
+			const target = e.currentTarget;
+			const { scrollTop, scrollHeight, clientHeight } = target;
+			const scrollBottom = scrollHeight - scrollTop - clientHeight;
+
+			if (scrollBottom < SCROLL_THRESHOLD && hasMore && !isLoadingMore) {
+				loadMore(PAGE_SIZE);
+			}
+		},
+		[hasMore, isLoadingMore, loadMore],
+	);
 
 	return (
 		<CommandDialog
@@ -150,7 +183,7 @@ export function CommandMenuDialog() {
 			<DialogTitle className="hidden">Global command menu</DialogTitle>
 			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
 			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
-			<CommandList className="max-h-[500px]">
+			<CommandList className="max-h-[500px]" onScroll={handleScroll}>
 				{/* Quick actions */}
 				<CommandGroup heading="Quick actions">
 					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
@@ -231,8 +264,7 @@ export function CommandMenuDialog() {
 
 				{/* All tasks */}
 				<CommandGroup heading="Tasks">
-					{!tasks && <CommandLoading>Fetching tasks</CommandLoading>}
-					{tasks?.map((task) => {
+					{tasks.map((task) => {
 						return (
 							<CommandItem
 								key={task._id}
@@ -247,6 +279,7 @@ export function CommandMenuDialog() {
 							</CommandItem>
 						);
 					})}
+					{isLoadingMore && <Loading className="py-4" />}
 				</CommandGroup>
 			</CommandList>
 		</CommandDialog>
