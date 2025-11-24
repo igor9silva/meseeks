@@ -6,14 +6,14 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanst
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
-import * as React from 'react';
+import { useState } from 'react';
 import { CommandMenuDialog } from '~/components/CommandMenu';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
 import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
-import { Button } from '~/components/ui/button';
+import { LoadingButton } from '~/components/ui/loading-button';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
@@ -170,10 +170,18 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 function AccessDenied() {
 	//
 	const { signIn } = useAuthActions();
+	const [isSigningIn, setIsSigningIn] = useState(false);
+
+	const handleSignIn = () => {
+		setIsSigningIn(true);
+		signIn('google', { redirectTo: location.href });
+	};
 
 	return (
 		<div className="h-screen w-full flex flex-col items-center justify-center gap-4">
-			<Button onClick={() => signIn('google', { redirectTo: location.href })}>Continue with Google</Button>
+			<LoadingButton onClick={handleSignIn} loading={isSigningIn} loadingText="Redirecting...">
+				Continue with Google
+			</LoadingButton>
 			<footer className="absolute bottom-4 text-sm text-muted-foreground flex gap-4">
 				<a
 					href="/static/privacy-policy.md"
