@@ -88,8 +88,8 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	}, [task.status, markAsRead, task._id]);
 
 	return (
-		<div className={cn('flex flex-col h-full p-2 gap-2', className)}>
-			<div className="flex justify-between items-center bg-background/75">
+		<div className={cn('flex flex-col h-full gap-2 p-2', debug && 'px-0', className)}>
+			<div className={cn('flex justify-between items-center bg-background/75', debug && 'px-2')}>
 				<div className="flex gap-2">
 					{onToggleList && (
 						<Button
@@ -196,6 +196,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 					status={status}
 					loadMore={loadMore}
 					className={debug ? 'gap-0' : 'gap-2'}
+					isDebugMode={Boolean(debug)}
 				>
 					{reversedActions.map((action) =>
 						debug ? (
@@ -250,12 +251,14 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 }
 
 function StickToBottomContent({
+	isDebugMode,
 	actions,
 	status,
 	loadMore,
 	children,
 	className,
 }: {
+	isDebugMode: boolean;
 	actions: Doc<'actions'>[];
 	status: 'CanLoadMore' | 'LoadingMore' | 'Exhausted' | 'LoadingFirstPage';
 	loadMore: (n: number) => void;
@@ -310,7 +313,7 @@ function StickToBottomContent({
 	}, [actions, isAtBottom, isLoaded, scrollToBottom]);
 
 	return (
-		<StickToBottom.Content className="relative h-full p-1 md:p-2">
+		<StickToBottom.Content className={cn('relative h-full', isDebugMode ? 'p-0' : 'p-1 md:p-2')}>
 			<div className="h-full">
 				{status === 'LoadingMore' && (
 					<div className="px-4 pt-4">

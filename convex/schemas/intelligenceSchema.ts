@@ -40,12 +40,13 @@ const buildPricing = ({ input, output }: { input: number; output: number }) => {
 	};
 };
 
-export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-code-fast-1';
+export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-4.1-fast-non-reasoning';
 
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
-	'xai/grok-4-fast-non-reasoning': 5.0,
-	'anthropic/claude-4.5-sonnet': 100.0,
+	'xai/grok-4.1-fast-non-reasoning': 5.0,
+	'cerebras/zai-glm-4.6': 50.0,
+	'anthropic/claude-4.5-sonnet': 200.0,
 	'anthropic/claude-4.1-opus': Infinity,
 } as const;
 
@@ -80,6 +81,7 @@ export const intelligenceKeys = z.enum([
 	'google/gemini-2.5-flash-lite',
 
 	// xAI
+	'xai/grok-4.1-fast-non-reasoning',
 	'xai/grok-4',
 	'xai/grok-4-fast-non-reasoning',
 	'xai/grok-code-fast-1',
@@ -121,7 +123,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 15, output: 75 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 9,
 	},
 	'anthropic/claude-4.5-sonnet': {
@@ -130,7 +132,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Best overall — way more costly than Grok.',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 3, output: 15 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 	'anthropic/claude-4.5-haiku': {
@@ -139,7 +141,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Cheap',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 1, output: 5 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 5,
 	},
 	'anthropic/claude-4-opus': {
@@ -147,7 +149,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Claude 4 Opus',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 15, output: 75 }),
-		context: buildContext(200000),
+		context: buildContext(200_000),
 		intelligenceLevel: 10,
 	},
 	'anthropic/claude-4-sonnet': {
@@ -155,7 +157,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Claude 4 Sonnet',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 3, output: 15 }),
-		context: buildContext(256000),
+		context: buildContext(256_000),
 		intelligenceLevel: 8,
 	},
 	'anthropic/claude-3.7-sonnet': {
@@ -164,7 +166,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		provider: 'Anthropic',
 		// 3.7 kept for retro-compatibility
 		pricing: buildPricing({ input: 3, output: 15 }),
-		context: buildContext(256000),
+		context: buildContext(256_000),
 		intelligenceLevel: 8,
 	},
 	'anthropic/claude-3.5-haiku': {
@@ -173,7 +175,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Surprisingly very good, very cheap',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 0.8, output: 4 }),
-		context: buildContext(200000),
+		context: buildContext(200_000),
 		intelligenceLevel: 6,
 	},
 
@@ -186,7 +188,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Testing',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 1.25, output: 10 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 9,
 	},
 	'openai/gpt-5-mini': {
@@ -194,7 +196,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT-5 Mini',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.25, output: 2 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 	'openai/gpt-5-nano': {
@@ -202,7 +204,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT-5 Nano',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.05, output: 0.4 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 5,
 	},
 	'openai/gpt-4.1': {
@@ -210,7 +212,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT-4.1',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 2.0, output: 8.0 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 8,
 	},
 	'openai/gpt-4.1-mini': {
@@ -218,7 +220,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT-4.1 Mini',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.4, output: 1.6 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 6,
 	},
 	'openai/gpt-4.1-nano': {
@@ -226,7 +228,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT-4.1 Nano',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.1, output: 0.4 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 4,
 	},
 	'openai/gpt-oss-120b': {
@@ -234,7 +236,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT OSS 120B',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.25, output: 0.75 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 	'openai/gpt-oss-20b': {
@@ -242,7 +244,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GPT OSS 20B',
 		provider: 'OpenAI',
 		pricing: buildPricing({ input: 0.1, output: 0.5 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 5,
 	},
 
@@ -254,7 +256,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Gemini 2.5 Pro',
 		provider: 'Google',
 		pricing: buildPricing({ input: 1.25, output: 10 }),
-		context: buildContext(1000000),
+		context: buildContext(1_000_000),
 		intelligenceLevel: 8,
 	},
 	'google/gemini-2.5-flash': {
@@ -263,7 +265,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Nicely balanced, cheap and fast',
 		provider: 'Google',
 		pricing: buildPricing({ input: 0.3, output: 2.5 }),
-		context: buildContext(1000000),
+		context: buildContext(1_000_000),
 		intelligenceLevel: 6,
 	},
 	'google/gemini-2.5-flash-lite': {
@@ -271,20 +273,29 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Gemini 2.5 Flash Lite',
 		provider: 'Google',
 		pricing: buildPricing({ input: 0.1, output: 0.4 }),
-		context: buildContext(1000000),
+		context: buildContext(1_000_000),
 		intelligenceLevel: 5,
 	},
 
 	// ==============================
 	//              xAI
 	// ==============================
+	'xai/grok-4.1-fast-non-reasoning': {
+		key: 'xai/grok-4.1-fast-non-reasoning',
+		name: 'Grok 4.1 Fast',
+		description: 'Latest fast model — great cost/performance ratio.',
+		provider: 'xAI',
+		pricing: buildPricing({ input: 0.2, output: 0.5 }),
+		context: buildContext(2_000_000),
+		intelligenceLevel: 5,
+	},
 	'xai/grok-4': {
 		key: 'xai/grok-4',
 		name: 'Grok 4',
 		description: 'Great cost/performance ratio — for daily use.',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 3, output: 15 }),
-		context: buildContext(256000),
+		context: buildContext(256_000),
 		intelligenceLevel: 5,
 	},
 	'xai/grok-4-fast-non-reasoning': {
@@ -293,7 +304,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Great cost/performance ratio — for daily use.',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.2, output: 0.5 }),
-		context: buildContext(2000000),
+		context: buildContext(2_000_000),
 		intelligenceLevel: 5,
 	},
 	'xai/grok-code-fast-1': {
@@ -302,7 +313,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Great cost/performance ratio — for daily use.',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.2, output: 1.5 }),
-		context: buildContext(131000),
+		context: buildContext(131_000),
 		intelligenceLevel: 5,
 	},
 	'xai/grok-3': {
@@ -310,7 +321,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Grok 3',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 3, output: 15 }),
-		context: buildContext(131000),
+		context: buildContext(131_000),
 		intelligenceLevel: 8,
 	},
 	'xai/grok-3-mini': {
@@ -319,7 +330,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Cheap and fast, can be useful',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.3, output: 0.5 }),
-		context: buildContext(131000),
+		context: buildContext(131_000),
 		intelligenceLevel: 5,
 	},
 
@@ -332,7 +343,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Insanely faaaast, but not very smart',
 		provider: 'Groq',
 		pricing: buildPricing({ input: 0.29, output: 0.59 }),
-		context: buildContext(32000),
+		context: buildContext(32_000),
 		intelligenceLevel: 4,
 	},
 
@@ -344,7 +355,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'DeepSeek V3',
 		provider: 'DeepSeek',
 		pricing: buildPricing({ input: 0.56, output: 1.68 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 
@@ -356,7 +367,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Kimi 2',
 		provider: 'Moonshot',
 		pricing: buildPricing({ input: 0.6, output: 2.5 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 
@@ -368,7 +379,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Qwen 235B',
 		provider: 'Cerebras',
 		pricing: buildPricing({ input: 0, output: 0 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 8,
 	},
 	'cerebras/zai-glm-4.6': {
@@ -377,7 +388,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Faaaaaast',
 		provider: 'Cerebras',
 		pricing: buildPricing({ input: 2.25, output: 2.75 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 
@@ -389,7 +400,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Qwen 3 Coder',
 		provider: 'DeepInfra',
 		pricing: buildPricing({ input: 0.4, output: 1.6 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 	'deepinfra/glm-4.5': {
@@ -397,7 +408,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GLM 4.5',
 		provider: 'DeepInfra',
 		pricing: buildPricing({ input: 0.6, output: 2.2 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 6,
 	},
 
@@ -409,7 +420,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'Qwen 3 Coder',
 		provider: 'OpenRouter',
 		pricing: buildPricing({ input: 0.6, output: 2.5 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 7,
 	},
 	'openrouter/GLM-4.5-Air': {
@@ -417,7 +428,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GLM 4.5 Air',
 		provider: 'OpenRouter',
 		pricing: buildPricing({ input: 0.2, output: 1.1 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 5,
 	},
 	'openrouter/GLM-4.5': {
@@ -425,7 +436,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		name: 'GLM 4.5',
 		provider: 'OpenRouter',
 		pricing: buildPricing({ input: 0.6, output: 2.2 }),
-		context: buildContext(128000),
+		context: buildContext(128_000),
 		intelligenceLevel: 6,
 	},
 };

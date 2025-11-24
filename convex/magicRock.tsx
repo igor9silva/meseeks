@@ -193,6 +193,7 @@ function languageModelFrom(
 		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite', googleConfig),
 
 		// xAI
+		'xai/grok-4.1-fast-non-reasoning': xai('grok-4-1-fast-non-reasoning'),
 		'xai/grok-4': xai('grok-4-0709'),
 		'xai/grok-4-fast-non-reasoning': xai('grok-4-fast-non-reasoning'),
 		'xai/grok-code-fast-1': xai('grok-code-fast-1-0825'),

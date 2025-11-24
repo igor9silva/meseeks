@@ -34,7 +34,13 @@ export function IntelligenceList({
 	onHover,
 }: IntelligenceListProps) {
 	//
-	const recommendedOptions = options.filter((option) => option.key in INTELLIGENCE_PROGRESSION);
+	const progressionKeys = Object.keys(INTELLIGENCE_PROGRESSION) as IntelligenceKey[];
+	//
+	// sort by progression level
+	const recommendedOptions = progressionKeys
+		.map((key) => options.find((option) => option.key === key))
+		.filter((option): option is Intelligence => Boolean(option));
+	//
 	const otherOptions = options.filter((option) => !(option.key in INTELLIGENCE_PROGRESSION));
 
 	return (
