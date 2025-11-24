@@ -47,12 +47,13 @@ export const INTELLIGENCE_PROGRESSION = {
 	'xai/grok-4.1-fast-non-reasoning': 5.0,
 	'cerebras/zai-glm-4.6': 50.0,
 	'anthropic/claude-4.5-sonnet': 200.0,
-	'anthropic/claude-4.1-opus': Infinity,
+	'anthropic/claude-4.5-opus': Infinity,
 } as const;
 
 export const intelligenceKeys = z.enum([
 	//
 	// Anthropic
+	'anthropic/claude-4.5-opus',
 	'anthropic/claude-4.1-opus',
 	'anthropic/claude-4.5-sonnet',
 	'anthropic/claude-4.5-haiku',
@@ -117,10 +118,18 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//           Anthropic
 	// ==============================
+	'anthropic/claude-4.5-opus': {
+		key: 'anthropic/claude-4.5-opus',
+		name: 'Claude 4.5 Opus',
+		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
+		provider: 'Anthropic',
+		pricing: buildPricing({ input: 5, output: 25 }),
+		context: buildContext(200_000),
+		intelligenceLevel: 10,
+	},
 	'anthropic/claude-4.1-opus': {
 		key: 'anthropic/claude-4.1-opus',
 		name: 'Claude 4.1 Opus',
-		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 15, output: 75 }),
 		context: buildContext(128_000),
