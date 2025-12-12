@@ -18,6 +18,7 @@ import { Card, CardContent } from '~/components/ui/card';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useRegisterComposerFocus } from '~/hooks/useComposerFocus';
 import { useAddTask } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 
@@ -116,6 +117,11 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const showVoiceInterface = recordingStatus !== 'idle';
 
+	useRegisterComposerFocus({
+		textareaRef,
+		isVisible: recordingStatus === 'idle',
+	});
+
 	// Handle CMD+Enter shortcut like ActionComposer
 	useKeyboardShortcut({
 		global: true,
@@ -124,18 +130,6 @@ export function QuickSeekContent({ className }: { className?: string }) {
 			if (recordingStatus === 'idle' && !isEmpty && !isAdding) {
 				handleSubmit();
 			}
-		},
-	});
-
-	// global focus shortcut (CMD+I)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'i' },
-		callback: () => {
-			textareaRef.current?.focus();
-			// Move cursor to end of text
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
 		},
 	});
 

@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import { Loading } from '~/components/Loading';
 import { api } from 'convex/_generated/api';
-import type { Id } from 'convex/_generated/dataModel';
+import type { Doc, Id } from 'convex/_generated/dataModel';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import * as React from 'react';
 import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -37,17 +37,25 @@ import {
 	CommandLoading,
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
+import { Button } from '~/components/ui/button';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { useIsPro } from '~/hooks/useIsPro';
+import { useComposerFocusRegistry } from '~/hooks/useComposerFocus';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useDecreaseBudget, useDiscard, useIncreaseBudget, useResolve, useStop } from '~/hooks/useTaskMutations';
+import { ActionComposer } from './ActionComposer/ActionComposer';
+import { QuickSeekContent } from './QuickSeek';
+
+type CommandMenuMode = 'command' | 'compose';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
-	open: () => void;
+	mode: CommandMenuMode;
+	open: (nextMode?: CommandMenuMode) => void;
 	close: () => void;
+	setMode: (nextMode: CommandMenuMode) => void;
 }
 
 const CommandMenuContext = React.createContext<CommandMenuContextType | null>(null);
@@ -66,14 +74,24 @@ export function useCommandMenu() {
 export function CommandMenuProvider({ children }: { children: React.ReactNode }) {
 	//
 	const [isOpen, setIsOpen] = React.useState(false);
+	const [mode, setMode] = React.useState<CommandMenuMode>('command');
+	const { focusVisibleComposer } = useComposerFocusRegistry();
 
 	const value = React.useMemo(
 		() => ({
 			isOpen,
-			open: () => setIsOpen(true),
-			close: () => setIsOpen(false),
+			mode,
+			open: (nextMode: CommandMenuMode = 'command') => {
+				setMode(nextMode);
+				setIsOpen(true);
+			},
+			close: () => {
+				setIsOpen(false);
+				setMode('command');
+			},
+			setMode,
 		}),
-		[isOpen],
+		[isOpen, mode, setMode],
 	);
 
 	// command menu toggle shortcut (CMD+K)
@@ -83,7 +101,23 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		callback: () => {
 			// use startTransition to mark this as non-urgent and prevent blocking
 			startTransition(() => {
+				setMode('command');
 				setIsOpen((open) => !open);
+			});
+		},
+	});
+
+	// unified composer shortcut (CMD+I)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: 'i' },
+		callback: () => {
+			const didFocus = focusVisibleComposer();
+			if (didFocus) return;
+
+			startTransition(() => {
+				setMode('compose');
+				setIsOpen(true);
 			});
 		},
 	});
@@ -93,25 +127,12 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 
 export function CommandMenuDialog() {
 	//
-	const { isOpen, close } = useCommandMenu();
+	const { isOpen, close, mode, setMode } = useCommandMenu();
 	const { pathname, searchStr } = useLocation();
 	const navigate = useNavigate();
 
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
-
-	// new task shortcut (⌥+N)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'j' },
-		callback: (e) => {
-			console.log('new task shortcut triggered', e);
-			// use startTransition to mark navigation as non-urgent
-			startTransition(() => {
-				navigate({ to: '/$', params: { _splat: '/new' } });
-			});
-		},
-	});
 
 	useEffect(() => {
 		setSearch(pathname + searchStr);
@@ -127,6 +148,43 @@ export function CommandMenuDialog() {
 			navigate({ to: value });
 		},
 		[navigate, close],
+	);
+
+	useEffect(() => {
+		if (!isOpen || mode !== 'compose') return;
+
+		const handleEscape = (event: KeyboardEvent) => {
+			//
+			if (event.key === 'Tab' || event.key === 'Escape') {
+				event.preventDefault();
+				setMode('command');
+			}
+		};
+
+		document.addEventListener('keydown', handleEscape);
+
+		return () => {
+			document.removeEventListener('keydown', handleEscape);
+		};
+	}, [isOpen, mode, setMode]);
+
+	const handleCommandInputKeyDown = useCallback(
+		(event: React.KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === 'Tab' && !search) {
+				event.preventDefault();
+				setMode('compose');
+			}
+		},
+		[search, setMode],
+	);
+
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open) {
+				close();
+			}
+		},
+		[close],
 	);
 
 	const PAGE_SIZE = 20;
@@ -168,121 +226,182 @@ export function CommandMenuDialog() {
 
 	return (
 		<CommandDialog
-			shouldFilter={shouldFilter}
+			shouldFilter={mode === 'command' ? shouldFilter : false}
 			open={isOpen}
-			onOpenChange={close}
-			filter={(value, search, keywords) => {
-				//
-				const result = defaultFilter?.(value, search, keywords) ?? 0;
+			onOpenChange={handleOpenChange}
+			filter={
+				mode === 'command'
+					? (value, search, keywords) => {
+							//
+							const result = defaultFilter?.(value, search, keywords) ?? 0;
 
-				if (value === '/seek') return result + 0.0000001; // make sure new task is always included
+							if (value === '/seek') return result + 0.0000001; // make sure new task is always included
 
-				return result;
-			}}
+							return result;
+						}
+					: undefined
+			}
 		>
 			<DialogTitle className="hidden">Global command menu</DialogTitle>
 			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
-			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
-			<CommandList className="max-h-[500px]" onScroll={handleScroll}>
-				{/* Quick actions */}
-				<CommandGroup heading="Quick actions">
-					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <DecreaseBudgetCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
-					<CommandItem
-						value="feedback"
-						keywords={['feedback', 'report', 'bug', 'suggest', 'give']}
-						onSelect={() => {
-							close();
-							feedbackDialog.open();
-						}}
-					>
-						<NotebookPen className="mr-2" />
-						Give feedback
-					</CommandItem>
-					<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
-						<RefreshCcw className="mr-2" />
-						Refresh
-					</CommandItem>
-				</CommandGroup>
+			{mode === 'command' ? (
+				<>
+					<CommandInput
+						placeholder="Act or search..."
+						value={search}
+						onValueChange={setSearch}
+						onKeyDown={handleCommandInputKeyDown}
+					/>
+					<CommandList className="max-h-[500px]" onScroll={handleScroll}>
+						{/* Quick actions */}
+						<CommandGroup heading="Quick actions">
+							{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <DecreaseBudgetCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
+							<CommandItem
+								value="feedback"
+								keywords={['feedback', 'report', 'bug', 'suggest', 'give']}
+								onSelect={() => {
+									close();
+									feedbackDialog.open();
+								}}
+							>
+								<NotebookPen className="mr-2" />
+								Give feedback
+							</CommandItem>
+							<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
+								<RefreshCcw className="mr-2" />
+								Refresh
+							</CommandItem>
+						</CommandGroup>
 
-				{/* Shortcuts - these are navigation items */}
-				<CommandGroup heading="Shortcuts">
-					<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
-						<Inbox className="mr-2" />
-						Go to Inbox
-					</CommandItem>
-					<CommandItem value="/new" keywords={['new', 'task']} onSelect={onSelect}>
-						<SquarePen className="mr-2" />
-						New task
-					</CommandItem>
-					<SeekCommandItem shouldUseSearch={shouldFilter} />
-					{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
+						{/* Shortcuts - these are navigation items */}
+						<CommandGroup heading="Shortcuts">
+							<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
+								<Inbox className="mr-2" />
+								Go to Inbox
+							</CommandItem>
+							<CommandItem value="/new" keywords={['new', 'task']} onSelect={onSelect}>
+								<SquarePen className="mr-2" />
+								New task
+							</CommandItem>
+							<SeekCommandItem shouldUseSearch={shouldFilter} />
+							{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
 						<BadgeCent className="mr-2" />
 						Top up account
 					</CommandItem> */}
-					<CommandItem
-						value="/balance"
-						keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
-						onSelect={onSelect}
-					>
-						<Wallet className="mr-2" />
-						Balance & account
-					</CommandItem>
-					<Suspense fallback={null}>
-						<SubscribeCommandItem onSelect={onSelect} />
-					</Suspense>
-					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
-						<Sparkles className="mr-2" />
-						Manage skills
-					</CommandItem>
-					<CommandItem value="/schedules" keywords={['schedules', 'manage', 'schedule']} onSelect={onSelect}>
-						<CalendarIcon className="mr-2" />
-						See schedules
-					</CommandItem>
-					<DevModeCommandItem />
-					<CommandItem
-						value="github"
-						keywords={['github', 'source', 'code', 'repository']}
-						onSelect={() => {
-							window.open('https://github.com/igor9silva/meseeks', '_blank');
-							close();
-						}}
-					>
-						<Github className="mr-2" />
-						View source code on GitHub
-					</CommandItem>
-					<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
-						<LogOut className="mr-2" />
-						Sign out
-					</CommandItem>
-				</CommandGroup>
-
-				{/* All tasks */}
-				<CommandGroup heading="Tasks">
-					{tasks.map((task) => {
-						return (
 							<CommandItem
-								key={task._id}
-								value={`/task/${task._id}`}
-								keywords={[task.title ?? 'Untitled task']}
+								value="/balance"
+								keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
 								onSelect={onSelect}
 							>
-								{!task.isActive ? <CircleCheckBig className="mr-2" /> : <Circle className="mr-2" />}
-								<span className={!task.isActive ? 'line-through' : ''}>
-									{task.title ?? 'Untitled task'}
-								</span>
+								<Wallet className="mr-2" />
+								Balance & account
 							</CommandItem>
-						);
-					})}
-					{isLoadingMore && <Loading className="py-4" />}
-				</CommandGroup>
-			</CommandList>
+							<Suspense fallback={null}>
+								<SubscribeCommandItem onSelect={onSelect} />
+							</Suspense>
+							<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
+								<Sparkles className="mr-2" />
+								Manage skills
+							</CommandItem>
+							<CommandItem value="/schedules" keywords={['schedules', 'manage', 'schedule']} onSelect={onSelect}>
+								<CalendarIcon className="mr-2" />
+								See schedules
+							</CommandItem>
+							<DevModeCommandItem />
+							<CommandItem
+								value="github"
+								keywords={['github', 'source', 'code', 'repository']}
+								onSelect={() => {
+									window.open('https://github.com/igor9silva/meseeks', '_blank');
+									close();
+								}}
+							>
+								<Github className="mr-2" />
+								View source code on GitHub
+							</CommandItem>
+							<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
+								<LogOut className="mr-2" />
+								Sign out
+							</CommandItem>
+						</CommandGroup>
+
+						{/* All tasks */}
+						<CommandGroup heading="Tasks">
+							{tasks.map((task) => {
+								return (
+									<CommandItem
+										key={task._id}
+										value={`/task/${task._id}`}
+										keywords={[task.title ?? 'Untitled task']}
+										onSelect={onSelect}
+									>
+										{!task.isActive ? <CircleCheckBig className="mr-2" /> : <Circle className="mr-2" />}
+										<span className={!task.isActive ? 'line-through' : ''}>
+											{task.title ?? 'Untitled task'}
+										</span>
+									</CommandItem>
+								);
+							})}
+							{isLoadingMore && <Loading className="py-4" />}
+						</CommandGroup>
+					</CommandList>
+				</>
+			) : (
+				<LauncherComposer onExitToCommand={() => setMode('command')} />
+			)}
 		</CommandDialog>
+	);
+}
+
+function LauncherComposer({ onExitToCommand }: { onExitToCommand: () => void }) {
+	//
+	const { taskId: currentTaskId } = useSplatParams();
+	const currentTask = useQuery(api.tasks.public.findOneOrNot, { taskId: currentTaskId ?? undefined });
+
+	if (currentTaskId && !currentTask) {
+		return <Loading className="py-4" />;
+	}
+
+	const shouldShowTaskComposer = Boolean(currentTask);
+
+	const composer = shouldShowTaskComposer && currentTask ? (
+		<ActionComposer task={currentTask} />
+	) : (
+		<QuickSeekContent className="border-none shadow-none" />
+	);
+
+	return (
+		<div className="flex flex-col gap-3 p-2">
+			<div className="flex items-center justify-between gap-2">
+				<AttachmentStrip task={currentTask ?? undefined} />
+				<Button variant="ghost" size="sm" onClick={onExitToCommand}>
+					Back to launcher
+				</Button>
+			</div>
+			{composer}
+		</div>
+	);
+}
+
+function AttachmentStrip({ task }: { task?: Doc<'tasks'> }) {
+	//
+	const hasTask = Boolean(task);
+	const contextLabel = hasTask ? 'Current task' : 'New task';
+	const contextTitle = hasTask ? task?.title ?? 'Untitled task' : 'Composer will create a new task';
+
+	return (
+		<div className="flex items-center gap-3 rounded-full border bg-muted/40 px-3 py-2">
+			<div className="flex flex-col">
+				<span className="text-xs text-muted-foreground">{contextLabel}</span>
+				<span className="text-sm font-medium truncate max-w-56">{contextTitle}</span>
+			</div>
+		</div>
 	);
 }
 

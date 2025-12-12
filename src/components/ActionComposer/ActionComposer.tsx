@@ -5,6 +5,7 @@ import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
+import { useRegisterComposerFocus } from '~/hooks/useComposerFocus';
 import { cn } from '~/lib/utils';
 import { IdleState } from './IdleState';
 import { RecordingState } from './RecordingState';
@@ -43,6 +44,11 @@ export function ActionComposer({
 
 	const isAnyMutationPending = isSaying || isStopping || isRequestingIteration;
 
+	useRegisterComposerFocus({
+		textareaRef,
+		isVisible: recordingStatus === 'idle',
+	});
+
 	const handleSubmit = () => {
 		//
 		if (!message.trim()) return;
@@ -55,18 +61,6 @@ export function ActionComposer({
 	const handleRequestIteration = () => {
 		requestIteration({ taskId: task._id });
 	};
-
-	// global focus shortcut (CMD+I)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'i' },
-		callback: () => {
-			textareaRef.current?.focus();
-			// Move cursor to end of text
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
-		},
-	});
 
 	// submit/request iteration shortcut (CMD+Enter) - only when textarea is focused
 	useKeyboardShortcut({

@@ -4,29 +4,47 @@ import { mutation, query } from '../lib';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from '../tasks/public';
 import { _add, _authorize, _findAllPaginated, _findAllRunning, _findOne } from './private';
+import { _addWithActions } from '../tasks/private';
+import { current as getCurrentUser } from '../users/public';
+import type { Doc } from '../_generated/dataModel';
 
 export const act = mutation({
 	args: {
-		taskId: zid('tasks'),
+		taskId: zid('tasks').optional(),
 		skillKey: z.string(),
 		args: z.record(z.any()),
 		shouldReopen: z.boolean().optional().default(false),
 	},
 	handler: async (ctx, { taskId, skillKey, args, shouldReopen }) => {
 		//
-		console.debug(`use skill on task '${taskId}'`);
+		let resolvedTaskId = taskId;
+		let currentUser: Doc<'users'>;
 
-		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
+		if (resolvedTaskId) {
+			const result = await ensureTaskOwner(ctx, { taskId: resolvedTaskId });
+			currentUser = result.currentUser;
+		} else {
+			currentUser = await getCurrentUser(ctx, {});
+			resolvedTaskId = await _addWithActions(ctx, {
+				author: currentUser._id,
+				owner: currentUser._id,
+				skills: [],
+			});
+		}
 
-		return await _add(ctx, {
+		console.debug(`use skill on task '${resolvedTaskId}'`);
+
+		const actionId = await _add(ctx, {
 			skillKey,
 			args,
-			taskId,
+			taskId: resolvedTaskId,
 			depth: 0,
 			author: currentUser._id,
 			owner: currentUser._id,
 			shouldReopen,
 		});
+
+		return { taskId: resolvedTaskId, actionId };
 	},
 });
 

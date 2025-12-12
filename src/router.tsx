@@ -11,6 +11,7 @@ import { ThemeProvider } from '~/components/ThemeProvider';
 import { DefaultCatchBoundary } from './components/DefaultCatchBoundary';
 import { NotFound } from './components/NotFound';
 import { routeTree } from './routeTree.gen';
+import { ComposerFocusProvider } from './hooks/useComposerFocus';
 
 export function createRouter() {
 	//
@@ -52,7 +53,9 @@ export function createRouter() {
 					<ConvexProvider client={convexQueryClient.convexClient}>
 						<ConvexAuthProvider client={convexQueryClient.convexClient}>
 							<ThemeProvider>
-								<CommandMenuProvider>{children}</CommandMenuProvider>
+								<ComposerFocusProvider>
+									<CommandMenuProvider>{children}</CommandMenuProvider>
+								</ComposerFocusProvider>
 							</ThemeProvider>
 						</ConvexAuthProvider>
 					</ConvexProvider>
