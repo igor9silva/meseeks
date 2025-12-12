@@ -5,7 +5,7 @@ import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import * as React from 'react';
-import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'convex/lib/money';
@@ -21,6 +21,7 @@ import {
 	Github,
 	Inbox,
 	LogOut,
+	MessageSquarePlus,
 	NotebookPen,
 	RefreshCcw,
 	RotateCcw,
@@ -34,15 +35,17 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-	CommandLoading,
 } from '~/components/ui/command';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
+import { useComposerVisibility } from '~/hooks/useComposerVisibility';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { type LauncherContext, useLauncher } from '~/hooks/useLauncher';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useDecreaseBudget, useDiscard, useIncreaseBudget, useResolve, useStop } from '~/hooks/useTaskMutations';
+import { LauncherComposer } from '~/components/Launcher';
 
 interface CommandMenuContextType {
 	isOpen: boolean;
@@ -65,15 +68,18 @@ export function useCommandMenu() {
 
 export function CommandMenuProvider({ children }: { children: React.ReactNode }) {
 	//
-	const [isOpen, setIsOpen] = React.useState(false);
+	const launcher = useLauncher();
+	const { taskId } = useSplatParams();
+	const { isComposerVisible, focusComposer } = useComposerVisibility();
 
+	// legacy compatibility - expose isOpen/open/close for existing consumers
 	const value = React.useMemo(
 		() => ({
-			isOpen,
-			open: () => setIsOpen(true),
-			close: () => setIsOpen(false),
+			isOpen: launcher.isOpen,
+			open: () => launcher.openSearch(),
+			close: () => launcher.close(),
 		}),
-		[isOpen],
+		[launcher],
 	);
 
 	// command menu toggle shortcut (CMD+K)
@@ -81,9 +87,35 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		global: true,
 		combo: { withCommand: true, key: 'k' },
 		callback: () => {
-			// use startTransition to mark this as non-urgent and prevent blocking
 			startTransition(() => {
-				setIsOpen((open) => !open);
+				if (launcher.isOpen) {
+					launcher.close();
+				} else {
+					launcher.openSearch();
+				}
+			});
+		},
+	});
+
+	// unified composer shortcut (CMD+I)
+	useKeyboardShortcut({
+		global: true,
+		combo: { withCommand: true, key: 'i' },
+		callback: () => {
+			startTransition(() => {
+				// if launcher is open and in composer mode, do nothing (focus is already there)
+				if (launcher.isOpen && launcher.mode === 'composer') {
+					return;
+				}
+
+				// if a composer is visible on the page, focus it
+				if (isComposerVisible) {
+					focusComposer();
+					return;
+				}
+
+				// otherwise, open launcher in composer mode with current task context
+				launcher.openComposer({ taskId });
 			});
 		},
 	});
@@ -93,29 +125,28 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 
 export function CommandMenuDialog() {
 	//
+	const launcher = useLauncher();
 	const { isOpen, close } = useCommandMenu();
 	const { pathname, searchStr } = useLocation();
 	const navigate = useNavigate();
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
 
-	// new task shortcut (⌥+N)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'j' },
-		callback: (e) => {
-			console.log('new task shortcut triggered', e);
-			// use startTransition to mark navigation as non-urgent
-			startTransition(() => {
-				navigate({ to: '/$', params: { _splat: '/new' } });
-			});
-		},
-	});
+	// fetch task data if we have a taskId in context
+	const taskContext = useLauncherTaskContext(launcher.context.taskId);
 
 	useEffect(() => {
 		setSearch(pathname + searchStr);
 	}, [pathname, searchStr]);
+
+	// reset to search mode when dialog closes
+	useEffect(() => {
+		if (!isOpen) {
+			launcher.setMode('search');
+		}
+	}, [isOpen, launcher]);
 
 	const shouldFilter = useMemo(() => {
 		return search !== pathname + searchStr;
@@ -127,6 +158,30 @@ export function CommandMenuDialog() {
 			navigate({ to: value });
 		},
 		[navigate, close],
+	);
+
+	// handle Tab to switch between modes
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			// Tab switches to composer mode when search is empty or matches current path
+			if (e.key === 'Tab' && !e.shiftKey && launcher.mode === 'search') {
+				const isSearchEmpty = search === pathname + searchStr || search.trim() === '';
+				if (isSearchEmpty) {
+					e.preventDefault();
+					launcher.setMode('composer');
+				}
+			}
+
+			// Escape in composer mode goes back to search mode (not close)
+			if (e.key === 'Escape' && launcher.mode === 'composer') {
+				e.preventDefault();
+				e.stopPropagation();
+				launcher.setMode('search');
+				// focus the input after switching back
+				setTimeout(() => inputRef.current?.focus(), 0);
+			}
+		},
+		[launcher, search, pathname, searchStr],
 	);
 
 	const PAGE_SIZE = 20;
@@ -166,11 +221,15 @@ export function CommandMenuDialog() {
 		[hasMore, isLoadingMore, loadMore],
 	);
 
+	const isComposerMode = launcher.mode === 'composer';
+
 	return (
 		<CommandDialog
-			shouldFilter={shouldFilter}
+			shouldFilter={!isComposerMode && shouldFilter}
 			open={isOpen}
-			onOpenChange={close}
+			onOpenChange={(open) => {
+				if (!open) close();
+			}}
 			filter={(value, search, keywords) => {
 				//
 				const result = defaultFilter?.(value, search, keywords) ?? 0;
@@ -180,109 +239,155 @@ export function CommandMenuDialog() {
 				return result;
 			}}
 		>
-			<DialogTitle className="hidden">Global command menu</DialogTitle>
-			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
-			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
-			<CommandList className="max-h-[500px]" onScroll={handleScroll}>
-				{/* Quick actions */}
-				<CommandGroup heading="Quick actions">
-					{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <DecreaseBudgetCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
-					{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
-					<CommandItem
-						value="feedback"
-						keywords={['feedback', 'report', 'bug', 'suggest', 'give']}
-						onSelect={() => {
-							close();
-							feedbackDialog.open();
-						}}
-					>
-						<NotebookPen className="mr-2" />
-						Give feedback
-					</CommandItem>
-					<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
-						<RefreshCcw className="mr-2" />
-						Refresh
-					</CommandItem>
-				</CommandGroup>
+			<DialogTitle className="hidden">
+				{isComposerMode ? 'Compose message' : 'Global command menu'}
+			</DialogTitle>
+			<DialogDescription className="hidden">
+				{isComposerMode ? 'Send a message to start or continue a task.' : 'Search for tasks, notes, files, and more.'}
+			</DialogDescription>
 
-				{/* Shortcuts - these are navigation items */}
-				<CommandGroup heading="Shortcuts">
-					<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
-						<Inbox className="mr-2" />
-						Go to Inbox
-					</CommandItem>
-					<CommandItem value="/new" keywords={['new', 'task']} onSelect={onSelect}>
-						<SquarePen className="mr-2" />
-						New task
-					</CommandItem>
-					<SeekCommandItem shouldUseSearch={shouldFilter} />
-					{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
-						<BadgeCent className="mr-2" />
-						Top up account
-					</CommandItem> */}
-					<CommandItem
-						value="/balance"
-						keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
-						onSelect={onSelect}
-					>
-						<Wallet className="mr-2" />
-						Balance & account
-					</CommandItem>
-					<Suspense fallback={null}>
-						<SubscribeCommandItem onSelect={onSelect} />
-					</Suspense>
-					<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
-						<Sparkles className="mr-2" />
-						Manage skills
-					</CommandItem>
-					<CommandItem value="/schedules" keywords={['schedules', 'manage', 'schedule']} onSelect={onSelect}>
-						<CalendarIcon className="mr-2" />
-						See schedules
-					</CommandItem>
-					<DevModeCommandItem />
-					<CommandItem
-						value="github"
-						keywords={['github', 'source', 'code', 'repository']}
-						onSelect={() => {
-							window.open('https://github.com/igor9silva/meseeks', '_blank');
-							close();
-						}}
-					>
-						<Github className="mr-2" />
-						View source code on GitHub
-					</CommandItem>
-					<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
-						<LogOut className="mr-2" />
-						Sign out
-					</CommandItem>
-				</CommandGroup>
-
-				{/* All tasks */}
-				<CommandGroup heading="Tasks">
-					{tasks.map((task) => {
-						return (
+			{/* composer mode */}
+			{isComposerMode ? (
+				<div onKeyDown={handleKeyDown}>
+					<LauncherComposer context={taskContext} onClose={close} />
+				</div>
+			) : (
+				/* search mode */
+				<div onKeyDown={handleKeyDown}>
+					<CommandInput
+						ref={inputRef}
+						placeholder="Act or search... (Tab to compose)"
+						value={search}
+						onValueChange={setSearch}
+					/>
+					<CommandList className="max-h-[500px]" onScroll={handleScroll}>
+						{/* Quick actions */}
+						<CommandGroup heading="Quick actions">
+							{/* compose action - switches to composer mode */}
 							<CommandItem
-								key={task._id}
-								value={`/task/${task._id}`}
-								keywords={[task.title ?? 'Untitled task']}
+								value="compose"
+								keywords={['compose', 'message', 'new', 'task', 'say']}
+								onSelect={() => launcher.setMode('composer')}
+							>
+								<MessageSquarePlus className="mr-2" />
+								Compose message
+								<span className="ml-auto text-xs text-muted-foreground">Tab</span>
+							</CommandItem>
+							{currentTaskId && <ResolveTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <DiscardTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <IncreaseBudgetCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <DecreaseBudgetCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <ReopenTaskCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <StopReactionsCommandItem taskId={currentTaskId} />}
+							{currentTaskId && <ScheduleIterationCommandItem taskId={currentTaskId} />}
+							<CommandItem
+								value="feedback"
+								keywords={['feedback', 'report', 'bug', 'suggest', 'give']}
+								onSelect={() => {
+									close();
+									feedbackDialog.open();
+								}}
+							>
+								<NotebookPen className="mr-2" />
+								Give feedback
+							</CommandItem>
+							<CommandItem value="refresh" keywords={['refresh']} onSelect={() => location.reload()}>
+								<RefreshCcw className="mr-2" />
+								Refresh
+							</CommandItem>
+						</CommandGroup>
+
+						{/* Shortcuts - these are navigation items */}
+						<CommandGroup heading="Shortcuts">
+							<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
+								<Inbox className="mr-2" />
+								Go to Inbox
+							</CommandItem>
+							<CommandItem value="/new" keywords={['new', 'task']} onSelect={onSelect}>
+								<SquarePen className="mr-2" />
+								New task
+							</CommandItem>
+							<SeekCommandItem shouldUseSearch={shouldFilter} />
+							{/* <CommandItem value="/top-up" keywords={['top', 'up']} onSelect={onSelect}>
+								<BadgeCent className="mr-2" />
+								Top up account
+							</CommandItem> */}
+							<CommandItem
+								value="/balance"
+								keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
 								onSelect={onSelect}
 							>
-								{!task.isActive ? <CircleCheckBig className="mr-2" /> : <Circle className="mr-2" />}
-								<span className={!task.isActive ? 'line-through' : ''}>
-									{task.title ?? 'Untitled task'}
-								</span>
+								<Wallet className="mr-2" />
+								Balance & account
 							</CommandItem>
-						);
-					})}
-					{isLoadingMore && <Loading className="py-4" />}
-				</CommandGroup>
-			</CommandList>
+							<Suspense fallback={null}>
+								<SubscribeCommandItem onSelect={onSelect} />
+							</Suspense>
+							<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
+								<Sparkles className="mr-2" />
+								Manage skills
+							</CommandItem>
+							<CommandItem value="/schedules" keywords={['schedules', 'manage', 'schedule']} onSelect={onSelect}>
+								<CalendarIcon className="mr-2" />
+								See schedules
+							</CommandItem>
+							<DevModeCommandItem />
+							<CommandItem
+								value="github"
+								keywords={['github', 'source', 'code', 'repository']}
+								onSelect={() => {
+									window.open('https://github.com/igor9silva/meseeks', '_blank');
+									close();
+								}}
+							>
+								<Github className="mr-2" />
+								View source code on GitHub
+							</CommandItem>
+							<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
+								<LogOut className="mr-2" />
+								Sign out
+							</CommandItem>
+						</CommandGroup>
+
+						{/* All tasks */}
+						<CommandGroup heading="Tasks">
+							{tasks.map((task) => {
+								return (
+									<CommandItem
+										key={task._id}
+										value={`/task/${task._id}`}
+										keywords={[task.title ?? 'Untitled task']}
+										onSelect={onSelect}
+									>
+										{!task.isActive ? <CircleCheckBig className="mr-2" /> : <Circle className="mr-2" />}
+										<span className={!task.isActive ? 'line-through' : ''}>
+											{task.title ?? 'Untitled task'}
+										</span>
+									</CommandItem>
+								);
+							})}
+							{isLoadingMore && <Loading className="py-4" />}
+						</CommandGroup>
+					</CommandList>
+				</div>
+			)}
 		</CommandDialog>
+	);
+}
+
+/**
+ * helper hook to get task data for the launcher context
+ */
+function useLauncherTaskContext(taskId?: Id<'tasks'>): LauncherContext {
+	//
+	const task = useQuery(api.tasks.public.findOneOrNot, { taskId });
+
+	return useMemo(
+		() => ({
+			taskId,
+			task: task ?? undefined,
+		}),
+		[taskId, task],
 	);
 }
 

@@ -15,8 +15,10 @@ import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
 import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { Toaster } from '~/components/ui/sonner';
+import { ComposerVisibilityProvider } from '~/hooks/useComposerVisibility';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
+import { LauncherProvider } from '~/hooks/useLauncher';
 import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { seo } from '~/lib/seo';
 
@@ -129,11 +131,15 @@ function Main({ children }: { children: React.ReactNode }) {
 	if (!user.isReady) return <RotatingLoadingMessage />;
 
 	return (
-		<FeedbackDialogProvider>
-			<ScheduleDialogProvider>
-				<MainWithFeedback>{children}</MainWithFeedback>
-			</ScheduleDialogProvider>
-		</FeedbackDialogProvider>
+		<LauncherProvider>
+			<ComposerVisibilityProvider>
+				<FeedbackDialogProvider>
+					<ScheduleDialogProvider>
+						<MainWithFeedback>{children}</MainWithFeedback>
+					</ScheduleDialogProvider>
+				</FeedbackDialogProvider>
+			</ComposerVisibilityProvider>
+		</LauncherProvider>
 	);
 }
 

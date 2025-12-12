@@ -1,6 +1,7 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
+import { useRegisterComposer } from '~/hooks/useComposerVisibility';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
@@ -32,6 +33,9 @@ export function ActionComposer({
 
 	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
 
+	// register this composer so global Cmd+I can focus it
+	useRegisterComposer(textareaRef);
+
 	const isComposing = !isEmpty;
 	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);
 	const isActing = useMemo(() => task.status === 'acting' && isEmpty, [task.status, isEmpty]);
@@ -55,18 +59,6 @@ export function ActionComposer({
 	const handleRequestIteration = () => {
 		requestIteration({ taskId: task._id });
 	};
-
-	// global focus shortcut (CMD+I)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'i' },
-		callback: () => {
-			textareaRef.current?.focus();
-			// Move cursor to end of text
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
-		},
-	});
 
 	// submit/request iteration shortcut (CMD+Enter) - only when textarea is focused
 	useKeyboardShortcut({
