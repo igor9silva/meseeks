@@ -54,6 +54,7 @@ export function IdleState({
 			<div className="flex flex-grow items-center justify-center px-3">
 				<textarea
 					ref={textareaRef}
+					data-meseeks-composer-input="true"
 					value={message}
 					onChange={handleMessageChange}
 					placeholder="What's next?"

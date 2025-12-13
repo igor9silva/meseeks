@@ -127,17 +127,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		},
 	});
 
-	// global focus shortcut (CMD+I)
-	useKeyboardShortcut({
-		global: true,
-		combo: { withCommand: true, key: 'i' },
-		callback: () => {
-			textareaRef.current?.focus();
-			// Move cursor to end of text
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
-		},
-	});
+	// global focus shortcut (CMD+I) is handled by the launcher
 
 	// intelligence selector shortcut (CMD+/)
 	useKeyboardShortcut({
@@ -169,6 +159,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 								<div className="flex items-center justify-center">
 									<textarea
 										ref={textareaRef}
+										data-meseeks-composer-input="true"
 										value={message}
 										onChange={handleMessageChange}
 										placeholder={placeholder}

@@ -31,6 +31,7 @@ export function ActionComposer({
 	} = useExpandingTextarea({ singleLineHeight: 40 });
 
 	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
+	const sayDraftRef = useRef('');
 
 	const isComposing = !isEmpty;
 	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);
@@ -57,14 +58,20 @@ export function ActionComposer({
 	};
 
 	// global focus shortcut (CMD+I)
+	// focus is handled globally by the launcher; when focused, CMD+I rotates quick actions
 	useKeyboardShortcut({
-		global: true,
+		targetRef: textareaRef,
 		combo: { withCommand: true, key: 'i' },
 		callback: () => {
-			textareaRef.current?.focus();
-			// Move cursor to end of text
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
+			//
+			if (isEmpty) {
+				if (!sayDraftRef.current) return;
+				setMessage(sayDraftRef.current);
+				return;
+			}
+
+			sayDraftRef.current = message;
+			setMessage('');
 		},
 	});
 
