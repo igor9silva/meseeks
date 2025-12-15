@@ -21,6 +21,7 @@ export function ReasonAction(props: ActionComponentProps) {
 					<MessageContent
 						text={action.result?.text ?? ''}
 						className="text-muted-foreground overflow-x-auto text-xs"
+						isMDX
 					/>
 				</ReasoningContent>
 			</Reasoning>
