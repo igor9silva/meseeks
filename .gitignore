@@ -2,6 +2,7 @@
 .vinxi
 .nitro
 .tanstack
+.output
 app.config.timestamp_*.js
 node_modules
 
