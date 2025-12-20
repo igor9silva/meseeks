@@ -1,4 +1,5 @@
 import mdx from '@mdx-js/rollup';
+import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react from '@vitejs/plugin-react';
@@ -8,6 +9,7 @@ import tsConfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
 	plugins: [
 		tanstackStart(),
+		nitroV2Plugin(), // installing 'nitro' brings v3 alpha, which breaks
 		tsConfigPaths({
 			projects: ['./tsconfig.json'],
 		}),
