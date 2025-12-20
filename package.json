@@ -10,7 +10,7 @@
 	"scripts": {
 		"dev": "concurrently -r bun:dev:web bun:dev:db",
 		"dev:web": "vite dev --port 3000",
-		"dev:db": "npx convex dev",
+		"dev:db": "bunx convex dev",
 		"build": "vite build",
 		"start": "bun .output/server/index.mjs",
 		"lint": "prettier --check '**/*' --ignore-unknown && eslint --ext .ts,.tsx ./src",

@@ -12,6 +12,7 @@ export const _transpileCode = internalAction({
 		//
 		const result = transform(code, {
 			presets: [require('@babel/preset-react')],
+			// TODO: React compiler plugins: [require('babel-plugin-react-compiler')],
 			filename: 'component.jsx',
 		});
 
