@@ -20,7 +20,7 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 	return (
 		<Link
 			to="/$"
-			params={{ _splat: `/task/${task._id}` }}
+			params={{ _splat: `task/${task._id}` }}
 			className="flex items-start justify-between gap-3 rounded-xl border bg-card p-3 transition-all hover:shadow-sm hover:bg-accent/50 cursor-pointer"
 		>
 			<div className="flex items-start gap-3 min-w-0 flex-1">

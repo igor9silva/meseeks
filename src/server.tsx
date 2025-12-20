@@ -1,8 +1,8 @@
 import { createStartHandler, defaultStreamHandler } from '@tanstack/react-start/server';
 import './lib/bigint-serialization';
 
-import { createRouter } from './router';
+const handler = createStartHandler(defaultStreamHandler);
 
-export default createStartHandler({
-	createRouter,
-})(defaultStreamHandler);
+export default {
+	fetch: handler,
+};

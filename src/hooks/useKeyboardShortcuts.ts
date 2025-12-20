@@ -18,7 +18,7 @@ interface UseKeyboardShortcutProps {
 	/** Function to call when the shortcut is triggered */
 	callback: (e: KeyboardEvent) => void;
 	/** If provided, shortcut will only work when this element is focused */
-	targetRef?: RefObject<HTMLElement>;
+	targetRef?: RefObject<HTMLElement | null>;
 	/** If true, shortcut will work even if the target is not focused */
 	global?: boolean;
 	/** If true, the default event behavior will not be prevented */

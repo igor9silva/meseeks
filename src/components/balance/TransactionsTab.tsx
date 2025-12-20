@@ -8,7 +8,7 @@ import { TransactionItem } from './TransactionItem';
 const PAGE_SIZE = 50;
 
 interface TransactionsTabProps {
-	scrollContainerRef: RefObject<HTMLElement>;
+	scrollContainerRef: RefObject<HTMLElement | null>;
 }
 
 export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {

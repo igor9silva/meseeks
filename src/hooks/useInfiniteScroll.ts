@@ -4,7 +4,7 @@ interface UseInfiniteScrollProps {
 	loadMore: (numItems: number) => void;
 	hasMore: boolean;
 	isLoading: boolean;
-	scrollContainerRef: RefObject<HTMLElement>;
+	scrollContainerRef: RefObject<HTMLElement | null>;
 	threshold?: number; // Percentage of scroll to trigger load more (default: 0.8)
 	pageSize?: number; // Number of items to load per page (default: 50)
 }

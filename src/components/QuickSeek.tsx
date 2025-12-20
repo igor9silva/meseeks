@@ -95,7 +95,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 		addTask(task, {
 			onSuccess: (taskId) => {
-				navigate({ to: '/$', params: { _splat: `/task/${taskId}` } });
+				navigate({ to: '/$', params: { _splat: `task/${taskId}` } });
 			},
 			onError: (error: unknown) => {
 				//

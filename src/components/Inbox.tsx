@@ -46,7 +46,7 @@ export function TaskList({
 						<Link
 							key={task._id}
 							to="/$"
-							params={{ _splat: `/task/${task._id}` }}
+							params={{ _splat: `task/${task._id}` }}
 							resetScroll={false}
 							className="block min-w-0"
 						>

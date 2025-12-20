@@ -9,7 +9,7 @@ interface UseExpandingTextareaOptions {
 
 interface UseExpandingTextareaResult {
 	//
-	textareaRef: React.RefObject<HTMLTextAreaElement>;
+	textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 	value: string;
 	isEmpty: boolean;
 	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -22,7 +22,7 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 	const { initialValue = '', maxHeight = 240, singleLineHeight = 40 } = options;
 	const [value, setValue] = useState(initialValue);
 	const [isEmpty, setIsEmpty] = useState(!initialValue.trim());
-	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
 	const adjustHeight = useCallback(() => {
 		//

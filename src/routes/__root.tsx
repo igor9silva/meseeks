@@ -43,6 +43,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				description: `Open platform to amplify yourself — be free. Open source, data and business. Research preview.`,
 				image: '/og.webp',
 			}),
+
+			{ name: 'application-name', content: 'Meseeks' },
+			{ name: 'apple-mobile-web-app-title', content: 'Meseeks' },
+			{ name: 'theme-color', content: '#000000', media: '(prefers-color-scheme: dark)' },
+			{ name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
+			{ name: 'mobile-web-app-capable', content: 'yes' },
+			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
+			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
 		],
 		links: [
 			{ rel: 'stylesheet', href: appCss },
@@ -51,22 +59,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			{ rel: 'icon', href: '/static/favicon-dark.ico', media: '(prefers-color-scheme: dark)' },
 			{ rel: 'icon', href: '/static/favicon-light.ico', media: '(prefers-color-scheme: light)' },
 
-			{ name: 'application-name', content: 'Meseeks' },
-			{ name: 'apple-mobile-web-app-title', content: 'Meseeks' },
-
 			// PWA Manifest
 			{ rel: 'manifest', href: '/static/site.webmanifest' },
 
-			// Theme Color
-			{ name: 'theme-color', content: '#000000', media: '(prefers-color-scheme: dark)' },
-			{ name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
-
-			// Full screen mode
-			{ name: 'mobile-web-app-capable', content: 'yes' },
-			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
-
 			// Styling
-			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
 			{ rel: 'apple-touch-icon', sizes: '180x180', href: '/static/logo-dark-192.png' },
 		],
 		scripts: [

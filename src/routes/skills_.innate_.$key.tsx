@@ -13,7 +13,7 @@ export const Route = createFileRoute('/skills_/innate_/$key')({
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 });
 
-export default function RouteComponent() {
+function RouteComponent() {
 	//
 	const { key } = Route.useParams();
 	const { skill } = useInnateSkill(key);

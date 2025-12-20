@@ -29,7 +29,7 @@ export function MainHeader({ className }: { className?: string }) {
 	};
 	const goToNewTask = () => {
 		startTransition(() => {
-			navigate({ to: '/$', params: { _splat: '/new' } });
+			navigate({ to: '/$', params: { _splat: 'new' } });
 		});
 	};
 
@@ -86,7 +86,7 @@ export function MainHeader({ className }: { className?: string }) {
 							className="[&_svg]:size-5"
 							onClick={(e) => {
 								e.preventDefault();
-								navigate({ to: '/$', params: { _splat: `/task/${search.selectedSubtaskId}` } });
+								navigate({ to: '/$', params: { _splat: `task/${search.selectedSubtaskId}` } });
 							}}
 							tooltipContent="Chat with selected task"
 						>

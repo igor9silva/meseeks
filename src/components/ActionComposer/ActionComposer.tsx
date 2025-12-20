@@ -30,7 +30,7 @@ export function ActionComposer({
 		setValue: setMessage,
 	} = useExpandingTextarea({ singleLineHeight: 40 });
 
-	const intelligenceSelectorRef = useRef<HTMLButtonElement>(null);
+	const intelligenceSelectorRef = useRef<HTMLButtonElement | null>(null);
 
 	const isComposing = !isEmpty;
 	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);

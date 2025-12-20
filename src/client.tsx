@@ -1,9 +1,9 @@
 import * as Sentry from '@sentry/react';
-import { StartClient } from '@tanstack/react-start';
+import { StartClient } from '@tanstack/react-start/client';
+import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import './lib/bigint-serialization';
 import { suppressViewTransitionErrors } from './lib/view-transitions';
-import { createRouter } from './router';
 
 Sentry.init({
 	dsn: 'https://0c170522df4ac8c15f74d66ff6619146@o4508540750331904.ingest.us.sentry.io/4508540754591744',
@@ -27,9 +27,14 @@ Sentry.init({
 // Initialize view transition error handling
 suppressViewTransitionErrors();
 
-const router = createRouter();
-
-hydrateRoot(document, <StartClient router={router} />);
+startTransition(() => {
+	hydrateRoot(
+		document,
+		<StrictMode>
+			<StartClient />
+		</StrictMode>,
+	);
+});
 
 // Add a default export that can be imported by other files
 export default {};

@@ -8,7 +8,7 @@ import { ActiveTaskItem } from './ActiveTaskItem';
 const PAGE_SIZE = 50;
 
 interface ActiveTasksTabProps {
-	scrollContainerRef: RefObject<HTMLElement>;
+	scrollContainerRef: RefObject<HTMLElement | null>;
 }
 
 export function ActiveTasksTab({ scrollContainerRef }: ActiveTasksTabProps) {

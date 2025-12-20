@@ -108,7 +108,7 @@ export function CommandMenuDialog() {
 			console.log('new task shortcut triggered', e);
 			// use startTransition to mark navigation as non-urgent
 			startTransition(() => {
-				navigate({ to: '/$', params: { _splat: '/new' } });
+				navigate({ to: '/$', params: { _splat: 'new' } });
 			});
 		},
 	});
@@ -463,7 +463,7 @@ function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 		//
 		navigate({
 			to: '/$',
-			params: { _splat: '/new' },
+			params: { _splat: 'new' },
 			search: search ? { q: search } : {},
 		});
 

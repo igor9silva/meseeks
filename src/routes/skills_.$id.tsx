@@ -16,7 +16,7 @@ export const Route = createFileRoute('/skills_/$id')({
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 });
 
-export default function RouteComponent() {
+function RouteComponent() {
 	//
 	const { id } = Route.useParams();
 	const { skill } = useSkill(id as Id<'skills'>);

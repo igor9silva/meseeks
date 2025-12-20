@@ -51,7 +51,7 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 					{taskId && (
 						<Link
 							to="/$"
-							params={{ _splat: `/task/${taskId}` }}
+							params={{ _splat: `task/${taskId}` }}
 							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
 							<span className="hidden md:block">See task</span>
@@ -62,7 +62,7 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 					{transaction.kind === 'top up' && transaction.topUpId && (
 						<Link
 							to="/$"
-							params={{ _splat: `/top-up/${transaction.topUpId}` }}
+							params={{ _splat: `top-up/${transaction.topUpId}` }}
 							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
 							Transaction details

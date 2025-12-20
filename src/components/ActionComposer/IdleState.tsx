@@ -11,7 +11,7 @@ import { KeyboardShortcutIndicator } from './KeyboardShortcutIndicator';
 interface IdleStateProps {
 	//
 	task: Doc<'tasks'>;
-	textareaRef: React.RefObject<HTMLTextAreaElement>;
+	textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 	message: string;
 	handleMessageChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	isEmpty: boolean;
@@ -22,7 +22,7 @@ interface IdleStateProps {
 	isActing: boolean;
 	isComposing: boolean;
 	canRequestIteration: boolean;
-	intelligenceSelectorRef: React.RefObject<HTMLButtonElement>;
+	intelligenceSelectorRef: React.RefObject<HTMLButtonElement | null>;
 	handleStop: () => void;
 }
 

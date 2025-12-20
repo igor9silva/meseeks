@@ -12,7 +12,7 @@ export type Dimension = 'width' | 'height';
  * @returns True if the container dimension is less than the breakpoint, false otherwise.
  */
 export function useContainerBreakpoint(
-	containerRef: React.RefObject<HTMLElement>,
+	containerRef: React.RefObject<HTMLElement | null>,
 	dimension: Dimension,
 	breakpoint: number,
 ): boolean {

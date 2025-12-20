@@ -65,8 +65,13 @@ export function createRouter() {
 	return router;
 }
 
+export async function getRouter() {
+	//
+	return createRouter();
+}
+
 declare module '@tanstack/react-router' {
 	interface Register {
-		router: ReturnType<typeof createRouter>;
+		router: Awaited<ReturnType<typeof getRouter>>;
 	}
 }
