@@ -13,7 +13,7 @@ export function FaqSection() {
 
 			<Accordion type="multiple" className="w-full">
 				{faqs.map((faq, index) => (
-					<AccordionItem key={index} value={`item-${index}`} className="border rounded-xl mb-2 px-4">
+					<AccordionItem key={index} value={`item-${index}`} className="border rounded-3xl mb-2 px-4">
 						<AccordionTrigger className="text-left hover:no-underline font-bold">
 							{faq.question}
 						</AccordionTrigger>

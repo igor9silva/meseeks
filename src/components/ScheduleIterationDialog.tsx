@@ -199,7 +199,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 									</div>
 								</div>
 
-								<div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
+								<div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-2">
 									<ClockIcon className="size-4" />
 									<span>Timezone: {timeZone}</span>
 								</div>
@@ -230,7 +230,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								{nextCronDates.dates.length > 0 && (
 									<div className="space-y-2">
 										<Label className="text-sm font-medium">Next 5 executions</Label>
-										<div className="bg-muted/50 rounded-xl px-3 py-3 space-y-1">
+										<div className="bg-muted/50 rounded-full px-3 py-3 space-y-1">
 											{nextCronDates.dates.map((date, index) => (
 												<div key={index} className="text-sm font-mono">
 													{date.toLocaleString('en-US', {
@@ -251,13 +251,13 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 
 								{nextCronDates.error && (
 									<div className="space-y-2">
-										<div className="bg-destructive text-destructive-foreground rounded-xl px-3 py-2 text-sm">
+										<div className="bg-destructive text-destructive-foreground rounded-full px-3 py-2 text-sm">
 											{nextCronDates.error}
 										</div>
 									</div>
 								)}
 
-								<div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-3 py-2">
+								<div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-2">
 									<ClockIcon className="size-4" />
 									<span>Timezone: {timeZone}</span>
 								</div>

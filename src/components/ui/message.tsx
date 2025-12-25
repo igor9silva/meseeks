@@ -64,7 +64,7 @@ const MessageContent = ({
 			text={text}
 			onClickFix={onClickMDXFix}
 			className={cn(
-				'rounded-xl p-2 text-foreground max-w-full md:max-w-[95%] break-normal hyphens-none whitespace-normal',
+				'rounded-3xl p-2 text-foreground max-w-full md:max-w-[95%] break-normal hyphens-none whitespace-normal',
 				className,
 			)}
 			{...props}

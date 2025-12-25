@@ -13,7 +13,7 @@ interface TransactionItemProps {
 export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 	//
 	return (
-		<div className="flex items-center justify-between gap-1 rounded-xl border bg-card p-3 transition-all hover:shadow-sm">
+		<div className="flex items-center justify-between gap-1 rounded-3xl border bg-card p-3 transition-all hover:shadow-sm">
 			<div className="flex items-center gap-3">
 				<div
 					className={`flex h-10 w-10 items-center justify-center rounded-full ${getTransactionBgColor(transaction)}`}
@@ -52,7 +52,7 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 						<Link
 							to="/$"
 							params={{ _splat: `task/${taskId}` }}
-							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+							className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
 							<span className="hidden md:block">See task</span>
 							<span className="md:hidden">Task</span>
@@ -63,7 +63,7 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 						<Link
 							to="/$"
 							params={{ _splat: `top-up/${transaction.topUpId}` }}
-							className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+							className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
 							Transaction details
 							<ExternalLink className="size-3" />

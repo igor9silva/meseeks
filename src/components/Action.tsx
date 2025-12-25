@@ -12,8 +12,10 @@ export function Action(props: {
 }) {
 	//
 	if (props.action.skillKey in index) {
+		//
 		const Component = index[props.action.skillKey as keyof typeof index];
 		if (Component === null) return null;
+
 		return <Component {...props} />;
 	}
 

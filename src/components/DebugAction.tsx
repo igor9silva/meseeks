@@ -211,7 +211,7 @@ function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 				<span className="text-muted-foreground font-normal text-xs">({Object.keys(args).length})</span>
 			</div>
 			{isOpen && (
-				<div className="bg-muted border rounded p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
+				<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 					{Object.entries(args).map(([key, value]) => (
 						<div key={key} className="flex gap-2">
 							<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">{key}:</span>
@@ -248,7 +248,7 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 			</div>
 			{isOpen &&
 				(argCount > 0 ? (
-					<div className="bg-muted border rounded p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
+					<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 						{Object.entries(reaction.args).map(([key, value]) => (
 							<div key={key} className="flex gap-2">
 								<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
@@ -261,7 +261,7 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 						))}
 					</div>
 				) : (
-					<div className="bg-muted border rounded p-3 text-sm text-muted-foreground italic">No arguments</div>
+					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">No arguments</div>
 				))}
 		</div>
 	);
@@ -292,7 +292,7 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 					<textarea
 						value={jsonString}
 						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
 						style={{ fontFamily: 'ui-monospace, monospace' }}
 					/>
 				)}
@@ -327,7 +327,7 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 						<textarea
 							value={result.text!}
 							readOnly
-							className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
+							className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded-lg resize-y whitespace-pre-wrap"
 							style={{ fontFamily: 'inherit' }}
 						/>
 					)}
@@ -391,7 +391,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 						</span>
 					</div>
 					{isOpen && (
-						<div className="bg-muted border rounded p-3 space-y-1 text-sm">
+						<div className="bg-muted border rounded-lg p-3 space-y-1 text-sm">
 							{action.costs.map((cost, index) => (
 								<div key={index} className="flex justify-between">
 									<span>{cost.description}</span>
@@ -418,7 +418,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 						</span>
 					</div>
 					{isOpen && (
-						<div className="bg-muted border rounded p-3 text-sm">
+						<div className="bg-muted border rounded-lg p-3 text-sm">
 							<div className="flex justify-between">
 								<span>Estimated:</span>
 								<span className="font-mono">
@@ -478,9 +478,9 @@ function MessageHistoryItem({
 	};
 
 	return (
-		<div className="border rounded-lg p-3 bg-card">
+		<div className="border rounded-3xl p-3 bg-card">
 			<div
-				className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded p-2 -m-2"
+				className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2"
 				onClick={() => setIsOpen(!isOpen)}
 			>
 				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -628,7 +628,7 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 					<textarea
 						value={JSON.stringify(llm.toolCalls, null, 2)}
 						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
 						style={{ fontFamily: 'ui-monospace, monospace' }}
 					/>
 				</div>
@@ -700,7 +700,7 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 						</span>
 					</div>
 					{searchParamsOpen && (
-						<div className="bg-muted border rounded p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
+						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 							{Object.entries(searchParams).map(([key, value]) => (
 								<div key={key} className="flex gap-2">
 									<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
@@ -732,7 +732,7 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 						<textarea
 							value={http.responseBody}
 							readOnly
-							className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded resize-y whitespace-pre-wrap font-mono"
+							className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
 							style={{ fontFamily: 'ui-monospace, monospace' }}
 						/>
 					)}
@@ -756,7 +756,7 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 						</span>
 					</div>
 					{responseHeadersOpen && (
-						<div className="bg-muted border rounded p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
+						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 							{Object.entries(http.responseHeaders).map(([key, value]) => (
 								<div key={key} className="flex gap-2">
 									<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">

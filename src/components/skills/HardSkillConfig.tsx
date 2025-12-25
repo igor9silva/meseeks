@@ -270,7 +270,7 @@ export function HardSkillConfig({
 											{Object.entries(headers).map(([key, value]) => (
 												<div
 													key={key}
-													className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
+													className="flex justify-between items-start p-2 rounded-lg bg-muted/50 gap-2"
 												>
 													<div className="flex flex-col gap-1 min-w-0 flex-1">
 														<span className="font-medium text-sm">{key}:</span>
@@ -492,7 +492,7 @@ export function HardSkillConfig({
 							</TableBody>
 						</Table>
 					) : (
-						<div className="text-center p-4 border rounded-xl text-muted-foreground mt-2">
+						<div className="text-center p-4 border rounded-3xl text-muted-foreground mt-2">
 							No reactions defined
 						</div>
 					)}

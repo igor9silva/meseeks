@@ -61,7 +61,7 @@ export function GenericAction(props: ActionComponentProps) {
 		>
 			<div className="max-w-full">
 				{action.status === 'pending authorization' ? (
-					<div className="flex flex-col gap-2 p-2 rounded-xl bg-muted">
+					<div className="flex flex-col gap-2 p-2 rounded-3xl bg-muted">
 						<div className="flex flex-col">
 							<div className="text-md font-medium">{action.skillKey}()</div>
 							{typeof action.estimatedCost === 'bigint' && (
@@ -74,7 +74,7 @@ export function GenericAction(props: ActionComponentProps) {
 						{action.args && Object.keys(action.args).length > 0 && (
 							<div className="mt-1">
 								<div className="text-sm font-medium">Arguments:</div>
-								<div className="text-sm font-mono bg-background/30 p-2 rounded overflow-auto max-h-48">
+								<div className="text-sm font-mono bg-background/30 p-2 rounded-lg overflow-auto max-h-48">
 									<StructuredValue value={action.args} />
 								</div>
 							</div>
@@ -116,9 +116,9 @@ export function GenericAction(props: ActionComponentProps) {
 								costs={action.costs}
 								// reactions={action.reactions ?? []}
 								className={cn({
-									'bg-primary text-primary-foreground rounded-xl border border-border p-2':
+									'bg-primary text-primary-foreground rounded-3xl border border-border p-2':
 										isAuthorCurrentUser && action.skillKey === 'say',
-									'bg-muted rounded-xl p-2': isAuthorCurrentUser && action.skillKey !== 'say',
+									'bg-muted rounded-3xl p-2': isAuthorCurrentUser && action.skillKey !== 'say',
 								})}
 								actionId={action._id}
 							/>

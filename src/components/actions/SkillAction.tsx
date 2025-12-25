@@ -99,7 +99,7 @@ function PendingAuthorization({
 	return (
 		<div
 			className={cn(
-				'flex flex-col gap-3 p-4 rounded-xl border bg-secondary text-secondary-foreground shadow-sm',
+				'flex flex-col gap-3 p-4 rounded-3xl border bg-secondary text-secondary-foreground shadow-sm',
 				{
 					'animate-in duration-100': isNew,
 					'slide-in-from-left': isNew,
@@ -108,7 +108,7 @@ function PendingAuthorization({
 		>
 			{/* Header */}
 			<div className="flex items-center gap-3">
-				<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+				<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
 					<span className="text-sm">📖</span>
 				</div>
 				<div>
@@ -133,7 +133,7 @@ function PendingAuthorization({
 					{isHardSkill && domain && (
 						<div className="flex items-center gap-2 text-sm font-mono">
 							<span className="text-muted-foreground">{skill.config.method}</span>
-							<span className="bg-background px-2 py-1 rounded border">{domain}</span>
+							<span className="bg-background px-2 py-1 rounded-lg border">{domain}</span>
 						</div>
 					)}
 
@@ -142,7 +142,7 @@ function PendingAuthorization({
 							<span className="text-sm font-medium text-muted-foreground">
 								{isCreation ? 'Instructions' : 'Updated Instructions'}:
 							</span>
-							<div className="text-sm max-h-32 overflow-y-auto bg-background p-2 rounded border">
+							<div className="text-sm max-h-32 overflow-y-auto bg-background p-2 rounded-lg border">
 								<pre className="whitespace-pre-wrap text-xs">{skill.config.instructions}</pre>
 							</div>
 						</div>

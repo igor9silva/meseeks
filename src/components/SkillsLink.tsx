@@ -22,7 +22,7 @@ export function SkillsLink({ className }: SkillsLinkProps) {
 
 function SkillsLinkSkeleton({ className }: { className?: string }) {
 	//
-	return <Skeleton className={cn('h-9 w-9 rounded-xl', className)} />;
+	return <Skeleton className={cn('h-9 w-9 rounded-full', className)} />;
 }
 
 function SkillsLinkContent({ className }: { className?: string }) {
@@ -48,7 +48,7 @@ function SkillsLinkContent({ className }: { className?: string }) {
 						onClick={handleClick}
 						className={cn(
 							'flex h-9 w-9 items-center justify-center flex-shrink-0',
-							'rounded-xl border border-input bg-transparent',
+							'rounded-full border border-input bg-transparent',
 							'shadow-sm ring-offset-background hover:bg-accent hover:text-accent-foreground',
 							'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
 							isNavigating && 'pointer-events-none',
