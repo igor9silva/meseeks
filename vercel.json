@@ -1,0 +1,3 @@
+{
+	"buildCommand": "bunx convex deploy --cmd 'bun run build'"
+}
