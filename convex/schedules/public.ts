@@ -1,6 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { Id } from '../_generated/dataModel';
 import { mutation, query } from '../lib';
+import { NotFound } from '../lib/errors';
 import { ensureTaskOwner } from '../tasks/public';
 import { current as getCurrentUser } from '../users/public';
 import { _listByTask } from './private';
@@ -12,7 +13,7 @@ export const cancel = mutation({
 	handler: async (ctx, { scheduleId }) => {
 		//
 		const schedule = await ctx.db.get(scheduleId);
-		if (!schedule) throw new Error('Schedule not found');
+		if (!schedule) throw NotFound();
 
 		// Ensure user owns the schedule
 		await ensureTaskOwner(ctx, { taskId: schedule.taskId });

@@ -1,5 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { actionDetailSchema, actionDetailUpdateSchema } from '../schemas/actionDetailSchema';
 
 export const _persist = internalMutation({
@@ -23,7 +24,7 @@ export const _update = internalMutation({
 	handler: async (ctx, { actionId, updates }) => {
 		//
 		const existing = await _findByAction(ctx, { actionId });
-		if (!existing) throw new Error('Action detail not found');
+		if (!existing) throw NotFound();
 
 		// Merge updates with existing data to maintain complete object structure
 		if ('llm' in updates && 'llm' in existing) {

@@ -25,7 +25,7 @@ export const _findOne = internalQuery({
 	handler: async (ctx, { taskId }) => {
 		//
 		const task = await ctx.db.get(taskId);
-		if (!task) throw new Error('Task not found');
+		if (!task) throw NotFound();
 
 		return task;
 	},
@@ -351,7 +351,7 @@ export const _addAvailableSkill = internalMutation({
 	handler: async (ctx, { taskId, skillKey }) => {
 		//
 		const task = await _findOne(ctx, { taskId });
-		if (!task) throw new Error('Task not found');
+		if (!task) throw NotFound();
 
 		if (task.availableSkills?.includes(skillKey)) return;
 
@@ -385,7 +385,7 @@ export const _setStatus = internalMutation({
 		if (newStatus === 'done' || newStatus === 'discarded') {
 			//
 			const task = await _findOne(ctx, { taskId });
-			if (!task) throw new Error('Task not found');
+			if (!task) throw NotFound();
 
 			// remove funds from the task
 			if (task.energyBudget.available > 0n) {
@@ -443,7 +443,7 @@ export const _useFunds = internalMutation({
 	handler: async (ctx, { taskId, amount }) => {
 		//
 		const task = await _findOne(ctx, { taskId });
-		if (!task) throw new Error('Task not found');
+		if (!task) throw NotFound();
 
 		console.debug(`using ${asDollars({ bigInt: amount })} from task ${taskId}`);
 
@@ -528,7 +528,7 @@ export const _removeFunds = internalMutation({
 	handler: async (ctx, { taskId, amount }) => {
 		//
 		const task = await _findOne(ctx, { taskId });
-		if (!task) throw new Error('Task not found');
+		if (!task) throw NotFound();
 
 		// create the transaction
 		await _addRefundTask(ctx, {

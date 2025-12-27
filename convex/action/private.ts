@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { QueryCtx } from '../_generated/server';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { actionSchema, newActionSchema } from '../schemas/actionSchema';
 import { authorSchema } from '../schemas/authorSchema';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
@@ -171,7 +172,7 @@ export const _findOne = internalQuery({
 	handler: async (ctx, { actionId }) => {
 		//
 		const action = await ctx.db.get(actionId);
-		if (!action) throw new Error('Action not found');
+		if (!action) throw NotFound();
 
 		return action;
 	},

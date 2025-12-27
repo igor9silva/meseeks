@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
+import { NotFound } from '../lib/errors';
 import { asBigInt } from '../lib/money';
 import { intelligenceKeys } from '../schemas/intelligenceSchema';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
@@ -187,8 +188,8 @@ export const ensureTaskOwner = async (
 	const currentUser = await getCurrentUser(ctx, {});
 	const task = await ctx.db.get(args.taskId);
 
-	if (!task) throw new Error('Task not found');
-	if (task.owner !== currentUser._id) throw new Error('Task not found'); // purposefully do not mention authorization
+	if (!task) throw NotFound();
+	if (task.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
 
 	return { currentUser, task };
 };

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
+import { NotFound } from '../lib/errors';
 import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema } from '../schemas/skillSchema';
 import { current as getCurrentUser } from '../users/public';
@@ -81,11 +82,11 @@ export const findOne = query({
 		const currentUser = await getCurrentUser(ctx, {});
 		const skill = await ctx.db.get(skillId);
 
-		if (!skill) throw new Error('Skill not found');
+		if (!skill) throw NotFound();
 
 		if (skill.owner !== currentUser._id && skill.owner !== 'isPro') {
 			// purposefully do not mention authorization
-			throw new Error('Skill not found');
+			throw NotFound();
 		}
 
 		// remove headers from isPro hard skills, as they may contain passwords
@@ -134,8 +135,8 @@ export const ensureSkillOwner = async (
 	const currentUser = await getCurrentUser(ctx, {});
 	const skill = await ctx.db.get(args.skillId);
 
-	if (!skill) throw new Error('Skill not found');
-	if (skill.owner !== currentUser._id) throw new Error('Skill not found'); // purposefully do not mention authorization
+	if (!skill) throw NotFound();
+	if (skill.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
 
 	return { currentUser, skill };
 };

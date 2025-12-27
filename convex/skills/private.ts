@@ -1,6 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from '../schemas/skillSchema';
 import { _getUserPreferece, _setUserPreference } from '../users/preferences/private';
@@ -234,9 +235,9 @@ export const _update = internalMutation({
 		//
 		const existing = await _findOne(ctx, { key: skill.key, owner: userId });
 
-		if (!existing) throw new Error('Skill not found');
-		if (existing.owner !== userId) throw new Error('Skill not found');
-		if (!('_id' in existing)) throw new Error('Skill not found'); // built-in skills do not have an _id
+		if (!existing) throw NotFound();
+		if (existing.owner !== userId) throw NotFound();
+		if (!('_id' in existing)) throw NotFound(); // built-in skills do not have an _id
 
 		ensureInputSchemaIsValid(skill.inputSchema);
 

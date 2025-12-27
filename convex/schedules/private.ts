@@ -2,6 +2,7 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { computeNextRun, isExpressionValid } from '../lib/cron';
 import { authorSchema } from '../schemas/authorSchema';
 import { scheduleExecution } from './lifecycle';
@@ -68,7 +69,7 @@ export const _updateLastRun = internalMutation({
 	handler: async (ctx, { scheduleId, lastRunAt, nextRunAt }) => {
 		//
 		const schedule = await ctx.db.get(scheduleId);
-		if (!schedule) throw new Error('Schedule not found');
+		if (!schedule) throw NotFound();
 
 		await ctx.db.patch(scheduleId, { lastRunAt });
 

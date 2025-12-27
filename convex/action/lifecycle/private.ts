@@ -4,7 +4,7 @@ import { internal } from '../../_generated/api';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../../_generated/server';
 import { internalAction, internalMutation, internalQuery } from '../../lib';
-import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget } from '../../lib/errors';
+import { isError, messageFrom, NOT_ENOUGH_BUDGET_ERROR, NotEnoughBudget, NotFound } from '../../lib/errors';
 import { asDollars } from '../../lib/money';
 import { _prepareContext, type MagicRockContext } from '../../magicRock';
 import { newActionSchema } from '../../schemas/actionSchema';
@@ -204,7 +204,7 @@ export const _resolve = internalMutation({
 		console.debug(`${actionId} resolved with ${status}`);
 
 		const action = await ctx.db.get(actionId);
-		if (!action) throw new Error('Action not found');
+		if (!action) throw NotFound();
 
 		if (action.status === 'skipped') {
 			//

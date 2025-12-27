@@ -4,6 +4,7 @@ import { internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
 import { internalMutation, internalQuery } from '../lib';
+import { NotFound } from '../lib/errors';
 import { asBigInt } from '../lib/money';
 import { env } from '../schemas/envSchema';
 import { tokenSchema } from '../schemas/topUpSchema';
@@ -163,7 +164,7 @@ export const _markAreReady = internalMutation({
 	handler: async (ctx, { userId }) => {
 		//
 		const user = await _findOne(ctx, { userId });
-		if (!user) throw new Error('User not found');
+		if (!user) throw NotFound();
 
 		await ctx.db.patch(userId, { isReady: true });
 	},
@@ -180,7 +181,7 @@ export const _adjustBalance = internalMutation({
 	handler: async (ctx, { userId, value }) => {
 		//
 		const user = await _findOne(ctx, { userId });
-		if (!user) throw new Error('User not found');
+		if (!user) throw NotFound();
 
 		console.debug('adjust account balance', userId, value.amount);
 
@@ -198,7 +199,7 @@ export const _setFounder = internalMutation({
 	handler: async (ctx, { userId, isFounder }) => {
 		//
 		const user = await _findOne(ctx, { userId });
-		if (!user) throw new Error('User not found');
+		if (!user) throw NotFound();
 
 		await ctx.db.patch(userId, { isFounder });
 	},

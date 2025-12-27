@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { api, internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { action, mutation, query } from '../lib';
+import { NotFound } from '../lib/errors';
 import { asDollars, asNumber } from '../lib/money';
 import { env } from '../schemas/envSchema';
 import { blockchainSchema, tokenSchema, topUpAmountSchema } from '../schemas/topUpSchema';
@@ -77,8 +78,8 @@ export const findOne = query({
 		const currentUser = await getCurrentUser(ctx, {});
 		const topUp = await _findOne(ctx, { topUpId });
 
-		if (!topUp) throw new Error('TopUp not found');
-		if (topUp.owner !== currentUser._id) throw new Error('TopUp not found');
+		if (!topUp) throw NotFound();
+		if (topUp.owner !== currentUser._id) throw NotFound();
 
 		return topUp;
 	},
