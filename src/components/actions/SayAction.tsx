@@ -59,8 +59,8 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 				onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
 				text={action.args[contentKey]}
 				className={cn({
-					'bg-primary text-primary-foreground': isAuthorCurrentUser,
-					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
+					'bg-primary text-primary-foreground p-3': isAuthorCurrentUser,
+					'px-0': !isAuthorCurrentUser,
 				})}
 			/>
 			<div className="absolute top-1 right-1 flex gap-1">
