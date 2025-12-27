@@ -1,6 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery } from '../lib';
+import { bigIntFromJSON } from '../lib/bigintJson';
 import { NotFound } from '../lib/errors';
 import { zodToString } from '../lib/zodToString';
 import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from '../schemas/skillSchema';
@@ -270,11 +271,10 @@ export const _enableSkill = internalMutation({
 	},
 });
 
+// accepts JSON with __bigint__ markers since CLI doesn't support BigInt literals
 export const _replaceProSkills = internalMutation({
 	args: {
-		skills: z
-			.array(skillSchema)
-			.describe('Skills array object (from DEV.ts output) to replace all existing "isPro" skills with'),
+		skills: z.array(z.unknown()).describe('Skills array to replace all existing "isPro" skills with'),
 		deleteUnspecified: z
 			.boolean()
 			.optional()
@@ -283,8 +283,15 @@ export const _replaceProSkills = internalMutation({
 				'If true, deletes existing "isPro" skills that are not in the new list. If false, only updates/inserts skills from the new list.',
 			),
 	},
-	handler: async (ctx, { skills, deleteUnspecified }) => {
+	handler: async (ctx, { skills: rawSkills, deleteUnspecified }) => {
 		//
+		// convert __bigint__ markers back to BigInt
+		const skills = rawSkills.map((skill: unknown) => {
+			//
+			const converted = bigIntFromJSON(skill);
+			return skillSchema.parse(converted);
+		});
+
 		console.info(`Replacing Pro-managed skills (deleteUnspecified: ${deleteUnspecified})`);
 
 		// Validate all skills have the correct owner

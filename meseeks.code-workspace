@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "Meseeks",
+			"path": "./",
+		},
+		{
+			"name": "Data",
+			"path": "./data",
+		},
+	],
+	"settings": {
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/.DS_Store": true,
+			"**/dist": true,
+		},
+	},
+}

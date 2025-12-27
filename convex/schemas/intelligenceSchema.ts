@@ -295,7 +295,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		description: 'Latest fast model — great cost/performance ratio.',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.2, output: 0.5 }),
-		context: buildContext(2_000_000),
+		context: buildContext(128_000), // TODO: can do up to 2M, but price doubles above 128K
 		intelligenceLevel: 5,
 	},
 	'xai/grok-4': {

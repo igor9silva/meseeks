@@ -18,6 +18,7 @@ import type * as components_private from "../components/private.js";
 import type * as components_public from "../components/public.js";
 import type * as http from "../http.js";
 import type * as lib_babel from "../lib/babel.js";
+import type * as lib_bigintJson from "../lib/bigintJson.js";
 import type * as lib_cron from "../lib/cron.js";
 import type * as lib_date from "../lib/date.js";
 import type * as lib_errors from "../lib/errors.js";
@@ -123,6 +124,7 @@ declare const fullApi: ApiFromModules<{
   "components/public": typeof components_public;
   http: typeof http;
   "lib/babel": typeof lib_babel;
+  "lib/bigintJson": typeof lib_bigintJson;
   "lib/cron": typeof lib_cron;
   "lib/date": typeof lib_date;
   "lib/errors": typeof lib_errors;
