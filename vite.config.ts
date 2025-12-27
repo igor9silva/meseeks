@@ -22,6 +22,10 @@ export default defineConfig({
 		sentryVitePlugin({
 			org: 'ispro',
 			project: 'meseeks',
+			release: {
+				name: process.env['VERCEL_GIT_COMMIT_SHA'] || 'development',
+				inject: true, // injects release info into the bundle
+			},
 		}),
 	],
 	build: {
