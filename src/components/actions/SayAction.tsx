@@ -115,10 +115,7 @@ function FullscreenMessage({
 				isMDX={true}
 				shouldRenderComponents={shouldRenderComponents}
 				text={message}
-				className={cn('text-lg leading-relaxed md:max-w-full w-full h-full rounded-none p-4', {
-					'bg-primary text-primary-foreground': isAuthorCurrentUser,
-					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
-				})}
+				className="text-lg leading-relaxed md:max-w-full w-full h-full rounded-none p-4 bg-primary text-primary-foreground"
 			/>
 		</div>
 	);
