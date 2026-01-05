@@ -240,7 +240,7 @@ export function HardSkillConfig({
 								Headers are hidden as they may contain passwords.
 							</div>
 						) : (
-							<CardContent className="pt-4">
+							<CardContent className="p-3">
 								<div className="space-y-4">
 									<div className="flex flex-col sm:flex-row gap-2">
 										<Input
@@ -326,7 +326,7 @@ export function HardSkillConfig({
 						Parameter Mappings
 					</LabelWithTooltip>
 					<Card>
-						<CardContent className="pt-4">
+						<CardContent className="p-3">
 							<div className="space-y-4">
 								<div className="flex flex-col sm:flex-row gap-2">
 									<Select
@@ -386,7 +386,7 @@ export function HardSkillConfig({
 										{paramMappings.map((param, index) => (
 											<div
 												key={index}
-												className="flex justify-between items-start p-2 rounded bg-muted/50 gap-2"
+												className="flex justify-between items-start p-3 rounded-3xl bg-muted/50 gap-2"
 											>
 												<div className="flex flex-col gap-1 min-w-0 flex-1">
 													<Badge className="self-start text-xs">{param.type}</Badge>

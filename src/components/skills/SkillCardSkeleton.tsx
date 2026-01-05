@@ -11,7 +11,7 @@ export function SkillCardSkeleton() {
 						<Skeleton className="h-5 w-[120px]" />
 						<Skeleton className="h-4 w-[200px]" />
 					</div>
-					<Skeleton className="h-8 w-8 rounded-full" />
+					<Skeleton className="h-8 w-8 rounded-3xl" />
 				</div>
 			</CardHeader>
 			<CardContent className="pb-2">

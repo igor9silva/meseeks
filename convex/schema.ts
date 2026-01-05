@@ -71,6 +71,8 @@ export default defineSchema({
 		'by_task', ['taskId'],
 	).index(
 		'by_task_status', ['taskId', 'status'],
+	).index(
+		'by_status', ['status'],
 	),
 
 	action_details: defineTable(
