@@ -205,6 +205,40 @@ export const _findPendingAuthorization = internalQuery({
 	},
 });
 
+export const _skipPendingAuthorizationByTaskAuthor = internalMutation({
+	args: {
+		taskId: zid('tasks'),
+		author: authorSchema,
+		reasonText: z.string(),
+	},
+	handler: async (ctx, { taskId, author, reasonText }) => {
+		//
+		const pendingActions = await ctx.db
+			.query('actions')
+			.withIndex('by_task_author_status', (q) =>
+				q
+					.eq('taskId', taskId) //
+					.eq('author', author)
+					.eq('status', 'pending authorization'),
+			)
+			.order('asc')
+			.collect();
+
+		return await Promise.all(
+			pendingActions.map((action) =>
+				ctx.db.patch(action._id, {
+					status: 'skipped' as const,
+					costs: [],
+					result: {
+						text: reasonText,
+						reactions: [],
+					},
+				}),
+			),
+		);
+	},
+});
+
 export const _findNext = internalQuery({
 	args: {
 		taskId: zid('tasks'),

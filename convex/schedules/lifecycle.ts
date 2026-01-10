@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
-import { _add as _addAction } from '../action/private';
+import { _runNextActionIfNeeded } from '../action/lifecycle/private';
+import { _add as _addAction, _skipPendingAuthorizationByTaskAuthor } from '../action/private';
 import { internalMutation } from '../lib';
 import { computeNextRun } from '../lib/cron';
 import { authorSchema } from '../schemas/authorSchema';
@@ -48,6 +49,12 @@ export const _executeRecurring = internalMutation({
 	},
 	handler: async (ctx, { scheduleId, taskId, owner, author, skillKey, args, depth, cronExpression, timeZone }) => {
 		//
+		await _skipPendingAuthorizationByTaskAuthor(ctx, {
+			taskId,
+			author,
+			reasonText: 'superseded by a newer scheduled run',
+		});
+
 		await _addAction(ctx, {
 			taskId,
 			owner,

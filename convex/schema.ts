@@ -72,6 +72,8 @@ export default defineSchema({
 	).index(
 		'by_task_status', ['taskId', 'status'],
 	).index(
+		'by_task_author_status', ['taskId', 'author', 'status'],
+	).index(
 		'by_status', ['status'],
 	),
 
