@@ -8,7 +8,7 @@ alwaysApply: true
 ## Package Manager & Runtime
 - **ALWAYS** use `bun` instead of npm, yarn, pnpm
 - Use `bunx` instead of `npx` 
-- For TypeScript checking: `bunx tsc --noEmit`
+- For TypeScript checking: `bun typecheck`
 
 ## Project Stack
 - **TanStack Router** (NOT Next.js)

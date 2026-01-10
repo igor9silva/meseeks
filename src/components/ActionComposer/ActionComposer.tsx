@@ -56,7 +56,7 @@ export function ActionComposer({
 		requestIteration({ taskId: task._id });
 	};
 
-	// global focus shortcut (CMD+I)
+	// global focus shortcut (⌘+I)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'i' },
@@ -68,7 +68,7 @@ export function ActionComposer({
 		},
 	});
 
-	// submit/request iteration shortcut (CMD+Enter) - only when textarea is focused
+	// submit/request iteration shortcut (⌘+Enter) - only when textarea is focused
 	useKeyboardShortcut({
 		targetRef: textareaRef,
 		combo: { withCommand: true, key: 'Enter' },
@@ -83,10 +83,10 @@ export function ActionComposer({
 		},
 	});
 
-	// stop acting shortcut (CMD+Backspace)
+	// stop acting shortcut (CTRL+C)
 	useKeyboardShortcut({
 		global: true,
-		combo: { withCommand: true, key: 'Backspace' },
+		combo: { withCtrl: true, key: 'c' },
 		skipPreventDefault: true,
 		callback: (e) => {
 			if (task.status === 'acting' && !isStopping) {
@@ -96,7 +96,7 @@ export function ActionComposer({
 		},
 	});
 
-	// intelligence selector shortcut (CMD+/)
+	// intelligence selector shortcut (⌘+/)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: '/' },

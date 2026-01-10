@@ -76,7 +76,7 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		[isOpen],
 	);
 
-	// command menu toggle shortcut (CMD+K)
+	// command menu toggle shortcut (⌘+K)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'k' },
@@ -100,7 +100,7 @@ export function CommandMenuDialog() {
 	const feedbackDialog = useFeedbackDialog();
 	const [search, setSearch] = useState(pathname + searchStr);
 
-	// new task shortcut (⌥+N)
+	// new task shortcut (⌘+J)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'j' },

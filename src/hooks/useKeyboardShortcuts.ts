@@ -5,6 +5,8 @@ type KeyCombination = {
 	key: string;
 	/** If true, Cmd key (Mac) or Ctrl key (Windows/Linux) must be pressed */
 	withCommand?: boolean;
+	/** If true, Ctrl key must be pressed (specifically ctrlKey, not metaKey) */
+	withCtrl?: boolean;
 	/** If true, Alt key must be pressed */
 	withAlt?: boolean;
 	/** If true, Shift key must be pressed */
@@ -69,12 +71,14 @@ export function useKeyboardShortcut({
 
 			// Check if the key combination matches
 			const commandKeyPressed = e.metaKey || e.ctrlKey;
+			const ctrlKeyPressed = e.ctrlKey;
 			const altKeyPressed = e.altKey;
 			const shiftKeyPressed = e.shiftKey;
 
 			if (
 				e.key === combo.key &&
 				(!combo.withCommand || commandKeyPressed) &&
+				(!combo.withCtrl || ctrlKeyPressed) &&
 				(!combo.withAlt || altKeyPressed) &&
 				(!combo.withShift || shiftKeyPressed)
 			) {

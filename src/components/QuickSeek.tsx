@@ -116,7 +116,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const showVoiceInterface = recordingStatus !== 'idle';
 
-	// Handle CMD+Enter shortcut like ActionComposer
+	// Handle ⌘+Enter shortcut like ActionComposer
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'Enter' },
@@ -127,7 +127,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		},
 	});
 
-	// global focus shortcut (CMD+I)
+	// global focus shortcut (⌘+I)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'i' },
@@ -139,7 +139,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 		},
 	});
 
-	// intelligence selector shortcut (CMD+/)
+	// intelligence selector shortcut (⌘+/)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: '/' },

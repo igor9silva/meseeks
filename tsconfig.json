@@ -1,6 +1,6 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules"],
+	"exclude": ["node_modules", "data"],
 	"compilerOptions": {
 		"types": ["vite/client", "node"],
 		"esModuleInterop": true,
