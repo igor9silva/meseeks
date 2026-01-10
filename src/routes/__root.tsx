@@ -65,12 +65,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			// Styling
 			{ rel: 'apple-touch-icon', sizes: '180x180', href: '/static/logo-dark-192.png' },
 		],
-		scripts: [
-			{
-				'src': 'https://cloud.umami.is/script.js',
-				'data-website-id': '52e8f61f-df67-4fe9-9e17-c6b979892db7',
-			},
-		],
 	}),
 	component: RootComponent,
 });
