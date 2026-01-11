@@ -21,6 +21,8 @@ import { cn } from '~/lib/utils';
 
 import { Loading } from '~/components/Loading';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
+import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+
 const PAGE_SIZE = 35;
 const NEAR_TOP_THRESHOLD = 200; // px
 
@@ -86,6 +88,12 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 		if (task.status === 'unread') markAsRead({ taskId: task._id });
 		//
 	}, [task.status, markAsRead, task._id]);
+
+	useKeyboardShortcut({
+		global: true,
+		combo: { key: ']' },
+		callback: () => onToggleList?.(),
+	});
 
 	return (
 		<div className={cn('flex flex-col h-full gap-2 p-2', debug && 'px-0', className)}>
