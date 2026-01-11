@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { asBigInt } from 'convex/lib/money';
-import { Button } from '~/components/ui/button';
+import { Button, type ButtonProps } from '~/components/ui/button';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useIncreaseBudget } from '~/hooks/useTaskMutations';
 
-export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; text?: string }) {
+export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string }) {
 	//
 	return (
 		<Link to="." search={(prev) => ({ ...prev, isBudgetDrawerOpen: true })} className="no-underline">
@@ -18,7 +18,7 @@ export function AddCustomBudgetButton(props: { variant?: 'ghost' | 'default'; te
 }
 
 export function AddBudgetButton(props: {
-	variant?: 'ghost' | 'default';
+	variant?: ButtonProps['variant'];
 	amount?: number;
 	shouldIterate?: boolean;
 	text?: string;
@@ -29,9 +29,10 @@ export function AddBudgetButton(props: {
 	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 
 	if (!taskId) throw new Error('Must be used within a task');
-	if (amount === undefined) return <AddCustomBudgetButton />;
+	if (amount === undefined) return <AddCustomBudgetButton variant={variant} text={text} />;
 
 	const handleAddBudget = () => {
+		//
 		if (isIncreasingBudget) return;
 		increaseBudget({
 			taskId,

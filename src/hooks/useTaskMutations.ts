@@ -37,6 +37,9 @@ export function useAddTask() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useSay() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -54,8 +57,9 @@ export function useSay() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'say',
-				args: { message },
+				skills: [
+					{ skillKey: 'say', args: { message } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -68,6 +72,9 @@ export function useSay() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useRequestIteration() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -81,8 +88,9 @@ export function useRequestIteration() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'requestIteration',
-				args: {},
+				skills: [
+					{ skillKey: 'requestIteration', args: {} }, //
+				],
 			});
 		},
 	});
@@ -107,8 +115,9 @@ export function useStop() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'stop',
-				args: {},
+				skills: [
+					{ skillKey: 'stop', args: {} }, //
+				],
 			});
 		},
 	});
@@ -120,6 +129,9 @@ export function useStop() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useIncreaseBudget() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -139,8 +151,9 @@ export function useIncreaseBudget() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'increaseBudget',
-				args: { amount, shouldIterate },
+				skills: [
+					{ skillKey: 'increaseBudget', args: { amount, shouldIterate } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -153,6 +166,9 @@ export function useIncreaseBudget() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useDecreaseBudget() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -170,8 +186,9 @@ export function useDecreaseBudget() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'decreaseBudget',
-				args: { amount },
+				skills: [
+					{ skillKey: 'decreaseBudget', args: { amount } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -184,6 +201,9 @@ export function useDecreaseBudget() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useResolve() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -197,8 +217,9 @@ export function useResolve() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'resolve',
-				args: {},
+				skills: [
+					{ skillKey: 'resolve', args: {} }, //
+				],
 			});
 		},
 	});
@@ -210,6 +231,9 @@ export function useResolve() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useDiscard() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -223,8 +247,9 @@ export function useDiscard() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'discard',
-				args: {},
+				skills: [
+					{ skillKey: 'discard', args: {} }, //
+				],
 			});
 		},
 	});
@@ -236,6 +261,9 @@ export function useDiscard() {
 	};
 }
 
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
 export function useReopen() {
 	//
 	const act = useMutation(api.action.public.act);
@@ -249,8 +277,9 @@ export function useReopen() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'reopen',
-				args: {},
+				skills: [
+					{ skillKey: 'reopen', args: {} }, //
+				],
 			});
 		},
 	});
@@ -335,8 +364,9 @@ export function useUpdateInstructions() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'updateInstructions',
-				args: { instructions },
+				skills: [
+					{ skillKey: 'updateInstructions', args: { instructions } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -366,8 +396,9 @@ export function useUpdateTitle() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'updateInstructions',
-				args: { title },
+				skills: [
+					{ skillKey: 'updateInstructions', args: { title } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -397,8 +428,9 @@ export function useUpdateAvailableSkills() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'updateInstructions',
-				args: { availableSkills },
+				skills: [
+					{ skillKey: 'updateInstructions', args: { availableSkills } }, //
+				],
 				shouldReopen,
 			});
 		},
@@ -434,14 +466,18 @@ export function useScheduleIteration() {
 			//
 			return await act({
 				taskId,
-				skillKey: 'schedule',
-				args: {
-					scheduleType,
-					scheduledAt,
-					cronExpression,
-					timeZone,
-					instructions,
-				},
+				skills: [
+					{
+						skillKey: 'schedule',
+						args: {
+							scheduleType,
+							scheduledAt,
+							cronExpression,
+							timeZone,
+							instructions,
+						},
+					},
+				],
 			});
 		},
 	});

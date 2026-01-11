@@ -1,59 +1,112 @@
-import { Doc } from 'convex/_generated/dataModel';
-import { useMemo, useRef } from 'react';
+import type { Doc } from 'convex/_generated/dataModel';
+import { useEffect, useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
+import { ComposerProvider, useComposer } from '~/hooks/useComposer';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
-import { useRequestIteration, useSay, useStop } from '~/hooks/useTaskMutations';
+import { useStop } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 import { cn } from '~/lib/utils';
 import { IdleState } from './IdleState';
 import { RecordingState } from './RecordingState';
 import { TranscribingState } from './TranscribingState';
+import { StripContainer } from './strips/StripContainer';
 
-export function ActionComposer({
-	task,
-	onSubmit,
-	className,
-}: {
+interface ActionComposerProps {
+	//
 	task: Doc<'tasks'>;
 	onSubmit?: (message: string) => void;
 	className?: string;
-}) {
-	const { say, isSaying } = useSay();
+}
+
+export function ActionComposer({ task, onSubmit, className }: ActionComposerProps) {
+	//
+	const { queue, message, isEmpty, enqueue, dequeue, setMessage, clearQueue, submit, isSubmitting } = useComposer();
+
 	const { stop, isStopping } = useStop();
-	const { requestIteration, isRequestingIteration } = useRequestIteration();
+
 	const {
 		textareaRef,
-		value: message,
-		isEmpty,
-		onChange: handleMessageChange,
-		setValue: setMessage,
+		value: localMessage,
+		isEmpty: isLocalEmpty,
+		onChange: handleLocalMessageChange,
+		setValue: setLocalMessage,
+		adjustHeight,
 	} = useExpandingTextarea({ singleLineHeight: 40 });
 
 	const intelligenceSelectorRef = useRef<HTMLButtonElement | null>(null);
 
-	const isComposing = !isEmpty;
-	const isBlocked = useMemo(() => task.status === 'blocked' && isEmpty, [task.status, isEmpty]);
-	const isActing = useMemo(() => task.status === 'acting' && isEmpty, [task.status, isEmpty]);
-	const canRequestIteration = useMemo(() => isEmpty && !isBlocked && !isActing, [isEmpty, isBlocked, isActing]);
+	// sync URL message to local textarea on mount and when URL changes externally
+	useEffect(() => {
+		if (message !== localMessage) {
+			setLocalMessage(message);
+		}
+	}, [message]);
 
-	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
-		onTranscriptionComplete: setMessage,
-	});
-
-	const isAnyMutationPending = isSaying || isStopping || isRequestingIteration;
-
-	const handleSubmit = () => {
+	// handle message change - update both local and URL state
+	const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		//
-		if (!message.trim()) return;
-
-		say({ message, taskId: task._id });
-		setMessage('');
-		onSubmit?.(message);
+		handleLocalMessageChange(e);
+		setMessage(e.target.value);
 	};
 
-	const handleRequestIteration = () => {
-		requestIteration({ taskId: task._id });
+	// sync local message back to URL when voice transcription completes
+	const handleTranscriptionComplete = (transcribedText: string) => {
+		//
+		setLocalMessage(transcribedText);
+		setMessage(transcribedText);
+	};
+
+	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
+		onTranscriptionComplete: handleTranscriptionComplete,
+	});
+
+	const isRecordingOrTranscribing = recordingStatus !== 'idle';
+
+	// computed states for UI
+	const isComposing = !isLocalEmpty || queue.length > 0;
+	const isBlocked = useMemo(() => task.status === 'blocked' && isLocalEmpty, [task.status, isLocalEmpty]);
+	const isTaskActing = useMemo(() => task.status === 'acting' && isLocalEmpty, [task.status, isLocalEmpty]);
+	const canRequestIteration = useMemo(
+		() => isLocalEmpty && !isBlocked && !isTaskActing && queue.length === 0,
+		[isLocalEmpty, isBlocked, isTaskActing, queue.length],
+	);
+
+	const isAnyMutationPending = isSubmitting || isStopping;
+
+	const handleAct = async () => {
+		//
+		await submit(task._id, task);
+
+		if (!isLocalEmpty) {
+			onSubmit?.(localMessage);
+		}
+	};
+
+	const handleEnqueueMessage = () => {
+		//
+		const trimmed = localMessage.trim();
+		if (!trimmed) return;
+
+		// enqueue with clearMessage option to avoid race condition
+		const didEnqueue = enqueue(
+			{
+				skillKey: 'say',
+				args: { message: trimmed },
+				source: 'input',
+			},
+			{ clearMessage: true },
+		);
+
+		// only clear local state if enqueue succeeded
+		if (didEnqueue) {
+			setLocalMessage('');
+		}
+	};
+
+	const handleStop = () => {
+		//
+		stop({ taskId: task._id });
 	};
 
 	// global focus shortcut (⌘+I)
@@ -62,23 +115,29 @@ export function ActionComposer({
 		combo: { withCommand: true, key: 'i' },
 		callback: () => {
 			textareaRef.current?.focus();
-			// Move cursor to end of text
 			const length = textareaRef.current?.value.length || 0;
 			textareaRef.current?.setSelectionRange(length, length);
 		},
 	});
 
-	// submit/request iteration shortcut (⌘+Enter) - only when textarea is focused
+	// submit/request iteration shortcut (⌘+Enter)
 	useKeyboardShortcut({
 		targetRef: textareaRef,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
 			if (recordingStatus === 'idle' && !isAnyMutationPending) {
-				if (isEmpty && !isBlocked) {
-					requestIteration({ taskId: task._id });
-				} else {
-					handleSubmit();
-				}
+				handleAct();
+			}
+		},
+	});
+
+	// enqueue message shortcut (⌥+Enter)
+	useKeyboardShortcut({
+		targetRef: textareaRef,
+		combo: { withAlt: true, key: 'Enter' },
+		callback: () => {
+			if (recordingStatus === 'idle') {
+				handleEnqueueMessage();
 			}
 		},
 	});
@@ -90,7 +149,7 @@ export function ActionComposer({
 		skipPreventDefault: true,
 		callback: (e) => {
 			if (task.status === 'acting' && !isStopping) {
-				stop({ taskId: task._id });
+				handleStop();
 				e.preventDefault();
 			}
 		},
@@ -109,33 +168,48 @@ export function ActionComposer({
 				className={cn(
 					'bg-sidebar rounded-3xl border p-2 shadow-xs flex flex-col',
 					className,
-					recordingStatus !== 'idle' && 'flex-row',
+					isRecordingOrTranscribing && 'flex-row',
 				)}
 			>
-				{'recording' === recordingStatus && (
+				{/* strips - only visible when idle */}
+				{!isRecordingOrTranscribing && (
+					<div className="border-b border-border/50 -mx-2 -mt-2 rounded-t-3xl overflow-hidden">
+						<StripContainer
+							task={task}
+							queue={queue}
+							onEnqueue={enqueue}
+							onDequeue={dequeue}
+							onClearQueue={clearQueue}
+						/>
+					</div>
+				)}
+
+				{/* recording state */}
+				{recordingStatus === 'recording' && (
 					<RecordingState stopRecording={stopRecording} cancelRecording={cancelRecording} />
 				)}
 
-				{'transcribing' === recordingStatus && ( //
-					<TranscribingState cancelRecording={cancelRecording} />
-				)}
+				{/* transcribing state */}
+				{recordingStatus === 'transcribing' && <TranscribingState cancelRecording={cancelRecording} />}
 
-				{'idle' === recordingStatus && (
+				{/* idle state - input and action bar */}
+				{!isRecordingOrTranscribing && (
 					<IdleState
 						task={task}
 						textareaRef={textareaRef}
-						message={message}
+						message={localMessage}
 						handleMessageChange={handleMessageChange}
-						isEmpty={isEmpty}
+						isEmpty={isLocalEmpty}
+						hasQueuedSkills={queue.length > 0}
 						startRecording={startRecording}
-						handleSubmit={handleSubmit}
-						handleRequestIteration={handleRequestIteration}
-						isActing={isActing}
+						handleAct={handleAct}
+						handleEnqueue={handleEnqueueMessage}
+						isActing={isTaskActing}
 						isBlocked={isBlocked}
 						isComposing={isComposing}
 						canRequestIteration={canRequestIteration}
 						intelligenceSelectorRef={intelligenceSelectorRef}
-						handleStop={() => stop({ taskId: task._id })}
+						handleStop={handleStop}
 					/>
 				)}
 			</div>

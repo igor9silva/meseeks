@@ -14,7 +14,6 @@ import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskAvailableSkills } from './TaskAvailableSkills';
-import { TaskBudget } from './TaskBudget';
 
 export default function TaskDetail({
 	className, //
@@ -85,8 +84,7 @@ export default function TaskDetail({
 						</div>
 					</div>
 					<div className="flex items-center gap-0.5 p-2">
-						<TimeAgo date={task._creationTime} suffix="old, " className="text-sm text-muted-foreground" />
-						<TaskBudget task={task} className="text-sm" />
+						<TimeAgo date={task._creationTime} suffix="old" className="text-sm text-muted-foreground" />
 					</div>
 					<TaskAvailableSkills
 						availableSkills={task.availableSkills ?? []}

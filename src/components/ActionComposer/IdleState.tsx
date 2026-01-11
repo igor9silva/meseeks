@@ -1,6 +1,7 @@
-import { Doc } from 'convex/_generated/dataModel';
+import type { Doc } from 'convex/_generated/dataModel';
 import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
-import { ArrowUp, Mic, Sparkles, Square } from 'lucide-react';
+import { ArrowUp, Hourglass, Mic, Sparkles, Square } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
@@ -15,9 +16,10 @@ interface IdleStateProps {
 	message: string;
 	handleMessageChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	isEmpty: boolean;
+	hasQueuedSkills: boolean;
 	startRecording: () => void;
-	handleSubmit: () => void;
-	handleRequestIteration: () => void;
+	handleAct: () => void;
+	handleEnqueue: () => void;
 	isBlocked: boolean;
 	isActing: boolean;
 	isComposing: boolean;
@@ -32,9 +34,10 @@ export function IdleState({
 	message,
 	handleMessageChange,
 	isEmpty,
+	hasQueuedSkills,
 	startRecording,
-	handleSubmit,
-	handleRequestIteration,
+	handleAct,
+	handleEnqueue,
 	isBlocked,
 	isActing,
 	isComposing,
@@ -51,7 +54,7 @@ export function IdleState({
 
 	return (
 		<>
-			<div className="flex flex-grow items-center justify-center px-3">
+			<div className="flex flex-grow items-center justify-center px-2">
 				<textarea
 					ref={textareaRef}
 					value={message}
@@ -61,7 +64,7 @@ export function IdleState({
 				/>
 			</div>
 
-			<div className="flex items-center justify-between gap-2 px-1 pt-2">
+			<div className="flex items-center justify-between gap-2 pt-2">
 				<div className="flex items-center gap-2">
 					<IntelligenceSelector
 						value={task.preferredIntelligence}
@@ -73,8 +76,9 @@ export function IdleState({
 
 				<div className="flex items-center gap-2">
 					{/* Keyboard shortcut indicators */}
-					{isActing && <KeyboardShortcutIndicator modifier="^" keySymbol="C" text="to stop" />}
+					{isActing && <KeyboardShortcutIndicator modifier="^" keySymbol="C" text="to interrupt" />}
 					{isBlocked && <KeyboardShortcutIndicator modifier="⌥" keySymbol="⏎" text="to authorize" />}
+					{!isEmpty && <KeyboardShortcutIndicator modifier="⌥" keySymbol="⏎" text="to enqueue" />}
 					{isComposing && <KeyboardShortcutIndicator modifier="⌘" keySymbol="⏎" text="to act" />}
 					{canRequestIteration && <KeyboardShortcutIndicator modifier="⌘" keySymbol="⏎" text="to iterate" />}
 
@@ -85,28 +89,87 @@ export function IdleState({
 						tooltip="Transcribe voice"
 						variant="secondary"
 					/>
-					{canRequestIteration ? (
-						<ActionButton
-							icon={<Sparkles className="size-5" />}
-							onClick={handleRequestIteration}
-							tooltip="Request AI iteration"
-						/>
-					) : isActing ? (
-						<ActionButton
-							icon={<Square className="size-5" />} //
-							onClick={handleStop}
-							tooltip="Stop"
-						/>
-					) : (
-						<ActionButton
-							icon={<ArrowUp className="size-5" />}
-							onClick={handleSubmit}
-							disabled={isEmpty}
-							tooltip="Act"
-						/>
-					)}
+					<PrimaryActionButton
+						canRequestIteration={canRequestIteration}
+						isActing={isActing}
+						isEmpty={isEmpty}
+						hasQueuedSkills={hasQueuedSkills}
+						handleAct={handleAct}
+						handleStop={handleStop}
+						handleEnqueue={handleEnqueue}
+					/>
 				</div>
 			</div>
 		</>
+	);
+}
+
+function PrimaryActionButton(props: {
+	canRequestIteration: boolean;
+	isActing: boolean;
+	isEmpty: boolean;
+	hasQueuedSkills: boolean;
+	handleAct: () => void;
+	handleStop: () => void;
+	handleEnqueue: () => void;
+}) {
+	//
+	const {
+		canRequestIteration, //
+		isActing,
+		isEmpty,
+		hasQueuedSkills,
+		handleAct,
+		handleStop,
+		handleEnqueue,
+	} = props;
+
+	const [isOptionHeld, setIsOptionHeld] = useState(false);
+
+	useEffect(() => {
+		//
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.altKey) setIsOptionHeld(true);
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			if (!e.altKey) setIsOptionHeld(false);
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+		window.addEventListener('keyup', handleKeyUp);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+			window.removeEventListener('keyup', handleKeyUp);
+		};
+	}, []);
+
+	if (canRequestIteration) {
+		return <ActionButton icon={<Sparkles className="size-5" />} onClick={handleAct} tooltip="Seek (⌘+⏎)" />;
+	}
+
+	if (isActing) {
+		return <ActionButton icon={<Square className="size-5" />} onClick={handleStop} tooltip="Interrupt (CTRL+C)" />;
+	}
+
+	// enqueue
+	if (isOptionHeld && !isEmpty) {
+		return (
+			<ActionButton
+				icon={<Hourglass className="size-5" />}
+				onClick={handleEnqueue}
+				disabled={isEmpty}
+				tooltip="Enqueue (⌥+⏎)"
+			/>
+		);
+	}
+
+	return (
+		<ActionButton
+			icon={<ArrowUp className="size-5" />}
+			onClick={handleAct}
+			disabled={isEmpty && !hasQueuedSkills}
+			tooltip="Act (⌘+⏎)"
+		/>
 	);
 }

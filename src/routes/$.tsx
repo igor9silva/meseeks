@@ -10,6 +10,7 @@ const searchSchema = z.object({
 	q: z.string().optional(),
 	isBudgetDrawerOpen: z.boolean().optional(),
 	debug: z.boolean().optional(),
+	c: z.string().optional(), // compressed composer state
 });
 
 export const Route = createFileRoute('/$')({

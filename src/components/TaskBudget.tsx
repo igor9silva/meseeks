@@ -29,6 +29,7 @@ export function TaskBudget({
 						{task.isActive ? (
 							<TriggerActive
 								available={available}
+								total={total}
 								percentSpent={percentSpent}
 								precision={precision}
 								showColors={showColors}
@@ -50,9 +51,15 @@ export function TaskBudget({
 	);
 }
 
-function TriggerActive(props: { available: bigint; percentSpent: number; precision: number; showColors: boolean }) {
+function TriggerActive(props: {
+	available: bigint;
+	total: bigint;
+	percentSpent: number;
+	precision: number;
+	showColors: boolean;
+}) {
 	//
-	const { available, percentSpent, showColors, precision } = props;
+	const { available, total, percentSpent, showColors, precision } = props;
 
 	const color = useMemo(() => {
 		//
@@ -72,15 +79,24 @@ function TriggerActive(props: { available: bigint; percentSpent: number; precisi
 
 	return (
 		<div className="flex flex-col">
-			<div className="font-medium" style={{ color }}>
-				${asDollars({ bigInt: available, precision })} remaining
+			<div className="flex items-center" style={{ color }}>
+				<span className="text-[0.6rem]">⚡</span>
+				<div className="flex items-baseline">
+					<span className="font-medium">{asDollars({ bigInt: available, precision })}</span>
+					<span className="text-xs opacity-50">/{asDollars({ bigInt: total, precision })}</span>
+				</div>
 			</div>
 		</div>
 	);
 }
 
 function TriggerClosed({ spent, precision }: { spent: bigint; precision: number }) {
-	return <div className="text-muted-foreground font-medium">${asDollars({ bigInt: spent, precision })} spent</div>;
+	return (
+		<div className="text-muted-foreground font-medium flex items-center">
+			<span className="text-[0.6rem]">⚡</span>
+			{asDollars({ bigInt: spent, precision })}
+		</div>
+	);
 }
 
 function TooltipActive(props: {

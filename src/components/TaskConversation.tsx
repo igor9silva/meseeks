@@ -1,14 +1,13 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { api } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/lib/money';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
 import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
-import { AddCustomBudgetButton } from '~/components/AddBudgetButton';
+import { AddCustomBudgetButton, AddBudgetButton } from '~/components/AddBudgetButton';
 import { DebugAction } from '~/components/DebugAction';
 import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
 import { Button } from '~/components/ui/button';
@@ -16,7 +15,8 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { LoadingButton } from '~/components/ui/loading-button';
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { useDiscard, useIncreaseBudget, useResolve } from '~/hooks/useTaskMutations';
+import { ComposerProvider, useComposer } from '~/hooks/useComposer';
+import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 
 import { Loading } from '~/components/Loading';
@@ -35,9 +35,11 @@ interface TaskConversationProps {
 export function TaskConversation(props: TaskConversationProps) {
 	//
 	return (
-		<Suspense fallback={<Loading />}>
-			<TaskConversationContent {...props} />
-		</Suspense>
+		<ComposerProvider>
+			<Suspense fallback={<Loading />}>
+				<TaskConversationContent {...props} />
+			</Suspense>
+		</ComposerProvider>
 	);
 }
 
@@ -46,11 +48,11 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const navigate = useNavigate();
 
 	const { task } = useCurrentTask();
+	const { enqueue } = useComposer();
 
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
 	const { discard, isDiscarding } = useDiscard();
 	const { resolve, isResolving } = useResolve();
-	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
 
 	const user = useCurrentUser();
@@ -68,15 +70,18 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 	const reversedActions = useMemo(() => [...actions].reverse(), [actions]);
 	const initialRenderDate = useMemo(() => new Date(), []);
 
-	const handleReopenTask = (amount: number) => {
-		if (isIncreasingBudget) return;
-		increaseBudget({ taskId: task._id, amount: asBigInt({ dollars: amount }) });
+	const handleEnqueueBudget = (dollars: number) => {
+		//
+		enqueue({
+			skillKey: 'increaseBudget',
+			args: { dollars },
+			source: 'budget-strip',
+		});
 	};
 
 	const handleBudgetConfirm = () => {
 		//
-		if (isIncreasingBudget) return;
-		increaseBudget({ taskId: task._id, amount: asBigInt({ dollars: selectedBudget }) });
+		handleEnqueueBudget(selectedBudget);
 		navigate({ to: '.', search: (prev) => ({ ...prev, isBudgetDrawerOpen: undefined }) });
 	};
 
@@ -149,38 +154,9 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 						</>
 					) : (
 						<>
-							<LoadingButton
-								size="sm"
-								onClick={() => handleReopenTask(0.5)}
-								loading={isIncreasingBudget}
-								loadingText="Reopening..."
-								icon={<RotateCcw className="mr-2 h-4 w-4" />}
-								className="flex items-center"
-							>
-								Reopen with $0.50
-							</LoadingButton>
-							<LoadingButton
-								variant="outline"
-								size="sm"
-								onClick={() => handleReopenTask(2)}
-								loading={isIncreasingBudget}
-								loadingText="Reopening..."
-								icon={<RotateCcw className="mr-2 h-4 w-4" />}
-								className="flex items-center"
-							>
-								Reopen with $2.00
-							</LoadingButton>
-							<LoadingButton
-								variant="outline"
-								size="sm"
-								onClick={() => handleReopenTask(5)}
-								loading={isIncreasingBudget}
-								loadingText="Reopening..."
-								icon={<RotateCcw className="mr-2 h-4 w-4" />}
-								className="flex items-center"
-							>
-								Reopen with $5.00
-							</LoadingButton>
+							<AddBudgetButton amount={0.5} text="Reopen with $0.50" />
+							<AddBudgetButton amount={2} variant="outline" text="Reopen with $2.00" />
+							<AddBudgetButton amount={5} variant="outline" text="Reopen with $5.00" />
 						</>
 					)}
 				</div>

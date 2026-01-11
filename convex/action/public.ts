@@ -3,24 +3,29 @@ import { z } from 'zod';
 import { mutation, query } from '../lib';
 import { paginationOptionsSchema } from '../schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from '../tasks/public';
-import { _add, _authorize, _findAllPaginated, _findAllRunning, _findOne } from './private';
+import { _addMany, _authorize, _findAllPaginated, _findAllRunning, _findOne } from './private';
 
 export const act = mutation({
 	args: {
 		taskId: zid('tasks'),
-		skillKey: z.string(),
-		args: z.record(z.any()),
-		shouldReopen: z.boolean().optional().default(false),
+		skills: z
+			.array(
+				z.object({
+					skillKey: z.string(),
+					args: z.record(z.any()),
+				}),
+			)
+			.min(1),
+		shouldReopen: z.boolean().optional().default(true),
 	},
-	handler: async (ctx, { taskId, skillKey, args, shouldReopen }) => {
+	handler: async (ctx, { taskId, skills, shouldReopen }) => {
 		//
-		console.debug(`use skill on task '${taskId}'`);
+		console.debug(`using ${skills.map((s) => s.skillKey).join(', ')} on task '${taskId}'`);
 
 		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
 
-		return await _add(ctx, {
-			skillKey,
-			args,
+		return await _addMany(ctx, {
+			skills,
 			taskId,
 			depth: 0,
 			author: currentUser._id,
