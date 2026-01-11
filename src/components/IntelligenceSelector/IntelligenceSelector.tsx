@@ -74,7 +74,7 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 						aria-expanded={open}
 						disabled={disabled}
 						className={cn(
-							'w-full justify-between rounded-xl px-3 py-2 text-sm',
+							'w-full justify-between rounded-3xl px-3 py-2 text-sm',
 							'flex h-9 items-center shadow-sm ring-offset-background',
 							'border border-input bg-transparent focus:outline-none',
 							'focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50',

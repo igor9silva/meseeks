@@ -19,7 +19,7 @@ export function IntelligenceRating({ level, showNumeric = true, className }: Int
 					<div
 						key={dotLevel}
 						className={cn(
-							'w-2 h-2 rounded-full transition-colors',
+							'w-2 h-2 rounded-3xl transition-colors',
 							isActive ? 'bg-primary' : 'bg-muted-foreground/20',
 						)}
 					/>

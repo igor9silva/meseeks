@@ -33,7 +33,7 @@ export function IntelligenceOption({
 			onMouseLeave={() => onHover(null)}
 			className={cn('cursor-pointer', selected === intelligence.key && 'bg-accent/75')}
 		>
-			<div className="flex flex-col w-full gap-1">
+			<div className="flex flex-col w-full">
 				<div className="flex w-full justify-between items-center">
 					<span className={cn(isRecommended && 'font-medium')}>{intelligence.name}</span>
 					<span className="text-xs text-muted-foreground flex-shrink-0">by {intelligence.provider}</span>

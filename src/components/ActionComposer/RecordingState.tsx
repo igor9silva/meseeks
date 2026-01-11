@@ -12,11 +12,11 @@ export function RecordingState({
 	//
 	return (
 		<>
-			<div className="flex flex-grow items-center justify-center px-3">
+			<div className="flex flex-grow items-center justify-center px-2">
 				<TextShimmer text="Recording voice..." size="lg" />
 			</div>
 
-			<div className="flex items-center justify-between gap-2 px-1 pt-2">
+			<div className="flex items-center justify-between gap-2 pt-2">
 				<div className="flex items-center gap-2">{/* Empty div to maintain layout consistency */}</div>
 
 				<div className="flex items-center gap-2">
