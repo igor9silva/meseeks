@@ -45,7 +45,7 @@ export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-4.1-fast-non-reas
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
 	'xai/grok-4.1-fast-non-reasoning': 5.0,
-	'cerebras/zai-glm-4.6': 50.0,
+	'cerebras/zai-glm-4.7': 50.0,
 	'anthropic/claude-4.5-sonnet': 200.0,
 	'anthropic/claude-4.5-opus': Infinity,
 } as const;
@@ -100,6 +100,7 @@ export const intelligenceKeys = z.enum([
 
 	// Cerebras
 	'cerebras/qwen3-235b',
+	'cerebras/zai-glm-4.7',
 	'cerebras/zai-glm-4.6',
 
 	// DeepInfra
@@ -391,10 +392,18 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		context: buildContext(128_000),
 		intelligenceLevel: 8,
 	},
+	'cerebras/zai-glm-4.7': {
+		key: 'cerebras/zai-glm-4.7',
+		name: 'GLM 4.7',
+		description: 'Faaaaaast',
+		provider: 'Cerebras',
+		pricing: buildPricing({ input: 2.25, output: 2.75 }),
+		context: buildContext(128_000),
+		intelligenceLevel: 7,
+	},
 	'cerebras/zai-glm-4.6': {
 		key: 'cerebras/zai-glm-4.6',
 		name: 'GLM 4.6',
-		description: 'Faaaaaast',
 		provider: 'Cerebras',
 		pricing: buildPricing({ input: 2.25, output: 2.75 }),
 		context: buildContext(128_000),
