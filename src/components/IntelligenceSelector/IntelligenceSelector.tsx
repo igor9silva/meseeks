@@ -2,12 +2,13 @@ import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'co
 import { Brain, ChevronsUpDown } from 'lucide-react';
 import { forwardRef, Suspense, useCallback, useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
+import { Command } from '~/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useIntelligences } from '~/hooks/query/useIntelligences';
 import { cn } from '~/lib/utils';
+import { IntelligenceDetailsPanel } from './IntelligenceDetailsPanel';
 import { IntelligenceList, IntelligenceSelectorProps } from './IntelligenceList';
-import { IntelligenceDetailsPanel } from '~/components/IntelligenceSelector';
 
 export const IntelligenceSelector = forwardRef<HTMLButtonElement, IntelligenceSelectorProps>(
 	({ value, onChange, className, disabled = false }, ref) => {
@@ -34,37 +35,15 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 		const { intelligences } = useIntelligences();
 
 		const [open, setOpen] = useState(false);
-		const [commandValue, setCommandValue] = useState('');
 		const [hovered, setHovered] = useState<IntelligenceKey | null>(null);
-		const [keyboardFocused, setKeyboardFocused] = useState<IntelligenceKey | null>(null);
 		const [selected, setSelected] = useState<IntelligenceKey>(value ?? DEFAULT_INTELLIGENCE);
 
 		useEffect(() => {
 			setSelected(value ?? DEFAULT_INTELLIGENCE);
 		}, [value]);
 
-		// When the popover opens, reset the keyboard focus to show selected model details
-		useEffect(() => {
-			if (open) {
-				setKeyboardFocused(null);
-				setCommandValue('');
-			}
-		}, [open]);
-
-		// Update keyboard focused model when command value changes (keyboard navigation)
-		useEffect(() => {
-			if (commandValue && commandValue !== selected) {
-				const parsed = intelligenceKeys.safeParse(commandValue);
-				setKeyboardFocused(parsed.success ? parsed.data : null);
-			}
-		}, [commandValue, selected]);
-
 		const selectedOption = Object.values(intelligences).find(
 			(intelligence) => intelligence.key === selected, //
-		);
-
-		const displayedIntelligence = Object.values(intelligences).find(
-			(intelligence) => intelligence.key === (keyboardFocused || hovered || selected),
 		);
 
 		const handleSelect = useCallback(
@@ -118,22 +97,22 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 					</Button>
 				</PopoverTrigger>
 				<PopoverContent
-					className="p-0 w-[90vw] md:w-[700px] md:mx-4 overflow-visible"
+					className="p-0 w-[90vw] md:w-[700px] md:mx-4"
 					align="start"
 					sideOffset={4}
 					avoidCollisions={true}
 				>
-					<div className="flex h-[400px] max-h-[70vh] md:h-[400px] overflow-hidden">
-						<IntelligenceList
-							options={Object.values(intelligences)}
-							selected={selected}
-							commandValue={commandValue}
-							onCommandValueChange={setCommandValue}
-							onSelect={handleSelect}
-							onHover={handleHover}
-						/>
-						<IntelligenceDetailsPanel intelligence={displayedIntelligence} />
-					</div>
+					<Command>
+						<div className="flex h-[400px] max-h-[70vh] md:h-[400px]">
+							<IntelligenceList
+								options={Object.values(intelligences)}
+								selected={selected}
+								onSelect={handleSelect}
+								onHover={handleHover}
+							/>
+							<IntelligenceDetailsPanel hovered={hovered} selected={selected} />
+						</div>
+					</Command>
 				</PopoverContent>
 			</Popover>
 		);

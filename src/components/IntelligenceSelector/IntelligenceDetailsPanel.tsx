@@ -1,14 +1,22 @@
+import { useCommandState } from 'cmdk';
+import { INTELLIGENCES, intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
 import { Brain, FileText } from 'lucide-react';
-import { IntelligenceRating } from './IntelligenceRating';
-import { type Intelligence } from 'convex/schemas/intelligenceSchema';
 import { formatPricing, formatWordCount } from '~/lib/intelligence-utils';
+import { IntelligenceRating } from './IntelligenceRating';
 
 interface IntelligenceDetailsPanelProps {
-	intelligence: Intelligence | undefined;
+	hovered: IntelligenceKey | null;
+	selected: IntelligenceKey;
 }
 
-export function IntelligenceDetailsPanel({ intelligence }: IntelligenceDetailsPanelProps) {
+export function IntelligenceDetailsPanel({ hovered, selected }: IntelligenceDetailsPanelProps) {
 	//
+	const focusedValue = useCommandState((state) => state.value);
+	const parsed = intelligenceKeys.safeParse(focusedValue);
+	const focused = parsed.success ? parsed.data : null;
+
+	const intelligence = INTELLIGENCES[focused || hovered || selected];
+
 	if (!intelligence) {
 		return (
 			<div className="w-72 hidden md:flex flex-col bg-transparent">
