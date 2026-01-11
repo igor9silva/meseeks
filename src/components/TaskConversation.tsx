@@ -91,6 +91,7 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 
 	useKeyboardShortcut({
 		global: true,
+		ignoreWhenTyping: true,
 		combo: { key: ']' },
 		callback: () => onToggleList?.(),
 	});

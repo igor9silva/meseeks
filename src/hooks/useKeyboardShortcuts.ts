@@ -13,6 +13,18 @@ type KeyCombination = {
 	withShift?: boolean;
 };
 
+function isEditableElement(element: Element | null): boolean {
+	//
+	if (!element) return false;
+
+	const tagName = element.tagName.toLowerCase();
+
+	if (tagName === 'input' || tagName === 'textarea') return true;
+	if (element.getAttribute('contenteditable') === 'true') return true;
+
+	return false;
+}
+
 interface UseKeyboardShortcutProps {
 	//
 	/** Key combination that triggers the shortcut */
@@ -25,6 +37,8 @@ interface UseKeyboardShortcutProps {
 	global?: boolean;
 	/** If true, the default event behavior will not be prevented */
 	skipPreventDefault?: boolean;
+	/** If true, shortcut will be ignored when focus is on an editable element (input, textarea, contenteditable) */
+	ignoreWhenTyping?: boolean;
 }
 
 /**
@@ -53,6 +67,7 @@ export function useKeyboardShortcut({
 	targetRef,
 	global = false,
 	skipPreventDefault = false,
+	ignoreWhenTyping = false,
 }: UseKeyboardShortcutProps) {
 	//
 	// Enforce that non-global shortcuts must have a targetRef
@@ -68,6 +83,9 @@ export function useKeyboardShortcut({
 				const activeElement = document.activeElement;
 				if (activeElement !== targetRef.current) return;
 			}
+
+			// Ignore shortcut if user is typing in an editable element
+			if (ignoreWhenTyping && isEditableElement(document.activeElement)) return;
 
 			// Check if the key combination matches
 			const commandKeyPressed = e.metaKey || e.ctrlKey;
@@ -86,7 +104,7 @@ export function useKeyboardShortcut({
 				callback(e);
 			}
 		},
-		[combo, callback, targetRef, global, skipPreventDefault],
+		[combo, callback, targetRef, global, skipPreventDefault, ignoreWhenTyping],
 	);
 
 	// Register keyboard shortcut
