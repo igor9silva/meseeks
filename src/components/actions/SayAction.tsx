@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { Bug, Expand, Minimize2 } from 'lucide-react';
+import { AlignJustify, Bug, Expand, Minimize2, TextQuote } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
 
@@ -95,6 +95,8 @@ function FullscreenMessage({
 	shouldRenderComponents: boolean;
 }) {
 	//
+	const [isReaderMode, setIsReaderMode] = useState(false);
+
 	// ESC key to close fullscreen
 	useKeyboardShortcut({
 		combo: { key: 'Escape' },
@@ -102,21 +104,38 @@ function FullscreenMessage({
 		global: true,
 	});
 
+	const backgroundClass = isAuthorCurrentUser
+		? 'bg-primary text-primary-foreground'
+		: 'bg-background text-foreground';
+
 	return (
-		<div className="fixed inset-0 z-50">
-			{/* Close button - floating in top right */}
-			<div className="absolute top-4 right-4 flex gap-2 z-10">
+		<div className={cn('fixed inset-0 z-50 overflow-auto', backgroundClass)}>
+			{/* floating controls */}
+			<div className="fixed top-4 right-4 flex gap-2 z-10">
+				<ReaderModeButton
+					isReaderMode={isReaderMode}
+					onClick={() => setIsReaderMode(!isReaderMode)}
+					className="opacity-70 hover:opacity-100 transition-opacity"
+				/>
 				<CopyButton textToCopy={message} className="opacity-70 hover:opacity-100 transition-opacity" />
 				<DebugButton action={action} className="opacity-70 hover:opacity-100 transition-opacity" />
 				<MinimizeButton onClick={onClose} className="opacity-70 hover:opacity-100 transition-opacity" />
 			</div>
 
-			<MessageContent
-				isMDX={true}
-				shouldRenderComponents={shouldRenderComponents}
-				text={message}
-				className="text-lg leading-relaxed md:max-w-full w-full h-full rounded-none p-4 bg-primary text-primary-foreground"
-			/>
+			{/* content wrapper that controls width */}
+			<div
+				className={cn(
+					'min-h-full p-4 mx-auto transition-[max-width] duration-300 ease-out',
+					isReaderMode ? 'max-w-prose' : 'max-w-full',
+				)}
+			>
+				<MessageContent
+					isMDX={true}
+					shouldRenderComponents={shouldRenderComponents}
+					text={message}
+					className="text-lg leading-relaxed rounded-none p-0 max-w-none md:max-w-none"
+				/>
+			</div>
 		</div>
 	);
 }
@@ -180,6 +199,33 @@ function DebugButton({ action, className }: { action: ActionComponentProps['acti
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="px-2 py-1 text-xs">Inspect in dev mode</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function ReaderModeButton({
+	isReaderMode,
+	onClick,
+	className,
+}: {
+	isReaderMode: boolean;
+	onClick: () => void;
+	className?: string;
+}) {
+	//
+	const Icon = isReaderMode ? AlignJustify : TextQuote;
+	const tooltip = isReaderMode ? 'Full width' : 'Reader mode';
+
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" onClick={onClick} className={cn('h-6 w-6 border', className)}>
+						<Icon className="h-4 w-4" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">{tooltip}</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);

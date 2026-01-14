@@ -22,7 +22,10 @@ export const transcribe = action({
 		const formData = new FormData();
 		formData.append('file', file);
 		formData.append('model', 'whisper-large-v3');
-		formData.append('prompt', "You're transcribing audio for a companion called Meseeks.");
+		formData.append(
+			'prompt',
+			"You're transcribing audio for a companion called Meseeks. Please format the output transcription as a structured text, with paragraphs and line breaks, punctuation, etc. Fix misspellings. No title and shit, just text. Make sure to NOT lose any information. It's better to have them unstructured then miss something that was on the original audio. NEVER add extra information into the text, ever. Keep the original language even if the audio mixes languages.",
+		);
 		formData.append('response_format', 'json');
 
 		const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
