@@ -35,27 +35,42 @@ interface TaskConversationProps {
 export function TaskConversation(props: TaskConversationProps) {
 	//
 	return (
-		<ComposerProvider>
-			<Suspense fallback={<Loading />}>
-				<TaskConversationContent {...props} />
-			</Suspense>
-		</ComposerProvider>
+		<Suspense fallback={<Loading />}>
+			<TaskConversationContent {...props} />
+		</Suspense>
 	);
 }
 
 function TaskConversationContent({ className, onToggleList, isTaskListVisible = true }: TaskConversationProps) {
 	//
-	const navigate = useNavigate();
-
 	const { task } = useCurrentTask();
-	const { enqueue } = useComposer();
 
+	return (
+		<ComposerProvider taskId={task._id}>
+			<TaskConversationInner
+				task={task}
+				className={className}
+				onToggleList={onToggleList}
+				isTaskListVisible={isTaskListVisible}
+			/>
+		</ComposerProvider>
+	);
+}
+
+function TaskConversationInner({
+	task,
+	className,
+	onToggleList,
+	isTaskListVisible = true,
+}: TaskConversationProps & { task: Doc<'tasks'> }) {
+	//
+	const navigate = useNavigate();
+	const user = useCurrentUser();
+	const { enqueue } = useComposer();
 	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
 	const { discard, isDiscarding } = useDiscard();
 	const { resolve, isResolving } = useResolve();
 	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
-
-	const user = useCurrentUser();
 
 	const {
 		results: actions,

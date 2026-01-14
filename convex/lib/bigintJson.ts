@@ -21,8 +21,8 @@ export function bigIntFromJSON(value: unknown): unknown {
 		const obj = value as Record<string, unknown>;
 
 		// check for BigInt marker
-		if ('__bigint__' in obj && typeof obj.__bigint__ === 'string') {
-			return BigInt(obj.__bigint__);
+		if ('__bigint__' in obj && typeof obj['__bigint__'] === 'string') {
+			return BigInt(obj['__bigint__']);
 		}
 
 		// recursively process object properties

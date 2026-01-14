@@ -1,13 +1,11 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { EnqueuedSkill, SkillToEnqueue } from '~/components/ActionComposer/types';
-import type { ComposerURLState } from '~/lib/composerUrl';
+import { type ComposerDraft, clearDraft, loadDraft, saveDraft } from '~/lib/composerDrafts';
 import { useAct } from './useAct';
-import { useComposerUrl } from './useComposerUrl';
 
-// context value type
 type ComposerContextValue = {
 	// state
 	queue: EnqueuedSkill[];
@@ -22,7 +20,7 @@ type ComposerContextValue = {
 	clearQueue: () => void;
 
 	// actions
-	submit: (taskId: Id<'tasks'>, task: Doc<'tasks'>) => Promise<void>;
+	submit: (task: Doc<'tasks'>) => Promise<void>;
 	isSubmitting: boolean;
 };
 
@@ -40,155 +38,118 @@ export function useComposer() {
 }
 
 const MAX_QUEUE_SIZE = 16;
-const MESSAGE_SYNC_DELAY = 500; // ms - debounce URL updates for message
 const BUDGET_SKILL_KEYS = ['increaseBudget', 'decreaseBudget'];
 
-export function ComposerProvider({ children }: { children: React.ReactNode }) {
+type QueueItem = { skillKey: string; args: Record<string, unknown> };
+
+type ComposerProviderProps = {
+	taskId: Id<'tasks'>;
+	children: React.ReactNode;
+};
+
+export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	//
-	const { state, updateState, clearState } = useComposerUrl();
 	const { act, isActing } = useAct();
 
-	// keep message in local state for performance, sync to URL with debounce
-	const [localMessage, setLocalMessage] = useState(state.m);
-	const messageSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	// load initial draft synchronously to avoid race conditions
+	const initialDraft = useRef<ComposerDraft | null>(null);
+	if (initialDraft.current === null) {
+		initialDraft.current = loadDraft(taskId) ?? { queue: [], message: '' };
+	}
 
-	// stable ID counter for queue items
+	const [queueItems, setQueueItems] = useState<QueueItem[]>(initialDraft.current.queue);
+	const [message, setMessageState] = useState(initialDraft.current.message);
 	const idCounterRef = useRef(0);
-	const queueIdsRef = useRef<Map<number, string>>(new Map());
 
-	// convert URL state to EnqueuedSkill format with stable IDs
+	// reload draft when taskId changes
+	useEffect(() => {
+		//
+		const draft = loadDraft(taskId);
+		setQueueItems(draft?.queue ?? []);
+		setMessageState(draft?.message ?? '');
+		idCounterRef.current = 0;
+	}, [taskId]);
+
+	// save draft whenever state changes (skip first render via taskId dep)
+	const isFirstRender = useRef(true);
+	useEffect(() => {
+		//
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+			return;
+		}
+		saveDraft(taskId, { queue: queueItems, message });
+	}, [taskId, queueItems, message]);
+
+	// convert to EnqueuedSkill format with stable IDs
 	const queue = useMemo(() => {
 		//
-		// ensure we have stable IDs for each index
-		const newIds = new Map<number, string>();
-
-		return state.q.map((item, index): EnqueuedSkill => {
-			// reuse existing ID for this index if available, otherwise create new
-			let id = queueIdsRef.current.get(index);
-			if (!id) {
-				id = `${item.k}-${idCounterRef.current++}`;
-			}
-			newIds.set(index, id);
-
-			return {
-				id,
-				skillKey: item.k,
-				args: item.a,
+		return queueItems.map(
+			(item, index): EnqueuedSkill => ({
+				id: `${item.skillKey}-${index}`,
+				skillKey: item.skillKey,
+				args: item.args,
 				enqueuedAt: Date.now(),
-			};
-		});
+			}),
+		);
+	}, [queueItems]);
 
-		// update ref after mapping (can't do inside useMemo cleanly, but this is fine for perf)
-	}, [state.q]);
-
-	// update ID ref when queue changes
-	useMemo(() => {
-		const newIds = new Map<number, string>();
-		queue.forEach((item, index) => {
-			newIds.set(index, item.id);
-		});
-		queueIdsRef.current = newIds;
-	}, [queue]);
-
-	const message = localMessage;
-	const isEmpty = state.q.length === 0 && !localMessage.trim();
+	const isEmpty = queueItems.length === 0 && !message.trim();
 
 	const enqueue = useCallback(
 		(skill: SkillToEnqueue, options?: { clearMessage?: boolean }): boolean => {
 			//
-			if (state.q.length >= MAX_QUEUE_SIZE) {
+			if (queueItems.length >= MAX_QUEUE_SIZE) {
 				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
 				return false;
 			}
 
-			const newQueueItem = { k: skill.skillKey, a: skill.args };
-			const updates: Partial<ComposerURLState> = {
-				q: state.q.concat(newQueueItem),
-			};
+			setQueueItems((prev) => prev.concat({ skillKey: skill.skillKey, args: skill.args }));
 
 			if (options?.clearMessage) {
-				updates.m = '';
-				setLocalMessage('');
-				// cancel pending sync
-				if (messageSyncTimeoutRef.current) {
-					clearTimeout(messageSyncTimeoutRef.current);
-					messageSyncTimeoutRef.current = null;
-				}
+				setMessageState('');
 			}
 
-			updateState(updates);
 			return true;
 		},
-		[state.q, updateState],
+		[queueItems.length],
 	);
 
-	const dequeue = useCallback(
-		(id: string) => {
-			//
-			const index = queue.findIndex((item) => item.id === id);
-			if (index === -1) return;
+	const dequeue = useCallback((id: string) => {
+		//
+		setQueueItems((prev) => {
+			const index = prev.findIndex((_, i) => `${prev[i]?.skillKey}-${i}` === id);
+			if (index === -1) return prev;
+			return prev.filter((_, i) => i !== index);
+		});
+	}, []);
 
-			const newQueue = state.q.filter((_, i) => i !== index);
-			updateState({ q: newQueue });
-		},
-		[queue, state.q, updateState],
-	);
-
-	const setMessage = useCallback(
-		(newMessage: string) => {
-			//
-			// update local state immediately for responsive UI
-			setLocalMessage(newMessage);
-
-			// debounce URL sync
-			if (messageSyncTimeoutRef.current) {
-				clearTimeout(messageSyncTimeoutRef.current);
-			}
-
-			messageSyncTimeoutRef.current = setTimeout(() => {
-				updateState({ m: newMessage });
-				messageSyncTimeoutRef.current = null;
-			}, MESSAGE_SYNC_DELAY);
-		},
-		[updateState],
-	);
+	const setMessage = useCallback((newMessage: string) => {
+		//
+		setMessageState(newMessage);
+	}, []);
 
 	const clear = useCallback(() => {
 		//
-		setLocalMessage('');
-		if (messageSyncTimeoutRef.current) {
-			clearTimeout(messageSyncTimeoutRef.current);
-			messageSyncTimeoutRef.current = null;
-		}
-		clearState();
-	}, [clearState]);
+		setQueueItems([]);
+		setMessageState('');
+		clearDraft(taskId);
+	}, [taskId]);
 
 	const clearQueue = useCallback(() => {
 		//
-		updateState({ q: [] });
-	}, [updateState]);
+		setQueueItems([]);
+	}, []);
 
 	const submit = useCallback(
-		async (taskId: Id<'tasks'>, task: Doc<'tasks'>) => {
+		async (task: Doc<'tasks'>) => {
 			//
-			const skills = buildFinalSkills(queue, localMessage, task);
-
+			const skills = buildFinalSkills(queue, message, task);
 			if (skills.length === 0) return;
 
-			await act(
-				{
-					taskId,
-					skills,
-					shouldReopen: true,
-				},
-				{
-					onSuccess: () => {
-						clear();
-					},
-				},
-			);
+			await act({ taskId, skills, shouldReopen: true }, { onSuccess: () => clear() });
 		},
-		[queue, localMessage, act, clear],
+		[taskId, queue, message, act, clear],
 	);
 
 	const value: ComposerContextValue = {

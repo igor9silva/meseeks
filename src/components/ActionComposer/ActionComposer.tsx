@@ -20,8 +20,17 @@ interface ActionComposerProps {
 }
 
 export function ActionComposer({ task, onSubmit, className }: ActionComposerProps) {
-	//
-	const { queue, message, isEmpty, enqueue, dequeue, setMessage, clearQueue, submit, isSubmitting } = useComposer();
+	const {
+		queue, //
+		message,
+		isEmpty,
+		enqueue,
+		dequeue,
+		setMessage,
+		clearQueue,
+		submit,
+		isSubmitting,
+	} = useComposer();
 
 	const { stop, isStopping } = useStop();
 
@@ -76,7 +85,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 
 	const handleAct = async () => {
 		//
-		await submit(task._id, task);
+		await submit(task);
 
 		if (!isLocalEmpty) {
 			onSubmit?.(localMessage);
