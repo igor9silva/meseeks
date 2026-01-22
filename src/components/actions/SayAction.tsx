@@ -104,12 +104,8 @@ function FullscreenMessage({
 		global: true,
 	});
 
-	const backgroundClass = isAuthorCurrentUser
-		? 'bg-primary text-primary-foreground'
-		: 'bg-background text-foreground';
-
 	return (
-		<div className={cn('fixed inset-0 z-50 overflow-auto', backgroundClass)}>
+		<div className="fixed inset-0 z-50 overflow-auto bg-background text-foreground">
 			{/* floating controls */}
 			<div className="fixed top-4 right-4 flex gap-2 z-10">
 				<ReaderModeButton
