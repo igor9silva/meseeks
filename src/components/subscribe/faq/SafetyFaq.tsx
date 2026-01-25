@@ -36,7 +36,9 @@ export const SafetyFaq = {
 					<p>
 						To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to
 						a human decision that triggered it, directly or through a reaction chain.{' '}
-						<strong>By using Meseeks, you agree that you are responsible for all outcomes.</strong>
+						<strong>
+							By using Meseeks, you agree that you are responsible for all outcomes of your actions.
+						</strong>
 					</p>
 					<p>
 						Meseeks allows you to operate at infinite scale. Please, <strong>be responsible.</strong>

@@ -1,21 +1,24 @@
+import type { Doc } from 'convex/_generated/dataModel';
 import { Link } from '@tanstack/react-router';
 import { asDollars } from 'convex/lib/money';
 import { Plus } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { Button } from '~/components/ui/button';
-import type { BaseStripProps } from '../types';
+import { useComposer } from '~/hooks/useComposer';
 
 const QUICK_ADD_AMOUNTS = [
 	0.2, //
 	1,
 ] as const;
 
-export function BudgetStrip({ task, onEnqueue }: BaseStripProps) {
+export function BudgetStrip({ task }: { task: Doc<'tasks'> }) {
 	//
+	const { enqueue } = useComposer();
+
 	const handleQuickAdd = (dollars: number) => {
 		//
 		// store dollars as number - converted to bigint in useComposer submit
-		onEnqueue({
+		enqueue({
 			skillKey: 'increaseBudget',
 			args: { dollars },
 			source: 'budget-strip',

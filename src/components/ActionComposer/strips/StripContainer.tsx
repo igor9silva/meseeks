@@ -1,21 +1,15 @@
 import type { Doc } from 'convex/_generated/dataModel';
 import { useState } from 'react';
-import type { EnqueuedSkill, SkillToEnqueue } from '../types';
+import { useComposer } from '~/hooks/useComposer';
 import { BudgetStrip } from './BudgetStrip';
+import { DraftStrip } from './DraftStrip';
 import { QueueStrip } from './QueueStrip';
 
-interface StripContainerProps {
+export function StripContainer({ task }: { task: Doc<'tasks'> }) {
 	//
-	task: Doc<'tasks'>;
-	queue: EnqueuedSkill[];
-	onEnqueue: (skill: SkillToEnqueue) => void;
-	onDequeue: (id: string) => void;
-	onClearQueue: () => void;
-}
+	const { queue } = useComposer();
 
-export function StripContainer({ task, queue, onEnqueue, onDequeue, onClearQueue }: StripContainerProps) {
-	//
-	// expanded by default (empty set = nothing collapsed)
+	// collapse state for strips (expanded by default)
 	const [collapsedStrips, setCollapsedStrips] = useState<Set<string>>(new Set());
 
 	const toggleCollapse = (stripId: string) =>
@@ -36,17 +30,16 @@ export function StripContainer({ task, queue, onEnqueue, onDequeue, onClearQueue
 
 	return (
 		<div className="flex flex-col">
+			{/*  */}
+			{/* draft conflict strip - renders itself only when needed */}
+			<DraftStrip />
+
 			{/* budget strip - always visible */}
-			<BudgetStrip task={task} onEnqueue={onEnqueue} />
+			<BudgetStrip task={task} />
 
 			{/* queue strip - only visible when there are queued skills */}
 			{hasQueuedSkills && (
 				<QueueStrip
-					task={task}
-					queue={queue}
-					onEnqueue={onEnqueue}
-					onDequeue={onDequeue}
-					onClearQueue={onClearQueue}
 					isCollapsed={collapsedStrips.has('queue')}
 					onToggleCollapse={() => toggleCollapse('queue')}
 				/>

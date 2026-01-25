@@ -7,9 +7,9 @@ export const taskStatusSchema = z.enum([
 	'idle', //
 	'acting', // companion is working
 	'unread', // companion is not working, you have unread actions
-	'blocked', // companion is block, requires your attention
+	'blocked', // companion is blocked, requires your attention
 	'discarded', // task was discarded, not relevant for future reference
-	'done', // task was resolved
+	'done', // task was resolved, actions will be used for learning
 ]);
 
 export const taskBudgetSchema = z.object({

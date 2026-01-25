@@ -170,7 +170,7 @@ Just plug into Vercel and everything works out of the box.
 
 **Meseeks is a tool and, therefore, cannot be held accountable.** It takes actions **on your behalf**, meaning you are responsible for any outcomes.
 
-To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to a human decision that triggered it, directly or through a chain of reactions. **By using Meseeks, you agree that you are responsible for all outcomes.**
+To guarantee that, Meseeks is designed to be fully traceable, i.e. every action is traceable to a human decision that triggered it, directly or through a chain of reactions. **By using Meseeks, you agree that you are responsible for all outcomes of your actions.**
 
 If it earns money, it's yours. If it causes damages, you pay.
 

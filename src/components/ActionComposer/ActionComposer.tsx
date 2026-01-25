@@ -1,7 +1,7 @@
 import type { Doc } from 'convex/_generated/dataModel';
 import { useEffect, useMemo, useRef } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
-import { ComposerProvider, useComposer } from '~/hooks/useComposer';
+import { useComposer } from '~/hooks/useComposer';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useStop } from '~/hooks/useTaskMutations';
@@ -20,14 +20,12 @@ interface ActionComposerProps {
 }
 
 export function ActionComposer({ task, onSubmit, className }: ActionComposerProps) {
+	//
 	const {
 		queue, //
 		message,
-		isEmpty,
 		enqueue,
-		dequeue,
 		setMessage,
-		clearQueue,
 		submit,
 		isSubmitting,
 	} = useComposer();
@@ -40,7 +38,6 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		isEmpty: isLocalEmpty,
 		onChange: handleLocalMessageChange,
 		setValue: setLocalMessage,
-		adjustHeight,
 	} = useExpandingTextarea({ singleLineHeight: 40 });
 
 	const intelligenceSelectorRef = useRef<HTMLButtonElement | null>(null);
@@ -183,13 +180,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 				{/* strips - only visible when idle */}
 				{!isRecordingOrTranscribing && (
 					<div className="border-b border-border/50 -mx-2 -mt-2 rounded-t-3xl overflow-hidden">
-						<StripContainer
-							task={task}
-							queue={queue}
-							onEnqueue={enqueue}
-							onDequeue={dequeue}
-							onClearQueue={clearQueue}
-						/>
+						<StripContainer task={task} />
 					</div>
 				)}
 

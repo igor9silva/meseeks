@@ -21,7 +21,7 @@ export function useResizablePanelGroup({
 		//
 	}, [getValue, defaultValue]);
 
-	const debouncedSetSize = useDebounce((size: number) => {
+	const { call } = useDebounce((size: number) => {
 		//
 		if (!size) return;
 		setValue(size);
@@ -30,9 +30,9 @@ export function useResizablePanelGroup({
 
 	const handleLayout = useCallback(
 		(sizes: number[]) => {
-			debouncedSetSize(sizes[0]);
+			call(sizes[0]);
 		},
-		[debouncedSetSize],
+		[call],
 	);
 
 	return {

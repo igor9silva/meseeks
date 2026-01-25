@@ -16,6 +16,8 @@ import type * as action_details_public from "../action_details/public.js";
 import type * as auth from "../auth.js";
 import type * as components_private from "../components/private.js";
 import type * as components_public from "../components/public.js";
+import type * as drafts_private from "../drafts/private.js";
+import type * as drafts_public from "../drafts/public.js";
 import type * as http from "../http.js";
 import type * as lib_babel from "../lib/babel.js";
 import type * as lib_bigintJson from "../lib/bigintJson.js";
@@ -36,6 +38,7 @@ import type * as schemas_actionDetailSchema from "../schemas/actionDetailSchema.
 import type * as schemas_actionSchema from "../schemas/actionSchema.js";
 import type * as schemas_authorSchema from "../schemas/authorSchema.js";
 import type * as schemas_componentSchema from "../schemas/componentSchema.js";
+import type * as schemas_draftSchema from "../schemas/draftSchema.js";
 import type * as schemas_envSchema from "../schemas/envSchema.js";
 import type * as schemas_intelligenceSchema from "../schemas/intelligenceSchema.js";
 import type * as schemas_paginationOptionsSchema from "../schemas/paginationOptionsSchema.js";
@@ -122,6 +125,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   "components/private": typeof components_private;
   "components/public": typeof components_public;
+  "drafts/private": typeof drafts_private;
+  "drafts/public": typeof drafts_public;
   http: typeof http;
   "lib/babel": typeof lib_babel;
   "lib/bigintJson": typeof lib_bigintJson;
@@ -142,6 +147,7 @@ declare const fullApi: ApiFromModules<{
   "schemas/actionSchema": typeof schemas_actionSchema;
   "schemas/authorSchema": typeof schemas_authorSchema;
   "schemas/componentSchema": typeof schemas_componentSchema;
+  "schemas/draftSchema": typeof schemas_draftSchema;
   "schemas/envSchema": typeof schemas_envSchema;
   "schemas/intelligenceSchema": typeof schemas_intelligenceSchema;
   "schemas/paginationOptionsSchema": typeof schemas_paginationOptionsSchema;

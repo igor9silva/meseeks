@@ -1,16 +1,31 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { EnqueuedSkill, SkillToEnqueue } from '~/components/ActionComposer/types';
-import { type ComposerDraft, clearDraft, loadDraft, saveDraft } from '~/lib/composerDrafts';
 import { useAct } from './useAct';
+import { useDraftSync } from './useDraftSync';
+
+const MAX_QUEUE_SIZE = 16;
+const BUDGET_SKILL_KEYS = ['increaseBudget', 'decreaseBudget'];
+
+type QueueItem = { skillKey: string; args: Record<string, unknown> };
+
+export type ServerDraft = {
+	queue: QueueItem[];
+	message: string;
+};
 
 type ComposerContextValue = {
 	// state
 	queue: EnqueuedSkill[];
 	message: string;
 	isEmpty: boolean;
+
+	// server draft conflict
+	pendingServerDraft: ServerDraft | null;
+	restoreServerDraft: () => void;
+	dismissServerDraft: () => void;
 
 	// mutations (enqueue returns false if queue is full)
 	enqueue: (skill: SkillToEnqueue, options?: { clearMessage?: boolean }) => boolean;
@@ -37,11 +52,6 @@ export function useComposer() {
 	return context;
 }
 
-const MAX_QUEUE_SIZE = 16;
-const BUDGET_SKILL_KEYS = ['increaseBudget', 'decreaseBudget'];
-
-type QueueItem = { skillKey: string; args: Record<string, unknown> };
-
 type ComposerProviderProps = {
 	taskId: Id<'tasks'>;
 	children: React.ReactNode;
@@ -51,35 +61,59 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	//
 	const { act, isActing } = useAct();
 
-	// load initial draft synchronously to avoid race conditions
-	const initialDraft = useRef<ComposerDraft | null>(null);
-	if (initialDraft.current === null) {
-		initialDraft.current = loadDraft(taskId) ?? { queue: [], message: '' };
+	// local state
+	const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
+	const [message, setMessageState] = useState('');
+	const [pendingServerDraft, setPendingServerDraft] = useState<ServerDraft | null>(null);
+
+	// refs for tracking
+	const userHasTypedRef = useRef(false);
+	const lastTaskIdRef = useRef(taskId);
+
+	// stable refs for draft sync callbacks
+	const latestQueueRef = useRef<QueueItem[]>([]);
+	const latestMessageRef = useRef('');
+	latestQueueRef.current = queueItems;
+	latestMessageRef.current = message;
+
+	// draft sync handles all server persistence
+	const draftSync = useDraftSync({
+		taskId,
+		getLocalState: () => ({
+			queue: latestQueueRef.current,
+			message: latestMessageRef.current,
+		}),
+		isSaveBlocked: pendingServerDraft !== null,
+		onServerDraftReceived: (draft) => {
+			//
+			const localMessage = latestMessageRef.current;
+			const localQueue = latestQueueRef.current;
+			const isLocalEmpty = !localMessage.trim() && localQueue.length === 0;
+			const isServerEmpty = !draft.message.trim() && draft.queue.length === 0;
+			const isSameAsLocal = areDraftsEqual(localQueue, localMessage, draft);
+
+			if (isServerEmpty || isSameAsLocal) return;
+
+			if (isLocalEmpty && !userHasTypedRef.current) {
+				// auto-populate: user hasn't touched anything
+				setQueueItems(draft.queue);
+				setMessageState(draft.message);
+			} else if (userHasTypedRef.current) {
+				// conflict: user has typed, show restore option
+				setPendingServerDraft(draft);
+			}
+		},
+	});
+
+	// handle task change: reset local state
+	if (taskId !== lastTaskIdRef.current) {
+		draftSync.cancel();
+		setQueueItems([]);
+		setMessageState('');
+		setPendingServerDraft(null);
+		userHasTypedRef.current = false;
+		lastTaskIdRef.current = taskId;
 	}
-
-	const [queueItems, setQueueItems] = useState<QueueItem[]>(initialDraft.current.queue);
-	const [message, setMessageState] = useState(initialDraft.current.message);
-	const idCounterRef = useRef(0);
-
-	// reload draft when taskId changes
-	useEffect(() => {
-		//
-		const draft = loadDraft(taskId);
-		setQueueItems(draft?.queue ?? []);
-		setMessageState(draft?.message ?? '');
-		idCounterRef.current = 0;
-	}, [taskId]);
-
-	// save draft whenever state changes (skip first render via taskId dep)
-	const isFirstRender = useRef(true);
-	useEffect(() => {
-		//
-		if (isFirstRender.current) {
-			isFirstRender.current = false;
-			return;
-		}
-		saveDraft(taskId, { queue: queueItems, message });
-	}, [taskId, queueItems, message]);
 
 	// convert to EnqueuedSkill format with stable IDs
 	const queue = useMemo(() => {
@@ -96,6 +130,23 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 
 	const isEmpty = queueItems.length === 0 && !message.trim();
 
+	const restoreServerDraft = useCallback(() => {
+		//
+		if (!pendingServerDraft) return;
+
+		setQueueItems(pendingServerDraft.queue);
+		setMessageState(pendingServerDraft.message);
+		setPendingServerDraft(null);
+		userHasTypedRef.current = true;
+		draftSync.save(pendingServerDraft.queue, pendingServerDraft.message);
+	}, [pendingServerDraft, draftSync]);
+
+	const dismissServerDraft = useCallback(() => {
+		//
+		setPendingServerDraft(null);
+		draftSync.save(queueItems, message);
+	}, [queueItems, message, draftSync]);
+
 	const enqueue = useCallback(
 		(skill: SkillToEnqueue, options?: { clearMessage?: boolean }): boolean => {
 			//
@@ -104,42 +155,73 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 				return false;
 			}
 
-			setQueueItems((prev) => prev.concat({ skillKey: skill.skillKey, args: skill.args }));
+			userHasTypedRef.current = true;
+			const newQueue = queueItems.concat({ skillKey: skill.skillKey, args: skill.args });
+			setQueueItems(newQueue);
 
+			const newMessage = options?.clearMessage ? '' : message;
 			if (options?.clearMessage) {
 				setMessageState('');
 			}
 
+			if (!pendingServerDraft) {
+				draftSync.save(newQueue, newMessage);
+			}
+
 			return true;
 		},
-		[queueItems.length],
+		[queueItems, message, pendingServerDraft, draftSync],
 	);
 
-	const dequeue = useCallback((id: string) => {
-		//
-		setQueueItems((prev) => {
-			const index = prev.findIndex((_, i) => `${prev[i]?.skillKey}-${i}` === id);
-			if (index === -1) return prev;
-			return prev.filter((_, i) => i !== index);
-		});
-	}, []);
+	const dequeue = useCallback(
+		(id: string) => {
+			//
+			setQueueItems((prev) => {
+				const index = prev.findIndex((_, i) => `${prev[i]?.skillKey}-${i}` === id);
+				if (index === -1) return prev;
 
-	const setMessage = useCallback((newMessage: string) => {
-		//
-		setMessageState(newMessage);
-	}, []);
+				const newQueue = prev.filter((_, i) => i !== index);
+
+				if (!pendingServerDraft) {
+					draftSync.save(newQueue, message);
+				}
+
+				return newQueue;
+			});
+		},
+		[message, pendingServerDraft, draftSync],
+	);
+
+	const setMessage = useCallback(
+		(newMessage: string) => {
+			//
+			userHasTypedRef.current = true;
+			setMessageState(newMessage);
+
+			if (!pendingServerDraft) {
+				draftSync.save(queueItems, newMessage);
+			}
+		},
+		[queueItems, pendingServerDraft, draftSync],
+	);
 
 	const clear = useCallback(() => {
 		//
 		setQueueItems([]);
 		setMessageState('');
-		clearDraft(taskId);
-	}, [taskId]);
+		setPendingServerDraft(null);
+		userHasTypedRef.current = false;
+		draftSync.clear();
+	}, [draftSync]);
 
 	const clearQueue = useCallback(() => {
 		//
 		setQueueItems([]);
-	}, []);
+
+		if (!pendingServerDraft) {
+			draftSync.save([], message);
+		}
+	}, [message, pendingServerDraft, draftSync]);
 
 	const submit = useCallback(
 		async (task: Doc<'tasks'>) => {
@@ -156,6 +238,9 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		queue,
 		message,
 		isEmpty,
+		pendingServerDraft,
+		restoreServerDraft,
+		dismissServerDraft,
 		enqueue,
 		dequeue,
 		setMessage,
@@ -215,4 +300,31 @@ function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
 		args: { amount },
 		source: skill.source,
 	};
+}
+
+function areDraftsEqual(queueItems: QueueItem[], message: string, draft: ServerDraft): boolean {
+	//
+	if (message !== draft.message) return false;
+	if (queueItems.length !== draft.queue.length) return false;
+
+	return queueItems.every((item, index) => {
+		const draftItem = draft.queue[index];
+		if (!draftItem) return false;
+		if (item.skillKey !== draftItem.skillKey) return false;
+		return areArgsEqual(item.args, draftItem.args);
+	});
+}
+
+function areArgsEqual(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+	//
+	return safeStringify(left) === safeStringify(right);
+}
+
+function safeStringify(value: Record<string, unknown>): string {
+	//
+	try {
+		return JSON.stringify(value);
+	} catch {
+		return '';
+	}
 }

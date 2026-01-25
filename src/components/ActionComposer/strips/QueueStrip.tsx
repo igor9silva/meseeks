@@ -1,35 +1,38 @@
 import { ChevronDown, Trash2, X } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
+import { useComposer } from '~/hooks/useComposer';
 import { cn } from '~/lib/utils';
-import type { EnqueuedSkill, QueueAwareStripProps } from '../types';
+import type { EnqueuedSkill } from '../types';
 
 const MAX_VISIBLE_ITEMS = 5;
 
-interface QueueStripProps extends QueueAwareStripProps {
+interface QueueStripProps {
 	//
 	isCollapsed: boolean;
 	onToggleCollapse: () => void;
-	onClearQueue: () => void;
 }
 
-export function QueueStrip({ queue, onDequeue, isCollapsed, onToggleCollapse, onClearQueue }: QueueStripProps) {
+export function QueueStrip({ isCollapsed, onToggleCollapse }: QueueStripProps) {
 	//
+	const { queue, dequeue, clearQueue } = useComposer();
 	const count = queue.length;
 
 	const handleClearClick = useCallback(
 		(e: React.MouseEvent) => {
 			e.stopPropagation();
-			onClearQueue();
+			clearQueue();
 		},
-		[onClearQueue],
+		[clearQueue],
 	);
+
+	if (count === 0) return null;
 
 	// single item: render inline without header
 	if (count === 1) {
 		return (
 			<div className="border-t border-border/50 px-4 py-1.5">
-				<QueueItem skill={queue[0]} onRemove={onDequeue} />
+				<QueueItem skill={queue[0]} onRemove={dequeue} />
 			</div>
 		);
 	}
@@ -64,7 +67,7 @@ export function QueueStrip({ queue, onDequeue, isCollapsed, onToggleCollapse, on
 			{/* animated content */}
 			<AnimatedContent isCollapsed={isCollapsed} shouldScroll={count > MAX_VISIBLE_ITEMS}>
 				{queue.map((skill) => (
-					<QueueItem key={skill.id} skill={skill} onRemove={onDequeue} />
+					<QueueItem key={skill.id} skill={skill} onRemove={dequeue} />
 				))}
 			</AnimatedContent>
 		</div>
