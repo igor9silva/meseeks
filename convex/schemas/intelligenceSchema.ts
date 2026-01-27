@@ -97,6 +97,7 @@ export const intelligenceKeys = z.enum([
 
 	// Moonshot
 	'moonshot/kimi-2',
+	'moonshot/kimi-2.5',
 
 	// Cerebras
 	'cerebras/qwen3-235b',
@@ -372,6 +373,14 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//           Moonshot
 	// ==============================
+	'moonshot/kimi-2.5': {
+		key: 'moonshot/kimi-2.5',
+		name: 'Kimi 2.5',
+		provider: 'Moonshot',
+		pricing: buildPricing({ input: 0.6, output: 3 }),
+		context: buildContext(250_000),
+		intelligenceLevel: 9,
+	},
 	'moonshot/kimi-2': {
 		key: 'moonshot/kimi-2',
 		name: 'Kimi 2',

@@ -84,12 +84,24 @@ export async function _prepareContext(
 	console.debug('model', model.modelId, model.provider);
 	console.debug('instructions', instructions);
 
+	// TODO: remove those hacks
 	const isAnthropic = model.provider.toLowerCase().includes('anthropic');
 	const isGPT5 = model.modelId.toLowerCase().includes('gpt-5');
+	const isKimi25 = model.modelId.includes('kimi-k2.5');
+
+	// TODO: remove those hacks
+	const temperature = (() => {
+		//
+		// those models dont support custom temperatures
+		if (isGPT5) return 1;
+		if (isKimi25) return 0.6;
+
+		return skill.config.temperature;
+	})();
 
 	return {
 		model,
-		temperature: isGPT5 ? 1 : skill.config.temperature, // GPT-5 doesnt support temperature
+		temperature,
 		maxTokens: skill.config.maxTokens ?? undefined,
 		frequencyPenalty: skill.config.frequencyPenalty ?? undefined,
 		maxRetries: skill.config.maxRetries ?? undefined,
@@ -114,6 +126,8 @@ export async function _prepareContext(
 				]
 			: history,
 		tools: tools,
+		// kimi 2.5 has thinking enabled by default, we want to disable it
+		providerOptions: isKimi25 ? { moonshot: { thinking: { type: 'disabled' } } } : undefined,
 	};
 }
 
@@ -209,6 +223,7 @@ function languageModelFrom(
 
 		// Moonshot
 		'moonshot/kimi-2': moonshot('kimi-k2-0905-preview'),
+		'moonshot/kimi-2.5': moonshot('kimi-k2.5'),
 		// 'moonshot/kimi-2': groq('moonshotai/kimi-k2-instruct'),
 
 		// Cerebras
