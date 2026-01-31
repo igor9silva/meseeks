@@ -5,7 +5,7 @@ import { cn } from '~/lib/utils';
 
 import { Id } from 'convex/_generated/dataModel';
 import { Balance } from '~/components/Balance';
-import { useCommandMenu } from '~/components/CommandMenu';
+import { useLauncher } from '~/components/Launcher';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '~/components/ui/button';
 import { TooltipButton, TooltipProvider } from '~/components/ui/tooltip';
@@ -16,7 +16,7 @@ export function MainHeader({ className }: { className?: string }) {
 	//
 	const { history } = useRouter();
 	const { pathname, searchStr, search } = useLocation();
-	const { open: openCommandDialog } = useCommandMenu();
+	const { open: openLauncher } = useLauncher();
 	const { taskId } = useSplatParams();
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
@@ -65,7 +65,7 @@ export function MainHeader({ className }: { className?: string }) {
 				<div className="w-1/2 flex gap-1">
 					<Button
 						variant="outline"
-						onClick={openCommandDialog}
+						onClick={openLauncher}
 						className="flex w-full justify-between gap-2 bg-muted/40 hover:bg-accent text-muted-foreground truncate p-2"
 					>
 						<span className="text-xs md:text-sm">

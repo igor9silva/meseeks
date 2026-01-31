@@ -5,7 +5,7 @@ import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routerWithQueryClient } from '@tanstack/react-router-with-query';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 
-import { CommandMenuProvider } from '~/components/CommandMenu';
+import { LauncherProvider } from '~/components/Launcher';
 import { Loading } from '~/components/Loading';
 import { ThemeProvider } from '~/components/ThemeProvider';
 import { DefaultCatchBoundary } from './components/DefaultCatchBoundary';
@@ -52,7 +52,7 @@ export function createRouter() {
 					<ConvexProvider client={convexQueryClient.convexClient}>
 						<ConvexAuthProvider client={convexQueryClient.convexClient}>
 							<ThemeProvider>
-								<CommandMenuProvider>{children}</CommandMenuProvider>
+								<LauncherProvider>{children}</LauncherProvider>
 							</ThemeProvider>
 						</ConvexAuthProvider>
 					</ConvexProvider>

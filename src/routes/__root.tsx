@@ -7,7 +7,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import { useState } from 'react';
-import { CommandMenuDialog } from '~/components/CommandMenu';
+import { LauncherDialog } from '~/components/Launcher';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
@@ -144,7 +144,7 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 				<div className="flex-1 overflow-auto">{children}</div>
 			</main>
 			<Toaster position="top-right" />
-			<CommandMenuDialog />
+			<LauncherDialog />
 			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
 			{scheduleDialog.taskId && (
 				<ScheduleIterationDialog

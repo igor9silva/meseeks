@@ -44,26 +44,26 @@ import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useDecreaseBudget, useDiscard, useIncreaseBudget, useResolve, useStop } from '~/hooks/useTaskMutations';
 
-interface CommandMenuContextType {
+interface LauncherContextType {
 	isOpen: boolean;
 	open: () => void;
 	close: () => void;
 }
 
-const CommandMenuContext = React.createContext<CommandMenuContextType | null>(null);
+const LauncherContext = React.createContext<LauncherContextType | null>(null);
 
-export function useCommandMenu() {
+export function useLauncher() {
 	//
-	const context = React.useContext(CommandMenuContext);
+	const context = React.useContext(LauncherContext);
 
 	if (!context) {
-		throw new Error('useCommandMenu must be used within CommandMenuProvider');
+		throw new Error('useLauncher must be used within LauncherProvider');
 	}
 
 	return context;
 }
 
-export function CommandMenuProvider({ children }: { children: React.ReactNode }) {
+export function LauncherProvider({ children }: { children: React.ReactNode }) {
 	//
 	const [isOpen, setIsOpen] = React.useState(false);
 
@@ -88,12 +88,12 @@ export function CommandMenuProvider({ children }: { children: React.ReactNode })
 		},
 	});
 
-	return <CommandMenuContext.Provider value={value}>{children}</CommandMenuContext.Provider>;
+	return <LauncherContext.Provider value={value}>{children}</LauncherContext.Provider>;
 }
 
-export function CommandMenuDialog() {
+export function LauncherDialog() {
 	//
-	const { isOpen, close } = useCommandMenu();
+	const { isOpen, close } = useLauncher();
 	const { pathname, searchStr } = useLocation();
 	const navigate = useNavigate();
 
@@ -180,7 +180,7 @@ export function CommandMenuDialog() {
 				return result;
 			}}
 		>
-			<DialogTitle className="hidden">Global command menu</DialogTitle>
+			<DialogTitle className="hidden">Launcher</DialogTitle>
 			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
 			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
 			<CommandList className="max-h-[500px]" onScroll={handleScroll}>
@@ -288,7 +288,7 @@ export function CommandMenuDialog() {
 
 function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const { resolve, isResolving } = useResolve();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -310,7 +310,7 @@ function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const { discard, isDiscarding } = useDiscard();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -333,7 +333,7 @@ function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -356,7 +356,7 @@ function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function StopReactionsCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const { stop, isStopping } = useStop();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -379,7 +379,7 @@ function StopReactionsCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -405,7 +405,7 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const { decreaseBudget, isDecreasingBudget } = useDecreaseBudget();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -427,7 +427,7 @@ function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const scheduleDialog = useScheduleDialog();
 
 	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
@@ -449,7 +449,7 @@ function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 
 function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const navigate = useNavigate();
 
 	const typedSearch = useCommandState((state) => state.search);
@@ -475,7 +475,7 @@ function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 	if (!search) return null;
 
 	return (
-		<CommandItem value={`/seek`} keywords={['seek', 'search', search]} onSelect={handleSelect}>
+		<CommandItem value="/seek" keywords={['seek', 'search', search]} onSelect={handleSelect}>
 			<SquarePen className="mr-2" />
 			{`Seek for "${search}"`}
 		</CommandItem>
@@ -484,7 +484,7 @@ function SeekCommandItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 
 function DevModeCommandItem() {
 	//
-	const { close } = useCommandMenu();
+	const { close } = useLauncher();
 	const navigate = useNavigate();
 	const { pathname, search } = useLocation();
 
