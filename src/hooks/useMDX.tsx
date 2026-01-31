@@ -40,7 +40,7 @@ export function useMDX(mdx: string, shouldRenderComponents = false) {
 			const code = await compileMDX(mdx, shouldRenderComponents);
 			return await runMDX(code);
 		},
-		staleTime: Infinity,
+		staleTime: Number.POSITIVE_INFINITY,
 	});
 
 	return { Component, error, isPending };

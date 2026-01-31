@@ -45,9 +45,9 @@ export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-4.1-fast-non-reas
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
 	'xai/grok-4.1-fast-non-reasoning': 5.0,
-	'cerebras/zai-glm-4.7': 50.0,
-	'anthropic/claude-4.5-sonnet': 200.0,
-	'anthropic/claude-4.5-opus': Infinity,
+	'moonshot/kimi-2.5': 50.0,
+	'cerebras/zai-glm-4.7': 200.0,
+	'anthropic/claude-4.5-opus': Number.POSITIVE_INFINITY,
 } as const;
 
 export const intelligenceKeys = z.enum([
@@ -123,7 +123,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	'anthropic/claude-4.5-opus': {
 		key: 'anthropic/claude-4.5-opus',
 		name: 'Claude 4.5 Opus',
-		description: '🐐 GOAT — for extreme tasks. Expensive ⚠️',
+		description: 'GOAT performance 🐐, WOAT pricing ⚠️',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 5, output: 25 }),
 		context: buildContext(200_000),
@@ -294,7 +294,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	'xai/grok-4.1-fast-non-reasoning': {
 		key: 'xai/grok-4.1-fast-non-reasoning',
 		name: 'Grok 4.1 Fast',
-		description: 'Latest fast model — great cost/performance ratio.',
+		description: 'Great cost/performance ratio 📊',
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.2, output: 0.5 }),
 		context: buildContext(128_000), // TODO: can do up to 2M, but price doubles above 128K
@@ -376,6 +376,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	'moonshot/kimi-2.5': {
 		key: 'moonshot/kimi-2.5',
 		name: 'Kimi 2.5',
+		description: 'Pareto frontier 🎯',
 		provider: 'Moonshot',
 		pricing: buildPricing({ input: 0.6, output: 3 }),
 		context: buildContext(250_000),
@@ -404,7 +405,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	'cerebras/zai-glm-4.7': {
 		key: 'cerebras/zai-glm-4.7',
 		name: 'GLM 4.7',
-		description: 'Faaaaaast',
+		description: 'Faaaaast 🐆',
 		provider: 'Cerebras',
 		pricing: buildPricing({ input: 2.25, output: 2.75 }),
 		context: buildContext(128_000),
