@@ -44,9 +44,9 @@ export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-4.1-fast-non-reas
 
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
-	'xai/grok-4.1-fast-non-reasoning': 5.0,
-	'moonshot/kimi-2.5': 50.0,
-	'cerebras/zai-glm-4.7': 200.0,
+	'xai/grok-4.1-fast-non-reasoning': 0.2,
+	'moonshot/kimi-2.5': 50.0, // Kimi first so it's preferred
+	'cerebras/zai-glm-4.7': 50.0, // GLM after so it's never auto-selected, but still listed as recommended
 	'anthropic/claude-4.5-opus': Number.POSITIVE_INFINITY,
 } as const;
 
