@@ -18,3 +18,7 @@ temp/
 dist/
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Generated MCP configs
+.cursor/mcp.json
+.opencode/opencode.jsonc

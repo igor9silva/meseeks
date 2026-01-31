@@ -8,10 +8,12 @@
 		"url": "https://github.com/igor9silva/meseeks.git"
 	},
 	"scripts": {
-		"dev": "concurrently -r bun:dev:web bun:dev:db",
+		"dev": "concurrently -r bun:dev:web bun:dev:db bun:dev:mcp",
 		"dev:web": "vite dev --port 3000",
 		"dev:db": "bunx convex dev",
+		"dev:mcp": "bun run .config/watch-mcp-config.ts",
 		"build": "vite build",
+		"build:mcp": "bun run .config/generate-mcp-configs.ts",
 		"start": "bun .output/server/index.mjs",
 		"typecheck": "bunx tsc --noEmit",
 		"lint": "prettier --check '**/*' '!data/**' --ignore-unknown && eslint --ext .ts,.tsx ./src",
