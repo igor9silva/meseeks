@@ -7,7 +7,7 @@ import { QueueStrip } from './QueueStrip';
 
 export function StripContainer({ task }: { task: Doc<'tasks'> }) {
 	//
-	const { queue } = useComposer();
+	const { queue, pendingSkills } = useComposer();
 
 	// collapse state for strips (expanded by default)
 	const [collapsedStrips, setCollapsedStrips] = useState<Set<string>>(new Set());
@@ -26,7 +26,7 @@ export function StripContainer({ task }: { task: Doc<'tasks'> }) {
 			return next;
 		});
 
-	const hasQueuedSkills = queue.length > 0;
+	const hasQueuedOrPendingSkills = queue.length > 0 || pendingSkills.length > 0;
 
 	return (
 		<div className="flex flex-col">
@@ -37,8 +37,8 @@ export function StripContainer({ task }: { task: Doc<'tasks'> }) {
 			{/* budget strip - always visible */}
 			<BudgetStrip task={task} />
 
-			{/* queue strip - only visible when there are queued skills */}
-			{hasQueuedSkills && (
+			{/* queue strip - visible when there are queued or pending skills */}
+			{hasQueuedOrPendingSkills && (
 				<QueueStrip
 					isCollapsed={collapsedStrips.has('queue')}
 					onToggleCollapse={() => toggleCollapse('queue')}

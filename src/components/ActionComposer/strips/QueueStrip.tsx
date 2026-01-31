@@ -1,4 +1,4 @@
-import { ChevronDown, Trash2, X } from 'lucide-react';
+import { ChevronDown, Loader2, Trash2, X } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { useComposer } from '~/hooks/useComposer';
@@ -15,8 +15,10 @@ interface QueueStripProps {
 
 export function QueueStrip({ isCollapsed, onToggleCollapse }: QueueStripProps) {
 	//
-	const { queue, dequeue, clearQueue } = useComposer();
-	const count = queue.length;
+	const { queue, pendingSkills, dequeue, clearQueue } = useComposer();
+	const queueCount = queue.length;
+	const pendingCount = pendingSkills.length;
+	const count = queueCount + pendingCount;
 
 	const handleClearClick = useCallback(
 		(e: React.MouseEvent) => {
@@ -28,11 +30,18 @@ export function QueueStrip({ isCollapsed, onToggleCollapse }: QueueStripProps) {
 
 	if (count === 0) return null;
 
+	// build header text
+	const headerText = buildHeaderText(pendingCount, queueCount);
+
 	// single item: render inline without header
 	if (count === 1) {
+		const singlePending = pendingSkills[0];
+		const singleQueued = queue[0];
+
 		return (
 			<div className="border-t border-border/50 px-4 py-1.5">
-				<QueueItem skill={queue[0]} onRemove={dequeue} />
+				{singlePending && <PendingItem skill={singlePending} />}
+				{singleQueued && <QueueItem skill={singleQueued} onRemove={dequeue} />}
 			</div>
 		);
 	}
@@ -47,31 +56,53 @@ export function QueueStrip({ isCollapsed, onToggleCollapse }: QueueStripProps) {
 				className="flex w-full items-center justify-between px-4 py-1.5 hover:bg-muted/30 transition-colors"
 			>
 				<div className="flex items-center gap-1 text-sm text-muted-foreground">
-					<ChevronDown
-						className={cn('size-3 transition-transform duration-150', isCollapsed && '-rotate-90')}
-					/>
-					<span>{count} actions queued</span>
+					{pendingCount > 0 ? (
+						<Loader2 className="size-3 animate-spin" />
+					) : (
+						<ChevronDown
+							className={cn('size-3 transition-transform duration-150', isCollapsed && '-rotate-90')}
+						/>
+					)}
+					<span>{headerText}</span>
 				</div>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-					onClick={handleClearClick}
-				>
-					<Trash2 className="size-3 mr-1" />
-					Clear
-				</Button>
+				{queueCount > 0 && (
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+						onClick={handleClearClick}
+					>
+						<Trash2 className="size-3 mr-1" />
+						Clear
+					</Button>
+				)}
 			</button>
 
 			{/* animated content */}
 			<AnimatedContent isCollapsed={isCollapsed} shouldScroll={count > MAX_VISIBLE_ITEMS}>
+				{pendingSkills.map((skill) => (
+					<PendingItem key={skill.id} skill={skill} />
+				))}
 				{queue.map((skill) => (
 					<QueueItem key={skill.id} skill={skill} onRemove={dequeue} />
 				))}
 			</AnimatedContent>
 		</div>
 	);
+}
+
+function buildHeaderText(pendingCount: number, queueCount: number): string {
+	//
+	if (pendingCount > 0 && queueCount > 0) {
+		return `Sending ${pendingCount}... (${queueCount} queued)`;
+	}
+	
+	if (pendingCount > 0) {
+		return `Sending ${pendingCount} action${pendingCount > 1 ? 's' : ''}...`;
+	}
+
+	return `${queueCount} queued`;
 }
 
 // memoized to prevent unnecessary re-renders
@@ -146,6 +177,24 @@ const QueueItem = memo(function QueueItem({
 			>
 				<X className="size-3" />
 			</Button>
+		</div>
+	);
+});
+
+// pending item - shows a sending indicator, no remove button
+const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill }) {
+	//
+	const label = formatSkillLabel(skill.skillKey, skill.args);
+
+	return (
+		<div
+			className={cn(
+				'flex items-center justify-between gap-2 text-sm',
+				'bg-primary/10 text-primary rounded-lg px-2 py-1',
+			)}
+		>
+			<span className="truncate">{label}</span>
+			<Loader2 className="size-3 animate-spin shrink-0" />
 		</div>
 	);
 });

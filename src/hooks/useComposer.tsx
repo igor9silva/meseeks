@@ -19,6 +19,7 @@ export type ServerDraft = {
 type ComposerContextValue = {
 	// state
 	queue: EnqueuedSkill[];
+	pendingSkills: EnqueuedSkill[];
 	message: string;
 	isEmpty: boolean;
 
@@ -65,6 +66,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
 	const [message, setMessageState] = useState('');
 	const [pendingServerDraft, setPendingServerDraft] = useState<ServerDraft | null>(null);
+	const [pendingSkillItems, setPendingSkillItems] = useState<EnqueuedSkill[]>([]);
 
 	// refs for tracking
 	const userHasTypedRef = useRef(false);
@@ -111,6 +113,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		setQueueItems([]);
 		setMessageState('');
 		setPendingServerDraft(null);
+		setPendingSkillItems([]);
 		userHasTypedRef.current = false;
 		lastTaskIdRef.current = taskId;
 	}
@@ -229,13 +232,35 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 			const skills = buildFinalSkills(queue, message, task);
 			if (skills.length === 0) return;
 
-			await act({ taskId, skills, shouldReopen: true }, { onSuccess: () => clear() });
+			// generate unique batch ID for this submission
+			const batchId = `batch-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+			const now = Date.now();
+
+			// convert skills to EnqueuedSkill format for display in pending strip
+			const pendingItems: EnqueuedSkill[] = skills.map((skill, index) => ({
+				id: `${batchId}-${index}`,
+				skillKey: skill.skillKey,
+				args: skill.args,
+				enqueuedAt: now,
+			}));
+
+			// immediately add to pending skills and clear composer
+			setPendingSkillItems((prev) => prev.concat(pendingItems));
+			clear();
+
+			// run mutation in background (don't await - allows rapid submissions)
+			act({ taskId, skills, shouldReopen: true })
+				.finally(() => {
+					// remove this batch's items when mutation completes
+					setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
+				});
 		},
 		[taskId, queue, message, act, clear],
 	);
 
 	const value: ComposerContextValue = {
 		queue,
+		pendingSkills: pendingSkillItems,
 		message,
 		isEmpty,
 		pendingServerDraft,

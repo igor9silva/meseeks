@@ -27,7 +27,6 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		enqueue,
 		setMessage,
 		submit,
-		isSubmitting,
 	} = useComposer();
 
 	const { stop, isStopping } = useStop();
@@ -77,8 +76,6 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		() => isLocalEmpty && !isBlocked && !isTaskActing && queue.length === 0,
 		[isLocalEmpty, isBlocked, isTaskActing, queue.length],
 	);
-
-	const isAnyMutationPending = isSubmitting || isStopping;
 
 	const handleAct = async () => {
 		//
@@ -131,7 +128,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		targetRef: textareaRef,
 		combo: { withCommand: true, key: 'Enter' },
 		callback: () => {
-			if (recordingStatus === 'idle' && !isAnyMutationPending) {
+			if (recordingStatus === 'idle' && !isStopping) {
 				handleAct();
 			}
 		},

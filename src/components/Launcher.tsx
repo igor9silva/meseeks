@@ -157,6 +157,7 @@ export function LauncherDialog() {
 			//
 			const target = e.currentTarget;
 			const { scrollTop, scrollHeight, clientHeight } = target;
+
 			const scrollBottom = scrollHeight - scrollTop - clientHeight;
 
 			if (scrollBottom < SCROLL_THRESHOLD && hasMore && !isLoadingMore) {
