@@ -22,3 +22,8 @@ dist/
 # Generated MCP configs
 .cursor/mcp.json
 .opencode/opencode.jsonc
+
+# Generated AI assistant rules (source: .config/rules.md)
+.cursorrules
+.cursor/rules/*
+AGENTS.md
