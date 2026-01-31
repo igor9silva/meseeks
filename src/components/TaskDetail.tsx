@@ -1,7 +1,19 @@
+import { Link } from '@tanstack/react-router';
+import { Fragment } from 'react';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { LoadingCheckbox } from '~/components/ui/loading-checkbox';
+import {
+	Breadcrumb,
+	BreadcrumbEllipsis,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from '~/components/ui/breadcrumb';
 import MDX from '~/components/ui/mdx';
+import { useTaskAncestors } from '~/hooks/query/useTaskAncestors';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import {
 	useReopen,
@@ -23,6 +35,7 @@ export default function TaskDetail({
 	showExpand?: boolean;
 }) {
 	const { task } = useCurrentTask();
+	const { ancestors } = useTaskAncestors(task._id);
 	const { resolve, isResolving } = useResolve();
 	const { reopen, isReopening } = useReopen();
 	const { updateTitle, isUpdatingTitle } = useUpdateTitle();
@@ -54,6 +67,9 @@ export default function TaskDetail({
 		>
 			<CardHeader className="p-0 md:p-4 max-w-full sticky top-0 bg-background/75 z-10">
 				<div className="flex flex-col">
+					{ancestors.length > 0 && (
+						<TaskBreadcrumbs ancestors={ancestors} currentTitle={task.title} />
+					)}
 					<div className="flex flex-row justify-between gap-2 items-center min-w-0">
 						<div className="flex items-center gap-2 min-w-0 flex-1">
 							<LoadingCheckbox
@@ -117,5 +133,56 @@ export default function TaskDetail({
 				{task.summary && <CollapsibleSummary summary={task.summary} />}
 			</CardContent>
 		</Card>
+	);
+}
+
+function TaskBreadcrumbs({
+	ancestors,
+	currentTitle,
+}: {
+	ancestors: { _id: string; title?: string | null }[];
+	currentTitle?: string | null;
+}) {
+	//
+	const maxVisible = 4;
+	const items =
+		ancestors.length > maxVisible
+			? [ancestors[0], 'ellipsis', ...ancestors.slice(-2)]
+			: ancestors;
+
+	return (
+		<Breadcrumb>
+			<BreadcrumbList>
+				{items.map((item, index) => {
+					if (item === 'ellipsis') {
+						return (
+							<Fragment key={`ellipsis-${index}`}>
+								<BreadcrumbItem>
+									<BreadcrumbEllipsis />
+								</BreadcrumbItem>
+								<BreadcrumbSeparator />
+							</Fragment>
+						);
+					}
+
+					const ancestor = item;
+					return (
+						<Fragment key={ancestor._id}>
+							<BreadcrumbItem>
+								<BreadcrumbLink asChild>
+									<Link to="/$" params={{ _splat: `task/${ancestor._id}` }} resetScroll={false}>
+										{ancestor.title ?? 'Untitled task'}
+									</Link>
+								</BreadcrumbLink>
+							</BreadcrumbItem>
+							<BreadcrumbSeparator />
+						</Fragment>
+					);
+				})}
+				<BreadcrumbItem>
+					<BreadcrumbPage>{currentTitle ?? 'Untitled task'}</BreadcrumbPage>
+				</BreadcrumbItem>
+			</BreadcrumbList>
+		</Breadcrumb>
 	);
 }

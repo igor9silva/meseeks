@@ -1,6 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { Id } from '../_generated/dataModel';
+import { internal } from '../_generated/api';
+import { Doc, Id } from '../_generated/dataModel';
 import { MutationCtx, QueryCtx } from '../_generated/server';
 import { mutation, query } from '../lib';
 import { NotFound } from '../lib/errors';
@@ -116,6 +117,26 @@ export const findOne = query({
 	},
 });
 
+export const findAncestors = query({
+	args: {
+		taskId: zid('tasks'),
+		maxDepth: z.number().min(1).max(12).optional(),
+		includeSelf: z.boolean().optional(),
+	},
+	handler: async (ctx, { taskId, maxDepth, includeSelf }): Promise<Doc<'tasks'>[]> => {
+		//
+		const { task } = await ensureTaskOwner(ctx, { taskId });
+
+		// TODO: within a query() we dont use runQuery(). Instead we just call the function directly.
+		return await ctx.runQuery(internal.tasks.private._findAncestorChain, {
+			taskId,
+			maxDepth,
+			includeSelf,
+			owner: task.owner,
+		});
+	},
+});
+
 export const findOneOrNot = query({
 	args: {
 		taskId: zid('tasks').optional(),
@@ -141,6 +162,10 @@ export const add = mutation({
 	handler: async (ctx, { message, parentId, initialFunds, preferredIntelligence }) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
+
+		if (parentId) {
+			await ensureTaskOwner(ctx, { taskId: parentId });
+		}
 
 		return await _add(ctx, {
 			author: currentUser._id,

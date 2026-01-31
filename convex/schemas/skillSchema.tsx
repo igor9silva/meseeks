@@ -65,6 +65,7 @@ export const instructionVariableSchema = z.union([
 	z.literal('task.instructions'),
 	z.literal('task.summary'),
 	z.literal('task.parent'),
+	z.literal('task.ancestors').describe('XML-like list of ancestor task context (root -> parent)'),
 	z.literal('task.energyBudget').describe('The full task budget structure, in a XML-like format'),
 	z.literal('task.energyBudget.total'),
 	z.literal('task.energyBudget.spent'),

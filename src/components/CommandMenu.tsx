@@ -269,7 +269,9 @@ export function CommandMenuDialog() {
 							<CommandItem
 								key={task._id}
 								value={`/task/${task._id}`}
-								keywords={[task.title ?? 'Untitled task']}
+								keywords={[task.title ?? 'Untitled task'].concat(
+									!task.isActive ? ['resolved', 'done', 'completed'] : [],
+								)}
 								onSelect={onSelect}
 							>
 								{!task.isActive ? <CircleCheckBig className="mr-2" /> : <Circle className="mr-2" />}

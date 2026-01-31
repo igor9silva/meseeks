@@ -1,6 +1,7 @@
 import { askForClarification } from './askForClarification';
 import { cancelSchedule } from './cancelSchedule';
 import { createSkill } from './createSkill';
+import { createSubtask } from './createSubtask';
 import { decreaseBudget } from './decreaseBudget';
 import { discard } from './discard';
 import { done } from './done';
@@ -8,6 +9,7 @@ import { getSkillDetails } from './getSkillDetails';
 import { increaseBudget } from './increaseBudget';
 import { justSay } from './justSay';
 import { lookAtMe } from './lookAtMe';
+import { moveTask } from './moveTask';
 import { reason } from './reason';
 import { render } from './render';
 import { reopen } from './reopen';
@@ -59,10 +61,9 @@ export const _builtInSkills = {
 	createSkill,
 	updateSkill,
 	getSkillDetails,
+	createSubtask,
+	moveTask,
 
 	// user info
 	setUserInfo,
 };
-
-// moveTask,
-// createSubtask,

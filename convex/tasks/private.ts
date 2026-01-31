@@ -1,6 +1,9 @@
+import { ConvexError } from 'convex/values';
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internal } from '../_generated/api';
+import type { Doc, Id } from '../_generated/dataModel';
+import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { _addMany as _addActions } from '../action/private';
 import { internalMutation, internalQuery } from '../lib';
 import { InsufficientAccountFunds, NotFound } from '../lib/errors';
@@ -16,6 +19,66 @@ type EnabledSkillDetail = {
 	key: string;
 	description: string;
 	inputSchema: string;
+};
+
+const MAX_ANCESTOR_DEPTH = 16;
+
+const ensureParentTask = async (
+	ctx: QueryCtx | MutationCtx, //
+	args: {
+		parentId: Id<'tasks'>;
+		owner: Id<'users'>;
+	},
+) => {
+	//
+	const parent = await ctx.db.get(args.parentId);
+
+	if (!parent) throw NotFound();
+	if (parent.owner !== args.owner) throw NotFound();
+
+	return parent;
+};
+
+const getAncestorChain = async (
+	ctx: QueryCtx | MutationCtx, //
+	args: {
+		taskId: Id<'tasks'>;
+		maxDepth?: number;
+		includeSelf?: boolean;
+		owner?: Id<'users'>;
+	},
+): Promise<Doc<'tasks'>[]> => {
+	//
+	const maxDepth = args.maxDepth ?? MAX_ANCESTOR_DEPTH;
+	const includeSelf = args.includeSelf ?? false;
+
+	const chain: Doc<'tasks'>[] = [];
+	const visited = new Set<Id<'tasks'>>();
+
+	let currentId: Id<'tasks'> | undefined = args.taskId;
+	let depth = 0;
+
+	while (currentId && depth <= maxDepth) {
+		//
+		if (visited.has(currentId)) break; // cycle detected
+		visited.add(currentId);
+
+		const task = await _findOne(ctx, { taskId: currentId }); // TODO: replace this with _findOne()
+		if (!task) break;
+		if (args.owner && task.owner !== args.owner) break;
+
+		chain.push(task);
+
+		if (!task.parentId) break;
+		currentId = task.parentId;
+		depth += 1;
+	}
+
+	if (!includeSelf) {
+		chain.shift();
+	}
+
+	return chain.reverse();
 };
 
 export const _findOne = internalQuery({
@@ -92,6 +155,24 @@ export const _findActiveTasks = internalQuery({
 	},
 });
 
+export const _findAncestorChain = internalQuery({
+	args: {
+		taskId: zid('tasks'),
+		maxDepth: z.number().min(1).max(MAX_ANCESTOR_DEPTH).optional(),
+		includeSelf: z.boolean().optional(),
+		owner: zid('users').optional(),
+	},
+	handler: async (ctx, { taskId, maxDepth, includeSelf, owner }) => {
+		//
+		return await getAncestorChain(ctx, {
+			taskId,
+			maxDepth,
+			includeSelf,
+			owner,
+		});
+	},
+});
+
 export const _add = internalMutation({
 	args: {
 		author: authorSchema,
@@ -107,6 +188,10 @@ export const _add = internalMutation({
 	},
 	handler: async (ctx, { author, owner, message, parentId, initialFunds, preferredIntelligence }) => {
 		//
+		if (parentId) {
+			await ensureParentTask(ctx, { parentId, owner });
+		}
+
 		const taskId = await ctx.db.insert('tasks', {
 			author,
 			owner,
@@ -169,6 +254,10 @@ export const _addWithActions = internalMutation({
 	},
 	handler: async (ctx, { author, owner, title, instructions, parentId, preferredIntelligence, skills }) => {
 		//
+		if (parentId) {
+			await ensureParentTask(ctx, { parentId, owner });
+		}
+
 		const taskId = await ctx.db.insert('tasks', {
 			author,
 			owner,
@@ -555,10 +644,37 @@ export const _move = internalMutation({
 	},
 	handler: async (ctx, { taskId, newParentId }) => {
 		//
-		return await ctx.db.patch(taskId, { parentId: newParentId });
+		const task = await _findOne(ctx, { taskId });
 
-		// TODO: forbid adding to itself
-		// TODO: report to parents as well, old and new
+		if (!newParentId) {
+			// TODO: replace this wiht _clearParent() (to be implemented)
+			return await ctx.db.patch(taskId, { parentId: undefined });
+		}
+
+		if (newParentId === taskId) {
+			throw new ConvexError({
+				code: 'InvalidParent',
+				message: 'A task cannot be moved under itself.',
+			});
+		}
+
+		await ensureParentTask(ctx, { parentId: newParentId, owner: task.owner });
+
+		const ancestors = await getAncestorChain(ctx, {
+			taskId: newParentId,
+			maxDepth: MAX_ANCESTOR_DEPTH,
+			includeSelf: false,
+			owner: task.owner,
+		});
+
+		if (ancestors.some((ancestor) => ancestor._id === taskId)) {
+			throw new ConvexError({
+				code: 'InvalidParent',
+				message: 'A task cannot be moved under one of its descendants.',
+			});
+		}
+
+		return await ctx.db.patch(taskId, { parentId: newParentId });
 	},
 });
 

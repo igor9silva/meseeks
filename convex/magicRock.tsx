@@ -45,6 +45,7 @@ const moonshot = createOpenAICompatible({
 
 // hardcoded for now, TODO: make it dynamic per intelligence config
 const MAX_CONTEXT_TOKENS = 128_000;
+const MAX_ANCESTOR_CONTEXT_DEPTH = 4;
 
 function estimateTokenCount(message: CoreMessage): number {
 	//
@@ -417,9 +418,10 @@ async function renderInstructions(
 	// Handle async variables
 	const userInfo = await getUserInfoIfNeeded(ctx, task.owner, result);
 	const taskSchedules = await getTaskSchedulesIfNeeded(ctx, task._id, result);
+	const taskAncestors = await getTaskAncestorsIfNeeded(ctx, task, result);
 
 	// Single-pass parsing that handles both escaped and normal variables correctly
-	result = parseAndReplaceVariables(result, task, action, userInfo, taskSchedules);
+	result = parseAndReplaceVariables(result, task, action, userInfo, taskSchedules, taskAncestors);
 
 	return result;
 }
@@ -430,6 +432,7 @@ function parseAndReplaceVariables(
 	action: Doc<'actions'>,
 	userInfo?: string,
 	taskSchedules?: string,
+	taskAncestors?: string,
 ): string {
 	//
 	// Use a single regex that captures all {{...}} patterns and distinguishes escaped from normal
@@ -442,7 +445,7 @@ function parseAndReplaceVariables(
 
 		// Normal variable - replace with value
 		const trimmedVariable = variableName.trim();
-		const replacedValue = valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules);
+		const replacedValue = valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules, taskAncestors);
 
 		// If the replacement contains {{}} patterns, we need to process them recursively
 		// but only if they're different from the original to avoid infinite loops
@@ -527,11 +530,15 @@ function valueForVariable(
 	action: Doc<'actions'>,
 	userInfo?: string,
 	taskSchedules?: string,
+	taskAncestors?: string,
 ): string {
 	//
 	switch (variable) {
 		//
-		case 'task':
+		case 'task': {
+			const ancestors = taskAncestors
+				? `<ancestors>${taskAncestors}</ancestors>`
+				: '<ancestors><system>no ancestors</system></ancestors>';
 			return [
 				`<id>{{task.id}}</id>`, //
 				`<title>{{task.title}}</title>`,
@@ -539,12 +546,14 @@ function valueForVariable(
 				`<createdAt>{{task.createdAt}}</createdAt>`,
 				`<lastUpdatedAt>{{task.lastUpdatedAt}}</lastUpdatedAt>`,
 				`<energyBudget>{{task.energyBudget}}</energyBudget>`,
+				ancestors,
 				`<instructions>{{task.instructions}}</instructions>`,
 				`<summary>{{task.summary}}</summary>`,
 				// `<parent>${task.parent}</parent>`,
 			]
 				.join('')
 				.replaceAll('\t', '');
+		}
 
 		case 'task.id':
 			return task._id;
@@ -569,6 +578,11 @@ function valueForVariable(
 
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';
+
+		case 'task.ancestors':
+			return taskAncestors
+				? `<ancestors>${taskAncestors}</ancestors>`
+				: '<ancestors><system>no ancestors</system></ancestors>';
 
 		case 'task.energyBudget':
 			return [
@@ -695,4 +709,49 @@ function dateOrNever(date: number | undefined) {
 	if (!date) return 'never' as const;
 
 	return new Date(date).toISOString();
+}
+
+async function getTaskAncestorsIfNeeded(
+	ctx: ActionCtx | MutationCtx,
+	task: Doc<'tasks'>,
+	text: string,
+): Promise<string | undefined> {
+	//
+	if (!text.includes('{{task}}') && !text.includes('{{task.ancestors}}')) return undefined;
+
+	if (!task.parentId) {
+		return '<system>no ancestors</system>';
+	}
+
+	try {
+		const ancestors = await ctx.runQuery(internal.tasks.private._findAncestorChain, {
+			taskId: task._id,
+			maxDepth: MAX_ANCESTOR_CONTEXT_DEPTH,
+			includeSelf: false,
+			owner: task.owner,
+		});
+
+		if (ancestors.length === 0) {
+			return '<system>no ancestors</system>';
+		}
+
+		return ancestors.map(renderAncestor).join('');
+	} catch (error) {
+		console.error('Failed to fetch task ancestors:', error);
+		return '<system>Error loading ancestors.</system>';
+	}
+}
+
+function renderAncestor(task: Doc<'tasks'>) {
+	return [
+		`<ancestor>`,
+		`<id>${task._id}</id>`,
+		`<title>${task.title ?? '<system>no title</system>'}</title>`,
+		`<status>${task.status}</status>`,
+		`<instructions>${task.instructions ?? '<system>no instructions</system>'}</instructions>`,
+		`<summary>${task.summary ?? '<system>no summary</system>'}</summary>`,
+		`</ancestor>`,
+	]
+		.join('')
+		.replaceAll('\t', '');
 }
