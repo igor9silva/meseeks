@@ -12,7 +12,7 @@ import { env } from '../../schemas/envSchema';
 import type { skillSchema } from '../../schemas/skillSchema';
 import { builtInSkillSchema } from '../../schemas/skillSchema';
 import { tokenSchema } from '../../schemas/topUpSchema';
-import { estimateCostFor } from '../../skills/createAITool';
+import { estimateCostFor, extractSystemInstructions } from '../../skills/createAITool';
 import { createReactions } from '../../skills/createReactions';
 import { _findOne as _findOneSkill } from '../../skills/private';
 import { createTool } from '../../skills/tools';
@@ -260,7 +260,15 @@ export const _resolve = internalMutation({
 
 function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
 	//
-	const parsedArgs = tool.parameters.safeParse(args);
+	// all our tools use Zod schemas, so inputSchema always has safeParse
+	const schema = tool.inputSchema;
+
+	// type guard: check that schema is a Zod schema with safeParse
+	if (!('safeParse' in schema)) {
+		throw new Error('Expected Zod schema but got something else');
+	}
+
+	const parsedArgs = schema.safeParse(args);
 
 	if (!parsedArgs.success) throw new Error(`Invalid skill args: ${parsedArgs.error.message}`);
 
@@ -513,6 +521,19 @@ async function _persistInitialActionDetails(
 				throw new Error('Context is required for soft skills during initial persistence');
 			}
 
+			const { model, provider } = (() => {
+				//
+				if (typeof context.model === 'string') {
+					const [provider, model] = context.model.split('/');
+					return { model, provider };
+				}
+
+				return {
+					model: context.model.modelId,
+					provider: context.model.provider,
+				};
+			})();
+
 			await ctx.runMutation(internal.action_details.private._persist, {
 				details: {
 					actionId: action._id,
@@ -520,11 +541,11 @@ async function _persistInitialActionDetails(
 					skillKey: skill.key,
 					skillDescription: skill.description,
 					llm: {
-						model: context.model?.modelId || 'unknown',
-						provider: context.model?.provider || 'unknown',
+						model,
+						provider,
 						temperature: context.temperature || 0.7,
-						maxTokens: context.maxTokens,
-						systemInstructions: context.system || '',
+						maxTokens: context.maxOutputTokens, // TODO: rename on DB
+						systemInstructions: extractSystemInstructions(context.system),
 						historyLength: Array.isArray(context.messages) ? context.messages.length : 0,
 						history: Array.isArray(context.messages)
 							? context.messages

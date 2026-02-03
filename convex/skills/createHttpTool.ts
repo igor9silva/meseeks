@@ -19,7 +19,7 @@ export function createHTTPTool(
 	//
 	return tool({
 		description: skill.description,
-		parameters: stringToZod(skill.inputSchema),
+		inputSchema: stringToZod(skill.inputSchema),
 		execute: async (args) => {
 			//
 			console.debug('Running skill', skill.key, args);

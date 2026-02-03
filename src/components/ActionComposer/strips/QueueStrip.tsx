@@ -97,7 +97,7 @@ function buildHeaderText(pendingCount: number, queueCount: number): string {
 	if (pendingCount > 0 && queueCount > 0) {
 		return `Sending ${pendingCount}... (${queueCount} queued)`;
 	}
-	
+
 	if (pendingCount > 0) {
 		return `Sending ${pendingCount} action${pendingCount > 1 ? 's' : ''}...`;
 	}
@@ -184,7 +184,7 @@ const QueueItem = memo(function QueueItem({
 // pending item - shows a sending indicator, no remove button
 const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill }) {
 	//
-	const label = formatSkillLabel(skill.skillKey, skill.args);
+	const label = formatSkillLabel(skill.skillKey, skill.args, true);
 
 	return (
 		<div
@@ -199,7 +199,7 @@ const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill 
 	);
 });
 
-function formatSkillLabel(skillKey: string, args: Record<string, unknown>): string {
+function formatSkillLabel(skillKey: string, args: Record<string, unknown>, isPending = false): string {
 	//
 	switch (skillKey) {
 		case 'increaseBudget': {
@@ -220,8 +220,8 @@ function formatSkillLabel(skillKey: string, args: Record<string, unknown>): stri
 		case 'justSay': {
 			const message = args['message'] as string | undefined;
 			if (message) {
-				const truncated = message.length > 30 ? message.slice(0, 30) + '...' : message;
-				return `Say: "${truncated}"`;
+				const truncated = message.length > 100 ? message.slice(0, 100) + '...' : message;
+				return isPending ? `Saying: "${truncated}"` : `Say: "${truncated}"`;
 			}
 			return 'Say';
 		}

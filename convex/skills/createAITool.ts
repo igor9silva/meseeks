@@ -1,4 +1,4 @@
-import { tool, type CoreMessage, type ToolSet } from 'ai';
+import { tool, type ModelMessage, type SystemModelMessage, type ToolSet } from 'ai';
 import type { z } from 'zod';
 import { internal } from '../_generated/api';
 import type { Doc, Id } from '../_generated/dataModel';
@@ -10,7 +10,7 @@ import type { newActionSchema } from '../schemas/actionSchema';
 import { env } from '../schemas/envSchema';
 import { DEFAULT_INTELLIGENCE, INTELLIGENCES, intelligenceKeys } from '../schemas/intelligenceSchema';
 import { type skillSchema, type softSkillSchema } from '../schemas/skillSchema';
-import type { AITool } from '../schemas/toolSchema';
+import type { AITool, AIToolResult } from '../schemas/toolSchema';
 
 export function createAITool(
 	ctx: ActionCtx | MutationCtx,
@@ -21,15 +21,21 @@ export function createAITool(
 ): AITool {
 	//
 	if (!context) {
-		return {
+		// tool definition for LLM discovery only
+		// `execute` is required since AI SDK v6
+		// _toolsForMagicRock sets execute = undefined on all tools, so this never runs
+		return tool({
 			description: skill.description,
-			parameters: stringToZod(skill.inputSchema),
-		};
+			inputSchema: stringToZod(skill.inputSchema),
+			execute: async (): Promise<AIToolResult> => {
+				throw new Error(`Tool ${skill.key} executed without context`);
+			},
+		});
 	}
 
 	return tool({
 		description: skill.description,
-		parameters: stringToZod(skill.inputSchema),
+		inputSchema: stringToZod(skill.inputSchema),
 		execute: async (args) => {
 			//
 			console.debug('Running decision skill', skill.key, args);
@@ -58,11 +64,14 @@ export function createAITool(
 				depth: action.depth + 1,
 			});
 
+			// get intelligence key for logging
+			const intelligenceKey = modelFrom(skill.config.model, task.preferredIntelligence);
+
 			let reason = finishReason;
 			if (toolCalls.length > 0 && reason === 'stop') {
 				reason = 'tool-calls';
 				console.warn(
-					`(${context.model.modelId}) Has tool calls but finish reason is 'stop': ${toolCalls.map((call) => call.toolName).join(', ')}`,
+					`(${intelligenceKey}) Has tool calls but finish reason is 'stop': ${toolCalls.map((call) => call.toolName).join(', ')}`,
 				);
 			}
 
@@ -71,7 +80,7 @@ export function createAITool(
 				case 'tool-calls':
 					//
 					if (toolCalls.length > 1) {
-						console.warn(`Multiple tool calls (model: ${context.model.modelId})`, toolCalls);
+						console.warn(`(${intelligenceKey}) Multiple tool calls`, toolCalls);
 					}
 
 					if (toolCalls.length === 0) {
@@ -90,7 +99,7 @@ export function createAITool(
 
 					reactions.push({
 						skillKey: toolCalls[0].toolName,
-						args: toolCalls[0].args,
+						args: toolCalls[0].input,
 						taskId: task._id,
 						author: action._id,
 						owner: task.owner,
@@ -128,6 +137,14 @@ export function createAITool(
 				providerMetadata,
 			});
 
+			// warn if token counts are missing (could affect billing)
+			// they're optional since AI SDK v6
+			if (usage.inputTokens === undefined || usage.outputTokens === undefined) {
+				console.warn(
+					`Missing token usage for ${skill.key}: input=${usage.inputTokens}, output=${usage.outputTokens}`,
+				);
+			}
+
 			return {
 				result: {
 					reactions,
@@ -137,8 +154,8 @@ export function createAITool(
 						symbol: 'USD',
 						amount: calculateProviderCost({
 							model: modelFrom(skill.config.model, task.preferredIntelligence),
-							inputTokens: { uncached: usage.promptTokens },
-							outputTokens: { uncached: usage.completionTokens },
+							inputTokens: { uncached: usage.inputTokens ?? 0 },
+							outputTokens: { uncached: usage.outputTokens ?? 0 },
 						}),
 						description: 'Provider cost',
 					},
@@ -163,9 +180,9 @@ export function estimateCostFor(
 	if (skill.cost !== 'dynamic') return skill.cost;
 	if (!context) throw new Error('Context is required for dynamic cost estimation');
 
-	const instructionsLength = context.system?.length ?? 0;
+	const instructionsLength = extractSystemInstructions(context.system).length;
 	const toolsLength = computeToolsLength(context.tools);
-	const historyLength = computeHistoryLength(context.messages as Array<CoreMessage>);
+	const historyLength = computeHistoryLength(context.messages as Array<ModelMessage>);
 
 	const inputLength = instructionsLength + toolsLength + historyLength;
 
@@ -238,13 +255,18 @@ function computeToolsLength(toolSet?: ToolSet) {
 	for (const key in toolSet) {
 		const tool = toolSet[key];
 		length += tool.description?.length ?? 0;
-		length += typeof tool.parameters === 'string' ? tool.parameters.length : 0;
+		// estimate schema contribution by serializing it
+		try {
+			length += JSON.stringify(tool.inputSchema).length;
+		} catch {
+			length += 100; // fallback if serialization fails
+		}
 	}
 
 	return length;
 }
 
-function computeHistoryLength(messages: Array<CoreMessage>) {
+function computeHistoryLength(messages: Array<ModelMessage>) {
 	return messages.reduce((acc, message) => acc + message.content.length, 0);
 }
 
@@ -273,8 +295,8 @@ async function _persistDetails({
 	action: Doc<'actions'>;
 	finishReason?: string;
 	text?: string;
-	toolCalls: Array<{ toolName: string; args: Record<string, unknown> }>;
-	usage: { promptTokens: number; completionTokens: number };
+	toolCalls: Array<{ toolName: string; input: Record<string, unknown> }>;
+	usage: { inputTokens: number | undefined; outputTokens: number | undefined };
 	warnings?: unknown[];
 	providerMetadata?: Record<string, unknown>;
 }) {
@@ -285,17 +307,14 @@ async function _persistDetails({
 			llm: {
 				finishReason,
 				text,
-				toolCalls: toolCalls.map((call) => ({
-					toolName: call.toolName,
-					args: call.args,
-				})),
+				toolCalls,
 				usage: {
 					input: {
-						total: usage.promptTokens,
+						total: usage.inputTokens ?? 0,
 						cached: 0, // TODO: extract from providerMetadata if available
 					},
 					output: {
-						total: usage.completionTokens,
+						total: usage.outputTokens ?? 0,
 						cached: 0, // TODO: extract from providerMetadata if available
 					},
 				},
@@ -304,4 +323,21 @@ async function _persistDetails({
 			},
 		},
 	});
+}
+
+// extract system instructions as string from any format (string, SystemModelMessage, or array)
+export function extractSystemInstructions(
+	system: string | SystemModelMessage | Array<SystemModelMessage> | undefined,
+): string {
+	//
+	if (!system) return '';
+
+	if (typeof system === 'string') return system;
+
+	if (Array.isArray(system)) {
+		return system.map((msg) => (typeof msg.content === 'string' ? msg.content : '')).join('\n');
+	}
+
+	// single SystemModelMessage
+	return typeof system.content === 'string' ? system.content : '';
 }

@@ -6,9 +6,11 @@ const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
 const httpStatusCodeSchema = z.number().min(100).max(599);
 const bodySizeSchema = z.number().min(0);
 
+// TODO: after running migrateToolCallsArgsToInput migration, remove args and make input required
 const toolCallSchema = z.object({
 	toolName: z.string(),
-	args: z.record(z.unknown()),
+	input: z.record(z.unknown()).optional(),
+	args: z.record(z.unknown()).optional().describe('[DEPRECATED] use input instead'),
 });
 
 const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');
@@ -112,7 +114,9 @@ const llmActionDetailSchema = baseActionDetailSchema
 					.string()
 					.optional()
 					.describe('Why the model stopped generating (stop, length, tool-calls, etc.)'),
+
 				text: z.string().optional().describe('Direct text response from the model'),
+
 				toolCalls: z.array(toolCallSchema).optional().describe('List of tool calls made by the model'),
 
 				// comprehensive usage statistics
@@ -120,6 +124,7 @@ const llmActionDetailSchema = baseActionDetailSchema
 
 				// warnings and metadata (preserved as-is for debugging)
 				warnings: z.array(z.unknown()).optional().describe('AI SDK warnings (can be complex objects)'),
+
 				providerMetadata: z.record(z.unknown()).optional().describe('Provider-specific metadata for debugging'),
 			})
 			.describe('Comprehensive LLM execution details including model config, context, and results'),

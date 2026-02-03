@@ -14,7 +14,7 @@ export function createBuiltInTool(
 	//
 	return tool({
 		description: skill.description,
-		parameters: skill.parameters,
+		inputSchema: skill.parameters,
 		execute: async (args) => {
 			//
 			// @ts-expect-error no time to fight this shit

@@ -8,7 +8,7 @@ import { openai } from '@ai-sdk/openai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { xai } from '@ai-sdk/xai';
 import { openrouter } from '@openrouter/ai-sdk-provider';
-import { type CoreMessage, generateText, type LanguageModel } from 'ai';
+import { type ModelMessage, generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
@@ -46,7 +46,7 @@ const moonshot = createOpenAICompatible({
 // hardcoded for now, TODO: make it dynamic per intelligence config
 const MAX_CONTEXT_TOKENS = 128_000;
 
-function estimateTokenCount(message: CoreMessage): number {
+function estimateTokenCount(message: ModelMessage): number {
 	//
 	let content = '';
 
@@ -74,42 +74,65 @@ export async function _prepareContext(
 	skill: z.infer<typeof softSkillSchema>,
 ): Promise<MagicRockContext> {
 	//
-	const model = languageModelFrom(skill.config.model, task.preferredIntelligence);
-	const [history, tools, instructions] = await Promise.all([
+	const intelligenceKey = modelFrom(skill.config.model, task.preferredIntelligence);
+	const model = languageModelFrom(intelligenceKey);
+
+	const [history, instructions, tools] = await Promise.all([
 		renderHistory(ctx, task, action, skill),
-		loadTools(ctx, task, action, skill),
 		renderInstructions(ctx, task, action, skill),
+		renderTools(ctx, task, action, skill),
 	]);
 
-	console.debug('model', model.modelId, model.provider);
+	console.debug('model', intelligenceKey);
 	console.debug('instructions', instructions);
 
-	// TODO: remove those hacks
-	const isAnthropic = model.provider.toLowerCase().includes('anthropic');
-	const isGPT5 = model.modelId.toLowerCase().includes('gpt-5');
-	const isKimi25 = model.modelId.includes('kimi-k2.5');
+	// determine provider from intelligence key
+	const isAnthropic = intelligenceKey.startsWith('anthropic/');
+	const isOpenAI = intelligenceKey.startsWith('openai/');
+	const isGoogle = intelligenceKey.startsWith('google/');
+	const isGPT5 = intelligenceKey.includes('gpt-5');
+	const isMoonshot = intelligenceKey.startsWith('moonshot/');
 
 	// TODO: remove those hacks
 	const temperature = (() => {
 		//
 		// those models dont support custom temperatures
 		if (isGPT5) return 1;
-		if (isKimi25) return 0.6;
+		if (isMoonshot) return 0.6;
 
 		return skill.config.temperature;
 	})();
 
+	// build provider options based on the model provider
+	const providerOptions = {
+		// OpenAI: disable parallel tool calls
+		...(isOpenAI && { openai: { parallelToolCalls: false } }),
+		// Google: set safety settings to allow all content
+		...(isGoogle && {
+			google: {
+				safetySettings: [
+					{ category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+					{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+					{ category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+					{ category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+					{ category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+				],
+			},
+		}),
+		// Kimi: disable thinking
+		...(isMoonshot && { moonshot: { thinking: { type: 'disabled' } } }),
+	};
+
 	return {
 		model,
 		temperature,
-		maxTokens: skill.config.maxTokens ?? undefined,
+		maxOutputTokens: skill.config.maxTokens ?? undefined,
 		frequencyPenalty: skill.config.frequencyPenalty ?? undefined,
 		maxRetries: skill.config.maxRetries ?? undefined,
 		seed: skill.config.seed ?? undefined,
 		topK: skill.config.topK ?? undefined,
 		topP: skill.config.topP ?? undefined,
 		stopSequences: skill.config.stopSequences ?? undefined,
-		maxSteps: 1, // we are not using AI SDK to run tools or multi-step stuff
 		toolChoice: 'required',
 		system: instructions,
 		messages: isAnthropic
@@ -118,7 +141,7 @@ export async function _prepareContext(
 						role: 'system',
 						content: instructions,
 						providerOptions: {
-							// TODO: AI SDK says this is on by default, but doesn't look like it is
+							// AI SDK says this is on by default, but doesn't look like it is
 							anthropic: { cacheControl: { type: 'ephemeral' } },
 						},
 					},
@@ -126,9 +149,13 @@ export async function _prepareContext(
 				]
 			: history,
 		tools: tools,
-		// kimi 2.5 has thinking enabled by default, we want to disable it
-		providerOptions: isKimi25 ? { moonshot: { thinking: { type: 'disabled' } } } : undefined,
+		providerOptions: Object.keys(providerOptions).length > 0 ? providerOptions : undefined,
 	};
+}
+
+// type guard: check if value is a record (object with string keys)
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export async function _askMagicRock(args: MagicRockContext) {
@@ -146,7 +173,16 @@ export async function _askMagicRock(args: MagicRockContext) {
 	const result = {
 		finishReason,
 		text,
-		toolCalls,
+		// normalize toolCalls: ensure input is always a record
+		toolCalls: toolCalls.map((call) => {
+			//
+			if (!isRecord(call.input)) {
+				console.warn(`Unexpected non-record tool input for ${call.toolName}:`, typeof call.input, call.input);
+				return { toolName: call.toolName, input: {} };
+			}
+
+			return { toolName: call.toolName, input: call.input };
+		}),
 		usage,
 		warnings,
 		providerMetadata,
@@ -158,27 +194,9 @@ export async function _askMagicRock(args: MagicRockContext) {
 }
 
 function languageModelFrom(
-	skillModel: IntelligenceKey | 'auto', //
-	taskPreferredIntelligence?: IntelligenceKey,
-): LanguageModel {
+	intelligenceKey: IntelligenceKey, //
+) {
 	//
-	const model = modelFrom(skillModel, taskPreferredIntelligence);
-
-	const openAIconfig = {
-		// TODO: in order to support performing actions in parallel, we first need a proper CoA with aggregated statuses
-		parallelToolCalls: false,
-	};
-
-	const googleConfig = {
-		safetySettings: [
-			{ category: 'HARM_CATEGORY_CIVIC_INTEGRITY' as const, threshold: 'OFF' as const },
-			{ category: 'HARM_CATEGORY_HARASSMENT' as const, threshold: 'OFF' as const },
-			{ category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT' as const, threshold: 'OFF' as const },
-			{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT' as const, threshold: 'OFF' as const },
-			{ category: 'HARM_CATEGORY_HATE_SPEECH' as const, threshold: 'OFF' as const },
-		],
-	};
-
 	// TODO: move this into @intelligenceSchema.ts
 	const map: Record<IntelligenceKey, LanguageModel> = {
 		//
@@ -193,19 +211,19 @@ function languageModelFrom(
 		'anthropic/claude-3.5-haiku': anthropic('claude-3-5-haiku-latest'),
 
 		// OpenAI
-		'openai/gpt-5': openai('gpt-5', openAIconfig),
-		'openai/gpt-5-mini': openai('gpt-5-mini', openAIconfig),
-		'openai/gpt-5-nano': openai('gpt-5-nano', openAIconfig),
-		'openai/gpt-4.1': openai('gpt-4.1', openAIconfig),
-		'openai/gpt-4.1-mini': openai('gpt-4.1-mini', openAIconfig),
-		'openai/gpt-4.1-nano': openai('gpt-4.1-nano', openAIconfig),
+		'openai/gpt-5': openai('gpt-5'),
+		'openai/gpt-5-mini': openai('gpt-5-mini'),
+		'openai/gpt-5-nano': openai('gpt-5-nano'),
+		'openai/gpt-4.1': openai('gpt-4.1'),
+		'openai/gpt-4.1-mini': openai('gpt-4.1-mini'),
+		'openai/gpt-4.1-nano': openai('gpt-4.1-nano'),
 		'openai/gpt-oss-120b': openrouter('openai/gpt-oss-120b'),
 		'openai/gpt-oss-20b': openrouter('openai/gpt-oss-20b'),
 
 		// Google
-		'google/gemini-2.5-pro': google('gemini-2.5-pro', googleConfig),
-		'google/gemini-2.5-flash': google('gemini-2.5-flash', googleConfig),
-		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite', googleConfig),
+		'google/gemini-2.5-pro': google('gemini-2.5-pro'),
+		'google/gemini-2.5-flash': google('gemini-2.5-flash'),
+		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite'),
 
 		// xAI
 		'xai/grok-4.1-fast-non-reasoning': xai('grok-4-1-fast-non-reasoning'),
@@ -244,9 +262,9 @@ function languageModelFrom(
 		// 'together/llama-4-maverick': togetherai('meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8'),
 	};
 
-	if (model in map) return map[model];
+	if (intelligenceKey in map) return map[intelligenceKey];
 
-	throw new Error(`Unknown model: ${model}`);
+	throw new Error(`Unknown model: ${intelligenceKey}`);
 
 	// EXPERIMENTS
 	// model: anthropic('claude-4-sonnet-20250514'), // <---- AGI
@@ -273,7 +291,7 @@ function languageModelFrom(
 	// }),
 }
 
-async function loadTools(
+async function renderTools(
 	ctx: ActionCtx | MutationCtx, //
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
@@ -310,7 +328,7 @@ async function loadTools(
 	return tools;
 }
 
-function cropHistoryToTokenLimit(history: CoreMessage[], maxTokens: number = MAX_CONTEXT_TOKENS): CoreMessage[] {
+function cropHistoryToTokenLimit(history: ModelMessage[], maxTokens: number = MAX_CONTEXT_TOKENS): ModelMessage[] {
 	//
 	const totalTokens = history.reduce((sum, message) => sum + estimateTokenCount(message), 0);
 
@@ -335,7 +353,7 @@ async function renderHistory(
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 	skill: z.infer<typeof softSkillSchema>,
-): Promise<Array<CoreMessage>> {
+): Promise<Array<ModelMessage>> {
 	//
 	const actions = await ctx.runQuery(internal.action.private._findLastActions, {
 		taskId: task._id,
@@ -371,7 +389,7 @@ async function renderHistory(
 function renderAction(
 	action: Doc<'actions'>, //
 	isUser: boolean,
-): CoreMessage | Array<CoreMessage> | undefined {
+): ModelMessage | Array<ModelMessage> | undefined {
 	//
 	return {
 		role: isUser ? 'user' : 'assistant',
