@@ -249,11 +249,10 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 			clear();
 
 			// run mutation in background (don't await - allows rapid submissions)
-			act({ taskId, skills, shouldReopen: true })
-				.finally(() => {
-					// remove this batch's items when mutation completes
-					setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
-				});
+			act({ taskId, skills, shouldReopen: true }).finally(() => {
+				// remove this batch's items when mutation completes
+				setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
+			});
 		},
 		[taskId, queue, message, act, clear],
 	);
@@ -302,7 +301,33 @@ function buildFinalSkills(queue: EnqueuedSkill[], message: string, task: Doc<'ta
 		result.push({ skillKey: 'requestIteration', args: {} });
 	}
 
-	return result;
+	// hack so only the last action in a single submission should trigger reactions
+	if (result.length <= 1) return result;
+
+	const lastIndex = result.length - 1;
+
+	return result.map((skill, index) => {
+		//
+		if (index === lastIndex) return skill;
+
+		// the last `say` becomes `justSay`
+		if (skill.skillKey === 'say') {
+			return {
+				...skill,
+				skillKey: 'justSay',
+			};
+		}
+
+		if (skill.skillKey === 'increaseBudget') {
+			return {
+				...skill,
+				// flag with shouldIterate: false
+				args: { ...skill.args, shouldIterate: false },
+			};
+		}
+
+		return skill;
+	});
 }
 
 function toSkillToEnqueue(skill: EnqueuedSkill): SkillToEnqueue {

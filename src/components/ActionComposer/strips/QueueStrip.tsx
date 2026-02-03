@@ -216,7 +216,8 @@ function formatSkillLabel(skillKey: string, args: Record<string, unknown>): stri
 			}
 			return 'Decrease budget';
 		}
-		case 'say': {
+		case 'say':
+		case 'justSay': {
 			const message = args['message'] as string | undefined;
 			if (message) {
 				const truncated = message.length > 30 ? message.slice(0, 30) + '...' : message;
