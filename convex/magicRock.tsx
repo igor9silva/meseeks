@@ -90,6 +90,7 @@ export async function _prepareContext(
 	const isAnthropic = intelligenceKey.startsWith('anthropic/');
 	const isOpenAI = intelligenceKey.startsWith('openai/');
 	const isGoogle = intelligenceKey.startsWith('google/');
+	const isXai = intelligenceKey.startsWith('xai/');
 	const isGPT5 = intelligenceKey.includes('gpt-5');
 	const isMoonshot = intelligenceKey.startsWith('moonshot/');
 
@@ -119,6 +120,8 @@ export async function _prepareContext(
 				],
 			},
 		}),
+		// xAI: set server-side storage
+		...(isXai && { xai: { store: true } }), // true is the default
 		// Kimi: disable thinking
 		...(isMoonshot && { moonshot: { thinking: { type: 'disabled' } } }),
 	};
@@ -226,12 +229,12 @@ function languageModelFrom(
 		'google/gemini-2.5-flash-lite': google('gemini-2.5-flash-lite'),
 
 		// xAI
-		'xai/grok-4.1-fast-non-reasoning': xai('grok-4-1-fast-non-reasoning'),
-		'xai/grok-4': xai('grok-4-0709'),
-		'xai/grok-4-fast-non-reasoning': xai('grok-4-fast-non-reasoning'),
-		'xai/grok-code-fast-1': xai('grok-code-fast-1-0825'),
-		'xai/grok-3': xai('grok-3'),
-		'xai/grok-3-mini': xai('grok-3-mini'),
+		'xai/grok-4.1-fast-non-reasoning': xai.responses('grok-4-1-fast-non-reasoning'),
+		'xai/grok-4': xai.responses('grok-4-0709'),
+		'xai/grok-4-fast-non-reasoning': xai.responses('grok-4-fast-non-reasoning'),
+		'xai/grok-code-fast-1': xai.responses('grok-code-fast-1-0825'),
+		'xai/grok-3': xai.responses('grok-3'),
+		'xai/grok-3-mini': xai.responses('grok-3-mini'),
 
 		// Groq
 		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
