@@ -204,7 +204,6 @@ function languageModelFrom(
 	const map: Record<IntelligenceKey, LanguageModel> = {
 		//
 		// Anthropic
-		'anthropic/claude-4.6-opus': anthropic('claude-opus-4-6'),
 		'anthropic/claude-4.5-opus': anthropic('claude-opus-4-5-20251101'),
 		'anthropic/claude-4.1-opus': anthropic('claude-opus-4-1-20250805'),
 		'anthropic/claude-4.5-sonnet': anthropic('claude-sonnet-4-5-20250929'),
