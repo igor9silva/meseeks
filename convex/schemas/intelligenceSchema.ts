@@ -47,12 +47,13 @@ export const INTELLIGENCE_PROGRESSION = {
 	'xai/grok-4.1-fast-non-reasoning': 0.2,
 	'moonshot/kimi-2.5': 50.0, // Kimi first so it's preferred
 	'cerebras/zai-glm-4.7': 50.0, // GLM after so it's never auto-selected, but still listed as recommended
-	'anthropic/claude-4.5-opus': Number.POSITIVE_INFINITY,
+	'anthropic/claude-4.6-opus': Number.POSITIVE_INFINITY,
 } as const;
 
 export const intelligenceKeys = z.enum([
 	//
 	// Anthropic
+	'anthropic/claude-4.6-opus',
 	'anthropic/claude-4.5-opus',
 	'anthropic/claude-4.1-opus',
 	'anthropic/claude-4.5-sonnet',
@@ -120,14 +121,22 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//           Anthropic
 	// ==============================
-	'anthropic/claude-4.5-opus': {
-		key: 'anthropic/claude-4.5-opus',
-		name: 'Claude 4.5 Opus',
+	'anthropic/claude-4.6-opus': {
+		key: 'anthropic/claude-4.6-opus',
+		name: 'Claude 4.6 Opus',
 		description: 'GOAT performance 🐐, WOAT pricing ⚠️',
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 5, output: 25 }),
 		context: buildContext(200_000),
 		intelligenceLevel: 10,
+	},
+	'anthropic/claude-4.5-opus': {
+		key: 'anthropic/claude-4.5-opus',
+		name: 'Claude 4.5 Opus',
+		provider: 'Anthropic',
+		pricing: buildPricing({ input: 5, output: 25 }),
+		context: buildContext(200_000),
+		intelligenceLevel: 9,
 	},
 	'anthropic/claude-4.1-opus': {
 		key: 'anthropic/claude-4.1-opus',
@@ -135,7 +144,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 15, output: 75 }),
 		context: buildContext(128_000),
-		intelligenceLevel: 9,
+		intelligenceLevel: 7,
 	},
 	'anthropic/claude-4.5-sonnet': {
 		key: 'anthropic/claude-4.5-sonnet',
@@ -144,7 +153,7 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		provider: 'Anthropic',
 		pricing: buildPricing({ input: 3, output: 15 }),
 		context: buildContext(128_000),
-		intelligenceLevel: 7,
+		intelligenceLevel: 8,
 	},
 	'anthropic/claude-4.5-haiku': {
 		key: 'anthropic/claude-4.5-haiku',
