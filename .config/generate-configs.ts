@@ -23,7 +23,7 @@
  * Note: Generated files are gitignored. Edit the source files only.
  */
 
-import { mcpConfig } from './mcp.config';
+import { mcpConfig, type MCPServerConfig } from './mcp.config';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -150,10 +150,29 @@ function toTomlKey(key: string): string {
 	return JSON.stringify(key);
 }
 
+function getCodexServerConfig(key: string, server: MCPServerConfig): MCPServerConfig {
+	//
+	if (key !== 'Convex') {
+		return server;
+	}
+
+	const args = ['run', '.config/codex/convex-mcp-bridge.ts', '--', server.command].concat(server.args);
+
+	return {
+		name: server.name,
+		command: 'bun',
+		args,
+		env: server.env,
+		enabled: server.enabled,
+		description: server.description,
+	};
+}
+
 /**
  * Generate Codex MCP config (.codex/config.toml)
  */
 function generateCodexConfig(): void {
+	//
 	const enabledServers = getEnabledServers();
 	let tomlContent = `# MCP Servers Configuration
 # Generated from .config/mcp.config.ts
@@ -166,19 +185,21 @@ function generateCodexConfig(): void {
 	}
 
 	for (const [key, server] of enabledServers) {
+		const codexServer = getCodexServerConfig(key, server);
+
 		tomlContent += `
 # ${server.description || key}
 [mcp_servers.${toTomlKey(key)}]
-command = ${toTomlString(server.command)}
-args = ${toTomlArray(server.args)}
+command = ${toTomlString(codexServer.command)}
+args = ${toTomlArray(codexServer.args)}
 `;
 
-		if (server.env && Object.keys(server.env).length > 0) {
+		if (codexServer.env && Object.keys(codexServer.env).length > 0) {
 			tomlContent += `
 [mcp_servers.${toTomlKey(key)}.env]
 `;
 
-			for (const [envKey, envValue] of Object.entries(server.env)) {
+			for (const [envKey, envValue] of Object.entries(codexServer.env)) {
 				tomlContent += `${toTomlKey(envKey)} = ${toTomlString(envValue)}\n`;
 			}
 		}
