@@ -11,6 +11,7 @@
  * This will create:
  *   - .cursor/mcp.json (for Cursor IDE)
  *   - .opencode/opencode.jsonc (for OpenCode)
+ *   - .codex/config.toml (for Codex app)
  *   - AGENTS.md (shared rules for all AI assistants)
  *   - .agents/skills/ (skills for AI assistants)
  *
@@ -137,6 +138,69 @@ function writeOpenCodeConfig(content: string): void {
 	console.log(`✓ Generated ${opencodePath}`);
 }
 
+function toTomlString(value: string): string {
+	return JSON.stringify(value);
+}
+
+function toTomlArray(values: string[]): string {
+	return `[${values.map((value) => toTomlString(value)).join(', ')}]`;
+}
+
+function toTomlKey(key: string): string {
+	return JSON.stringify(key);
+}
+
+/**
+ * Generate Codex MCP config (.codex/config.toml)
+ */
+function generateCodexConfig(): void {
+	const enabledServers = getEnabledServers();
+	let tomlContent = `# MCP Servers Configuration
+# Generated from .config/mcp.config.ts
+`;
+
+	if (enabledServers.length === 0) {
+		tomlContent += '# No enabled MCP servers.\n';
+		writeCodexConfig(tomlContent);
+		return;
+	}
+
+	for (const [key, server] of enabledServers) {
+		tomlContent += `
+# ${server.description || key}
+[mcp_servers.${toTomlKey(key)}]
+command = ${toTomlString(server.command)}
+args = ${toTomlArray(server.args)}
+`;
+
+		if (server.env && Object.keys(server.env).length > 0) {
+			tomlContent += `
+[mcp_servers.${toTomlKey(key)}.env]
+`;
+
+			for (const [envKey, envValue] of Object.entries(server.env)) {
+				tomlContent += `${toTomlKey(envKey)} = ${toTomlString(envValue)}\n`;
+			}
+		}
+	}
+
+	writeCodexConfig(tomlContent);
+}
+
+function writeCodexConfig(content: string): void {
+	const codexDir = path.join(PROJECT_ROOT, '.codex');
+
+	if (!fs.existsSync(codexDir)) {
+		fs.mkdirSync(codexDir, { recursive: true });
+	}
+
+	const codexPath = path.join(codexDir, 'config.toml');
+
+	fs.writeFileSync(codexPath, `${content.trimEnd()}\n`);
+
+	console.log(`✓ Generated ${codexPath}`);
+}
+
 /**
  * Read the rules source file
  */
@@ -228,6 +292,7 @@ try {
 	console.log('📡 MCP Configurations:');
 	generateCursorConfig();
 	generateOpenCodeConfig();
+	generateCodexConfig();
 
 	// Generate rules
 	console.log('\n📋 AI Assistant Rules:');

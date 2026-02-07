@@ -1,6 +1,6 @@
 // Central MCP Configuration
 // This file is the single source of truth for MCP server configurations
-// Run `bun run build:mcp` to generate outputs for Cursor and OpenCode
+// Run `bun run build:config` to generate outputs for Cursor, OpenCode, and Codex
 
 export interface MCPServerConfig {
 	// Display name for the server
