@@ -90,7 +90,7 @@ export function createAITool(
 					// TODO: disabled multiple tool calls for now - we need to improve lifecyle first
 					// ...toolCalls.map((call) => ({
 					// 	skillKey: call.toolName,
-					// 	args: call.args,
+					// 	args: call.input,
 					// 	taskId: task._id,
 					// 	author: action._id,
 					// 	owner: task.owner,

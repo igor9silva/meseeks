@@ -174,8 +174,10 @@ One file per hook in `src/hooks/`.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
+- In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
+- For "update/rebase from main" requests, point to local `main`, not origin/main
+- Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 
 ## Rule Conflicts
 
 CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, discuss with the user. Document any exceptions with a comment.
-
