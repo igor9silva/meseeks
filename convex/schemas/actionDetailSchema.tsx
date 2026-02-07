@@ -6,11 +6,9 @@ const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
 const httpStatusCodeSchema = z.number().min(100).max(599);
 const bodySizeSchema = z.number().min(0);
 
-// TODO: after running migrateToolCallsArgsToInput migration, remove args and make input required
 const toolCallSchema = z.object({
 	toolName: z.string(),
-	input: z.record(z.unknown()).optional(),
-	args: z.record(z.unknown()).optional().describe('[DEPRECATED] use input instead'),
+	input: z.record(z.unknown()),
 });
 
 const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');

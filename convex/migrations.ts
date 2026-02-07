@@ -48,38 +48,6 @@ export const backfillActionDetailsHistory = migrations.define({
 	},
 });
 
-// Migration to rename toolCalls.args → toolCalls.input
-export const migrateToolCallsArgsToInput = migrations.define({
-	table: 'action_details',
-	batchSize: 25,
-	migrateOne: async (_ctx, doc) => {
-		//
-		if (doc.skillKind !== 'soft') return doc;
-
-		const llm = doc.llm;
-
-		// check if any toolCalls have args but not input
-		if (!llm.toolCalls?.some((call) => 'args' in call && !('input' in call))) {
-			return doc;
-		}
-
-		// convert args → input
-		const updatedToolCalls = llm.toolCalls.map((call) => {
-			if ('args' in call && !('input' in call)) {
-				const { args, ...rest } = call;
-				return { ...rest, input: args };
-			}
-			return call;
-		});
-
-		return {
-			...doc,
-			llm: { ...llm, toolCalls: updatedToolCalls },
-		};
-	},
-});
-
 // Runner function to execute the migration
 export const runEnableMissingSkillsFour = migrations.runner(internal.migrations.enableMissingSkillsFour);
 export const runBackfillActionDetailsHistory = migrations.runner(internal.migrations.backfillActionDetailsHistory);
-export const runMigrateToolCallsArgsToInput = migrations.runner(internal.migrations.migrateToolCallsArgsToInput);
