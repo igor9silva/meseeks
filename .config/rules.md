@@ -164,6 +164,17 @@ One file per hook in `src/hooks/`.
 - Performant
 - Well-written and readable
 
+## Generated Files
+
+- `.config/rules.md` is the source of truth for AI assistant rules
+- `AGENTS.md` is auto-generated from `rules.md` on file change — never edit it directly, never run the generator manually
+
+## Making Changes
+
+- When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
+- Clean up the full impact of every change, not just the literal lines requested
+- Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
+
 ## Rule Conflicts
 
 CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, discuss with the user. Document any exceptions with a comment.
