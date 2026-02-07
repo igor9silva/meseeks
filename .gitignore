@@ -24,6 +24,7 @@ dist/
 ## MCP configs
 .cursor/mcp.json
 .opencode/opencode.jsonc
+.codex/config.toml
 
 ## Rules (source: .config/rules.md)
 .cursorrules
