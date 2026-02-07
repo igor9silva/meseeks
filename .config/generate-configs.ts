@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 /**
- * MCP Config & Rules Generator
+ * MCP Config, Rules & Skills Generator
  *
- * Generates MCP configuration files and AI assistant rules from
+ * Generates MCP configuration files, AI assistant rules, and skills from
  * central sources of truth.
  *
  * Usage:
@@ -12,10 +12,12 @@
  *   - .cursor/mcp.json (for Cursor IDE)
  *   - .opencode/opencode.jsonc (for OpenCode)
  *   - AGENTS.md (shared rules for all AI assistants)
+ *   - .agents/skills/ (skills for AI assistants)
  *
  * Sources:
  *   - .config/mcp.config.ts → MCP configs
  *   - .config/rules.md → AI assistant rules
+ *   - .config/skills/ → AI assistant skills
  *
  * Note: Generated files are gitignored. Edit the source files only.
  */
@@ -26,6 +28,8 @@ import * as path from 'node:path';
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const RULES_SOURCE = path.join(PROJECT_ROOT, '.config', 'rules.md');
+const SKILLS_SOURCE = path.join(PROJECT_ROOT, '.config', 'skills');
+const SKILLS_TARGET = path.join(PROJECT_ROOT, '.agents', 'skills');
 
 /**
  * Filter out disabled servers
@@ -169,6 +173,53 @@ function generateRules(): void {
 	}
 }
 
+/**
+ * Recursively copy a directory
+ */
+function copyDirRecursive(src: string, dest: string): void {
+	//
+	if (!fs.existsSync(dest)) {
+		fs.mkdirSync(dest, { recursive: true });
+	}
+
+	const entries = fs.readdirSync(src, { withFileTypes: true });
+
+	for (const entry of entries) {
+		const srcPath = path.join(src, entry.name);
+		const destPath = path.join(dest, entry.name);
+
+		if (entry.isDirectory()) {
+			copyDirRecursive(srcPath, destPath);
+		} else {
+			fs.copyFileSync(srcPath, destPath);
+		}
+	}
+}
+
+/**
+ * Generate skills (.agents/skills/)
+ *
+ * Copies skill files from .config/skills/ to .agents/skills/.
+ */
+function generateSkills(): void {
+	//
+	if (!fs.existsSync(SKILLS_SOURCE)) {
+		console.log('  No skills source directory found, skipping');
+		return;
+	}
+
+	// clean target directory
+	if (fs.existsSync(SKILLS_TARGET)) {
+		fs.rmSync(SKILLS_TARGET, { recursive: true });
+	}
+
+	copyDirRecursive(SKILLS_SOURCE, SKILLS_TARGET);
+
+	const skillDirs = fs.readdirSync(SKILLS_SOURCE, { withFileTypes: true }).filter((e) => e.isDirectory());
+
+	console.log(`✓ Generated ${SKILLS_TARGET} (${skillDirs.length} skills)`);
+}
+
 // Main execution
 console.log('🔄 Generating configuration files...\n');
 
@@ -182,10 +233,14 @@ try {
 	console.log('\n📋 AI Assistant Rules:');
 	generateRules();
 
+	// Generate skills
+	console.log('\n🧠 AI Assistant Skills:');
+	generateSkills();
+
 	console.log('\n✅ All configurations generated successfully!');
 	console.log('\nNext steps:');
 	console.log('  1. Restart your editor to load new rules');
-	console.log('  2. To modify rules, edit .config/rules.md and rerun this script');
+	console.log('  2. To modify configs, edit files in .config/ and rerun this script');
 } catch (error) {
 	console.error('\n❌ Error generating configs:', error);
 	process.exit(1);

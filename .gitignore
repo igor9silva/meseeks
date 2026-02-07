@@ -19,11 +19,16 @@ dist/
 # Sentry Config File
 .env.sentry-build-plugin
 
-# Generated MCP configs
+# Generated 
+
+## MCP configs
 .cursor/mcp.json
 .opencode/opencode.jsonc
 
-# Generated AI assistant rules (source: .config/rules.md)
+## Rules (source: .config/rules.md)
 .cursorrules
 .cursor/rules/*
 AGENTS.md
+
+## Skills (source: .config/skills/)
+.agents/skills/
