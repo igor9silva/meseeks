@@ -23,6 +23,7 @@ For each mistake found, extract:
 1. **What happened** — the specific bad behavior
 2. **Why it was wrong** — what the user expected instead
 3. **Root cause** — the general pattern behind the mistake (not the specific instance)
+4. **Evidence** — the concrete user correction/steering message that proves the mistake happened
 
 ### Generalizing properly
 
@@ -35,6 +36,26 @@ This is the critical part. Don't write rules about the specific code that was wr
 **Good** (general): "Clean up the full impact of every change, not just the literal lines requested"
 
 Ask yourself: "If I saw a completely different codebase with a similar mistake, would this rule still prevent it?" If no, generalize further.
+
+### prefer examples over abstract wording
+
+When adding or tightening rules, prefer concise examples over abstract-only phrasing.
+
+- If a rule could be interpreted in multiple ways, include a short `bad`/`good` pair.
+- Keep examples minimal and representative of the behavior you want to change.
+- Do not add examples when the rule is already unambiguous and the example adds noise.
+- Use examples to create emphasis. Like when you already had a rule, but it still failed.
+
+### qualify mistakes before adding rules
+
+Bias toward signals where the user had to correct, redirect, or steer the model.
+
+Do **not** add a rule when:
+- The model already followed the correct behavior
+
+Do add or update rules for explicit user preferences when the preference is durable (conventions, naming, process expectations) and capturing it will improve future behavior.
+
+When context is compacted or partially missing, use the best available signals and avoid inventing facts. Do not block useful rule updates only because confidence is not perfect. Make it explict so learn() can catch it.
 
 ## Step 2: Read and critique current rules
 
@@ -57,6 +78,15 @@ Open `.config/rules.md` and apply changes. For each lesson learned:
 1. **Already covered?** — skip it, or strengthen the wording if the current version wasn't clear enough to prevent the mistake
 2. **Fits an existing section?** — add it there
 3. **New category?** — create a new section in a logical position, matching the file's existing structure and conventions
+
+### quality check for rule changes
+
+Use this as a lightweight checklist (not a hard gate):
+
+1. It improves future behavior in a meaningful way
+2. It is grounded in user correction/steering or explicit user preference from this conversation
+3. It addresses root cause and is scoped enough to avoid over-correcting unrelated work
+4. It includes concise examples when examples would materially reduce ambiguity
 
 ### Keeping the file concise
 
@@ -81,3 +111,6 @@ Tell the user:
 - How many mistakes were identified
 - What rules were added, modified, or merged
 - Whether any existing rules were tightened or reorganized
+- Which candidate lessons were skipped (if any) because they were already covered or would not change behavior
+- If the thread was compacted, include a short **Compaction Notes** line listing preserved steering/learning cues and any missing context that could limit confidence
+- Which example-based rules/examples were added (or why none were needed)
