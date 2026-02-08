@@ -168,6 +168,7 @@ One file per hook in `src/hooks/`.
 
 - `.config/rules.md` is the source of truth for AI assistant rules
 - `AGENTS.md` is auto-generated from `rules.md` on file change — never edit it directly, never run the generator manually
+- `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
 
 ## Making Changes
 
@@ -177,6 +178,18 @@ One file per hook in `src/hooks/`.
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
+
+## Communication Quality
+
+- Never present assumptions as facts; if uncertain, say it's an assumption and verify before claiming behavior
+- Do not invent justifications (such as "compatibility" or existing constraints) that are not explicitly present in code, docs, or user requirements
+- If scope shifts or the user says the execution is off-track, restate the exact requested outcome and complete that before proposing extras
+- Prefer example-driven guidance when defining or updating rules; use concise `bad`/`good` examples when wording could be interpreted in multiple ways
+- Use logical quote punctuation for inline quoted fragments: when a comma belongs to the sentence (not the quote), place it outside the closing quote. bad: `keep “don’t add rules for already-correct behavior,” allow preference capture`; good: `keep “don’t add rules for already-correct behavior”, allow preference capture`
+
+## Context Compaction
+
+- When compacting context or writing handoff summaries, explicitly preserve user corrections, steering moments, rejected approaches, and unresolved decisions so the final `learn` pass can use them
 
 ## Rule Conflicts
 
