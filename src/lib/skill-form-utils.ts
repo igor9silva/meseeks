@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'convex/lib/money';
-import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'convex/schemas/skillSchema';
+import { hardSkillSchema, newSkillSchema, skillSetKeySchema, softSkillSchema } from 'convex/schemas/skillSchema';
 import { DefaultValues } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -10,9 +10,15 @@ type NewSoftSkill = Extract<NewSkillUnion, { kind: 'soft' }>;
 type NewHardSkill = Extract<NewSkillUnion, { kind: 'hard' }>;
 
 // Create form schemas by making the config fields optional for better UX
+const skillSetFormSchema = z.union([
+	skillSetKeySchema, //
+	z.literal(''),
+]);
+
 export const softSkillFormSchema = softSkillSchema.omit({ author: true, owner: true, cost: true }).extend({
 	// Make config fields optional with good defaults for form handling
 	config: softSkillSchema.shape.config.partial(),
+	skillSet: skillSetFormSchema.optional(),
 });
 
 export const hardSkillFormSchema = hardSkillSchema.omit({ author: true, owner: true, cost: true }).extend({
@@ -20,6 +26,7 @@ export const hardSkillFormSchema = hardSkillSchema.omit({ author: true, owner: t
 	config: hardSkillSchema.shape.config.partial(),
 	// Add bodyTemplate as a required string for easier form handling
 	bodyTemplate: z.string().default('{}'),
+	skillSet: skillSetFormSchema.optional(),
 });
 
 export type SoftSkillFormValues = z.infer<typeof softSkillFormSchema>;
@@ -31,6 +38,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 	if (!skill || skill.kind !== 'soft') {
 		return {
 			key: '',
+			skillSet: '',
 			description: '',
 			kind: 'soft',
 			inputSchema: '{}',
@@ -43,11 +51,12 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 				availableSkills: [],
 				historyMode: 'since last instructed',
 			},
-		} as DefaultValues<SoftSkillFormValues>;
+		};
 	}
 
 	return {
 		key: skill.key,
+		skillSet: skill.skillSet || '',
 		description: skill.description,
 		kind: 'soft',
 		inputSchema: skill.inputSchema,
@@ -63,7 +72,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 						availableSkills: [],
 						historyMode: 'since last instructed',
 					},
-	} as DefaultValues<SoftSkillFormValues>;
+	};
 }
 
 export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSkillFormValues> {
@@ -71,6 +80,7 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSk
 	if (!skill || skill.kind !== 'hard') {
 		return {
 			key: '',
+			skillSet: '',
 			description: '',
 			kind: 'hard',
 			inputSchema: '{}',
@@ -83,21 +93,14 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSk
 				paramMappings: [],
 			},
 			bodyTemplate: '{}',
-		} as DefaultValues<HardSkillFormValues>;
+		};
 	}
 
-	const config =
-		'config' in skill
-			? skill.config
-			: {
-					url: '',
-					method: 'GET' as const,
-					headers: {},
-					paramMappings: [],
-				};
+	const config = skill.config;
 
 	return {
 		key: skill.key,
+		skillSet: skill.skillSet || '',
 		description: skill.description,
 		kind: 'hard',
 		inputSchema: skill.inputSchema,
@@ -105,7 +108,7 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSk
 		knownReactions: skill.knownReactions || [],
 		config,
 		bodyTemplate: JSON.stringify(config.body?.template || {}, null, 2),
-	} as DefaultValues<HardSkillFormValues>;
+	};
 }
 
 // Convert form data to backend schema format
@@ -113,6 +116,7 @@ export function buildSoftSkillFromForm(data: SoftSkillFormValues): NewSoftSkill 
 	//
 	return {
 		key: data.key,
+		skillSet: data.skillSet || undefined,
 		description: data.description,
 		kind: 'soft',
 		inputSchema: data.inputSchema,
@@ -140,6 +144,7 @@ export function buildHardSkillFromForm(data: HardSkillFormValues): NewHardSkill 
 
 	return {
 		key: data.key,
+		skillSet: data.skillSet || undefined,
 		description: data.description,
 		kind: 'hard',
 		inputSchema: data.inputSchema,

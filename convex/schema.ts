@@ -103,6 +103,8 @@ export default defineSchema({
 	).index(
 		'by_owner_kind', ['owner', 'kind'],
 	).index(
+		'by_owner_skillSet', ['owner', 'skillSet'],
+	).index(
 		'by_owner_key', ['owner', 'key'],
 	),
 

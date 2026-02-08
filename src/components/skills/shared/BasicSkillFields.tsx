@@ -37,6 +37,28 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 			{/* Description Field */}
 			<FormField
 				control={form.control}
+				name="skillSet"
+				render={({ field }) => (
+					<FormItem>
+						<LabelWithTooltip tooltip="Optional skill set identifier to group related skills, e.g. twitter. Use lowercase letters, numbers and hyphens only.">
+							Skill Set
+						</LabelWithTooltip>
+						<FormControl>
+							<Input
+								{...field}
+								disabled={!isEditable}
+								value={field.value || ''}
+								placeholder="twitter"
+							/>
+						</FormControl>
+						<FormMessage />
+					</FormItem>
+				)}
+			/>
+
+			{/* Description Field */}
+			<FormField
+				control={form.control}
 				name="description"
 				render={({ field }) => (
 					<FormItem>

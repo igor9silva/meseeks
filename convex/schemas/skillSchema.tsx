@@ -21,6 +21,13 @@ export const skillKindSchema = z.enum([
 	'soft',
 ]);
 
+export const skillSetKeySchema = z
+	.string()
+	.min(2)
+	.max(64)
+	.regex(/^[a-z0-9][a-z0-9-]*$/)
+	.describe('A skill set identifier used to group related skills, e.g. twitter-api.');
+
 // TODO: idea: the initial seed is just an action that happens on the onboarding task
 
 export const httpConfigSchema = z.object({
@@ -164,6 +171,7 @@ export const knownReactionsSchema = z
 
 const coreSkillSchema = z.object({
 	key: z.string().min(3).describe('The key of the skill. Must be unique.'),
+	skillSet: skillSetKeySchema.optional(),
 	description: z.string(),
 	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
 	// outputSchema?: z.string(), // not yet
@@ -251,6 +259,7 @@ export const simplifiedDecisionConfigSchema = z.object({
 
 const simplifiedCoreSkillSchema = z.object({
 	key: z.string(),
+	skillSet: skillSetKeySchema.optional(),
 	description: z.string(),
 	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
 	isSafe: z.boolean(),

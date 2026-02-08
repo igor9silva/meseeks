@@ -49,6 +49,11 @@ export function SkillCard({
 				<div className="flex justify-between items-start">
 					<div>
 						<CardTitle className="text-lg">{skill.key}</CardTitle>
+						{skill.skillSet && (
+							<Badge variant="outline" className="mt-1 text-[10px] uppercase tracking-wide">
+								{skill.skillSet}
+							</Badge>
+						)}
 						<CardDescription className="mt-1 line-clamp-2 min-h-[40px]">
 							{skill.description}
 						</CardDescription>

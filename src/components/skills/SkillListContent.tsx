@@ -45,6 +45,7 @@ export function SkillListContent({
 	const filteredSkills = skills?.filter(
 		(skill: z.infer<typeof skillSchema>) =>
 			skill.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			(skill.skillSet || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
 			skill.description.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
@@ -67,16 +68,41 @@ export function SkillListContent({
 		);
 	}
 
+	type SkillListItem = NonNullable<typeof filteredSkills>[number];
+
+	const skillsBySet: Record<string, SkillListItem[]> = {};
+	for (const skill of filteredSkills ?? []) {
+		const skillSet = skill.skillSet || 'ungrouped';
+		const groupedSkills = skillsBySet[skillSet] ?? [];
+		groupedSkills.push(skill);
+		skillsBySet[skillSet] = groupedSkills;
+	}
+
+	const sortedSkillSetKeys = Object.keys(skillsBySet ?? {}).sort((a, b) => {
+		if (a === 'ungrouped') return 1;
+		if (b === 'ungrouped') return -1;
+		return a.localeCompare(b);
+	});
+
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{filteredSkills?.map((skill) => (
-				<SkillCard
-					key={skill._id}
-					skill={skill}
-					isEnabled={enabledSkills.includes(skill.key)}
-					onToggle={(isEnabled) => onToggle(skill.key, isEnabled)}
-					onShareSkill={onShareSkill}
-				/>
+		<div className="space-y-6">
+			{sortedSkillSetKeys.map((skillSetKey) => (
+				<div key={skillSetKey} className="space-y-3">
+					<p className="text-xs uppercase tracking-wide text-muted-foreground">
+						{skillSetKey === 'ungrouped' ? 'Ungrouped' : skillSetKey}
+					</p>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+						{skillsBySet?.[skillSetKey].map((skill) => (
+							<SkillCard
+								key={skill._id}
+								skill={skill}
+								isEnabled={enabledSkills.includes(skill.key)}
+								onToggle={(isEnabled) => onToggle(skill.key, isEnabled)}
+								onShareSkill={onShareSkill}
+							/>
+						))}
+					</div>
+				</div>
 			))}
 		</div>
 	);
