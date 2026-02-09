@@ -23,7 +23,7 @@ export function UpdateInstructionsAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 Failed to update task`}
+					text={`Failed to update task`}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

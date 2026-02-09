@@ -31,7 +31,7 @@ export function ScrapeTweetAction(props: ActionComponentProps) {
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
-			text={`🚫 Failed to scrape tweet`}
+			text={`Failed to scrape tweet`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>

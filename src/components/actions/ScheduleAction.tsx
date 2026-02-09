@@ -19,7 +19,7 @@ export function ScheduleAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 Failed to schedule`}
+					text={`Failed to schedule`}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

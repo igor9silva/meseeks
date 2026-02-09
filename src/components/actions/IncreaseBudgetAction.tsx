@@ -21,7 +21,7 @@ export function IncreaseBudgetAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 ${action.result.text ?? 'Failed to add energy'}`}
+					text={action.result.text ?? 'Failed to add energy'}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

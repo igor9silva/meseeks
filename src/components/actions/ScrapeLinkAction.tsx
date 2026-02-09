@@ -74,7 +74,7 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 				<CollapsibleTrigger className="flex items-start gap-2 min-w-0 w-full text-left">
 					<div className="text-sm text-muted-foreground min-w-0 flex-1">
 						<div className="break-words">
-							🚫 Failed to read "
+							Failed to read "
 							<Link
 								to={url}
 								target="_blank"

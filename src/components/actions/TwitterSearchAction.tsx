@@ -40,7 +40,7 @@ export function TwitterSearchAction(props: ActionComponentProps) {
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
-			text={`🚫 Failed to search Twitter for "${action.args['query']}"`}
+			text={`Failed to search Twitter for "${action.args['query']}"`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>

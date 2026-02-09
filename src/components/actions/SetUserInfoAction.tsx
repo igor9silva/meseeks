@@ -23,7 +23,7 @@ export function SetUserInfoAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text="🚫 Failed to update user information"
+					text="Failed to update user information"
 					error={action.result?.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

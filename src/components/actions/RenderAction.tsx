@@ -26,7 +26,7 @@ export function RenderAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text="🚫 Failed to render composition"
+					text="Failed to render composition"
 					error={action.result?.text ?? 'Compilation failed'}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

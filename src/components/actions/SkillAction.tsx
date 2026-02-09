@@ -26,7 +26,7 @@ export function SkillAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 Failed to ${isCreation ? 'learn' : 'update'} skill`}
+					text={`Failed to ${isCreation ? 'learn' : 'update'} skill`}
 					error={action.result?.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

@@ -39,7 +39,7 @@ export function AnalyzeAction(props: ActionComponentProps) {
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
-			text={`🚫 Failed to run code`}
+			text={`Failed to run code`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>

@@ -19,7 +19,7 @@ export function ComposeAction(props: ActionComponentProps) {
 		case 'failed':
 			return (
 				<FailedMessage
-					text={`🚫 Failed to compose`}
+					text={`Failed to compose`}
 					error={action.result.text ?? ''}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>

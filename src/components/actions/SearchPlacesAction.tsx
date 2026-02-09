@@ -57,7 +57,7 @@ const SearchResultSchema = z.object({
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
-			text={`🚫 Failed to search places "${action.args['query']}"`}
+			text={`Failed to search places "${action.args['query']}"`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>

@@ -37,7 +37,7 @@ export function LearnAction(props: ActionComponentProps) {
 function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
-			text={`🚫 Failed to learn`}
+			text={`Failed to learn`}
 			error={action.result?.text ?? ''}
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>
