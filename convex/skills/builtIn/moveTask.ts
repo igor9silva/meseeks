@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { internal } from '../../_generated/api';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
@@ -19,7 +19,7 @@ export const moveTask = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			await execution.ctx.runMutation(internal.tasks.private._move, {
+			await execution.ctx.runMutation(internal.tasks._move, {
 				taskId: args.taskId,
 				newParentId: args.newParentId === 'inbox' ? undefined : args.newParentId,
 			});

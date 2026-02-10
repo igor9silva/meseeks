@@ -23,7 +23,7 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 		}
 
 		// persist all events
-		await ctx.runMutation(internal.topUps.private._persistPolarEvent, { polarEvent: json });
+		await ctx.runMutation(internal.topUps._persistPolarEvent, { polarEvent: json });
 
 		// will throw if invalid schema
 		const parsed = webhookEventSchema.safeParse(json);
@@ -137,7 +137,7 @@ async function finishTopUp(
 	checkoutId: string,
 	amount: number,
 ) {
-	return await ctx.runMutation(internal.topUps.private._finish, {
+	return await ctx.runMutation(internal.topUps._finish, {
 		checkoutId,
 		amount: asBigInt({ dollars: amount }),
 	});
@@ -163,7 +163,7 @@ async function activateSubscription(params: {
 		polarSubscriptionId,
 	});
 
-	return await ctx.runMutation(internal.subscriptions.private._activate, {
+	return await ctx.runMutation(internal.subscriptions._activate, {
 		checkoutId,
 		months: durationMonths,
 		credits: asBigInt({ dollars: amount }),
@@ -183,7 +183,7 @@ async function handleImmediateRevocation(params: {
 
 	console.debug('Processing subscription revocation', { polarSubscriptionId });
 
-	return await ctx.runMutation(internal.subscriptions.private._handleRevocation, {
+	return await ctx.runMutation(internal.subscriptions._handleRevocation, {
 		polarSubscriptionId,
 	});
 }

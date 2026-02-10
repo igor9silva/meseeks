@@ -15,7 +15,7 @@ export const decreaseBudget = defineSkill({
 		async (args): Promise<ExecutionResult> => {
 			//
 			try {
-				await execution.ctx.runMutation(internal.tasks.private._removeFunds, {
+				await execution.ctx.runMutation(internal.tasks._removeFunds, {
 					taskId: execution.task._id,
 					amount: args.amount,
 				});

@@ -51,7 +51,7 @@ export const schedule = defineSkill({
 			const skillKey = 'scheduledIteration';
 
 			// Create the schedule (this handles all validation and business logic)
-			await execution.ctx.runMutation(internal.schedules.private._create, {
+			await execution.ctx.runMutation(internal.schedules._create, {
 				taskId: execution.task._id,
 				owner: execution.task.owner,
 				author: execution.action._id,

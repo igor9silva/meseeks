@@ -20,7 +20,7 @@ export const setUserInfo = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			await execution.ctx.runMutation(internal.users.preferences.private._setUserPreference, {
+			await execution.ctx.runMutation(internal.users.preferences._setUserPreference, {
 				userId: execution.task.owner,
 				key: 'userInfo',
 				value: args.userInfo,

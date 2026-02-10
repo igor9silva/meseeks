@@ -18,6 +18,7 @@ export function bigIntFromJSON(value: unknown): unknown {
 	}
 
 	if (typeof value === 'object') {
+		//
 		const obj = value as Record<string, unknown>;
 
 		// check for BigInt marker
@@ -30,6 +31,7 @@ export function bigIntFromJSON(value: unknown): unknown {
 		for (const key in obj) {
 			result[key] = bigIntFromJSON(obj[key]);
 		}
+
 		return result;
 	}
 

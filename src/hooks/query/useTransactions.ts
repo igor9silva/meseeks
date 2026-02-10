@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 
 export function useLockedBalance() {
 	//
-	const query = convexQuery(api.users.public.findLockedBalance, {});
+	const query = convexQuery(api.users.findLockedBalance, {});
 	const result = useSuspenseQuery(query);
 
 	return {

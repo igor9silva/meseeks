@@ -1,9 +1,9 @@
-import { api } from 'convex/_generated/api';
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject } from 'react';
 import { Loading } from '~/components/Loading';
 import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
 import { ActiveTaskItem } from './ActiveTaskItem';
+import { api } from 'convex/_generated/api';
 
 const PAGE_SIZE = 50;
 
@@ -17,7 +17,7 @@ export function ActiveTasksTab({ scrollContainerRef }: ActiveTasksTabProps) {
 		results: activeTasks,
 		loadMore,
 		status,
-	} = usePaginatedQuery(api.tasks.public.findAllPaginated, {}, { initialNumItems: PAGE_SIZE });
+	} = usePaginatedQuery(api.tasks.findAllPaginated, {}, { initialNumItems: PAGE_SIZE });
 
 	useInfiniteScroll({
 		loadMore,

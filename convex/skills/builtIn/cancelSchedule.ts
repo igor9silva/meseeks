@@ -23,7 +23,7 @@ export const cancelSchedule = defineSkill({
 			//
 			try {
 				//
-				await execution.ctx.runMutation(internal.schedules.private._cancel, {
+				await execution.ctx.runMutation(internal.schedules._cancel, {
 					scheduleId: args.scheduleId as Id<'schedules'>,
 				});
 

@@ -1,30 +1,33 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { useCallback, useMemo } from 'react';
+import { api } from 'convex/_generated/api';
 
 export function usePreferences({ defaultValue }: { defaultValue?: unknown } = {}) {
 	//
-	const setPreferenceMutation = useMutation(api.users.preferences.public.setPreference);
+	const setPreferenceMutation = useMutation(api.users.preferences.setPreference);
 
 	const setPreference = setPreferenceMutation.withOptimisticUpdate((localStore, { key, value }) => {
 		//
-		const existingPreference = localStore.getQuery(api.users.preferences.public.getPreference, { key });
+		const existingPreference = localStore.getQuery(api.users.preferences.getPreference, { key });
 
 		// if we've loaded this preference query, update it optimistically
 		if (existingPreference !== undefined && existingPreference !== null) {
-			localStore.setQuery(api.users.preferences.public.getPreference, { key }, {
-				...existingPreference,
-				value,
-			});
+			localStore.setQuery(
+				api.users.preferences.getPreference,
+				{ key },
+				{
+					...existingPreference,
+					value,
+				},
+			);
 		}
 	});
 
-
 	const getPreference = (key: string) => {
 		//
-		const query = convexQuery(api.users.preferences.public.getPreference, { key });
+		const query = convexQuery(api.users.preferences.getPreference, { key });
 		const { data: preference } = useSuspenseQuery(query);
 
 		return preference?.value;

@@ -5,7 +5,7 @@ import type { Doc, Id } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../_generated/server';
 import { asDollars } from '../lib/money';
 import { stringToZod } from '../lib/zodToString';
-import { _askMagicRock, type MagicRockContext } from '../magicRock';
+import { askMagicRock, type MagicRockContext } from '../magicRock.private';
 import type { newActionSchema } from '../schemas/actionSchema';
 import { env } from '../schemas/envSchema';
 import { DEFAULT_INTELLIGENCE, INTELLIGENCES, intelligenceKeys } from '../schemas/intelligenceSchema';
@@ -48,7 +48,7 @@ export function createAITool(
 				warnings,
 				providerMetadata,
 				//
-			} = await _askMagicRock(context);
+			} = await askMagicRock(context);
 
 			console.debug('Provider metadata', providerMetadata);
 
@@ -301,7 +301,7 @@ async function _persistDetails({
 	providerMetadata?: Record<string, unknown>;
 }) {
 	//
-	await ctx.runMutation(internal.action_details.private._update, {
+	await ctx.runMutation(internal.action.details._update, {
 		actionId: action._id,
 		updates: {
 			llm: {

@@ -158,7 +158,7 @@ async function _persistDetails({
 	console.debug('Attempting to persist HTTP action details for action:', action._id);
 
 	// Update existing action details with response data
-	await ctx.runMutation(internal.action_details.private._update, {
+	await ctx.runMutation(internal.action.details._update, {
 		actionId: action._id,
 		updates: {
 			http: {

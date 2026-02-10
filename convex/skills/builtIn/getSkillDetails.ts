@@ -21,7 +21,7 @@ export const getSkillDetails = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			const skill = await execution.ctx.runQuery(internal.skills.private._findOne, {
+			const skill = await execution.ctx.runQuery(internal.skills._findOne, {
 				key: args.skillKey,
 				owner: execution.task.owner,
 			});

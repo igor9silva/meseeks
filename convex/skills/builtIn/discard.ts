@@ -13,7 +13,7 @@ export const discard = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
-			await execution.ctx.runMutation(internal.tasks.private._setStatus, {
+			await execution.ctx.runMutation(internal.tasks._setStatus, {
 				taskId: execution.task._id,
 				newStatus: 'discarded',
 			});

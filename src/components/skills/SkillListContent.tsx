@@ -1,8 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { skillSchema } from 'convex/schemas/skillSchema';
 import { useCallback } from 'react';
-import { z } from 'zod';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
 import { usePreferences } from '~/hooks/usePreferences';
 import { SkillCard } from './SkillCard';

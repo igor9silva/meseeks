@@ -1,5 +1,4 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
@@ -18,6 +17,7 @@ import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { ComposerProvider, useComposer } from '~/hooks/useComposer';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
+import { api } from 'convex/_generated/api';
 
 import { Loading } from '~/components/Loading';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
@@ -77,7 +77,7 @@ function TaskConversationInner({
 		loadMore,
 		status,
 	} = usePaginatedQuery(
-		api.action.public.findAllPaginated, //
+		api.action.findAllPaginated, //
 		{ taskId: task._id },
 		{ initialNumItems: PAGE_SIZE },
 	);
@@ -100,7 +100,7 @@ function TaskConversationInner({
 		navigate({ to: '.', search: (prev) => ({ ...prev, isBudgetDrawerOpen: undefined }) });
 	};
 
-	const markAsRead = useMutation(api.tasks.public.markAsRead);
+	const markAsRead = useMutation(api.tasks.markAsRead);
 
 	// Mark task as read when it's unread or blocked
 	useEffect(() => {

@@ -22,7 +22,7 @@ export const increaseBudget = defineSkill({
 			};
 
 			try {
-				await execution.ctx.runMutation(internal.tasks.private._increaseBudget, {
+				await execution.ctx.runMutation(internal.tasks._increaseBudget, {
 					taskId: execution.task._id,
 					amount: args.amount,
 				});

@@ -8,16 +8,12 @@
  * @module
  */
 
-import type * as action_lifecycle_private from "../action/lifecycle/private.js";
-import type * as action_private from "../action/private.js";
-import type * as action_public from "../action/public.js";
-import type * as action_details_private from "../action_details/private.js";
-import type * as action_details_public from "../action_details/public.js";
+import type * as action_details from "../action/details.js";
+import type * as action_lifecycle from "../action/lifecycle.js";
+import type * as action from "../action.js";
 import type * as auth from "../auth.js";
-import type * as components_private from "../components/private.js";
-import type * as components_public from "../components/public.js";
-import type * as drafts_private from "../drafts/private.js";
-import type * as drafts_public from "../drafts/public.js";
+import type * as components_ from "../components.js";
+import type * as drafts from "../drafts.js";
 import type * as http from "../http.js";
 import type * as lib_babel from "../lib/babel.js";
 import type * as lib_bigintJson from "../lib/bigintJson.js";
@@ -28,12 +24,10 @@ import type * as lib_money from "../lib/money.js";
 import type * as lib_polar from "../lib/polar.js";
 import type * as lib_zodToString from "../lib/zodToString.js";
 import type * as lib from "../lib.js";
-import type * as magicRock_public from "../magicRock/public.js";
 import type * as magicRock from "../magicRock.js";
 import type * as migrations from "../migrations.js";
-import type * as schedules_lifecycle from "../schedules/lifecycle.js";
-import type * as schedules_private from "../schedules/private.js";
-import type * as schedules_public from "../schedules/public.js";
+import type * as schedule_lifecycle from "../schedule/lifecycle.js";
+import type * as schedules from "../schedules.js";
 import type * as schemas_actionDetailSchema from "../schemas/actionDetailSchema.js";
 import type * as schemas_actionSchema from "../schemas/actionSchema.js";
 import type * as schemas_authorSchema from "../schemas/authorSchema.js";
@@ -85,29 +79,22 @@ import type * as skills_createBuiltInTool from "../skills/createBuiltInTool.js";
 import type * as skills_createHttpTool from "../skills/createHttpTool.js";
 import type * as skills_createReactions from "../skills/createReactions.js";
 import type * as skills_defineSkill from "../skills/defineSkill.js";
-import type * as skills_private from "../skills/private.js";
-import type * as skills_public from "../skills/public.js";
 import type * as skills_tools from "../skills/tools.js";
-import type * as subscriptions_private from "../subscriptions/private.js";
-import type * as subscriptions_public from "../subscriptions/public.js";
-import type * as tasks_private from "../tasks/private.js";
-import type * as tasks_public from "../tasks/public.js";
-import type * as topUps_private from "../topUps/private.js";
-import type * as topUps_public from "../topUps/public.js";
-import type * as transactions_private from "../transactions/private.js";
-import type * as transactions_public from "../transactions/public.js";
-import type * as users_preferences_private from "../users/preferences/private.js";
-import type * as users_preferences_public from "../users/preferences/public.js";
-import type * as users_private from "../users/private.js";
-import type * as users_public from "../users/public.js";
-import type * as users_requests_private from "../users/requests/private.js";
-import type * as users_requests_public from "../users/requests/public.js";
+import type * as skills from "../skills.js";
+import type * as subscriptions from "../subscriptions.js";
+import type * as tasks from "../tasks.js";
+import type * as topUps from "../topUps.js";
+import type * as transactions from "../transactions.js";
+import type * as users_preferences from "../users/preferences.js";
+import type * as users_requests from "../users/requests.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
+
 /**
  * A utility for referencing Convex functions in your app's API.
  *
@@ -117,16 +104,12 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  "action/lifecycle/private": typeof action_lifecycle_private;
-  "action/private": typeof action_private;
-  "action/public": typeof action_public;
-  "action_details/private": typeof action_details_private;
-  "action_details/public": typeof action_details_public;
+  "action/details": typeof action_details;
+  "action/lifecycle": typeof action_lifecycle;
+  action: typeof action;
   auth: typeof auth;
-  "components/private": typeof components_private;
-  "components/public": typeof components_public;
-  "drafts/private": typeof drafts_private;
-  "drafts/public": typeof drafts_public;
+  components: typeof components_;
+  drafts: typeof drafts;
   http: typeof http;
   "lib/babel": typeof lib_babel;
   "lib/bigintJson": typeof lib_bigintJson;
@@ -137,12 +120,10 @@ declare const fullApi: ApiFromModules<{
   "lib/polar": typeof lib_polar;
   "lib/zodToString": typeof lib_zodToString;
   lib: typeof lib;
-  "magicRock/public": typeof magicRock_public;
   magicRock: typeof magicRock;
   migrations: typeof migrations;
-  "schedules/lifecycle": typeof schedules_lifecycle;
-  "schedules/private": typeof schedules_private;
-  "schedules/public": typeof schedules_public;
+  "schedule/lifecycle": typeof schedule_lifecycle;
+  schedules: typeof schedules;
   "schemas/actionDetailSchema": typeof schemas_actionDetailSchema;
   "schemas/actionSchema": typeof schemas_actionSchema;
   "schemas/authorSchema": typeof schemas_authorSchema;
@@ -194,23 +175,15 @@ declare const fullApi: ApiFromModules<{
   "skills/createHttpTool": typeof skills_createHttpTool;
   "skills/createReactions": typeof skills_createReactions;
   "skills/defineSkill": typeof skills_defineSkill;
-  "skills/private": typeof skills_private;
-  "skills/public": typeof skills_public;
   "skills/tools": typeof skills_tools;
-  "subscriptions/private": typeof subscriptions_private;
-  "subscriptions/public": typeof subscriptions_public;
-  "tasks/private": typeof tasks_private;
-  "tasks/public": typeof tasks_public;
-  "topUps/private": typeof topUps_private;
-  "topUps/public": typeof topUps_public;
-  "transactions/private": typeof transactions_private;
-  "transactions/public": typeof transactions_public;
-  "users/preferences/private": typeof users_preferences_private;
-  "users/preferences/public": typeof users_preferences_public;
-  "users/private": typeof users_private;
-  "users/public": typeof users_public;
-  "users/requests/private": typeof users_requests_private;
-  "users/requests/public": typeof users_requests_public;
+  skills: typeof skills;
+  subscriptions: typeof subscriptions;
+  tasks: typeof tasks;
+  topUps: typeof topUps;
+  transactions: typeof transactions;
+  "users/preferences": typeof users_preferences;
+  "users/requests": typeof users_requests;
+  users: typeof users;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
@@ -293,6 +266,7 @@ export declare const components: {
           fnHandle: string;
           name: string;
           next?: Array<{ fnHandle: string; name: string }>;
+          oneBatchOnly?: boolean;
         },
         {
           batchSize?: number;

@@ -1,10 +1,10 @@
 import { useMutation as useTanStackMutation } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
+import { api } from 'convex/_generated/api';
 
 export function useAct() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async (args: Parameters<typeof act>[0]) => {

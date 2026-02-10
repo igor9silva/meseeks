@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
 import { Doc } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { CalendarIcon, ClockIcon, RefreshCwIcon, Trash } from 'lucide-react';
 import { useState } from 'react';
+import { api } from 'convex/_generated/api';
 
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '~/components/ui/badge';
@@ -59,7 +59,7 @@ function SchedulesPage() {
 function ScheduleCard({ schedule }: { schedule: ScheduleWithTask }) {
 	//
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
-	const cancelSchedule = useMutation(api.schedules.public.cancel);
+	const cancelSchedule = useMutation(api.schedules.cancel);
 
 	const handleCancel = async () => {
 		//

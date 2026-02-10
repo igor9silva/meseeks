@@ -1,13 +1,13 @@
-import type { z } from 'zod';
-import { internal } from '../_generated/api';
+import { z } from 'zod';
 import type { Doc } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../_generated/server';
-import type { MagicRockContext } from '../magicRock';
+import type { MagicRockContext } from '../magicRock.private';
 import type { skillSchema } from '../schemas/skillSchema';
 import { _builtInSkills } from './builtIn/index';
 import { createAITool } from './createAITool';
 import { createBuiltInTool } from './createBuiltInTool';
 import { createHTTPTool } from './createHttpTool';
+import { internal } from '../_generated/api';
 
 export const _toolsForMagicRock = async (
 	ctx: ActionCtx | MutationCtx, //
@@ -15,12 +15,12 @@ export const _toolsForMagicRock = async (
 	action: Doc<'actions'>,
 ) => {
 	//
-	const hardSkills = await ctx.runQuery(internal.skills.private._findAll, {
+	const hardSkills = await ctx.runQuery(internal.skills._findAll, {
 		owner: task.owner,
 		kind: 'hard',
 	});
 
-	const softSkills = await ctx.runQuery(internal.skills.private._findAll, {
+	const softSkills = await ctx.runQuery(internal.skills._findAll, {
 		owner: task.owner,
 		kind: 'soft',
 	});

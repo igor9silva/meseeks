@@ -1,6 +1,6 @@
-import { api } from 'convex/_generated/api';
 import { usePaginatedQuery } from 'convex/react';
 import { useMemo } from 'react';
+import { api } from 'convex/_generated/api';
 
 interface UseSuspensePaginatedQueryOptions {
 	initialNumItems?: number;
@@ -15,7 +15,7 @@ export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions =
 	const { initialNumItems = 20 } = options;
 
 	const { results, status, loadMore, isLoading } = usePaginatedQuery(
-		api.tasks.public.findAllAtInboxPaginated,
+		api.tasks.findAllAtInboxPaginated,
 		{ paginationOpts: { numItems: initialNumItems, cursor: null } },
 		{ initialNumItems },
 	);

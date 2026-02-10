@@ -1,7 +1,7 @@
 import { Migrations } from '@convex-dev/migrations';
 import { components, internal } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
-import { _enableSkill } from './skills/private';
+import { enableSkill } from './skills.private';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 
@@ -16,7 +16,7 @@ export const enableMissingSkillsFour = migrations.define({
 
 		// Enable each skill for this user
 		for (const skillKey of skillsToEnable) {
-			await _enableSkill(ctx, {
+			await enableSkill(ctx, {
 				userId: doc._id,
 				skillKey,
 			});

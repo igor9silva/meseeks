@@ -1,17 +1,17 @@
 import { useNavigate } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { FaqSection, FounderCard, ProCard } from '~/components/subscribe';
 import { useIsPro } from '~/hooks/useIsPro';
 import { Route } from '~/routes/subscribe';
+import { api } from 'convex/_generated/api';
 
 export function SubscribePage({ route }: { route: typeof Route }) {
 	//
 	const navigate = useNavigate();
-	const startSubscription = useAction(api.subscriptions.public.startSubscription);
+	const startSubscription = useAction(api.subscriptions.startSubscription);
 	const { isPro } = useIsPro();
 
 	// redirect to balance if already subscribed

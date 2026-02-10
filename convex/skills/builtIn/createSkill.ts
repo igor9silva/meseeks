@@ -34,7 +34,7 @@ export const createSkill = defineSkill({
 
 			const { skill } = args;
 
-			await execution.ctx.runMutation(internal.skills.private._create, {
+			await execution.ctx.runMutation(internal.skills._create, {
 				userId: execution.task.owner,
 				skill: newSkillSchema.parse({
 					key: skill.key,
@@ -52,13 +52,13 @@ export const createSkill = defineSkill({
 			});
 
 			// enable the newly created skill
-			await execution.ctx.runMutation(internal.skills.private._enableSkill, {
+			await execution.ctx.runMutation(internal.skills._enableSkill, {
 				userId: execution.task.owner,
 				skillKey: skill.key,
 			});
 
 			// make sure it's available for the task
-			await execution.ctx.runMutation(internal.tasks.private._addAvailableSkill, {
+			await execution.ctx.runMutation(internal.tasks._addAvailableSkill, {
 				taskId: execution.task._id,
 				skillKey: skill.key,
 			});

@@ -1,5 +1,4 @@
 import { useNavigate } from '@tanstack/react-router';
-import { api } from 'convex/_generated/api';
 import { asBigInt } from 'convex/lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
@@ -10,11 +9,12 @@ import { Card, CardContent } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
 import { useHandleSubmit } from '~/hooks/useHandleSubmit';
 import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
+import { api } from 'convex/_generated/api';
 
 export function TopUpCard() {
 	//
 	const navigate = useNavigate();
-	const startTopUp = useAction(api.topUps.public.startTopUp);
+	const startTopUp = useAction(api.topUps.startTopUp);
 
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({

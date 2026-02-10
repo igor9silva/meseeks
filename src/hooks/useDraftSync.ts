@@ -1,8 +1,8 @@
-import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
 import { useMutation, useQuery } from 'convex/react';
 import { useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from './useDebounce';
+import { api } from 'convex/_generated/api';
 
 const SAVE_DEBOUNCE_MS = 500;
 
@@ -38,9 +38,9 @@ export function useDraftSync({
 	isSaveBlocked = false,
 }: UseDraftSyncOptions): UseDraftSyncReturn {
 	//
-	const serverDraft = useQuery(api.drafts.public.findOne, { taskId });
-	const saveDraftMutation = useMutation(api.drafts.public.save);
-	const clearDraftMutation = useMutation(api.drafts.public.clear);
+	const serverDraft = useQuery(api.drafts.findOne, { taskId });
+	const saveDraftMutation = useMutation(api.drafts.save);
+	const clearDraftMutation = useMutation(api.drafts.clear);
 
 	const lastTaskIdRef = useRef(taskId);
 	const hasPendingSaveRef = useRef(false);

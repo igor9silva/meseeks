@@ -40,7 +40,7 @@ export const updateInstructions = defineSkill({
 			const MAX_TITLE_LENGTH = 60;
 			const isTitleTruncated = args.title && args.title.length > MAX_TITLE_LENGTH;
 
-			await execution.ctx.runMutation(internal.tasks.private._updateInstructions, {
+			await execution.ctx.runMutation(internal.tasks._updateInstructions, {
 				taskId: execution.task._id,
 				title: isTitleTruncated ? args.title?.slice(0, MAX_TITLE_LENGTH).trim() + '...' : args.title,
 				instructions: args.instructions,

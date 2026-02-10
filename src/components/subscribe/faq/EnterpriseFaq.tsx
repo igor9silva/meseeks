@@ -1,3 +1,4 @@
+import { api } from 'convex/_generated/api';
 export const EnterpriseFaq = {
 	//
 	question: 'Do you offer enterprise plans?',
@@ -9,7 +10,6 @@ export const EnterpriseFaq = {
 	),
 };
 
-import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
 import { userRequestSchema } from 'convex/schemas/userSchema';
 import { Building2 } from 'lucide-react';
@@ -38,7 +38,7 @@ function EnterpriseEarlyAccessDialog() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [open, setOpen] = useState(false);
 
-	const submit = useMutation(api.users.requests.public.submitRequest);
+	const submit = useMutation(api.users.requests.submitRequest);
 	const submitHotkey = useSubmitHotkey();
 
 	const handleSubmit = useHandleSubmit({
