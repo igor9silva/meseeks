@@ -220,6 +220,9 @@ One file per hook in `src/hooks/`.
 - Preserve exact user-specified literals (names/tags/phrases) when implementing instructions; do not substitute near-synonyms.
   - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`
   - good: keep exact literal requested by the user
+- Whenever you are blocked, stop and present a few concrete next-step alternatives with tradeoffs, then wait for user choice.
+  - bad: keep expanding refactors while still blocked on the same root error
+  - good: "Option 1: break import cycle between A/B (small diff); Option 2: move helper to neutral module; Option 3: revert experiment and bisect"
 - Prefer example-driven guidance when defining or updating rules; use concise `bad`/`good` examples when wording could be interpreted in multiple ways
 - Use logical quote punctuation for inline quoted fragments: when a comma belongs to the sentence (not the quote), place it outside the closing quote. bad: `keep “don’t add rules for already-correct behavior,” allow preference capture`; good: `keep “don’t add rules for already-correct behavior”, allow preference capture`
 
