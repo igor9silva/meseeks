@@ -43,7 +43,7 @@ export function useOptimisticTaskUpdate() {
 		const inboxQuery = convexQuery(api.tasks.findAll, {});
 
 		const parentListQuery = task.parentId
-			? convexQuery(api.tasks.findAll, { parentId: task.parentId })
+			? convexQuery(api.tasks.findAll, { parentId: task.parentId }) //
 			: null;
 
 		const singleTaskQuery = convexQuery(api.tasks.findOne, { taskId: task._id });

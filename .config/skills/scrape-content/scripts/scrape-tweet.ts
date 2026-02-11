@@ -13,8 +13,7 @@ import { join, resolve } from 'path';
 // ── config ──────────────────────────────────────────────────────────
 // API key source: data/skills/config.ts (RAPID_API)
 // falls back to RAPID_API_KEY env var
-const RAPID_API_KEY =
-	process.env.RAPID_API_KEY ?? (await loadApiKey());
+const RAPID_API_KEY = process.env.RAPID_API_KEY ?? (await loadApiKey());
 
 async function loadApiKey(): Promise<string> {
 	//
@@ -63,7 +62,7 @@ if (!tweetId) {
 async function scrapeTweet(id: string): Promise<unknown> {
 	//
 	const response = await fetch(
-		`https://twitter154.p.rapidapi.com/tweet/details?tweet_id=${id}`,
+		`https://twitter154.p.rapidapi.com/tweet/details?tweet_id=${id}`, //
 		{ headers: { 'x-rapidapi-key': RAPID_API_KEY } },
 	);
 

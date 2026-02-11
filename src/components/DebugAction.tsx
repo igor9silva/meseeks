@@ -261,7 +261,9 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 						))}
 					</div>
 				) : (
-					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">No arguments</div>
+					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">
+						No arguments
+					</div>
 				))}
 		</div>
 	);
