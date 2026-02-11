@@ -1,15 +1,4 @@
 import { api } from 'convex/_generated/api';
-export const EnterpriseFaq = {
-	//
-	question: 'Do you offer enterprise plans?',
-	answer: (
-		<div className="space-y-3 text-muted-foreground leading-relaxed">
-			<p>Not yet.</p>
-			<EnterpriseEarlyAccessDialog />
-		</div>
-	),
-};
-
 import { useMutation } from 'convex/react';
 import { userRequestSchema } from 'convex/schemas/userSchema';
 import { Building2 } from 'lucide-react';
@@ -31,6 +20,17 @@ import { useHandleSubmit } from '~/hooks/useHandleSubmit';
 import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
+
+export const EnterpriseFaq = {
+	//
+	question: 'Do you offer enterprise plans?',
+	answer: (
+		<div className="space-y-3 text-muted-foreground leading-relaxed">
+			<p>Not yet.</p>
+			<EnterpriseEarlyAccessDialog />
+		</div>
+	),
+};
 
 function EnterpriseEarlyAccessDialog() {
 	//
