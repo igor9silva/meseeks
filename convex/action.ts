@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from './lib';
 import { newActionSchema } from './schemas/actionSchema';

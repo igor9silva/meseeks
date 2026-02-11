@@ -94,7 +94,6 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
-
 /**
  * A utility for referencing Convex functions in your app's API.
  *
@@ -266,7 +265,6 @@ export declare const components: {
           fnHandle: string;
           name: string;
           next?: Array<{ fnHandle: string; name: string }>;
-          oneBatchOnly?: boolean;
         },
         {
           batchSize?: number;

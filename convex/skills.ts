@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';

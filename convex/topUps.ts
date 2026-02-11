@@ -1,5 +1,5 @@
 import { Polar } from '@polar-sh/sdk';
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
 import { action, internalMutation, internalQuery, mutation, query } from './lib';
@@ -176,7 +176,7 @@ export const findAllHistory = query({
 		]);
 
 		return confirmed
-			.concat(failed)
+			.concat(failed) //
 			.sort((a, b) => b._creationTime - a._creationTime);
 	},
 });

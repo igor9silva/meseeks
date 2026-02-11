@@ -1,6 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
+import { Id } from 'convex/_generated/dataModel';
 
 const byPriority = (a: { priority?: number }, b: { priority?: number }) => {
 	return (a.priority ?? 999999999) - (b.priority ?? 999999999);

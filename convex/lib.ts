@@ -1,5 +1,5 @@
 import { NoOp } from 'convex-helpers/server/customFunctions';
-import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod3';
+import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import {
@@ -22,7 +22,7 @@ type AsyncValue<Value> = Value | Promise<Value>;
 type ArgsSchema = z.ZodObject<z.ZodRawShape>;
 
 type DefinedFn<Ctx, Schema extends ArgsSchema, Result> = ((
-	ctx: Ctx,
+	ctx: Ctx, //
 	args: z.input<Schema>,
 ) => Promise<Result>) & {
 	args: Schema;

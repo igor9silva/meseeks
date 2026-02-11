@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -213,7 +213,14 @@ export const addMany = defineMutation({
 		}
 
 		// reopen if needed and requested
-		const skillsToSchedule = !task.isActive && shouldReopen ? [{ skillKey: 'reopen', args: {} }].concat(skills) : skills;
+		const skillsToSchedule = (() => {
+			//
+			if (!task.isActive && shouldReopen) {
+				return [{ skillKey: 'reopen', args: {} }].concat(skills);
+			}
+
+			return skills;
+		})();
 
 		const actionIds = await Promise.all(
 			skillsToSchedule.map((skill) =>

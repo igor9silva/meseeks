@@ -1,5 +1,5 @@
 import { authTables } from '@convex-dev/auth/server';
-import { zodToConvex } from 'convex-helpers/server/zod3';
+import { zodToConvex } from 'convex-helpers/server/zod';
 import { defineSchema, defineTable } from 'convex/server';
 import { actionDetailSchema } from './schemas/actionDetailSchema';
 import { actionSchema } from './schemas/actionSchema';
