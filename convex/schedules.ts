@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod';
 import type { Id } from './_generated/dataModel';
 import { internalMutation, internalQuery, mutation, query } from './lib';
 import { NotFound } from './lib/errors';
@@ -62,10 +62,7 @@ export const _cancelAllForTask = internalMutation({
 	},
 });
 
-const ensureTaskIsOwnedByCurrentUser = async (
-	ctx: Parameters<typeof current>[0],
-	taskId: Id<'tasks'>,
-) => {
+const ensureTaskIsOwnedByCurrentUser = async (ctx: Parameters<typeof current>[0], taskId: Id<'tasks'>) => {
 	//
 	const currentUser = await current(ctx, {});
 	const task = await ctx.db.get(taskId);
