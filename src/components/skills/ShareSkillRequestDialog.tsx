@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
-import { userRequestSchema } from 'convex/schemas/userSchema';
+import { userRequestSchema } from 'schemas/userSchema';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';

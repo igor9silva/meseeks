@@ -1,5 +1,5 @@
 import { CommandEmpty, CommandGroup, CommandInput, CommandList, CommandSeparator } from '~/components/ui/command';
-import { INTELLIGENCE_PROGRESSION, type IntelligenceKey, type Intelligence } from 'convex/schemas/intelligenceSchema';
+import { INTELLIGENCE_PROGRESSION, type IntelligenceKey, type Intelligence } from 'schemas/intelligenceSchema';
 import { IntelligenceOption } from './index';
 
 export interface IntelligenceSelectorProps {

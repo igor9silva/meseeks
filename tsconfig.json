@@ -14,7 +14,10 @@
 		"allowJs": false,
 		"paths": {
 			"~/*": ["./src/*"],
-			"convex/*": ["./convex/*"]
+			"convex/*": ["./convex/*"],
+			"schemas/*": ["./schemas/*"],
+			"lib/*": ["./lib/*"],
+			"skills/*": ["./skills/*"]
 		},
 		"noEmit": true,
 

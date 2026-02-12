@@ -8,7 +8,7 @@ import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } 
 import { api } from 'convex/_generated/api';
 
 import { useAuthActions } from '@convex-dev/auth/react';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import {
 	BrushCleaning,
 	CalendarClock,

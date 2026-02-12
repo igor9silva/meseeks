@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
 import { usePreferences } from '~/hooks/usePreferences';
 import { SkillCard } from './SkillCard';
-import { skillSchema } from 'convex/schemas/skillSchema';
+import { skillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
 
 /**

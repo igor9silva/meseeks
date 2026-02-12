@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { internalMutation, mutation } from '../lib';
-import { userRequestKeySchema } from '../schemas/userSchema';
+import { internalMutation, mutation } from 'lib/functions';
+import { userRequestKeySchema } from 'schemas/userSchema';
 import { current } from '../users.private';
 import { submitRequest as submitUserRequest } from './requests.private';
 

@@ -12,13 +12,13 @@ import { type ModelMessage, generateText, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
-import { asDollars } from './lib/money';
-import { env } from './schemas/envSchema';
-import { IntelligenceKey, intelligenceKeys } from './schemas/intelligenceSchema';
-import type { instructionVariableSchema, softSkillSchema } from './schemas/skillSchema';
-import type { AITool } from './schemas/toolSchema';
-import { modelFrom } from './skills/createAITool';
-import { _toolsForMagicRock } from './skills/tools';
+import { asDollars } from 'lib/money';
+import { env } from 'schemas/envSchema';
+import { IntelligenceKey, intelligenceKeys } from 'schemas/intelligenceSchema';
+import type { instructionVariableSchema, softSkillSchema } from 'schemas/skillSchema';
+import type { AITool } from 'schemas/toolSchema';
+import { modelFrom } from 'skills/createAITool';
+import { _toolsForMagicRock } from 'skills/tools';
 import { api, internal } from './_generated/api';
 
 // >be human

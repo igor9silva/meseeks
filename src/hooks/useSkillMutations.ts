@@ -1,5 +1,5 @@
 import { useMutation } from 'convex/react';
-import { newSkillSchema } from 'convex/schemas/skillSchema';
+import { newSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
 import { api } from 'convex/_generated/api';
 

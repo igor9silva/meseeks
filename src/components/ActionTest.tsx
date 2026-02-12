@@ -7,7 +7,7 @@ import { Textarea } from '~/components/ui/textarea';
 
 import { z } from 'zod';
 import { cn } from '~/lib/utils';
-import { actionSchema } from '../../convex/schemas/actionSchema';
+import { actionSchema } from 'schemas/actionSchema';
 
 // Default test action for setUserInfo
 const DEFAULT_ACTION = `{

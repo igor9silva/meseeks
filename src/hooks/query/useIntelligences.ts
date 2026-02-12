@@ -1,4 +1,4 @@
-import { INTELLIGENCES } from 'convex/schemas/intelligenceSchema';
+import { INTELLIGENCES } from 'schemas/intelligenceSchema';
 
 export function useIntelligences() {
 	//

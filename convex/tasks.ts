@@ -2,11 +2,11 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Doc, Id } from './_generated/dataModel';
 import { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, internalQuery, mutation, query } from './lib';
-import { NotFound } from './lib/errors';
-import { asBigInt } from './lib/money';
-import { intelligenceKeys } from './schemas/intelligenceSchema';
-import { paginationOptionsSchema } from './schemas/paginationOptionsSchema';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { asBigInt } from 'lib/money';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
+import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import {
 	add as addTask,
 	addAvailableSkill,

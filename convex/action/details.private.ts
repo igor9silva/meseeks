@@ -1,8 +1,8 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { defineMutation, defineQuery } from '../lib';
-import { NotFound } from '../lib/errors';
-import { actionDetailSchema, actionDetailUpdateSchema } from '../schemas/actionDetailSchema';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { actionDetailSchema, actionDetailUpdateSchema } from 'schemas/actionDetailSchema';
 
 export const persist = defineMutation({
 	args: z.object({

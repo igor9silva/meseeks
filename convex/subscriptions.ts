@@ -1,7 +1,7 @@
 import { Polar } from '@polar-sh/sdk';
 import { z } from 'zod';
-import { action, internalMutation, internalQuery, query } from './lib';
-import { env } from './schemas/envSchema';
+import { action, internalMutation, internalQuery, query } from 'lib/functions';
+import { env } from 'schemas/envSchema';
 import { activate, add, findActive as findActiveSubscriptions, handleRevocation } from './subscriptions.private';
 import { current, isProSubscriber } from './users.private';
 import { internal } from './_generated/api';

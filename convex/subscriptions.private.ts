@@ -1,8 +1,8 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Doc } from './_generated/dataModel';
-import { defineMutation, defineQuery } from './lib';
-import { NotFound } from './lib/errors';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { NotFound } from 'lib/errors';
 import { addSubscriptionCredits } from './transactions.private';
 import { setFounder } from './users.private';
 
@@ -100,7 +100,7 @@ export const findActive = defineQuery({
 	args: z.object({
 		owner: zid('users'),
 	}),
-	handler: async (ctx, { owner }) => {
+	handler: async (ctx, { owner }): Promise<Doc<'subscriptions'>[]> => {
 		//
 		const now = Date.now();
 

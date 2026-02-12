@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { Button, type ButtonProps } from '~/components/ui/button';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { useSplatParams } from '~/hooks/useSplatParams';

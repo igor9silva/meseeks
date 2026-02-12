@@ -1,5 +1,5 @@
-import { asDollars } from 'convex/lib/money';
-import { Intelligence } from 'convex/schemas/intelligenceSchema';
+import { asDollars } from 'lib/money';
+import { Intelligence } from 'schemas/intelligenceSchema';
 
 /**
  * Formats a number of words into a human-readable string

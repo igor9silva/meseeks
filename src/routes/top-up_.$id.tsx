@@ -6,7 +6,7 @@ import { usePayment } from '~/hooks/usePayment';
 import { cn } from '~/lib/utils';
 import { api } from 'convex/_generated/api';
 
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { BasicError } from '~/components/BasicError';
 import { topUpStatusColors } from '~/components/TopUpItem';
 import { Badge } from '~/components/ui/badge';

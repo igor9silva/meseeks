@@ -1,8 +1,8 @@
 import { useMutation as useTanStackMutation } from '@tanstack/react-query';
 import { Id } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { useMutation } from 'convex/react';
-import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { z } from 'zod';
 import { BudgetStep } from '~/components/ui/budget-selector';
 import { api } from 'convex/_generated/api';

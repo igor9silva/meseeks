@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import type { Id } from './_generated/dataModel';
-import { internalMutation, internalQuery, mutation, query } from './lib';
-import { NotFound } from './lib/errors';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
 import {
 	cancel as cancelSchedule,
 	cancelAllForTask,

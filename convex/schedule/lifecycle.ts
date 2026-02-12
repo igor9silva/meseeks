@@ -1,4 +1,4 @@
-import { internalMutation } from '../lib';
+import { internalMutation } from 'lib/functions';
 import { executeOneTime, executeRecurring } from './lifecycle.private';
 
 export const _executeOneTime = internalMutation({

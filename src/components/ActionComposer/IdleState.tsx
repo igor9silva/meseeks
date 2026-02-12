@@ -1,5 +1,5 @@
 import type { Doc } from 'convex/_generated/dataModel';
-import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { ArrowUp, Hourglass, Mic, Sparkles, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';

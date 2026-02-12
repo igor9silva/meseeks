@@ -1,4 +1,4 @@
-import { asBigInt, asDollars, asNumber, MONEY_PRECISION } from 'convex/lib/money';
+import { asBigInt, asDollars, asNumber, MONEY_PRECISION } from 'lib/money';
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormMessage } from '~/components/ui/form';

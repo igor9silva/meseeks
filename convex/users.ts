@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { internalMutation, query } from './lib';
+import { internalMutation, query } from 'lib/functions';
 import { findActiveTasks } from './tasks.private';
 import { current as getCurrentUser, isProSubscriber, markAreReady } from './users.private';
 

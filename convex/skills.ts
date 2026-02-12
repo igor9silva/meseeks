@@ -2,10 +2,10 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, internalQuery, mutation, query } from './lib';
-import { NotFound } from './lib/errors';
-import { zodToString } from './lib/zodToString';
-import { builtInSkillSchema, newSkillSchema, skillOwnerSchema } from './schemas/skillSchema';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { zodToString } from 'lib/zodToString';
+import { builtInSkillSchema, newSkillSchema, skillOwnerSchema } from 'schemas/skillSchema';
 import {
 	create as createSkill,
 	enableSkill,
@@ -20,7 +20,7 @@ import {
 	replaceProSkills,
 	update as updateSkill,
 } from './skills.private';
-import { _builtInSkills } from './skills/builtIn/index';
+import { _builtInSkills } from 'skills/builtIn/index';
 import { current } from './users.private';
 
 export const _findAll = internalQuery({

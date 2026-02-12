@@ -3,11 +3,11 @@ import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { runNextActionIfNeeded } from './action/lifecycle.private';
-import { defineMutation, defineQuery } from './lib';
-import { NotFound } from './lib/errors';
-import { actionSchema } from './schemas/actionSchema';
-import { authorSchema } from './schemas/authorSchema';
-import { paginationOptionsSchema } from './schemas/paginationOptionsSchema';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { actionSchema } from 'schemas/actionSchema';
+import { authorSchema } from 'schemas/authorSchema';
+import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { setStatus } from './tasks.private';
 
 const findByStatus = (

@@ -1,6 +1,6 @@
 import type { Doc } from 'convex/_generated/dataModel';
 import { Link } from '@tanstack/react-router';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { Plus } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { Button } from '~/components/ui/button';

@@ -4,9 +4,9 @@ import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
 import { add, skipPendingAuthorizationByTaskAuthor } from '../action.private';
 import { internal } from '../_generated/api';
-import { defineMutation } from '../lib';
-import { computeNextRun } from '../lib/cron';
-import { authorSchema } from '../schemas/authorSchema';
+import { defineMutation } from 'lib/functions';
+import { computeNextRun } from 'lib/cron';
+import { authorSchema } from 'schemas/authorSchema';
 import { updateJobId, updateLastRun } from '../schedules.private';
 
 export const executeOneTime = defineMutation({

@@ -1,9 +1,9 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { internalMutation, internalQuery, mutation, query } from './lib';
-import { newActionSchema } from './schemas/actionSchema';
-import { authorSchema } from './schemas/authorSchema';
-import { paginationOptionsSchema } from './schemas/paginationOptionsSchema';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { newActionSchema } from 'schemas/actionSchema';
+import { authorSchema } from 'schemas/authorSchema';
+import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks';
 import {
 	add,

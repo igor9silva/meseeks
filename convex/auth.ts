@@ -1,6 +1,6 @@
 import Google from '@auth/core/providers/google';
 import { convexAuth } from '@convex-dev/auth/server';
-import { env } from './schemas/envSchema';
+import { env } from 'schemas/envSchema';
 import { seedIfNeeded } from './users.private';
 
 export const { auth, signIn, signOut, store } = convexAuth({

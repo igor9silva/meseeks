@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { query } from './lib';
-import { paginationOptionsSchema } from './schemas/paginationOptionsSchema';
+import { query } from 'lib/functions';
+import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { current } from './users.private';
 
 export const findAll = query({

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { internalMutation, internalQuery, mutation, query } from '../lib';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
 import { getUserPreference, setUserPreference } from './preferences.private';
 import { current } from '../users.private';
 

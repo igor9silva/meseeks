@@ -2,13 +2,13 @@ import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { defineMutation, defineQuery } from './lib';
-import { bigIntFromJSON } from './lib/bigintJson';
-import { NotFound } from './lib/errors';
-import { zodToString } from './lib/zodToString';
-import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from './schemas/skillSchema';
-import { ensureInputSchemaIsValid } from './skills/builtIn/createSkill';
-import { _builtInSkills } from './skills/builtIn/index';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { bigIntFromJSON } from 'lib/bigintJson';
+import { NotFound } from 'lib/errors';
+import { zodToString } from 'lib/zodToString';
+import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from 'schemas/skillSchema';
+import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
+import { _builtInSkills } from 'skills/builtIn/index';
 
 const findAllByOwnerImpl = async (
 	ctx: QueryCtx | MutationCtx,

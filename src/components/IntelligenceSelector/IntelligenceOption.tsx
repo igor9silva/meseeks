@@ -1,6 +1,6 @@
 import { CommandItem } from '~/components/ui/command';
 import { cn } from '~/lib/utils';
-import { type IntelligenceKey, type Intelligence } from 'convex/schemas/intelligenceSchema';
+import { type IntelligenceKey, type Intelligence } from 'schemas/intelligenceSchema';
 import { formatPricing, formatWordCount } from '~/lib/intelligence-utils';
 
 interface IntelligenceOptionProps {

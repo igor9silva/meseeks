@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod';
-import { internalMutation, internalQuery, query } from '../lib';
-import { NotFound } from '../lib/errors';
+import { internalMutation, internalQuery, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
 import { findByAction as findActionDetails, persist, update } from './details.private';
 import { current as getCurrentUser } from '../users.private';
 

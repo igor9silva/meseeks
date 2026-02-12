@@ -1,5 +1,5 @@
-import { asDollars } from 'convex/lib/money';
-import { builtInSkillSchema } from 'convex/schemas/skillSchema';
+import { asDollars } from 'lib/money';
+import { builtInSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { InputSchemaDisplay } from './shared/InputSchemaDisplay';

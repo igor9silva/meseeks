@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { defineMutation, defineQuery } from './lib';
-import { componentSchema } from './schemas/componentSchema';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { componentSchema } from 'schemas/componentSchema';
 
 export const add = defineMutation({
 	args: componentSchema,

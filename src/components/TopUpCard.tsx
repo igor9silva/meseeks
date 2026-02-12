@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
 import { z } from 'zod';

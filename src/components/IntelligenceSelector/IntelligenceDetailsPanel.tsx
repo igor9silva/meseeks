@@ -1,5 +1,5 @@
 import { useCommandState } from 'cmdk';
-import { INTELLIGENCES, intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { INTELLIGENCES, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, FileText } from 'lucide-react';
 import { formatPricing, formatWordCount } from '~/lib/intelligence-utils';
 import { IntelligenceRating } from './IntelligenceRating';

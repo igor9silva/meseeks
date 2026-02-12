@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { defineMutation } from './lib';
-import { transactionSchema, valueSchema } from './schemas/transactionSchema';
+import { defineMutation } from 'lib/functions';
+import { transactionSchema, valueSchema } from 'schemas/transactionSchema';
 import { adjustBalance } from './users.private';
 import type { MutationCtx } from './_generated/server';
 

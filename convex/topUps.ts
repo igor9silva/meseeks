@@ -2,11 +2,11 @@ import { Polar } from '@polar-sh/sdk';
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
-import { action, internalMutation, internalQuery, mutation, query } from './lib';
-import { NotFound } from './lib/errors';
-import { asDollars, asNumber } from './lib/money';
-import { env } from './schemas/envSchema';
-import { blockchainSchema, tokenSchema, topUpAmountSchema } from './schemas/topUpSchema';
+import { action, internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { asDollars, asNumber } from 'lib/money';
+import { env } from 'schemas/envSchema';
+import { blockchainSchema, tokenSchema, topUpAmountSchema } from 'schemas/topUpSchema';
 import { internal } from './_generated/api';
 import {
 	add,

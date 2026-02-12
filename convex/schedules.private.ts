@@ -1,10 +1,10 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
-import { defineMutation, defineQuery } from './lib';
-import { NotFound } from './lib/errors';
-import { computeNextRun, isExpressionValid } from './lib/cron';
-import { authorSchema } from './schemas/authorSchema';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { computeNextRun, isExpressionValid } from 'lib/cron';
+import { authorSchema } from 'schemas/authorSchema';
 import { scheduleExecution } from './schedule/lifecycle.private';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');

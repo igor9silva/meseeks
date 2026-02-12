@@ -1,12 +1,12 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
-import { internalMutation, internalQuery, mutation, query } from './lib';
+import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
 import {
 	clear as clearDraft, //
 	findOne as findOneDraft,
 	save as saveDraft,
 } from './drafts.private';
-import { draftQueueItemSchema } from './schemas/draftSchema';
+import { draftQueueItemSchema } from 'schemas/draftSchema';
 import { current } from './users.private';
 
 export const _findOne = internalQuery({

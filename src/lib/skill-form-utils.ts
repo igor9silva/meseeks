@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/lib/money';
-import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'convex/schemas/skillSchema';
+import { asBigInt } from 'lib/money';
+import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { DefaultValues } from 'react-hook-form';
 import { z } from 'zod';
 

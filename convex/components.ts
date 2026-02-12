@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { internalMutation, internalQuery, query } from './lib';
-import { NotFound } from './lib/errors';
+import { internalMutation, internalQuery, query } from 'lib/functions';
+import { NotFound } from 'lib/errors';
 import { add, findOneBySlug as findOneComponentBySlug, findAll } from './components.private';
 import { current } from './users.private';
 

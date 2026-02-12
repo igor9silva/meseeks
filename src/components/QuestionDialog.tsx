@@ -1,5 +1,5 @@
 import { useMutation } from 'convex/react';
-import { userRequestSchema } from 'convex/schemas/userSchema';
+import { userRequestSchema } from 'schemas/userSchema';
 import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';

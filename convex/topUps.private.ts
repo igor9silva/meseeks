@@ -1,11 +1,11 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { defineMutation, defineQuery } from './lib';
-import { NotFound } from './lib/errors';
-import { authorSchema } from './schemas/authorSchema';
-import { polarEventSchema } from './schemas/polarEventSchema';
-import { blockchainSchema, tokenSchema, topUpAmountSchema, walletAddressSchema } from './schemas/topUpSchema';
+import { defineMutation, defineQuery } from 'lib/functions';
+import { NotFound } from 'lib/errors';
+import { authorSchema } from 'schemas/authorSchema';
+import { polarEventSchema } from 'schemas/polarEventSchema';
+import { blockchainSchema, tokenSchema, topUpAmountSchema, walletAddressSchema } from 'schemas/topUpSchema';
 import { addTopUp } from './transactions.private';
 
 const findByPaymentId = async (

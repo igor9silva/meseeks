@@ -1,5 +1,5 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
