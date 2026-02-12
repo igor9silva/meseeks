@@ -1,58 +1,19 @@
 import { zid } from 'convex-helpers/server/zod';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
-import { newActionSchema } from 'schemas/actionSchema';
-import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks';
 import {
-	add,
 	addMany,
 	authorize as authorizeAction,
-	findAllSince,
 	findAllPaginated as findActionsPaginated,
 	findAllRunning as findAllRunningActions,
 	findLastActions,
 	findNext,
 	findOne as findAction,
 	findPendingAuthorization,
-	findReactions,
 	findRunning,
-	skipAllPendingReactions,
-	skipPendingAuthorizationByTaskAuthor,
-	stop,
 } from './action.private';
-
-export const _add = internalMutation({
-	args: {
-		...newActionSchema.shape,
-		shouldReopen: z.boolean().optional().default(false),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await add(ctx, args);
-	},
-});
-
-export const _addMany = internalMutation({
-	args: {
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		author: authorSchema,
-		depth: z.number().min(0).max(1000),
-		shouldReopen: z.boolean().optional().default(false),
-		skills: z.array(
-			z.object({
-				skillKey: z.string().describe('The key of the skill to use'),
-				args: z.record(z.unknown()),
-			}),
-		),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await addMany(ctx, args);
-	},
-});
 
 export const _authorize = internalMutation({
 	args: {
@@ -64,106 +25,21 @@ export const _authorize = internalMutation({
 		]),
 		hasApproved: z.boolean(),
 	},
-	handler: async (ctx, args) => {
-		//
-		await authorizeAction(ctx, args);
-	},
-});
-
-export const _findAllSince = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-		since: z.number(),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findAllSince(ctx, args);
-	},
-});
-
-export const _findAllPaginated = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-		paginationOpts: paginationOptionsSchema,
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findActionsPaginated(ctx, args);
-	},
-});
-
-export const _findOne = internalQuery({
-	args: {
-		actionId: zid('actions'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findAction(ctx, args);
-	},
-});
-
-export const _findAllRunning = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findAllRunningActions(ctx, args);
-	},
-});
-
-export const _findRunning = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findRunning(ctx, args);
-	},
+	handler: authorizeAction,
 });
 
 export const _findPendingAuthorization = internalQuery({
 	args: {
 		taskId: zid('tasks'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await findPendingAuthorization(ctx, args);
-	},
-});
-
-export const _skipPendingAuthorizationByTaskAuthor = internalMutation({
-	args: {
-		taskId: zid('tasks'),
-		author: authorSchema,
-		reasonText: z.string(),
-	},
-	handler: async (ctx, args) => {
-		//
-		await skipPendingAuthorizationByTaskAuthor(ctx, args);
-	},
+	handler: findPendingAuthorization,
 });
 
 export const _findNext = internalQuery({
 	args: {
 		taskId: zid('tasks'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await findNext(ctx, args);
-	},
-});
-
-export const _findReactions = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		status: z.enum(['enqueued', 'pending authorization']),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findReactions(ctx, args);
-	},
+	handler: findNext,
 });
 
 export const _findLastActions = internalQuery({
@@ -171,34 +47,14 @@ export const _findLastActions = internalQuery({
 		taskId: zid('tasks'),
 		amount: z.number().min(1),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await findLastActions(ctx, args);
-	},
+	handler: findLastActions,
 });
 
-export const _skipAllPendingReactions = internalMutation({
+export const _findRunning = internalQuery({
 	args: {
 		taskId: zid('tasks'),
-		owner: zid('users'),
-		shouldSkipRunning: z.boolean().optional().default(false),
 	},
-	handler: async (ctx, args) => {
-		//
-		await skipAllPendingReactions(ctx, args);
-	},
-});
-
-export const _stop = internalMutation({
-	args: {
-		taskId: zid('tasks'),
-		author: authorSchema,
-		authorIsOwner: z.boolean(),
-	},
-	handler: async (ctx, args) => {
-		//
-		await stop(ctx, args);
-	},
+	handler: findRunning,
 });
 
 export const act = mutation({

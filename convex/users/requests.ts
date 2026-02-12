@@ -1,16 +1,8 @@
 import { z } from 'zod';
-import { internalMutation, mutation } from 'lib/functions';
+import { mutation } from 'lib/functions';
 import { userRequestKeySchema } from 'schemas/userSchema';
-import { current } from '../users.private';
+import { getCurrentUser } from '../users.private';
 import { submitRequest as submitUserRequest } from './requests.private';
-
-export const _submitRequest = internalMutation({
-	args: submitUserRequest.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await submitUserRequest(ctx, args);
-	},
-});
 
 export const submitRequest = mutation({
 	args: {
@@ -20,7 +12,7 @@ export const submitRequest = mutation({
 	},
 	handler: async (ctx, { key, message, context }) => {
 		//
-		const user = await current(ctx, {});
+		const user = await getCurrentUser(ctx, {});
 		return await submitUserRequest(ctx, {
 			owner: user._id,
 			key,

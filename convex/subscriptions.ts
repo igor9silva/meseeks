@@ -3,38 +3,29 @@ import { z } from 'zod';
 import { action, internalMutation, internalQuery, query } from 'lib/functions';
 import { env } from 'schemas/envSchema';
 import { activate, add, findActive as findActiveSubscriptions, handleRevocation } from './subscriptions.private';
-import { current, isProSubscriber } from './users.private';
+import { getCurrentUser, isProSubscriber } from './users.private';
 import { internal } from './_generated/api';
 
 export const _add = internalMutation({
 	args: add.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await add(ctx, args);
-	},
+	handler: add,
 });
 
 export const _activate = internalMutation({
 	args: activate.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await activate(ctx, args);
-	},
+	handler: activate,
 });
 
 export const _handleRevocation = internalMutation({
 	args: handleRevocation.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await handleRevocation(ctx, args);
-	},
+	handler: handleRevocation,
 });
 
 export const _getStartSubscriptionContext = internalQuery({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		const isCurrentUserProSubscriber = await isProSubscriber(ctx, { owner: currentUser._id });
 		return { currentUser, isProSubscriber: isCurrentUserProSubscriber };
 	},
@@ -83,7 +74,7 @@ export const findActive = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		return await findActiveSubscriptions(ctx, { owner: currentUser._id });
 	},

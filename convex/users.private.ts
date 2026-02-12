@@ -1,5 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server';
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/functions';
@@ -213,7 +213,7 @@ export const findOne = defineQuery({
 	},
 });
 
-export const current = defineQuery({
+export const getCurrentUser = defineQuery({
 	args: z.object({}),
 	handler: async (ctx) => {
 		//

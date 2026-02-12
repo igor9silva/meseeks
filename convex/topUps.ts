@@ -16,61 +16,28 @@ import {
 	finish,
 	persistPolarEvent,
 } from './topUps.private';
-import { current, isProSubscriber } from './users.private';
+import { getCurrentUser, isProSubscriber } from './users.private';
 
 export const _add = internalMutation({
 	args: add.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await add(ctx, args);
-	},
+	handler: add,
 });
 
 export const _finish = internalMutation({
 	args: finish.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await finish(ctx, args);
-	},
+	handler: finish,
 });
 
 export const _persistPolarEvent = internalMutation({
 	args: persistPolarEvent.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await persistPolarEvent(ctx, args);
-	},
-});
-
-export const _findOne = internalQuery({
-	args: findTopUp.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await findTopUp(ctx, args);
-	},
-});
-
-export const _findAllWaiting = internalQuery({
-	args: findWaitingTopUps.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await findWaitingTopUps(ctx, args);
-	},
-});
-
-export const _findAllByStatus = internalQuery({
-	args: findAllByStatus.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await findAllByStatus(ctx, args);
-	},
+	handler: persistPolarEvent,
 });
 
 export const _getStartTopUpContext = internalQuery({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		const isCurrentUserProSubscriber = await isProSubscriber(ctx, { owner: currentUser._id });
 		return { currentUser, isProSubscriber: isCurrentUserProSubscriber };
 	},
@@ -127,7 +94,7 @@ export const discard = mutation({
 	},
 	handler: async (ctx, { topUpId }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		const topUp = await ctx.db.get(topUpId);
 
 		if (!topUp) throw NotFound();
@@ -145,7 +112,7 @@ export const findOne = query({
 	},
 	handler: async (ctx, { topUpId }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		const topUp = await findTopUp(ctx, { topUpId });
 
 		if (!topUp) throw NotFound();
@@ -159,7 +126,7 @@ export const findAllWaiting = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		return await findWaitingTopUps(ctx, { owner: currentUser._id });
 	},
 });
@@ -168,7 +135,7 @@ export const findAllHistory = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		const [confirmed, failed] = await Promise.all([
 			findAllByStatus(ctx, { owner: currentUser._id, status: 'confirmed' }),

@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import { query } from 'lib/functions';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
-import { current } from './users.private';
+import { getCurrentUser } from './users.private';
 
 export const findAll = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		return await ctx.db
 			.query('transactions')
@@ -24,7 +24,7 @@ export const findAllPaginated = query({
 	},
 	handler: async (ctx, { paginationOpts, search }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		// Use search index if search term is provided
 		if (search && search.trim()) {

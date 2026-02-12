@@ -10,7 +10,6 @@ import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import {
 	add as addTask,
 	addAvailableSkill,
-	addWithActions,
 	findActiveTasks,
 	findOne as findTask,
 	increaseBudget,
@@ -20,112 +19,42 @@ import {
 	setPreferredIntelligence as setTaskPreferredIntelligence,
 	setStatus,
 	updateInstructions,
-	useFunds,
 } from './tasks.private';
-import { current } from './users.private';
-
-export const _findOne = internalQuery({
-	args: findTask.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await findTask(ctx, args);
-	},
-});
+import { getCurrentUser } from './users.private';
 
 export const _findActiveTasks = internalQuery({
 	args: findActiveTasks.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await findActiveTasks(ctx, args);
-	},
-});
-
-export const _add = internalMutation({
-	args: addTask.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await addTask(ctx, args);
-	},
-});
-
-export const _addWithActions = internalMutation({
-	args: addWithActions.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await addWithActions(ctx, args);
-	},
+	handler: findActiveTasks,
 });
 
 export const _updateInstructions = internalMutation({
 	args: updateInstructions.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await updateInstructions(ctx, args);
-	},
+	handler: updateInstructions,
 });
 
 export const _addAvailableSkill = internalMutation({
 	args: addAvailableSkill.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await addAvailableSkill(ctx, args);
-	},
-});
-
-export const _markAsRead = internalMutation({
-	args: markTaskAsRead.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await markTaskAsRead(ctx, args);
-	},
+	handler: addAvailableSkill,
 });
 
 export const _setStatus = internalMutation({
 	args: setStatus.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await setStatus(ctx, args);
-	},
-});
-
-export const _useFunds = internalMutation({
-	args: useFunds.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await useFunds(ctx, args);
-	},
+	handler: setStatus,
 });
 
 export const _increaseBudget = internalMutation({
 	args: increaseBudget.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await increaseBudget(ctx, args);
-	},
+	handler: increaseBudget,
 });
 
 export const _removeFunds = internalMutation({
 	args: removeFunds.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await removeFunds(ctx, args);
-	},
+	handler: removeFunds,
 });
 
 export const _move = internalMutation({
 	args: move.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await move(ctx, args);
-	},
-});
-
-export const _setPreferredIntelligence = internalMutation({
-	args: setTaskPreferredIntelligence.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await setTaskPreferredIntelligence(ctx, args);
-	},
+	handler: move,
 });
 
 export const findAll = query({
@@ -135,7 +64,7 @@ export const findAll = query({
 	handler: async (ctx, { parentId }) => {
 		//
 		if (!parentId) {
-			const currentUser = await current(ctx, {});
+			const currentUser = await getCurrentUser(ctx, {});
 			return await findAllAtInboxByOwner(ctx, { owner: currentUser._id });
 		}
 
@@ -168,7 +97,7 @@ export const findAllPaginated = query({
 	},
 	handler: async (ctx, { paginationOpts }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		return await ctx.db
 			.query('tasks')
@@ -182,7 +111,7 @@ export const findAllAtInbox = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		return await findAllAtInboxByOwner(ctx, { owner: currentUser._id });
 	},
@@ -195,7 +124,7 @@ export const findAllAtInboxPaginated = query({
 	},
 	handler: async (ctx, { paginationOpts }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		// Use a single query with compound sorting
 		// First sort by isActive (false first, so inactive tasks come after active ones when reversed)
@@ -246,7 +175,7 @@ export const add = mutation({
 	},
 	handler: async (ctx, { message, parentId, initialFunds, preferredIntelligence }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		return await addTask(ctx, {
 			author: currentUser._id,
 			owner: currentUser._id,
@@ -320,7 +249,7 @@ export const ensureTaskOwner = async (
 	task: Doc<'tasks'>;
 }> => {
 	//
-	const currentUser = await current(ctx, {});
+	const currentUser = await getCurrentUser(ctx, {});
 	const task = await ctx.db.get(args.taskId);
 
 	if (!task) throw NotFound();

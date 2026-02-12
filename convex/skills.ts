@@ -5,23 +5,19 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
 import { NotFound } from 'lib/errors';
 import { zodToString } from 'lib/zodToString';
-import { builtInSkillSchema, newSkillSchema, skillOwnerSchema } from 'schemas/skillSchema';
+import { builtInSkillSchema, newSkillSchema } from 'schemas/skillSchema';
 import {
 	create as createSkill,
 	enableSkill,
 	findAll,
 	findAllByOwner,
 	findOne as findSkill,
-	findOneByOwner,
-	findOneSafe,
 	listAllKeys,
-	listEnabledKeys,
 	listEnabledSkillsWithDetails,
-	replaceProSkills,
 	update as updateSkill,
 } from './skills.private';
 import { _builtInSkills } from 'skills/builtIn/index';
-import { current } from './users.private';
+import { getCurrentUser } from './users.private';
 
 export const _findAll = internalQuery({
 	args: {
@@ -34,27 +30,7 @@ export const _findAll = internalQuery({
 			.optional()
 			.describe('Filter by skill kind. Grab all if unspecified.'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await findAll(ctx, args);
-	},
-});
-
-export const _findAllByOwner = internalQuery({
-	args: {
-		owner: skillOwnerSchema,
-		kind: z
-			.enum([
-				'hard', //
-				'soft',
-			])
-			.optional()
-			.describe('Filter by skill kind. Grab all if unspecified.'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findAllByOwner(ctx, args);
-	},
+	handler: findAll,
 });
 
 export const _findOne = internalQuery({
@@ -62,62 +38,21 @@ export const _findOne = internalQuery({
 		key: z.string(),
 		owner: zid('users'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await findSkill(ctx, args);
-	},
-});
-
-export const _findOneSafe = internalQuery({
-	args: {
-		key: z.string(),
-		owner: zid('users'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findOneSafe(ctx, args);
-	},
+	handler: findSkill,
 });
 
 export const _listAllKeys = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await listAllKeys(ctx, args);
-	},
-});
-
-export const _listEnabledKeys = internalQuery({
-	args: {
-		userId: zid('users'),
-	},
-	handler: async (ctx, args) => {
-		//
-		return await listEnabledKeys(ctx, args);
-	},
+	handler: listAllKeys,
 });
 
 export const _listEnabledSkillsWithDetails = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await listEnabledSkillsWithDetails(ctx, args);
-	},
-});
-
-export const _findOneByOwner = internalQuery({
-	args: {
-		key: z.string(),
-		owner: skillOwnerSchema,
-	},
-	handler: async (ctx, args) => {
-		//
-		return await findOneByOwner(ctx, args);
-	},
+	handler: listEnabledSkillsWithDetails,
 });
 
 export const _create = internalMutation({
@@ -125,10 +60,7 @@ export const _create = internalMutation({
 		skill: newSkillSchema,
 		userId: zid('users'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await createSkill(ctx, args);
-	},
+	handler: createSkill,
 });
 
 export const _update = internalMutation({
@@ -136,10 +68,7 @@ export const _update = internalMutation({
 		skill: newSkillSchema,
 		userId: zid('users'),
 	},
-	handler: async (ctx, args) => {
-		//
-		return await updateSkill(ctx, args);
-	},
+	handler: updateSkill,
 });
 
 export const _enableSkill = internalMutation({
@@ -147,31 +76,7 @@ export const _enableSkill = internalMutation({
 		userId: zid('users'),
 		skillKey: z.string(),
 	},
-	handler: async (ctx, args) => {
-		//
-		await enableSkill(ctx, args);
-	},
-});
-
-// accepts JSON with __bigint__ markers since CLI doesn't support BigInt literals
-export const _replaceProSkills = internalMutation({
-	args: {
-		skills: z.array(z.unknown()).describe('Skills array to replace all existing "isPro" skills with'),
-		deleteUnspecified: z
-			.boolean()
-			.optional()
-			.default(false)
-			.describe(
-				'If true, deletes existing "isPro" skills that are not in the new list. If false, only updates/inserts skills from the new list.',
-			),
-	},
-	handler: async (ctx, { skills, deleteUnspecified }) => {
-		//
-		return await replaceProSkills(ctx, {
-			skills,
-			deleteUnspecified,
-		});
-	},
+	handler: enableSkill,
 });
 
 function buildInSkillToDoc(
@@ -219,7 +124,7 @@ export const findAllPersonal = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		return await findAllByOwner(ctx, { owner: currentUser._id });
 	},
 });
@@ -256,7 +161,7 @@ export const findOne = query({
 	},
 	handler: async (ctx, { skillId }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		const skill = await ctx.db.get(skillId);
 
 		if (!skill) throw NotFound();
@@ -284,7 +189,7 @@ export const create = mutation({
 	},
 	handler: async (ctx, { skill }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		return await createSkill(ctx, { skill, userId: currentUser._id });
 	},
 });
@@ -295,7 +200,7 @@ export const update = mutation({
 	},
 	handler: async (ctx, { skill }) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 		return await updateSkill(ctx, { skill, userId: currentUser._id });
 	},
 });
@@ -307,7 +212,7 @@ export const ensureSkillOwner = async (
 	},
 ) => {
 	//
-	const currentUser = await current(ctx, {});
+	const currentUser = await getCurrentUser(ctx, {});
 	const skill = await ctx.db.get(args.skillId);
 
 	if (!skill) throw NotFound();

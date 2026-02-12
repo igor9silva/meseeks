@@ -1,14 +1,11 @@
 import { z } from 'zod';
 import { internalMutation, query } from 'lib/functions';
 import { findActiveTasks } from './tasks.private';
-import { current as getCurrentUser, isProSubscriber, markAreReady } from './users.private';
+import { getCurrentUser, isProSubscriber, markAreReady } from './users.private';
 
 export const _markAreReady = internalMutation({
 	args: markAreReady.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await markAreReady(ctx, args);
-	},
+	handler: markAreReady,
 });
 
 export const current = query({
@@ -40,19 +37,8 @@ export const findLockedBalance = query({
 	handler: async (ctx) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
+		const activeTasks = await findActiveTasks(ctx, { owner: currentUser._id });
 
-		const activeTasks = z
-			.array(
-				z.object({
-					energyBudget: z.object({
-						available: z.bigint(),
-					}),
-				}),
-			)
-			.parse(await findActiveTasks(ctx, { owner: currentUser._id }));
-
-		const activeTasksBalance = activeTasks.reduce((acc, task) => acc + task.energyBudget.available, 0n);
-
-		return activeTasksBalance;
+		return activeTasks.reduce((acc, task) => acc + task.energyBudget.available, 0n);
 	},
 });
