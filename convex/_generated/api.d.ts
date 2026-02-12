@@ -8,9 +8,9 @@
  * @module
  */
 
+import type * as action from "../action.js";
 import type * as action_details from "../action/details.js";
 import type * as action_lifecycle from "../action/lifecycle.js";
-import type * as action from "../action.js";
 import type * as auth from "../auth.js";
 import type * as babel from "../babel.js";
 import type * as components_ from "../components.js";
@@ -25,27 +25,20 @@ import type * as subscriptions from "../subscriptions.js";
 import type * as tasks from "../tasks.js";
 import type * as topUps from "../topUps.js";
 import type * as transactions from "../transactions.js";
+import type * as users from "../users.js";
 import type * as users_preferences from "../users/preferences.js";
 import type * as users_requests from "../users/requests.js";
-import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
-/**
- * A utility for referencing Convex functions in your app's API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
+
 declare const fullApi: ApiFromModules<{
+  action: typeof action;
   "action/details": typeof action_details;
   "action/lifecycle": typeof action_lifecycle;
-  action: typeof action;
   auth: typeof auth;
   babel: typeof babel;
   components: typeof components_;
@@ -60,20 +53,40 @@ declare const fullApi: ApiFromModules<{
   tasks: typeof tasks;
   topUps: typeof topUps;
   transactions: typeof transactions;
+  users: typeof users;
   "users/preferences": typeof users_preferences;
   "users/requests": typeof users_requests;
-  users: typeof users;
 }>;
-declare const fullApiWithMounts: typeof fullApi;
 
-export declare const api: FilterApi<
-  typeof fullApiWithMounts,
-  FunctionReference<any, "public">
->;
-export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
-  FunctionReference<any, "internal">
->;
+type ByVisibility<API, V extends string> = {
+  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
+    ? K
+    : API[K] extends FunctionReference<any, any, any, any>
+      ? never
+      : K]: API[K] extends FunctionReference<any, V, any, any>
+    ? API[K]
+    : ByVisibility<API[K], V>;
+};
+
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
+export declare const api: ByVisibility<typeof fullApi, "public">;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
+export declare const internal: ByVisibility<typeof fullApi, "internal">;
 
 export declare const components: {
   migrations: {

@@ -6,6 +6,7 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
+			"convex/*": ["./*"],
 			"lib/*": ["../lib/*"],
 			"schemas/*": ["../schemas/*"],
 			"skills/*": ["../skills/*"]
