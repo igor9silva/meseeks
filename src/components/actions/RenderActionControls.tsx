@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { Bug, Expand, Minimize2 } from 'lucide-react';
+import { Bug, Expand, ExternalLink, Minimize2 } from 'lucide-react';
 import { CopyButton } from '~/components/CopyButton';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
@@ -38,6 +38,7 @@ export function RenderActionControls({
 	return (
 		<div className={className}>
 			<DebugButton onClick={handleDebugClick} />
+			<OpenInNewTabButton href={`/action/${action._id}`} />
 			{isFullscreen ? (
 				<MinimizeButton onClick={onToggleFullscreen} />
 			) : (
@@ -91,6 +92,24 @@ function DebugButton({ onClick }: { onClick: (e?: React.MouseEvent) => void }) {
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="px-2 py-1 text-xs">Inspect in dev mode</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function OpenInNewTabButton({ href }: { href: string }) {
+	//
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" className="h-6 w-6 border" asChild>
+						<a href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+							<ExternalLink className="h-4 w-4" />
+						</a>
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Open in new tab</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
