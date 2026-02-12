@@ -9,7 +9,7 @@ import { scheduleExecution } from './schedule/lifecycle.private';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');
 
-export const create = defineMutation({
+export const createSchedule = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		owner: zid('users'),
@@ -71,13 +71,13 @@ export const create = defineMutation({
 			);
 		}
 
-		await updateJobId(ctx, { scheduleId, scheduledJobId });
+		await updateScheduleJobId(ctx, { scheduleId, scheduledJobId });
 
 		return scheduleId;
 	},
 });
 
-export const listByTask = defineQuery({
+export const findTaskSchedules = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
@@ -90,7 +90,7 @@ export const listByTask = defineQuery({
 	},
 });
 
-export const updateLastRun = defineMutation({
+export const updateScheduleLastRun = defineMutation({
 	args: z.object({
 		scheduleId: zid('schedules'),
 		lastRunAt: z.number(),
@@ -109,7 +109,7 @@ export const updateLastRun = defineMutation({
 	},
 });
 
-export const cancel = defineMutation({
+export const cancelSchedule = defineMutation({
 	args: z.object({
 		scheduleId: zid('schedules'),
 	}),
@@ -127,7 +127,7 @@ export const cancel = defineMutation({
 	},
 });
 
-export const updateJobId = defineMutation({
+export const updateScheduleJobId = defineMutation({
 	args: z.object({
 		scheduleId: zid('schedules'),
 		scheduledJobId: z.string(),
@@ -138,15 +138,15 @@ export const updateJobId = defineMutation({
 	},
 });
 
-export const cancelAllForTask = defineMutation({
+export const cancelTaskSchedules = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
 	handler: async (ctx, { taskId }) => {
 		//
-		const schedules = await listByTask(ctx, { taskId });
+		const schedules = await findTaskSchedules(ctx, { taskId });
 
-		await Promise.all(schedules.map((schedule) => cancel(ctx, { scheduleId: schedule._id })));
+		await Promise.all(schedules.map((schedule) => cancelSchedule(ctx, { scheduleId: schedule._id })));
 
 		return schedules.length;
 	},

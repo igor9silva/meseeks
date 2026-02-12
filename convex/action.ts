@@ -5,12 +5,12 @@ import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks.private';
 import {
 	addMany,
-	authorize as authorizeAction,
-	findAllPaginated as findActionsPaginated,
-	findAllRunning as findAllRunningActions,
+	authorizeAction,
+	findActionsPaginated,
+	findRunningActions,
 	findLastActions,
 	findNext,
-	findOne as findAction,
+	findAction,
 	findPendingAuthorization,
 	findRunning,
 } from './action.private';
@@ -132,7 +132,7 @@ export const findAllRunning = query({
 		//
 		await ensureTaskOwner(ctx, { taskId });
 
-		return await findAllRunningActions(ctx, { taskId });
+		return await findRunningActions(ctx, { taskId });
 	},
 });
 

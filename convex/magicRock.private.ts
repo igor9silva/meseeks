@@ -488,7 +488,7 @@ async function replaceAllSkillsIfNeeded(
 	//
 	if (!text.includes('{{allSkills}}')) return text;
 
-	const list = await ctx.runQuery(internal.skills._listAllKeys, {
+	const list = await ctx.runQuery(internal.skills._findAllKeys, {
 		userId,
 	});
 
@@ -507,7 +507,7 @@ async function replaceActiveSkillsIfNeeded(
 	//
 	if (!text.includes('{{activeSkills}}')) return text;
 
-	const enabledSkills = await ctx.runQuery(internal.skills._listEnabledSkillsWithDetails, {
+	const enabledSkills = await ctx.runQuery(internal.skills._findEnabledSkillsWithDetails, {
 		userId,
 	});
 
@@ -696,7 +696,7 @@ async function getTaskSchedulesIfNeeded(
 	if (!text.includes('{{taskSchedules}}')) return undefined;
 
 	try {
-		const schedules = await ctx.runQuery(internal.schedules._listByTask, {
+		const schedules = await ctx.runQuery(internal.schedules._findByTask, {
 			taskId,
 		});
 

@@ -5,15 +5,15 @@ import { NotFound } from 'lib/errors';
 import { newSkillSchema } from 'schemas/skillSchema';
 import {
 	buildInSkillToDoc,
-	create as createSkill,
+	createSkill,
 	enableSkill,
 	findAll,
 	findAllByOwner,
-	findOne as findSkill,
+	findAllSkillKeys,
+	findEnabledSkillsWithDetails,
+	findSkill,
 	isBuiltInSkillKey,
-	listAllKeys,
-	listEnabledSkillsWithDetails,
-	update as updateSkill,
+	updateSkill,
 } from './skills.private';
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
@@ -43,19 +43,19 @@ export const _findOne = internalQuery({
 });
 
 // used by magicRock.private.ts to expand {{allSkills}} in system instructions
-export const _listAllKeys = internalQuery({
+export const _findAllKeys = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
-	handler: listAllKeys,
+	handler: findAllSkillKeys,
 });
 
 // used by magicRock.private.ts to expand {{activeSkills}} with enabled skill schemas
-export const _listEnabledSkillsWithDetails = internalQuery({
+export const _findEnabledSkillsWithDetails = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
-	handler: listEnabledSkillsWithDetails,
+	handler: findEnabledSkillsWithDetails,
 });
 
 // called by builtIn/createSkill.ts to persist a generated skill from tool execution

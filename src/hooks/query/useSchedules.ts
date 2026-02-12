@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 
 export function useSchedules() {
 	//
-	const query = convexQuery(api.schedules.listByOwner, {});
+	const query = convexQuery(api.schedules.findByOwner, {});
 	const result = useSuspenseQuery(query);
 
 	return {

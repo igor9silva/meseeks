@@ -10,9 +10,9 @@ import { blockchainSchema, tokenSchema, topUpAmountSchema } from 'schemas/topUpS
 import { internal } from './_generated/api';
 import {
 	add,
-	findAllByStatus,
-	findAllWaiting as findWaitingTopUps,
-	findOne as findTopUp,
+	findTopUp,
+	findTopUpsByStatus,
+	findWaitingTopUps,
 	finish,
 	persistPolarEvent,
 } from './topUps.private';
@@ -141,8 +141,8 @@ export const findAllHistory = query({
 		const currentUser = await getCurrentUser(ctx, {});
 
 		const [confirmed, failed] = await Promise.all([
-			findAllByStatus(ctx, { owner: currentUser._id, status: 'confirmed' }),
-			findAllByStatus(ctx, { owner: currentUser._id, status: 'failed' }),
+			findTopUpsByStatus(ctx, { owner: currentUser._id, status: 'confirmed' }),
+			findTopUpsByStatus(ctx, { owner: currentUser._id, status: 'failed' }),
 		]);
 
 		return confirmed

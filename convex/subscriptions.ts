@@ -2,7 +2,7 @@ import { Polar } from '@polar-sh/sdk';
 import { z } from 'zod';
 import { action, internalMutation, internalQuery, query } from 'lib/convex';
 import { env } from 'schemas/envSchema';
-import { activate, add, findActive as findActiveSubscriptions, handleRevocation } from './subscriptions.private';
+import { activate, add, findActiveSubscriptions, handleRevocation } from './subscriptions.private';
 import { getCurrentUser, isProSubscriber } from './users.private';
 import { internal } from './_generated/api';
 

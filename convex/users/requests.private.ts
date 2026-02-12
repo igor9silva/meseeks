@@ -1,9 +1,9 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { defineMutation } from 'lib/functions';
+import { defineMutation } from 'lib/convex';
 import { userRequestKeySchema } from 'schemas/userSchema';
 
-export const submitRequest = defineMutation({
+export const submitUserRequest = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		key: userRequestKeySchema,

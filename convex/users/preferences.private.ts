@@ -1,34 +1,18 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { Id } from '../_generated/dataModel';
-import type { MutationCtx, QueryCtx } from '../_generated/server';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 
-const findUserPreference = async (
-	ctx: QueryCtx | MutationCtx,
-	{
-		userId,
-		key,
-	}: {
-		userId: Id<'users'>;
-		key: string;
-	},
-) => {
-	//
-	return await ctx.db
-		.query('user_preferences')
-		.withIndex('by_owner_key', (q) => q.eq('owner', userId).eq('key', key))
-		.unique();
-};
-
-export const getUserPreference = defineQuery({
+export const findUserPreference = defineQuery({
 	args: z.object({
 		userId: zid('users'),
 		key: z.string(),
 	}),
 	handler: async (ctx, { userId, key }) => {
 		//
-		return await findUserPreference(ctx, { userId, key });
+		return await ctx.db
+			.query('user_preferences')
+			.withIndex('by_owner_key', (q) => q.eq('owner', userId).eq('key', key))
+			.unique();
 	},
 });
 

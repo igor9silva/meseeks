@@ -7,7 +7,7 @@ import { internal } from '../_generated/api';
 import { defineMutation } from 'lib/convex';
 import { computeNextRun } from 'lib/cron';
 import { authorSchema } from 'schemas/authorSchema';
-import { updateJobId, updateLastRun } from '../schedules.private';
+import { updateScheduleJobId, updateScheduleLastRun } from '../schedules.private';
 
 export const executeOneTime = defineMutation({
 	args: z.object({
@@ -82,12 +82,12 @@ export const executeRecurring = defineMutation({
 			scheduleId,
 		);
 
-		await updateJobId(ctx, {
+		await updateScheduleJobId(ctx, {
 			scheduleId,
 			scheduledJobId,
 		});
 
-		await updateLastRun(ctx, {
+		await updateScheduleLastRun(ctx, {
 			scheduleId,
 			lastRunAt: Date.now(),
 			nextRunAt: nextRunAt.getTime(),

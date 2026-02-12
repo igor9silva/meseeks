@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { cancel as cancelSchedule, create, listByTask as listSchedulesByTask } from './schedules.private';
+import { cancelSchedule, createSchedule, findTaskSchedules } from './schedules.private';
 import { ensureTaskOwner } from './tasks.private';
 import { getCurrentUser } from './users.private';
 
@@ -9,14 +9,14 @@ const scheduledFunctionIdSchema = zid('_scheduled_functions');
 
 // called by skills/builtIn/schedule.ts so the ai can create schedules
 export const _create = internalMutation({
-	args: create.args.shape,
-	handler: create,
+	args: createSchedule.args.shape,
+	handler: createSchedule,
 });
 
 // used by magicRock.private.ts to render {{taskSchedules}} from the same normalized listing logic
-export const _listByTask = internalQuery({
-	args: listSchedulesByTask.args.shape,
-	handler: listSchedulesByTask,
+export const _findByTask = internalQuery({
+	args: findTaskSchedules.args.shape,
+	handler: findTaskSchedules,
 });
 
 // called by skills/builtIn/cancelSchedule.ts so the ai can cancel schedules
@@ -46,7 +46,7 @@ export const cancel = mutation({
 	},
 });
 
-export const listByTask = query({
+export const findByTask = query({
 	args: {
 		taskId: zid('tasks'),
 	},
@@ -54,11 +54,11 @@ export const listByTask = query({
 		//
 		await ensureTaskOwner(ctx, { taskId });
 
-		return await listSchedulesByTask(ctx, { taskId });
+		return await findTaskSchedules(ctx, { taskId });
 	},
 });
 
-export const listByOwner = query({
+export const findByOwner = query({
 	args: {},
 	handler: async (ctx) => {
 		//

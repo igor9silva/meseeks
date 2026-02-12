@@ -6,16 +6,16 @@ import { api } from 'convex/_generated/api';
 
 export function usePreferences({ defaultValue }: { defaultValue?: unknown } = {}) {
 	//
-	const setPreferenceMutation = useMutation(api.users.preferences.setPreference);
+	const setPreferenceMutation = useMutation(api.users.preferences.set);
 
 	const setPreference = setPreferenceMutation.withOptimisticUpdate((localStore, { key, value }) => {
 		//
-		const existingPreference = localStore.getQuery(api.users.preferences.getPreference, { key });
+		const existingPreference = localStore.getQuery(api.users.preferences.get, { key });
 
 		// if we've loaded this preference query, update it optimistically
 		if (existingPreference !== undefined && existingPreference !== null) {
 			localStore.setQuery(
-				api.users.preferences.getPreference,
+				api.users.preferences.get,
 				{ key },
 				{
 					...existingPreference,
@@ -27,7 +27,7 @@ export function usePreferences({ defaultValue }: { defaultValue?: unknown } = {}
 
 	const getPreference = (key: string) => {
 		//
-		const query = convexQuery(api.users.preferences.getPreference, { key });
+		const query = convexQuery(api.users.preferences.get, { key });
 		const { data: preference } = useSuspenseQuery(query);
 
 		return preference?.value;

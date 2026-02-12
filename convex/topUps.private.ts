@@ -90,7 +90,7 @@ export const persistPolarEvent = defineMutation({
 
 // TODO: add automatic timeout for waiting top ups
 
-export const findOneByPaymentId = defineQuery({
+export const findTopUpByPaymentId = defineQuery({
 	args: z.object({
 		paymentId: z.string(),
 	}),
@@ -99,7 +99,7 @@ export const findOneByPaymentId = defineQuery({
 	},
 });
 
-export const findOne = defineQuery({
+export const findTopUp = defineQuery({
 	args: z.object({
 		topUpId: zid('topUps'),
 	}),
@@ -108,7 +108,7 @@ export const findOne = defineQuery({
 	},
 });
 
-export const findAllWaiting = defineQuery({
+export const findWaitingTopUps = defineQuery({
 	args: z.object({
 		owner: zid('users'),
 	}),
@@ -124,7 +124,7 @@ export const findAllWaiting = defineQuery({
 	},
 });
 
-export const findAllByStatus = defineQuery({
+export const findTopUpsByStatus = defineQuery({
 	args: z.object({
 		owner: zid('users'),
 		status: z.enum([

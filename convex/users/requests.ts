@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { mutation } from 'lib/functions';
+import { mutation } from 'lib/convex';
 import { userRequestKeySchema } from 'schemas/userSchema';
 import { getCurrentUser } from '../users.private';
-import { submitRequest as submitUserRequest } from './requests.private';
+import { submitUserRequest } from './requests.private';
 
-export const submitRequest = mutation({
+export const submit = mutation({
 	args: {
 		key: userRequestKeySchema,
 		message: z.string().min(1).max(1000),

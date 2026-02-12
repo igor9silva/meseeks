@@ -1,7 +1,7 @@
 import { NoOp } from 'convex-helpers/server/customFunctions';
 import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { MutationCtx, QueryCtx } from 'convex/_generated/server';
+import type { ActionCtx, MutationCtx, QueryCtx } from 'convex/_generated/server';
 import {
 	action as actionOG,
 	internalAction as internalActionOG,
@@ -55,6 +55,14 @@ export const defineMutation = <Schema extends ArgsSchema, Result>(input: {
 export const defineQuery = <Schema extends ArgsSchema, Result>(input: {
 	args: Schema;
 	handler: (ctx: QueryCtx | MutationCtx, args: z.output<Schema>) => AsyncValue<Result>;
+}) => {
+	//
+	return defineFunction(input);
+};
+
+export const defineAction = <Schema extends ArgsSchema, Result>(input: {
+	args: Schema;
+	handler: (ctx: ActionCtx | MutationCtx, args: z.output<Schema>) => AsyncValue<Result>;
 }) => {
 	//
 	return defineFunction(input);

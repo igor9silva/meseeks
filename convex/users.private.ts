@@ -7,7 +7,7 @@ import { NotFound } from 'lib/errors';
 import { asBigInt } from 'lib/money';
 import { env } from 'schemas/envSchema';
 import { tokenSchema } from 'schemas/topUpSchema';
-import { findActive } from './subscriptions.private';
+import { findActiveSubscriptions } from './subscriptions.private';
 import { addWithActions } from './tasks.private';
 import { addFreeCredits } from './transactions.private';
 import { setUserPreference } from './users/preferences.private';
@@ -114,7 +114,7 @@ export const seedIfNeeded = defineMutation({
 	}),
 	handler: async (ctx, { userId }) => {
 		//
-		const user = await findOne(ctx, { userId });
+		const user = await findUser(ctx, { userId });
 		if (user?.isReady) return;
 
 		console.info('new user!', userId);
@@ -162,7 +162,7 @@ export const markAreReady = defineMutation({
 	}),
 	handler: async (ctx, { userId }) => {
 		//
-		const user = await findOne(ctx, { userId });
+		const user = await findUser(ctx, { userId });
 		if (!user) throw NotFound();
 
 		await ctx.db.patch(userId, { isReady: true });
@@ -179,7 +179,7 @@ export const adjustBalance = defineMutation({
 	}),
 	handler: async (ctx, { userId, value }) => {
 		//
-		const user = await findOne(ctx, { userId });
+		const user = await findUser(ctx, { userId });
 		if (!user) throw NotFound();
 
 		console.debug('adjust account balance', userId, value.amount);
@@ -197,14 +197,14 @@ export const setFounder = defineMutation({
 	}),
 	handler: async (ctx, { userId, isFounder }) => {
 		//
-		const user = await findOne(ctx, { userId });
+		const user = await findUser(ctx, { userId });
 		if (!user) throw NotFound();
 
 		await ctx.db.patch(userId, { isFounder });
 	},
 });
 
-export const findOne = defineQuery({
+export const findUser = defineQuery({
 	args: z.object({
 		userId: zid('users'),
 	}),
@@ -220,7 +220,7 @@ export const getCurrentUser = defineQuery({
 		const userId = await getAuthUserId(ctx);
 		if (!userId) throw new Error('Not authenticated');
 
-		const user = await findOne(ctx, { userId });
+		const user = await findUser(ctx, { userId });
 		if (!user) throw new Error('Not found');
 
 		const email = user.email;
@@ -237,7 +237,7 @@ export const isProSubscriber = defineQuery({
 	}),
 	handler: async (ctx, { owner }) => {
 		//
-		const activeSubscriptions = await findActive(ctx, { owner });
+		const activeSubscriptions = await findActiveSubscriptions(ctx, { owner });
 
 		return activeSubscriptions.length > 0;
 	},

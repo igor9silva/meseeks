@@ -35,7 +35,7 @@ export function ShareSkillRequestDialog({
 	//
 	const [message, setMessage] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const submit = useMutation(api.users.requests.submitRequest);
+	const submit = useMutation(api.users.requests.submit);
 	const submitHotkey = useSubmitHotkey();
 
 	const handleSubmit = useHandleSubmit({

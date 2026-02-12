@@ -1,18 +1,17 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
 import { addMany } from './action.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { InsufficientAccountFunds, NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
-import { cancelAllForTask } from './schedules.private';
+import { cancelTaskSchedules } from './schedules.private';
 import { authorSchema } from 'schemas/authorSchema';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
-import { listEnabledSkillsWithDetails } from './skills.private';
+import { findEnabledSkillsWithDetails } from './skills.private';
 import { addFundTask, addRefundTask } from './transactions.private';
-import { findOne as findOneUser, getCurrentUser } from './users.private';
+import { findUser, getCurrentUser } from './users.private';
 
 type EnabledSkillDetail = {
 	key: string;
@@ -20,7 +19,7 @@ type EnabledSkillDetail = {
 	inputSchema: string;
 };
 
-export const findOne = defineQuery({
+export const findTask = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
@@ -94,57 +93,53 @@ export const findActiveTasks = defineQuery({
 	},
 });
 
-// TODO: should use defineQuery() or similar
-export const findAllAtInboxByOwner = async (
-	ctx: QueryCtx,
-	{
-		owner,
-	}: {
-		owner: Id<'users'>;
+export const findAllAtInboxByOwner = defineQuery({
+	args: z.object({
+		owner: zid('users'),
+	}),
+	handler: async (ctx, { owner }) => {
+		//
+		const find = ({ isActive }: { isActive: boolean }) =>
+			ctx.db
+				.query('tasks')
+				.withIndex('by_owner_parentId_isActive', (q) =>
+					q
+						.eq('owner', owner) //
+						.eq('parentId', undefined)
+						.eq('isActive', isActive),
+				)
+				.order('desc')
+				.collect();
+
+		const [active, inactive] = await Promise.all([
+			find({ isActive: true }), //
+			find({ isActive: false }),
+		]);
+
+		return active.concat(inactive);
 	},
-) => {
-	//
-	const find = ({ isActive }: { isActive: boolean }) =>
-		ctx.db
-			.query('tasks')
-			.withIndex('by_owner_parentId_isActive', (q) =>
-				q
-					.eq('owner', owner) //
-					.eq('parentId', undefined)
-					.eq('isActive', isActive),
-			)
-			.order('desc')
-			.collect();
+});
 
-	const [active, inactive] = await Promise.all([
-		find({ isActive: true }), //
-		find({ isActive: false }),
-	]);
+export const ensureTaskOwner = defineQuery({
+	args: z.object({
+		taskId: zid('tasks'),
+	}),
+	handler: async (ctx, { taskId }): Promise<{
+		currentUser: { _id: Id<'users'> };
+		task: Doc<'tasks'>;
+	}> => {
+		//
+		const currentUser = await getCurrentUser(ctx, {});
+		const task = await ctx.db.get(taskId);
 
-	return active.concat(inactive);
-};
+		if (!task) throw NotFound();
+		if (task.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
 
-// TODO: should use defineQuery() or similar
-export const ensureTaskOwner = async (
-	ctx: QueryCtx | MutationCtx, //
-	args: {
-		taskId: Id<'tasks'>;
+		return { currentUser, task };
 	},
-): Promise<{
-	currentUser: { _id: Id<'users'> };
-	task: Doc<'tasks'>;
-}> => {
-	//
-	const currentUser = await getCurrentUser(ctx, {});
-	const task = await ctx.db.get(args.taskId);
+});
 
-	if (!task) throw NotFound();
-	if (task.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
-
-	return { currentUser, task };
-};
-
-export const add = defineMutation({
+export const addTask = defineMutation({
 	args: z.object({
 		author: authorSchema,
 		owner: zid('users'),
@@ -364,7 +359,7 @@ export const updateInstructions = defineMutation({
 		if (availableSkills) {
 			//
 			// get enabled skills - this is what the AI actually sees as available options
-			const enabledSkills: EnabledSkillDetail[] = await listEnabledSkillsWithDetails(ctx, {
+			const enabledSkills: EnabledSkillDetail[] = await findEnabledSkillsWithDetails(ctx, {
 				userId: owner,
 			});
 
@@ -399,7 +394,7 @@ export const addAvailableSkill = defineMutation({
 	}),
 	handler: async (ctx, { taskId, skillKey }) => {
 		//
-		const task = await findOne(ctx, { taskId });
+		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
 		if (task.availableSkills?.includes(skillKey)) return;
@@ -410,21 +405,21 @@ export const addAvailableSkill = defineMutation({
 	},
 });
 
-export const markAsRead = defineMutation({
+export const markTaskAsRead = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
 	handler: async (ctx, { taskId }) => {
 		//
-		const task = await findOne(ctx, { taskId });
+		const task = await findTask(ctx, { taskId });
 
 		if (task.status === 'unread' || task.status === 'blocked') {
-			await setStatus(ctx, { taskId, newStatus: 'idle' });
+			await setTaskStatus(ctx, { taskId, newStatus: 'idle' });
 		}
 	},
 });
 
-export const setStatus = defineMutation({
+export const setTaskStatus = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		newStatus: taskStatusSchema,
@@ -433,7 +428,7 @@ export const setStatus = defineMutation({
 		//
 		if (newStatus === 'done' || newStatus === 'discarded') {
 			//
-			const task = await findOne(ctx, { taskId });
+			const task = await findTask(ctx, { taskId });
 			if (!task) throw NotFound();
 
 			// remove funds from the task
@@ -445,7 +440,7 @@ export const setStatus = defineMutation({
 			}
 
 			// cancel all active schedules for this task
-			const cancelledCount = await cancelAllForTask(ctx, { taskId });
+			const cancelledCount = await cancelTaskSchedules(ctx, { taskId });
 			if (cancelledCount > 0) {
 				console.debug(`Cancelled ${cancelledCount} schedule(s) for task ${taskId} (status: ${newStatus})`);
 			}
@@ -494,7 +489,7 @@ export const useFunds = defineMutation({
 	}),
 	handler: async (ctx, { taskId, amount }) => {
 		//
-		const task = await findOne(ctx, { taskId });
+		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
 		console.debug(`using ${asDollars({ bigInt: amount })} from task ${taskId}`);
@@ -533,10 +528,10 @@ export const increaseBudget = defineMutation({
 	}),
 	handler: async (ctx, { taskId, amount }) => {
 		//
-		const task = await findOne(ctx, { taskId });
+		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
-		const user = await findOneUser(ctx, { userId: task.owner });
+		const user = await findUser(ctx, { userId: task.owner });
 		if (!user) throw NotFound();
 
 		const currentBalance = user.balanceUSD ?? 0n;
@@ -579,7 +574,7 @@ export const removeFunds = defineMutation({
 	}),
 	handler: async (ctx, { taskId, amount }) => {
 		//
-		const task = await findOne(ctx, { taskId });
+		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
 		// create the transaction
@@ -614,7 +609,7 @@ export const move = defineMutation({
 	},
 });
 
-export const setPreferredIntelligence = defineMutation({
+export const setTaskPreferredIntelligence = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		preferredIntelligence: intelligenceKeys,

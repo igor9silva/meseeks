@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { componentSchema } from 'schemas/componentSchema';
 
-export const add = defineMutation({
+export const addComponent = defineMutation({
 	args: componentSchema,
 	handler: async (ctx, { owner, body, defaultTaskId, slug }) => {
 		//
@@ -16,7 +16,7 @@ export const add = defineMutation({
 	},
 });
 
-export const findAll = defineQuery({
+export const findAllComponents = defineQuery({
 	args: z.object({
 		userId: zid('users'),
 	}),
@@ -29,7 +29,7 @@ export const findAll = defineQuery({
 	},
 });
 
-export const findOneBySlug = defineQuery({
+export const findComponentBySlug = defineQuery({
 	args: z.object({
 		slug: z.string(),
 		userId: zid('users'),

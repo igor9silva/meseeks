@@ -96,7 +96,7 @@ export const findOne = defineQuery({
 	},
 });
 
-export const findActive = defineQuery({
+export const findActiveSubscriptions = defineQuery({
 	args: z.object({
 		owner: zid('users'),
 	}),

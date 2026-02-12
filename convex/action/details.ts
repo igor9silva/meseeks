@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { internalMutation, query } from 'lib/functions';
+import { internalMutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { findActionDetails, persistActionDetails, updateActionDetails } from './details.private';
 import { getCurrentUser } from '../users.private';

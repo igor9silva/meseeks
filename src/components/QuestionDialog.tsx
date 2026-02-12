@@ -30,7 +30,7 @@ export function QuestionDialog({ className }: { className?: string }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [open, setOpen] = useState(false);
 
-	const submit = useMutation(api.users.requests.submitRequest);
+	const submit = useMutation(api.users.requests.submit);
 	const submitHotkey = useSubmitHotkey();
 
 	const handleSubmit = useHandleSubmit({

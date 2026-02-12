@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { actionDetailSchema, actionDetailUpdateSchema } from 'schemas/actionDetailSchema';
 

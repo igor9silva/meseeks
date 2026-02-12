@@ -5,18 +5,18 @@ import { asBigInt } from 'lib/money';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import {
-	add as addTask,
+	addTask,
 	addAvailableSkill,
 	ensureTaskOwner,
 	findActiveTasks,
 	findAllAtInboxByOwner,
-	findOne as findTask,
+	findTask,
 	increaseBudget,
-	markAsRead as markTaskAsRead,
+	markTaskAsRead,
 	move,
 	removeFunds,
-	setPreferredIntelligence as setTaskPreferredIntelligence,
-	setStatus,
+	setTaskPreferredIntelligence,
+	setTaskStatus,
 	updateInstructions,
 } from './tasks.private';
 import { getCurrentUser } from './users.private';
@@ -41,8 +41,8 @@ export const _addAvailableSkill = internalMutation({
 
 // called by builtIn skills resolve/discard/reopen to drive task lifecycle transitions
 export const _setStatus = internalMutation({
-	args: setStatus.args.shape,
-	handler: setStatus,
+	args: setTaskStatus.args.shape,
+	handler: setTaskStatus,
 });
 
 // called by skills/builtIn/increaseBudget.ts so the ai can fund a task from account balance

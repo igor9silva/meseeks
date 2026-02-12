@@ -22,7 +22,7 @@ const findOneDraft = async (
 		.unique();
 };
 
-export const findOne = defineQuery({
+export const findDraft = defineQuery({
 	args: z.object({
 		owner: zid('users'),
 		taskId: zid('tasks'),
@@ -47,7 +47,7 @@ export const findOne = defineQuery({
 // 	},
 // });
 
-export const save = defineMutation({
+export const saveDraft = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		taskId: zid('tasks'),
@@ -67,7 +67,7 @@ export const save = defineMutation({
 	},
 });
 
-export const clear = defineMutation({
+export const clearDraft = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		taskId: zid('tasks'),

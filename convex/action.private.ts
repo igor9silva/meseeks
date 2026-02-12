@@ -8,7 +8,7 @@ import { NotFound } from 'lib/errors';
 import { actionSchema } from 'schemas/actionSchema';
 import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
-import { setStatus } from './tasks.private';
+import { setTaskStatus } from './tasks.private';
 
 const findByStatus = (
 	ctx: QueryCtx | MutationCtx,
@@ -31,7 +31,7 @@ const findByStatus = (
 		.order('asc');
 };
 
-export const findOne = defineQuery({
+export const findAction = defineQuery({
 	args: z.object({
 		actionId: zid('actions'),
 	}),
@@ -143,7 +143,7 @@ export const skipAllPendingReactions = defineMutation({
 // e.g. update the task status from here feels wrong
 // instintic: if reject, should call resolve
 //	also maybe rename 'resolve' to something else because of task's
-export const authorize = defineMutation({
+export const authorizeAction = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		actionId: zid('actions'),
@@ -155,7 +155,7 @@ export const authorize = defineMutation({
 	}),
 	handler: async (ctx, { taskId, actionId, approver, hasApproved }) => {
 		//
-		const action = await findOne(ctx, { actionId });
+		const action = await findAction(ctx, { actionId });
 		if (action.approvedAt) return;
 
 		// if already running, keep running - else enqueue
@@ -180,11 +180,11 @@ export const authorize = defineMutation({
 
 		// if rejected by user, go back to 'idle' (not 'unread' because it's an explicit user action)
 		if (!hasApproved) {
-			await setStatus(ctx, { taskId, newStatus: 'idle' });
+			await setTaskStatus(ctx, { taskId, newStatus: 'idle' });
 		}
 
 		await ctx.db.patch(actionId, patch);
-		await runNextActionIfNeeded(ctx, taskId);
+		await runNextActionIfNeeded(ctx, { taskId });
 	},
 });
 
@@ -237,7 +237,7 @@ export const addMany = defineMutation({
 			),
 		);
 
-		await runNextActionIfNeeded(ctx, taskId);
+		await runNextActionIfNeeded(ctx, { taskId });
 
 		return actionIds;
 	},
@@ -286,7 +286,7 @@ export const findAllSince = defineQuery({
 	},
 });
 
-export const findAllPaginated = defineQuery({
+export const findActionsPaginated = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 		paginationOpts: paginationOptionsSchema,
@@ -301,7 +301,7 @@ export const findAllPaginated = defineQuery({
 	},
 });
 
-export const findAllRunning = defineQuery({
+export const findRunningActions = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
