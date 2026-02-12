@@ -2,13 +2,13 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { newSkillSchema } from 'schemas/skillSchema';
+import { newSkillSchema, simplifiedSkillKindSchema } from 'schemas/skillSchema';
 import {
 	buildInSkillToDoc,
 	createSkill,
 	enableSkill,
-	findAll,
-	findAllByOwner,
+	findAllSkills,
+	findAllSkillsByOwner,
 	findAllSkillKeys,
 	findEnabledSkillsWithDetails,
 	findSkill,
@@ -22,15 +22,9 @@ import { getCurrentUser } from './users.private';
 export const _findAll = internalQuery({
 	args: {
 		owner: zid('users'),
-		kind: z
-			.enum([
-				'hard', //
-				'soft',
-			])
-			.optional()
-			.describe('Filter by skill kind. Grab all if unspecified.'),
+		kind: simplifiedSkillKindSchema.optional().describe('Filter by skill kind. Grab all if unspecified.'),
 	},
-	handler: findAll,
+	handler: findAllSkills,
 });
 
 // used by builtIn/getSkillDetails.ts so the ai can inspect one skill by key/owner
@@ -89,7 +83,7 @@ export const findAllPublic = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const skills = await findAllByOwner(ctx, { owner: 'isPro' });
+		const skills = await findAllSkillsByOwner(ctx, { owner: 'isPro' });
 
 		// remove headers from isPro hard skills, as they may contain passwords
 		for (const skill of skills) {
@@ -107,7 +101,7 @@ export const findAllPersonal = query({
 	handler: async (ctx) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
-		return await findAllByOwner(ctx, { owner: currentUser._id });
+		return await findAllSkillsByOwner(ctx, { owner: currentUser._id });
 	},
 });
 

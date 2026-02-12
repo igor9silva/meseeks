@@ -1,28 +1,32 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { MutationCtx, QueryCtx } from './_generated/server';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { authorSchema } from 'schemas/authorSchema';
 import { polarEventSchema } from 'schemas/polarEventSchema';
-import { blockchainSchema, tokenSchema, topUpAmountSchema, walletAddressSchema } from 'schemas/topUpSchema';
-import { addTopUp } from './transactions.private';
+import {
+	blockchainSchema,
+	tokenSchema,
+	topUpAmountSchema,
+	topUpStatusSchema,
+	walletAddressSchema,
+} from 'schemas/topUpSchema';
+import { addTopUpTransaction } from './transactions.private';
 
-const findByPaymentId = async (
-	ctx: QueryCtx | MutationCtx,
-	{
-		paymentId,
-	}: {
-		paymentId: string;
+export const findTopUpByPaymentId = defineQuery({
+	args: z.object({
+		paymentId: z.string(),
+	}),
+	handler: async (ctx, { paymentId }) => {
+		//
+		return await ctx.db
+			.query('topUps')
+			.withIndex('by_paymentId', (q) => q.eq('paymentId', paymentId))
+			.first();
 	},
-) => {
-	return await ctx.db
-		.query('topUps')
-		.withIndex('by_paymentId', (q) => q.eq('paymentId', paymentId))
-		.first();
-};
+});
 
-export const add = defineMutation({
+export const addTopUp = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		author: authorSchema,
@@ -53,21 +57,21 @@ export const add = defineMutation({
 	},
 });
 
-export const finish = defineMutation({
+export const finishTopUp = defineMutation({
 	args: z.object({
 		checkoutId: z.string(),
 		amount: z.bigint(),
 	}),
 	handler: async (ctx, { checkoutId, amount }) => {
 		//
-		const topUp = await findByPaymentId(ctx, { paymentId: checkoutId });
+		const topUp = await findTopUpByPaymentId(ctx, { paymentId: checkoutId });
 		if (!topUp) throw NotFound();
 
 		if (topUp.status !== 'waiting') throw new Error('Top up is not waiting');
 
 		await ctx.db.patch(topUp._id, { status: 'confirmed' });
 
-		await addTopUp(ctx, {
+		await addTopUpTransaction(ctx, {
 			topUpId: topUp._id,
 			owner: topUp.owner,
 			value: {
@@ -89,15 +93,6 @@ export const persistPolarEvent = defineMutation({
 });
 
 // TODO: add automatic timeout for waiting top ups
-
-export const findTopUpByPaymentId = defineQuery({
-	args: z.object({
-		paymentId: z.string(),
-	}),
-	handler: async (ctx, { paymentId }) => {
-		return await findByPaymentId(ctx, { paymentId });
-	},
-});
 
 export const findTopUp = defineQuery({
 	args: z.object({
@@ -127,12 +122,7 @@ export const findWaitingTopUps = defineQuery({
 export const findTopUpsByStatus = defineQuery({
 	args: z.object({
 		owner: zid('users'),
-		status: z.enum([
-			'confirmed', //
-			'failed',
-			'waiting',
-			'discarded by user',
-		]),
+		status: topUpStatusSchema,
 	}),
 	handler: async (ctx, { owner, status }) => {
 		return await ctx.db

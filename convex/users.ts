@@ -1,11 +1,11 @@
 import { internalMutation, query } from 'lib/convex';
 import { findActiveTasks } from './tasks.private';
-import { getCurrentUser, isProSubscriber, markAreReady } from './users.private';
+import { getCurrentUser, isProSubscriber, markUserAsReady } from './users.private';
 
-// scheduled from users.private.seedIfNeeded to flip isReady after the onboarding seed finishes
+// scheduled from users.private.seedUserIfNeeded to flip isReady after the onboarding seed finishes
 export const _markAreReady = internalMutation({
-	args: markAreReady.args.shape,
-	handler: markAreReady,
+	args: markUserAsReady.args.shape,
+	handler: markUserAsReady,
 });
 
 // public entrypoint used by the app; keeps auth + allowlist logic centralized in users.private.getCurrentUser

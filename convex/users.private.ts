@@ -1,25 +1,28 @@
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { Id } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { asBigInt } from 'lib/money';
 import { env } from 'schemas/envSchema';
 import { tokenSchema } from 'schemas/topUpSchema';
 import { findActiveSubscriptions } from './subscriptions.private';
-import { addWithActions } from './tasks.private';
+import { addTaskWithActions } from './tasks.private';
 import { addFreeCredits } from './transactions.private';
 import { setUserPreference } from './users/preferences.private';
 import { internal } from './_generated/api';
 
-const addInitialTask = async (ctx: Parameters<typeof addWithActions>[0], { userId }: { userId: Id<'users'> }) => {
-	//
-	const initialTaskId = await addWithActions(ctx, {
-		author: userId,
-		owner: userId,
-		title: 'Look at me!',
-		instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
+const addInitialTask = defineMutation({
+	args: z.object({
+		userId: zid('users'),
+	}),
+	handler: async (ctx, { userId }) => {
+		//
+		const initialTaskId = await addTaskWithActions(ctx, {
+			author: userId,
+			owner: userId,
+			title: 'Look at me!',
+			instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
 
 I'd like you to gather details such as:
 - My name and background
@@ -33,57 +36,60 @@ I'd like you to gather details such as:
 Please update my user information each time you learn something new about me, and make sure to never remove information that is still valid when adding new details. Write everything from my perspective, as if I'm describing myself.
 
 I'm also curious about Meseeks and would love to learn more about its capabilities, features, and how it can help me. Feel free to encourage me to ask questions about what Meseeks can do, how it works, or any other aspects I might be interested in exploring.`,
-		skills: [
-			{
-				skillKey: 'increaseBudget',
-				args: {
-					amount: asBigInt({ dollars: 1 }),
-					shouldIterate: false,
+			skills: [
+				{
+					skillKey: 'increaseBudget',
+					args: {
+						amount: asBigInt({ dollars: 1 }),
+						shouldIterate: false,
+					},
 				},
-			},
-			{
-				skillKey: 'lookAtMe',
-				args: {},
-			},
-		],
-	});
+				{
+					skillKey: 'lookAtMe',
+					args: {},
+				},
+			],
+		});
 
-	await ctx.db.patch(userId, { initialTaskId });
+		await ctx.db.patch(userId, { initialTaskId });
 
-	return initialTaskId;
-};
+		return initialTaskId;
+	},
+});
 
-const setDefaultPreferences = async (
-	ctx: Parameters<typeof setUserPreference>[0],
-	{ userId }: { userId: Id<'users'> },
-) => {
-	//
-	// TODO: unhack
-	const defaultEnabledSkills = [
-		'searchWeb',
-		'valyu_search',
-		'github_search',
-		'twitter_search',
-		'searchIdealista',
-		'scrapeLink',
-		'scrapeTweet',
-		'searchPlaces',
-		'analyze',
-		'compose',
-		'transcribeYouTube',
-		'describeYouTube',
-	];
+const setDefaultPreferences = defineMutation({
+	args: z.object({
+		userId: zid('users'),
+	}),
+	handler: async (ctx, { userId }) => {
+		//
+		// TODO: unhack
+		const defaultEnabledSkills = [
+			'searchWeb',
+			'valyu_search',
+			'github_search',
+			'twitter_search',
+			'searchIdealista',
+			'scrapeLink',
+			'scrapeTweet',
+			'searchPlaces',
+			'analyze',
+			'compose',
+			'transcribeYouTube',
+			'describeYouTube',
+		];
 
-	// TODO: this also brings idealista_* (inner skills)
-	// const proSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
-	// const defaultEnabledSkills = proSkills.map((skill) => skill.key);
+		// TODO: this also brings idealista_* (inner skills)
+		// const proSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
+		// const defaultEnabledSkills = proSkills.map((skill) => skill.key);
 
-	await setUserPreference(ctx, {
-		userId,
-		key: 'enabledSkills',
-		value: defaultEnabledSkills,
-	});
-};
+		await setUserPreference(ctx, {
+			userId,
+			key: 'enabledSkills',
+			value: defaultEnabledSkills,
+		});
+	},
+});
 
 // const _seedComponentsFromRef = async (
 // 	ctx: MutationCtx, //
@@ -108,7 +114,7 @@ const setDefaultPreferences = async (
 // 	);
 // };
 
-export const seedIfNeeded = defineMutation({
+export const seedUserIfNeeded = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 	}),
@@ -132,7 +138,7 @@ export const seedIfNeeded = defineMutation({
 
 		await addInitialTask(ctx, { userId });
 
-		const markAreReady = () => {
+		const queueMarkUserAsReady = () => {
 			//
 			const delay = 4000; // ms, fake delay for fun
 			ctx.scheduler.runAfter(delay, internal.users._markAreReady, { userId });
@@ -144,7 +150,7 @@ export const seedIfNeeded = defineMutation({
 
 		if (!env.REF_USER_ID) {
 			console.debug('No ref user ID defined. Skipping seeding components.');
-			markAreReady();
+			queueMarkUserAsReady();
 			return;
 		}
 
@@ -152,11 +158,11 @@ export const seedIfNeeded = defineMutation({
 		// if (!refUser) throw new Error('Ref user not found'); // FATAL (will stop seeding user forever), TODO: notify fatal
 
 		// await _seedComponentsFromRef(ctx, refUser._id, userId, inboxTaskId);
-		markAreReady();
+		queueMarkUserAsReady();
 	},
 });
 
-export const markAreReady = defineMutation({
+export const markUserAsReady = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 	}),
@@ -169,7 +175,7 @@ export const markAreReady = defineMutation({
 	},
 });
 
-export const adjustBalance = defineMutation({
+export const adjustUserBalance = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 		value: z.object({
@@ -190,7 +196,7 @@ export const adjustBalance = defineMutation({
 	},
 });
 
-export const setFounder = defineMutation({
+export const setUserIsFounder = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 		isFounder: z.boolean(),
@@ -225,7 +231,6 @@ export const getCurrentUser = defineQuery({
 
 		const email = user.email;
 		if (!email) throw new Error(`No email found for user ${userId}`);
-		if (!isAllowed(email)) throw new Error(`Email ${email} not allowed`);
 
 		return user;
 	},
@@ -242,9 +247,3 @@ export const isProSubscriber = defineQuery({
 		return activeSubscriptions.length > 0;
 	},
 });
-
-function isAllowed(email: string) {
-	return true;
-	// const domain = email.split('@')[1];
-	// return ALLOWED_DOMAINS.includes(domain) || ALLOWED_EMAILS.includes(email);
-}

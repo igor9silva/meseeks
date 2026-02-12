@@ -1,35 +1,14 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
 import { runNextActionIfNeeded } from './action/lifecycle.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { actionSchema } from 'schemas/actionSchema';
+import { actionStatusSchema, pendingActionStatusSchema } from 'schemas/actionSchema';
 import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { setTaskStatus } from './tasks.private';
-
-const findByStatus = (
-	ctx: QueryCtx | MutationCtx,
-	{
-		taskId,
-		status,
-	}: {
-		taskId: Id<'tasks'>;
-		status: z.infer<typeof actionSchema>['status'];
-	},
-) => {
-	//
-	return ctx.db
-		.query('actions')
-		.withIndex('by_task_status', (q) =>
-			q
-				.eq('taskId', taskId) //
-				.eq('status', status),
-		)
-		.order('asc');
-};
+import { MutationCtx, QueryCtx } from 'convex/_generated/server';
+import { Id } from 'convex/_generated/dataModel';
 
 export const findAction = defineQuery({
 	args: z.object({
@@ -44,7 +23,7 @@ export const findAction = defineQuery({
 	},
 });
 
-export const findRunning = defineQuery({
+export const findRunningAction = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
@@ -58,7 +37,7 @@ export const findReactions = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 		owner: zid('users'),
-		status: z.enum(['enqueued', 'pending authorization']),
+		status: pendingActionStatusSchema.exclude(['running']),
 	}),
 	handler: async (ctx, { taskId, owner, status }) => {
 		//
@@ -74,7 +53,7 @@ export const findReactions = defineQuery({
 	},
 });
 
-export const stop = defineMutation({
+export const stopRunningAction = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		author: authorSchema,
@@ -82,7 +61,7 @@ export const stop = defineMutation({
 	}),
 	handler: async (ctx, { taskId, author, authorIsOwner }) => {
 		//
-		const action = await findRunning(ctx, { taskId });
+		const action = await findRunningAction(ctx, { taskId });
 		if (!action) return;
 
 		await ctx.db.patch(action._id, {
@@ -132,7 +111,7 @@ export const skipAllPendingReactions = defineMutation({
 		);
 
 		if (shouldSkipRunning) {
-			await stop(ctx, { taskId, author: owner, authorIsOwner: true });
+			await stopRunningAction(ctx, { taskId, author: owner, authorIsOwner: true });
 		}
 	},
 });
@@ -188,7 +167,7 @@ export const authorizeAction = defineMutation({
 	},
 });
 
-export const addMany = defineMutation({
+export const addActions = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		owner: zid('users'),
@@ -243,7 +222,7 @@ export const addMany = defineMutation({
 	},
 });
 
-export const add = defineMutation({
+export const addAction = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		owner: zid('users'),
@@ -255,7 +234,7 @@ export const add = defineMutation({
 	}),
 	handler: async (ctx, { taskId, owner, author, skillKey, args, depth, shouldReopen }) => {
 		//
-		const actionIds = await addMany(ctx, {
+		const actionIds = await addActions(ctx, {
 			taskId,
 			author,
 			owner,
@@ -268,7 +247,7 @@ export const add = defineMutation({
 	},
 });
 
-export const findAllSince = defineQuery({
+export const findActionsSince = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 		since: z.number(),
@@ -311,7 +290,7 @@ export const findRunningActions = defineQuery({
 	},
 });
 
-export const findPendingAuthorization = defineQuery({
+export const findPendingAuthorizationAction = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
@@ -355,13 +334,13 @@ export const skipPendingAuthorizationByTaskAuthor = defineMutation({
 	},
 });
 
-export const findNext = defineQuery({
+export const findNextAction = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
 	handler: async (ctx, { taskId }) => {
 		//
-		return await findByStatus(ctx, { taskId, status: 'enqueued' }).first();
+		return findByStatus(ctx, { taskId, status: 'enqueued' }).first();
 	},
 });
 
@@ -379,3 +358,18 @@ export const findLastActions = defineQuery({
 			.take(amount);
 	},
 });
+
+// helper, not exported — can be used with .first() or .collect()
+const findByStatus = (
+	ctx: QueryCtx | MutationCtx,
+	{ taskId, status }: { taskId: Id<'tasks'>; status: z.infer<typeof actionStatusSchema> },
+) => {
+	return ctx.db
+		.query('actions')
+		.withIndex('by_task_status', (q) =>
+			q
+				.eq('taskId', taskId) //
+				.eq('status', status),
+		)
+		.order('asc');
+};

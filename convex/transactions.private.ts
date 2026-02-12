@@ -2,8 +2,7 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { defineMutation } from 'lib/convex';
 import { transactionSchema, valueSchema } from 'schemas/transactionSchema';
-import { adjustBalance } from './users.private';
-import type { MutationCtx } from './_generated/server';
+import { adjustUserBalance } from './users.private';
 
 export const addFreeCredits = defineMutation({
 	args: z.object({
@@ -14,7 +13,7 @@ export const addFreeCredits = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'free credits', ...args }),
 });
 
-export const addTopUp = defineMutation({
+export const addTopUpTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,
 		topUpId: zid('topUps'),
@@ -24,7 +23,7 @@ export const addTopUp = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'top up', ...args }),
 });
 
-export const addFundTask = defineMutation({
+export const addTaskFundingTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,
 		taskId: zid('tasks'),
@@ -34,7 +33,7 @@ export const addFundTask = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'fund task', ...args }),
 });
 
-export const addRefundTask = defineMutation({
+export const addTaskRefundTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,
 		taskId: zid('tasks'),
@@ -44,7 +43,7 @@ export const addRefundTask = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'refund from task', ...args }),
 });
 
-export const addSubscriptionCredits = defineMutation({
+export const addSubscriptionCreditsTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,
 		subscriptionId: zid('subscriptions'),
@@ -54,16 +53,18 @@ export const addSubscriptionCredits = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'subscription', ...args }),
 });
 
-async function addTransaction(ctx: MutationCtx, args: z.infer<typeof transactionSchema>) {
-	//
-	if (args.value.symbol !== 'USD') throw new Error('Only USD is supported for now');
+// helper, not exported
+const addTransaction = defineMutation({
+	args: transactionSchema,
+	handler: async (ctx, transaction) => {
+		//
+		const transactionId = await ctx.db.insert('transactions', transaction);
 
-	const transactionId = await ctx.db.insert('transactions', args);
+		await adjustUserBalance(ctx, {
+			userId: transaction.owner,
+			value: transaction.value,
+		});
 
-	await adjustBalance(ctx, {
-		userId: args.owner,
-		value: args.value,
-	});
-
-	return transactionId;
-}
+		return transactionId;
+	},
+});

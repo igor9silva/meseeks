@@ -146,6 +146,9 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Internal Convex exports in `<module>.ts` must use underscore prefix: `_functionName`.
 - Helper functions in `<module>.private.ts` must not use underscore prefixes.
 - Use `internalQuery`, `internalMutation`, `internalAction` only for Convex exports in `<module>.ts`.
+- When an export is a dumb wrapper (`handler: somePrivateHelper`, just re-export private logic), its comment must state the real caller and runtime reason (like, which action requires it? why?). Do not write tautological comments.
+  - bad: `// exported for internal calls via internal.action.details._update`
+  - good: `// called by createHttpTool after HTTP execution to persist response metadata`
 
 ### Helper Composition
 - Helpers should receive `(ctx, argsObject)` so call sites stay labeled.
@@ -175,6 +178,11 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Use Zod schemas for all custom types
 - Avoid rewriting schemas - import and use `z.infer()`
 - Use generated types: `Doc<'tableName'>`, `Id<'tableName'>`
+- Never re-declare enum/literal sets that already exist in domain schemas; derive from existing exported schemas.
+  - bad: `status: z.enum(['enqueued', 'pending authorization'])`
+  - good: `status: pendingActionStatusSchema.exclude(['running'])`
+- Do not replace schema usage with structural `z.custom<Doc<...>>` checks when a proper schema exists. Use the domain schema as source of truth.
+- If a schema subset is used in only one place, derive it inline at the usage site instead of adding a one-off exported constant.
 
 ## TanStack Router
 
@@ -211,6 +219,9 @@ One file per hook in `src/hooks/`.
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
+- If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
+- If the request says "entire codebase" or "full scan", validate with repo-wide searches for each requested rule and only report completion after those searches are clean. Do it over and over until the searches are clean.
+- If the user points to TODO markers as acceptance criteria, clear all matching TODOs in scope before claiming the task is done.
 
 ## Communication Quality
 

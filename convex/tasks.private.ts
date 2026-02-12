@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
-import { addMany } from './action.private';
+import { addActions } from './action.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { InsufficientAccountFunds, NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
@@ -10,7 +10,7 @@ import { authorSchema } from 'schemas/authorSchema';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { findEnabledSkillsWithDetails } from './skills.private';
-import { addFundTask, addRefundTask } from './transactions.private';
+import { addTaskFundingTransaction, addTaskRefundTransaction } from './transactions.private';
 import { findUser, getCurrentUser } from './users.private';
 
 type EnabledSkillDetail = {
@@ -187,7 +187,7 @@ export const addTask = defineMutation({
 			},
 		];
 
-		await addMany(ctx, {
+		await addActions(ctx, {
 			taskId,
 			author,
 			owner,
@@ -199,7 +199,7 @@ export const addTask = defineMutation({
 	},
 });
 
-export const addWithActions = defineMutation({
+export const addTaskWithActions = defineMutation({
 	args: z.object({
 		author: authorSchema,
 		owner: zid('users'),
@@ -232,7 +232,7 @@ export const addWithActions = defineMutation({
 			availableSkills: [],
 		});
 
-		await addMany(ctx, {
+		await addActions(ctx, {
 			taskId,
 			author,
 			owner,
@@ -335,7 +335,7 @@ export const addWithActions = defineMutation({
 // 	},
 // });
 
-export const updateInstructions = defineMutation({
+export const updateTaskInstructions = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		title: z.string().optional(),
@@ -387,7 +387,7 @@ export const updateInstructions = defineMutation({
 	},
 });
 
-export const addAvailableSkill = defineMutation({
+export const addTaskAvailableSkill = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		skillKey: z.string(),
@@ -433,7 +433,7 @@ export const setTaskStatus = defineMutation({
 
 			// remove funds from the task
 			if (task.energyBudget.available > 0n) {
-				await removeFunds(ctx, {
+				await removeTaskFunds(ctx, {
 					taskId,
 					amount: task.energyBudget.available,
 				});
@@ -482,7 +482,7 @@ export const setTaskStatus = defineMutation({
 // 	},
 // });
 
-export const useFunds = defineMutation({
+export const useTaskFunds = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),
@@ -521,7 +521,7 @@ export const useFunds = defineMutation({
 	},
 });
 
-export const increaseBudget = defineMutation({
+export const increaseTaskBudget = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),
@@ -548,7 +548,7 @@ export const increaseBudget = defineMutation({
 
 		// TODO: shouldn't this be an action?
 		// create the transaction
-		await addFundTask(ctx, {
+		await addTaskFundingTransaction(ctx, {
 			taskId,
 			owner: task.owner,
 			value: {
@@ -567,7 +567,7 @@ export const increaseBudget = defineMutation({
 	},
 });
 
-export const removeFunds = defineMutation({
+export const removeTaskFunds = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),
@@ -578,7 +578,7 @@ export const removeFunds = defineMutation({
 		if (!task) throw NotFound();
 
 		// create the transaction
-		await addRefundTask(ctx, {
+		await addTaskRefundTransaction(ctx, {
 			taskId,
 			owner: task.owner,
 			value: { symbol: 'USD', amount },
@@ -595,7 +595,7 @@ export const removeFunds = defineMutation({
 	},
 });
 
-export const move = defineMutation({
+export const moveTask = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		newParentId: zid('tasks').optional(),

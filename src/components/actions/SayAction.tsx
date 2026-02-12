@@ -95,7 +95,7 @@ function FullscreenMessage({
 	shouldRenderComponents: boolean;
 }) {
 	//
-	const [isReaderMode, setIsReaderMode] = useState(false);
+	const [isReaderMode, setIsReaderMode] = useState(true);
 
 	// ESC key to close fullscreen
 	useKeyboardShortcut({

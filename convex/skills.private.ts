@@ -5,7 +5,13 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
 import { zodToString } from 'lib/zodToString';
-import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from 'schemas/skillSchema';
+import {
+	builtInSkillSchema,
+	newSkillSchema,
+	simplifiedSkillKindSchema,
+	skillOwnerSchema,
+	skillSchema,
+} from 'schemas/skillSchema';
 import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
@@ -105,7 +111,7 @@ export const findAllSkillKeys = defineQuery({
 	}),
 	handler: async (ctx, { userId }) => {
 		//
-		const dbList = await findAll(ctx, { owner: userId }).then((list) =>
+		const dbList = await findAllSkills(ctx, { owner: userId }).then((list) =>
 			list.map((skill) => ({
 				key: skill.key,
 				description: skill.description,
@@ -129,7 +135,7 @@ export const findEnabledSkillsWithDetails = defineQuery({
 		//
 		const [enabledSkillKeys, allSkills] = await Promise.all([
 			findEnabledSkillKeys(ctx, { userId }),
-			findAll(ctx, { owner: userId }),
+			findAllSkills(ctx, { owner: userId }),
 		]);
 
 		// Create a map of all available skills for fast lookup
@@ -267,7 +273,7 @@ export const replaceProSkills = defineMutation({
 		console.info(`Validated ${skills.length} new skills with unique keys`);
 
 		// Get all existing "isPro" skills
-		const existingSkills = await findAllByOwner(ctx, { owner: 'isPro' });
+		const existingSkills = await findAllSkillsByOwner(ctx, { owner: 'isPro' });
 		console.info(`Found ${existingSkills.length} existing "isPro" skills`);
 
 		// Create maps for easier lookup
@@ -324,10 +330,10 @@ export const replaceProSkills = defineMutation({
 	},
 });
 
-export const findAllByOwner = defineQuery({
+export const findAllSkillsByOwner = defineQuery({
 	args: z.object({
 		owner: skillOwnerSchema,
-		kind: z.enum(['hard', 'soft']).optional(),
+		kind: simplifiedSkillKindSchema.optional(),
 	}),
 	handler: async (ctx, { owner, kind }) => {
 		//
@@ -342,7 +348,7 @@ export const findAllByOwner = defineQuery({
 	},
 });
 
-export const findOneByOwner = defineQuery({
+export const findSkillByOwner = defineQuery({
 	args: z.object({
 		key: z.string(),
 		owner: skillOwnerSchema,
@@ -356,16 +362,16 @@ export const findOneByOwner = defineQuery({
 	},
 });
 
-export const findAll = defineQuery({
+export const findAllSkills = defineQuery({
 	args: z.object({
 		owner: zid('users'),
-		kind: z.enum(['hard', 'soft']).optional(),
+		kind: simplifiedSkillKindSchema.optional(),
 	}),
 	handler: async (ctx, { owner, kind }) => {
 		//
 		const [globals, users] = await Promise.all([
-			findAllByOwner(ctx, { owner: 'isPro', kind }), // global skills
-			findAllByOwner(ctx, { owner, kind }), // user-defined skills
+			findAllSkillsByOwner(ctx, { owner: 'isPro', kind }), // global skills
+			findAllSkillsByOwner(ctx, { owner, kind }), // user-defined skills
 		]);
 
 		return globals.concat(users);
@@ -379,10 +385,10 @@ export const findSkill = defineQuery({
 	}),
 	handler: async (ctx, { key, owner }) => {
 		//
-		const globalSkill = await findOneByOwner(ctx, { key, owner: 'isPro' });
+		const globalSkill = await findSkillByOwner(ctx, { key, owner: 'isPro' });
 		if (globalSkill) return globalSkill;
 
-		const userSkill = await findOneByOwner(ctx, { key, owner });
+		const userSkill = await findSkillByOwner(ctx, { key, owner });
 		if (userSkill) return userSkill;
 
 		const builtInSkillEntry = Object.entries(_builtInSkills).find(([skillKey]) => skillKey === key);

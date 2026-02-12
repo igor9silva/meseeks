@@ -6,18 +6,18 @@ import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import {
 	addTask,
-	addAvailableSkill,
+	addTaskAvailableSkill,
 	ensureTaskOwner,
 	findActiveTasks,
 	findAllAtInboxByOwner,
 	findTask,
-	increaseBudget,
+	increaseTaskBudget,
 	markTaskAsRead,
-	move,
-	removeFunds,
+	moveTask,
+	removeTaskFunds,
 	setTaskPreferredIntelligence,
 	setTaskStatus,
-	updateInstructions,
+	updateTaskInstructions,
 } from './tasks.private';
 import { getCurrentUser } from './users.private';
 
@@ -29,14 +29,14 @@ export const _findActiveTasks = internalQuery({
 
 // called by skills/builtIn/updateInstructions.ts so the ai can patch title/instructions/summary/available skills
 export const _updateInstructions = internalMutation({
-	args: updateInstructions.args.shape,
-	handler: updateInstructions,
+	args: updateTaskInstructions.args.shape,
+	handler: updateTaskInstructions,
 });
 
 // called by skills/builtIn/createSkill.ts and skills/builtIn/updateSkill.ts to append newly enabled skills to a task
 export const _addAvailableSkill = internalMutation({
-	args: addAvailableSkill.args.shape,
-	handler: addAvailableSkill,
+	args: addTaskAvailableSkill.args.shape,
+	handler: addTaskAvailableSkill,
 });
 
 // called by builtIn skills resolve/discard/reopen to drive task lifecycle transitions
@@ -47,20 +47,20 @@ export const _setStatus = internalMutation({
 
 // called by skills/builtIn/increaseBudget.ts so the ai can fund a task from account balance
 export const _increaseBudget = internalMutation({
-	args: increaseBudget.args.shape,
-	handler: increaseBudget,
+	args: increaseTaskBudget.args.shape,
+	handler: increaseTaskBudget,
 });
 
 // called by skills/builtIn/decreaseBudget.ts to refund unused task budget back to account balance
 export const _removeFunds = internalMutation({
-	args: removeFunds.args.shape,
-	handler: removeFunds,
+	args: removeTaskFunds.args.shape,
+	handler: removeTaskFunds,
 });
 
 // called by skills/builtIn/moveTask.ts so the ai can move a task to another parent or inbox
 export const _move = internalMutation({
-	args: move.args.shape,
-	handler: move,
+	args: moveTask.args.shape,
+	handler: moveTask,
 });
 
 export const findAll = query({

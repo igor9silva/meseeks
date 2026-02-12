@@ -1,26 +1,7 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { draftQueueItemSchema } from 'schemas/draftSchema';
-
-const findOneDraft = async (
-	ctx: QueryCtx | MutationCtx,
-	{
-		owner,
-		taskId,
-	}: {
-		owner: Id<'users'>;
-		taskId: Id<'tasks'>;
-	},
-) => {
-	//
-	return await ctx.db
-		.query('drafts')
-		.withIndex('by_owner_taskId', (q) => q.eq('owner', owner).eq('taskId', taskId))
-		.unique();
-};
 
 export const findDraft = defineQuery({
 	args: z.object({
@@ -29,7 +10,10 @@ export const findDraft = defineQuery({
 	}),
 	handler: async (ctx, { owner, taskId }) => {
 		//
-		return await findOneDraft(ctx, { owner, taskId });
+		return await ctx.db
+			.query('drafts')
+			.withIndex('by_owner_taskId', (q) => q.eq('owner', owner).eq('taskId', taskId))
+			.unique();
 	},
 });
 
@@ -56,7 +40,7 @@ export const saveDraft = defineMutation({
 	}),
 	handler: async (ctx, { owner, taskId, queue, message }) => {
 		//
-		const existing = await findOneDraft(ctx, { owner, taskId });
+		const existing = await findDraft(ctx, { owner, taskId });
 		const data = { owner, taskId, queue, message, updatedAt: Date.now() };
 
 		if (existing) {
@@ -74,7 +58,7 @@ export const clearDraft = defineMutation({
 	}),
 	handler: async (ctx, { owner, taskId }) => {
 		//
-		const existing = await findOneDraft(ctx, { owner, taskId });
+		const existing = await findDraft(ctx, { owner, taskId });
 
 		if (existing) await ctx.db.delete(existing._id);
 	},

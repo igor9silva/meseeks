@@ -4,12 +4,12 @@ import type { Doc } from '../_generated/dataModel';
 import { internalAction, internalMutation, internalQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { asDollars } from 'lib/money';
-import { newActionSchema } from 'schemas/actionSchema';
+import { newActionSchema, resolvedActionStatusSchema } from 'schemas/actionSchema';
 import { builtInSkillSchema } from 'schemas/skillSchema';
 import { tokenSchema } from 'schemas/topUpSchema';
-import { addMany, findAction } from '../action.private';
+import { addActions, findAction } from '../action.private';
 import { findSkill } from '../skills.private';
-import { findTask, setTaskStatus, useFunds } from '../tasks.private';
+import { findTask, setTaskStatus, useTaskFunds } from '../tasks.private';
 import { perform } from './lifecycle.private';
 
 // scheduled by runAction in action/lifecycle.private.ts to execute one action end-to-end (budget, approval, tool execution, resolve)
@@ -101,7 +101,7 @@ export const _resolve = internalMutation({
 			text: z.string().optional(),
 			reactions: z.array(newActionSchema),
 		}),
-		status: z.enum(['succeeded', 'failed']),
+		status: resolvedActionStatusSchema.exclude(['skipped']),
 		costs: z.array(
 			z.object({
 				symbol: tokenSchema,
@@ -143,7 +143,7 @@ export const _resolve = internalMutation({
 		);
 
 		if (status === 'succeeded' && totalCost > 0) {
-			await useFunds(ctx, { taskId: action.taskId, amount: totalCost });
+			await useTaskFunds(ctx, { taskId: action.taskId, amount: totalCost });
 		}
 
 		await ctx.db.patch(actionId, { result, status, costs });
@@ -155,7 +155,7 @@ export const _resolve = internalMutation({
 			await setTaskStatus(ctx, { taskId, newStatus: 'unread' });
 
 			// schedule all reactions
-			await addMany(ctx, {
+			await addActions(ctx, {
 				taskId,
 				owner: task.owner,
 				author: action._id,

@@ -9,25 +9,25 @@ import { env } from 'schemas/envSchema';
 import { blockchainSchema, tokenSchema, topUpAmountSchema } from 'schemas/topUpSchema';
 import { internal } from './_generated/api';
 import {
-	add,
+	addTopUp,
 	findTopUp,
 	findTopUpsByStatus,
 	findWaitingTopUps,
-	finish,
+	finishTopUp,
 	persistPolarEvent,
 } from './topUps.private';
 import { getCurrentUser, isProSubscriber } from './users.private';
 
 // called by startTopUp action after checkout creation to persist a waiting top-up record
 export const _add = internalMutation({
-	args: add.args.shape,
-	handler: add,
+	args: addTopUp.args.shape,
+	handler: addTopUp,
 });
 
 // called from lib/polar.ts on order.paid webhook to mark top-up confirmed and credit balance
 export const _finish = internalMutation({
-	args: finish.args.shape,
-	handler: finish,
+	args: finishTopUp.args.shape,
+	handler: finishTopUp,
 });
 
 // called from lib/polar.ts to persist raw webhook events for audit/debug before branching logic

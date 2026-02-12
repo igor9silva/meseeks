@@ -4,15 +4,15 @@ import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks.private';
 import {
-	addMany,
+	addActions,
 	authorizeAction,
 	findActionsPaginated,
 	findRunningActions,
 	findLastActions,
-	findNext,
+	findNextAction,
 	findAction,
-	findPendingAuthorization,
-	findRunning,
+	findPendingAuthorizationAction,
+	findRunningAction,
 } from './action.private';
 
 // used by auto-approval in action/lifecycle.ts
@@ -34,7 +34,7 @@ export const _findPendingAuthorization = internalQuery({
 	args: {
 		taskId: zid('tasks'),
 	},
-	handler: findPendingAuthorization,
+	handler: findPendingAuthorizationAction,
 });
 
 // used by runNextActionIfNeeded in action/lifecycle.private.ts to pull the next enqueued action
@@ -42,7 +42,7 @@ export const _findNext = internalQuery({
 	args: {
 		taskId: zid('tasks'),
 	},
-	handler: findNext,
+	handler: findNextAction,
 });
 
 // used by magicRock history rendering and by lifecycle's consecutive-companion guard
@@ -59,7 +59,7 @@ export const _findRunning = internalQuery({
 	args: {
 		taskId: zid('tasks'),
 	},
-	handler: findRunning,
+	handler: findRunningAction,
 });
 
 export const act = mutation({
@@ -81,7 +81,7 @@ export const act = mutation({
 
 		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
 
-		return await addMany(ctx, {
+		return await addActions(ctx, {
 			skills,
 			taskId,
 			depth: 0,

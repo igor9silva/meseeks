@@ -32,21 +32,27 @@ const coreActionSchema = z.object({
 		.optional(),
 });
 
+export const pendingActionStatusSchema = z.enum([
+	'pending authorization', //
+	'enqueued',
+	'running',
+]);
+
+export const resolvedActionStatusSchema = z.enum([
+	'succeeded', //
+	'skipped',
+	'failed',
+]);
+
+export const actionStatusSchema = pendingActionStatusSchema.or(resolvedActionStatusSchema);
+
 export const pendingActionSchema = coreActionSchema.extend({
-	status: z.enum([
-		'pending authorization', //
-		'enqueued',
-		'running',
-	]),
+	status: pendingActionStatusSchema,
 	result: z.null().optional().default(null), // <------
 });
 
 export const resolvedActionSchema = coreActionSchema.extend({
-	status: z.enum([
-		'succeeded', //
-		'skipped',
-		'failed',
-	]),
+	status: resolvedActionStatusSchema,
 	result: z.object({
 		text: z.string().optional(),
 		// setAt: z.number(),

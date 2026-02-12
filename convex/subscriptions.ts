@@ -2,26 +2,31 @@ import { Polar } from '@polar-sh/sdk';
 import { z } from 'zod';
 import { action, internalMutation, internalQuery, query } from 'lib/convex';
 import { env } from 'schemas/envSchema';
-import { activate, add, findActiveSubscriptions, handleRevocation } from './subscriptions.private';
+import {
+	addSubscription,
+	activateSubscription,
+	findActiveSubscriptions,
+	revokeSubscription,
+} from './subscriptions.private';
 import { getCurrentUser, isProSubscriber } from './users.private';
 import { internal } from './_generated/api';
 
 // called by startSubscription action after polar checkout creation to persist the pending subscription
 export const _add = internalMutation({
-	args: add.args.shape,
-	handler: add,
+	args: addSubscription.args.shape,
+	handler: addSubscription,
 });
 
 // called from lib/polar.ts when order.paid arrives to activate/renew the subscription
 export const _activate = internalMutation({
-	args: activate.args.shape,
-	handler: activate,
+	args: activateSubscription.args.shape,
+	handler: activateSubscription,
 });
 
 // called from lib/polar.ts on subscription.revoked webhook to revoke access immediately
 export const _handleRevocation = internalMutation({
-	args: handleRevocation.args.shape,
-	handler: handleRevocation,
+	args: revokeSubscription.args.shape,
+	handler: revokeSubscription,
 });
 
 export const _getStartSubscriptionContext = internalQuery({

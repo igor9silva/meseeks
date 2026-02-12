@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { Doc } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { addSubscriptionCredits } from './transactions.private';
-import { setFounder } from './users.private';
+import { addSubscriptionCreditsTransaction } from './transactions.private';
+import { setUserIsFounder } from './users.private';
 
-export const add = defineMutation({
+export const addSubscription = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		paymentUrl: z.string().url(),
@@ -21,7 +21,7 @@ export const add = defineMutation({
 	},
 });
 
-export const activate = defineMutation({
+export const activateSubscription = defineMutation({
 	args: z.object({
 		checkoutId: z.string(),
 		months: z.number(),
@@ -33,7 +33,7 @@ export const activate = defineMutation({
 	handler: async (ctx, args) => {
 		//
 		const { checkoutId, months, credits, isFounder, isRenewal, polarSubscriptionId } = args;
-		const subscription = await findOneByPaymentId(ctx, { paymentId: checkoutId });
+		const subscription = await findSubscriptionByPaymentId(ctx, { paymentId: checkoutId });
 
 		if (!subscription) throw NotFound();
 		if (!isRenewal && subscription.status !== 'pending') throw new Error('Subscription not pending');
@@ -59,11 +59,11 @@ export const activate = defineMutation({
 		await ctx.db.patch(subscription._id, updateData);
 
 		if (isFounder) {
-			await setFounder(ctx, { userId: subscription.owner, isFounder: true });
+			await setUserIsFounder(ctx, { userId: subscription.owner, isFounder: true });
 		}
 
 		if (credits > 0n) {
-			await addSubscriptionCredits(ctx, {
+			await addSubscriptionCreditsTransaction(ctx, {
 				owner: subscription.owner,
 				value: { symbol: 'USD', amount: credits },
 				description: 'Subscription credits',
@@ -73,7 +73,7 @@ export const activate = defineMutation({
 	},
 });
 
-export const findOneByPaymentId = defineQuery({
+export const findSubscriptionByPaymentId = defineQuery({
 	args: z.object({
 		paymentId: z.string(),
 	}),
@@ -86,7 +86,7 @@ export const findOneByPaymentId = defineQuery({
 	},
 });
 
-export const findOne = defineQuery({
+export const findSubscription = defineQuery({
 	args: z.object({
 		subscriptionId: zid('subscriptions'),
 	}),
@@ -112,7 +112,7 @@ export const findActiveSubscriptions = defineQuery({
 	},
 });
 
-export const findByPolarSubscriptionId = defineQuery({
+export const findSubscriptionByPolarSubscriptionId = defineQuery({
 	args: z.object({
 		polarSubscriptionId: z.string(),
 	}),
@@ -125,13 +125,13 @@ export const findByPolarSubscriptionId = defineQuery({
 	},
 });
 
-export const handleRevocation = defineMutation({
+export const revokeSubscription = defineMutation({
 	args: z.object({
 		polarSubscriptionId: z.string(),
 	}),
 	handler: async (ctx, { polarSubscriptionId }) => {
 		//
-		const subscription = await findByPolarSubscriptionId(ctx, { polarSubscriptionId });
+		const subscription = await findSubscriptionByPolarSubscriptionId(ctx, { polarSubscriptionId });
 
 		if (!subscription) {
 			throw NotFound(`Subscription not found for revocation: ${polarSubscriptionId}`);

@@ -19,7 +19,7 @@ export const internalQuery = zCustomQuery(internalQueryOG, NoOp);
 export const internalAction = zCustomAction(internalActionOG, NoOp);
 
 type AsyncValue<Value> = Value | Promise<Value>;
-type ArgsSchema = z.ZodObject<z.ZodRawShape>;
+type ArgsSchema = z.ZodTypeAny;
 
 type DefinedFn<Ctx, Schema extends ArgsSchema, Result> = ((
 	ctx: Ctx, //

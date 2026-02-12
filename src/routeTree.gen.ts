@@ -21,6 +21,7 @@ import { Route as SkillsNewRouteImport } from './routes/skills_.new'
 import { Route as SkillsIdRouteImport } from './routes/skills_.$id'
 import { Route as PolarToppedRouteImport } from './routes/polar/topped'
 import { Route as PolarSubscribedRouteImport } from './routes/polar/subscribed'
+import { Route as ActionIdRouteImport } from './routes/action_.$id'
 import { Route as SkillsInnateKeyRouteImport } from './routes/skills_.innate_.$key'
 
 const TopUpRoute = TopUpRouteImport.update({
@@ -83,6 +84,11 @@ const PolarSubscribedRoute = PolarSubscribedRouteImport.update({
   path: '/subscribed',
   getParentRoute: () => PolarRouteRoute,
 } as any)
+const ActionIdRoute = ActionIdRouteImport.update({
+  id: '/action_/$id',
+  path: '/action/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillsInnateKeyRoute = SkillsInnateKeyRouteImport.update({
   id: '/skills_/innate_/$key',
   path: '/skills/innate/$key',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
+  '/action/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
   '/skills/$id': typeof SkillsIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
+  '/action/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
   '/skills/$id': typeof SkillsIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
+  '/action_/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
   '/skills_/$id': typeof SkillsIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/subscribe'
     | '/top-up'
+    | '/action/$id'
     | '/polar/subscribed'
     | '/polar/topped'
     | '/skills/$id'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/subscribe'
     | '/top-up'
+    | '/action/$id'
     | '/polar/subscribed'
     | '/polar/topped'
     | '/skills/$id'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/skills'
     | '/subscribe'
     | '/top-up'
+    | '/action_/$id'
     | '/polar/subscribed'
     | '/polar/topped'
     | '/skills_/$id'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   SkillsRoute: typeof SkillsRoute
   SubscribeRoute: typeof SubscribeRoute
   TopUpRoute: typeof TopUpRoute
+  ActionIdRoute: typeof ActionIdRoute
   SkillsIdRoute: typeof SkillsIdRoute
   SkillsNewRoute: typeof SkillsNewRoute
   TopUpIdRoute: typeof TopUpIdRoute
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PolarSubscribedRouteImport
       parentRoute: typeof PolarRouteRoute
     }
+    '/action_/$id': {
+      id: '/action_/$id'
+      path: '/action/$id'
+      fullPath: '/action/$id'
+      preLoaderRoute: typeof ActionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skills_/innate_/$key': {
       id: '/skills_/innate_/$key'
       path: '/skills/innate/$key'
@@ -315,6 +335,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkillsRoute: SkillsRoute,
   SubscribeRoute: SubscribeRoute,
   TopUpRoute: TopUpRoute,
+  ActionIdRoute: ActionIdRoute,
   SkillsIdRoute: SkillsIdRoute,
   SkillsNewRoute: SkillsNewRoute,
   TopUpIdRoute: TopUpIdRoute,
