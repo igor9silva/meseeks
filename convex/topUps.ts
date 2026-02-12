@@ -2,7 +2,7 @@ import { Polar } from '@polar-sh/sdk';
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
-import { action, internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { action, internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { asDollars, asNumber } from 'lib/money';
 import { env } from 'schemas/envSchema';

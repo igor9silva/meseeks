@@ -1,7 +1,9 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
+import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { addMany } from './action.private';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 import { InsufficientAccountFunds, NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
 import { cancelAllForTask } from './schedules.private';
@@ -10,7 +12,7 @@ import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { listEnabledSkillsWithDetails } from './skills.private';
 import { addFundTask, addRefundTask } from './transactions.private';
-import { findOne as findOneUser } from './users.private';
+import { findOne as findOneUser, getCurrentUser } from './users.private';
 
 type EnabledSkillDetail = {
 	key: string;
@@ -91,6 +93,56 @@ export const findActiveTasks = defineQuery({
 		return limit ? await query.take(limit) : await query.collect();
 	},
 });
+
+// TODO: should use defineQuery() or similar
+export const findAllAtInboxByOwner = async (
+	ctx: QueryCtx,
+	{
+		owner,
+	}: {
+		owner: Id<'users'>;
+	},
+) => {
+	//
+	const find = ({ isActive }: { isActive: boolean }) =>
+		ctx.db
+			.query('tasks')
+			.withIndex('by_owner_parentId_isActive', (q) =>
+				q
+					.eq('owner', owner) //
+					.eq('parentId', undefined)
+					.eq('isActive', isActive),
+			)
+			.order('desc')
+			.collect();
+
+	const [active, inactive] = await Promise.all([
+		find({ isActive: true }), //
+		find({ isActive: false }),
+	]);
+
+	return active.concat(inactive);
+};
+
+// TODO: should use defineQuery() or similar
+export const ensureTaskOwner = async (
+	ctx: QueryCtx | MutationCtx, //
+	args: {
+		taskId: Id<'tasks'>;
+	},
+): Promise<{
+	currentUser: { _id: Id<'users'> };
+	task: Doc<'tasks'>;
+}> => {
+	//
+	const currentUser = await getCurrentUser(ctx, {});
+	const task = await ctx.db.get(args.taskId);
+
+	if (!task) throw NotFound();
+	if (task.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
+
+	return { currentUser, task };
+};
 
 export const add = defineMutation({
 	args: z.object({

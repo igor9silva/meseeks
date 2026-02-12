@@ -2,7 +2,7 @@
 
 import { transform } from '@babel/core';
 import { z } from 'zod';
-import { internalAction } from 'lib/functions';
+import { internalAction } from 'lib/convex';
 
 export const _transpileCode = internalAction({
 	args: {

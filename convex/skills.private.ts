@@ -2,13 +2,14 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
 import { zodToString } from 'lib/zodToString';
 import { builtInSkillSchema, newSkillSchema, skillOwnerSchema, skillSchema } from 'schemas/skillSchema';
 import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
 import { _builtInSkills } from 'skills/builtIn/index';
+import { getCurrentUser } from './users.private';
 
 const findAllByOwnerImpl = async (
 	ctx: QueryCtx | MutationCtx,
@@ -126,6 +127,48 @@ const findOneSafeImpl = async (
 	}
 };
 
+export function buildInSkillToDoc(
+	key: string, //
+	skill: (typeof _builtInSkills)[keyof typeof _builtInSkills],
+) {
+	return builtInSkillSchema.parse({
+		key,
+		description: skill.description,
+		inputSchema: zodToString(skill.parameters),
+		preApprovedCost: skill.preApprovedCost,
+		knownReactions: skill.knownReactions,
+		kind: 'built-in',
+		owner: 'built-in',
+		author: 'built-in',
+		cost: 0n,
+	});
+}
+
+export function isBuiltInSkillKey(
+	skillKey: string, //
+): skillKey is keyof typeof _builtInSkills {
+	//
+	return skillKey in _builtInSkills;
+}
+
+// TODO: should use defineQuery() or similar
+export const ensureSkillOwner = async (
+	ctx: QueryCtx | MutationCtx, //
+	args: {
+		skillId: Id<'skills'>;
+	},
+) => {
+	//
+	const currentUser = await getCurrentUser(ctx, {});
+	const skill = await ctx.db.get(args.skillId);
+
+	if (!skill) throw NotFound();
+	if (skill.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
+
+	return { currentUser, skill };
+};
+
+// TODO: should use defineQuery() or similar
 const getUserPreference = async (
 	ctx: QueryCtx | MutationCtx,
 	{
@@ -143,6 +186,7 @@ const getUserPreference = async (
 		.unique();
 };
 
+// TODO: should use defineQuery() or similar
 const setUserPreference = async (
 	ctx: MutationCtx,
 	{
@@ -165,6 +209,7 @@ const setUserPreference = async (
 	}
 };
 
+// TODO: should use defineQuery() or similar
 const listEnabledKeysImpl = async (
 	ctx: QueryCtx | MutationCtx, //
 	{ userId }: { userId: Id<'users'> },
@@ -180,6 +225,7 @@ const listEnabledKeysImpl = async (
 	return Array.isArray(enabledSkills?.value) ? enabledSkills.value.filter(isString) : [];
 };
 
+// TODO: should use defineQuery() or similar
 const listAllKeysImpl = async (
 	ctx: QueryCtx | MutationCtx,
 	{
@@ -204,6 +250,7 @@ const listAllKeysImpl = async (
 	return dbList.concat(builtInList);
 };
 
+// TODO: should use defineQuery() or similar
 const listEnabledSkillsWithDetailsImpl = async (
 	ctx: QueryCtx | MutationCtx,
 	{
@@ -252,6 +299,7 @@ const listEnabledSkillsWithDetailsImpl = async (
 	return skillDetails;
 };
 
+// TODO: should use defineQuery() or similar
 const createImpl = async (
 	ctx: MutationCtx,
 	{
@@ -276,6 +324,7 @@ const createImpl = async (
 	});
 };
 
+// TODO: should use defineQuery() or similar
 const updateImpl = async (
 	ctx: MutationCtx,
 	{
@@ -300,6 +349,7 @@ const updateImpl = async (
 	});
 };
 
+// TODO: should use defineQuery() or similar
 const enableSkillImpl = async (
 	ctx: MutationCtx,
 	{
@@ -327,6 +377,7 @@ const enableSkillImpl = async (
 	});
 };
 
+// TODO: should use defineQuery() or similar
 const replaceProSkillsImpl = async (
 	ctx: MutationCtx,
 	{

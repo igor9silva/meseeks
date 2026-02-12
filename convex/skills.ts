@@ -1,17 +1,16 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { zodToString } from 'lib/zodToString';
-import { builtInSkillSchema, newSkillSchema } from 'schemas/skillSchema';
+import { newSkillSchema } from 'schemas/skillSchema';
 import {
+	buildInSkillToDoc,
 	create as createSkill,
 	enableSkill,
 	findAll,
 	findAllByOwner,
 	findOne as findSkill,
+	isBuiltInSkillKey,
 	listAllKeys,
 	listEnabledSkillsWithDetails,
 	update as updateSkill,
@@ -85,30 +84,6 @@ export const _enableSkill = internalMutation({
 	},
 	handler: enableSkill,
 });
-
-function buildInSkillToDoc(
-	key: string, //
-	skill: (typeof _builtInSkills)[keyof typeof _builtInSkills],
-) {
-	return builtInSkillSchema.parse({
-		key,
-		description: skill.description,
-		inputSchema: zodToString(skill.parameters),
-		preApprovedCost: skill.preApprovedCost,
-		knownReactions: skill.knownReactions,
-		kind: 'built-in',
-		owner: 'built-in',
-		author: 'built-in',
-		cost: 0n,
-	});
-}
-
-function isBuiltInSkillKey(
-	skillKey: string, //
-): skillKey is keyof typeof _builtInSkills {
-	//
-	return skillKey in _builtInSkills;
-}
 
 export const findAllPublic = query({
 	args: {},
@@ -211,19 +186,3 @@ export const update = mutation({
 		return await updateSkill(ctx, { skill, userId: currentUser._id });
 	},
 });
-
-export const ensureSkillOwner = async (
-	ctx: QueryCtx | MutationCtx, //
-	args: {
-		skillId: Id<'skills'>;
-	},
-) => {
-	//
-	const currentUser = await getCurrentUser(ctx, {});
-	const skill = await ctx.db.get(args.skillId);
-
-	if (!skill) throw NotFound();
-	if (skill.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
-
-	return { currentUser, skill };
-};

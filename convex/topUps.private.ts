@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { authorSchema } from 'schemas/authorSchema';
 import { polarEventSchema } from 'schemas/polarEventSchema';

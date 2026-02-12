@@ -1,16 +1,15 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { Doc, Id } from './_generated/dataModel';
-import { MutationCtx, QueryCtx } from './_generated/server';
-import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
-import { NotFound } from 'lib/errors';
+import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { asBigInt } from 'lib/money';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import {
 	add as addTask,
 	addAvailableSkill,
+	ensureTaskOwner,
 	findActiveTasks,
+	findAllAtInboxByOwner,
 	findOne as findTask,
 	increaseBudget,
 	markAsRead as markTaskAsRead,
@@ -216,51 +215,3 @@ export const setPreferredIntelligence = mutation({
 		return await setTaskPreferredIntelligence(ctx, { taskId, preferredIntelligence });
 	},
 });
-
-const findAllAtInboxByOwner = async (
-	ctx: QueryCtx,
-	{
-		owner,
-	}: {
-		owner: Id<'users'>;
-	},
-) => {
-	//
-	const find = ({ isActive }: { isActive: boolean }) =>
-		ctx.db
-			.query('tasks')
-			.withIndex('by_owner_parentId_isActive', (q) =>
-				q
-					.eq('owner', owner) //
-					.eq('parentId', undefined)
-					.eq('isActive', isActive),
-			)
-			.order('desc')
-			.collect();
-
-	const [active, inactive] = await Promise.all([
-		find({ isActive: true }), //
-		find({ isActive: false }),
-	]);
-
-	return active.concat(inactive);
-};
-
-export const ensureTaskOwner = async (
-	ctx: QueryCtx | MutationCtx, //
-	args: {
-		taskId: Id<'tasks'>;
-	},
-): Promise<{
-	currentUser: { _id: Id<'users'> };
-	task: Doc<'tasks'>;
-}> => {
-	//
-	const currentUser = await getCurrentUser(ctx, {});
-	const task = await ctx.db.get(args.taskId);
-
-	if (!task) throw NotFound();
-	if (task.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
-
-	return { currentUser, task };
-};

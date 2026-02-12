@@ -1,8 +1,8 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
-import { ensureTaskOwner } from './tasks';
+import { ensureTaskOwner } from './tasks.private';
 import {
 	addMany,
 	authorize as authorizeAction,

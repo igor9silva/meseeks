@@ -1,4 +1,4 @@
-import { internalMutation } from 'lib/functions';
+import { internalMutation } from 'lib/convex';
 import { executeOneTime, executeRecurring } from './lifecycle.private';
 
 // scheduled by schedule/lifecycle.private.ts via ctx.scheduler.runAt for one-time schedules

@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import { defineMutation, defineQuery } from 'lib/functions';
+import { defineMutation, defineQuery } from 'lib/convex';
 import { draftQueueItemSchema } from 'schemas/draftSchema';
 
 const findOneDraft = async (

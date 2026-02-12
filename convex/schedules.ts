@@ -1,9 +1,9 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
+import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { cancel as cancelSchedule, create, listByTask as listSchedulesByTask } from './schedules.private';
+import { ensureTaskOwner } from './tasks.private';
 import { getCurrentUser } from './users.private';
-import { ensureTaskOwner } from 'convex/tasks';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');
 

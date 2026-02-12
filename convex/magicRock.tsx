@@ -4,7 +4,7 @@
 
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { z } from 'zod';
-import { action } from 'lib/functions';
+import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
 
 const audioArrayBufferSchema = z.unknown().transform((value, ctx) => {

@@ -1,4 +1,4 @@
-import { internalMutation, query } from 'lib/functions';
+import { internalMutation, query } from 'lib/convex';
 import { findActiveTasks } from './tasks.private';
 import { getCurrentUser, isProSubscriber, markAreReady } from './users.private';
 

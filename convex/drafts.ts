@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
-import { mutation, query } from 'lib/functions';
+import { mutation, query } from 'lib/convex';
 import {
 	clear as clearDraft, //
 	findOne as findOneDraft,

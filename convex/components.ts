@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { query } from 'lib/functions';
+import { query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { findOneBySlug as findOneComponentBySlug } from './components.private';
 import { getCurrentUser } from './users.private';
