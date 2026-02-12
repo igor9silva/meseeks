@@ -220,6 +220,9 @@ One file per hook in `src/hooks/`.
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
+- If you notice unrelated code issues or Master Plan violations while working, do not fix them silently in the same pass. Surface them at the first user-facing opportunity and ask whether to handle now or create a task with the `create tasks` filter.
+  - bad: include unrelated cleanups in the current diff without calling them out
+  - good: `I noticed <issue>. Want me to handle it now, or should I create a task with the create task skill?`
 - If the request says "entire codebase" or "full scan", validate with repo-wide searches for each requested rule and only report completion after those searches are clean. Do it over and over until the searches are clean.
 - If the user points to TODO markers as acceptance criteria, clear all matching TODOs in scope before claiming the task is done.
 
