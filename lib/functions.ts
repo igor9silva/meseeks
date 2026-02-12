@@ -1,5 +1,5 @@
 import { NoOp } from 'convex-helpers/server/customFunctions';
-import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod';
+import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { MutationCtx, QueryCtx } from 'convex/_generated/server';
 import {

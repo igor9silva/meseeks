@@ -6,16 +6,19 @@ import { activate, add, findActive as findActiveSubscriptions, handleRevocation 
 import { getCurrentUser, isProSubscriber } from './users.private';
 import { internal } from './_generated/api';
 
+// called by startSubscription action after polar checkout creation to persist the pending subscription
 export const _add = internalMutation({
 	args: add.args.shape,
 	handler: add,
 });
 
+// called from lib/polar.ts when order.paid arrives to activate/renew the subscription
 export const _activate = internalMutation({
 	args: activate.args.shape,
 	handler: activate,
 });
 
+// called from lib/polar.ts on subscription.revoked webhook to revoke access immediately
 export const _handleRevocation = internalMutation({
 	args: handleRevocation.args.shape,
 	handler: handleRevocation,
@@ -27,6 +30,7 @@ export const _getStartSubscriptionContext = internalQuery({
 		//
 		const currentUser = await getCurrentUser(ctx, {});
 		const isCurrentUserProSubscriber = await isProSubscriber(ctx, { owner: currentUser._id });
+
 		return { currentUser, isProSubscriber: isCurrentUserProSubscriber };
 	},
 });

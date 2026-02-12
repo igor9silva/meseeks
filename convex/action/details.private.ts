@@ -1,30 +1,43 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { defineMutation, defineQuery } from 'lib/functions';
 import { NotFound } from 'lib/errors';
 import { actionDetailSchema, actionDetailUpdateSchema } from 'schemas/actionDetailSchema';
 
-export const persist = defineMutation({
+export const findActionDetails = defineQuery({
+	args: z.object({
+		actionId: zid('actions'),
+	}),
+	handler: async (ctx, { actionId }) => {
+		//
+		return await ctx.db
+			.query('action_details')
+			.withIndex('by_action', (q) => q.eq('actionId', actionId))
+			.unique();
+	},
+});
+
+export const persistActionDetails = defineMutation({
 	args: z.object({
 		details: actionDetailSchema,
 	}),
 	handler: async (ctx, { details }) => {
 		//
-		const existing = await findByAction(ctx, { actionId: details.actionId });
+		const existing = await findActionDetails(ctx, { actionId: details.actionId });
 		if (existing) throw new Error('Action detail already exists');
 
 		return await ctx.db.insert('action_details', details);
 	},
 });
 
-export const update = defineMutation({
+export const updateActionDetails = defineMutation({
 	args: z.object({
 		actionId: zid('actions'),
 		updates: actionDetailUpdateSchema,
 	}),
 	handler: async (ctx, { actionId, updates }) => {
 		//
-		const existing = await findByAction(ctx, { actionId });
+		const existing = await findActionDetails(ctx, { actionId });
 		if (!existing) throw NotFound();
 
 		// Merge updates with existing data to maintain complete object structure
@@ -39,18 +52,5 @@ export const update = defineMutation({
 		}
 
 		throw new Error('Update type does not match existing document type');
-	},
-});
-
-export const findByAction = defineQuery({
-	args: z.object({
-		actionId: zid('actions'),
-	}),
-	handler: async (ctx, { actionId }) => {
-		//
-		return await ctx.db
-			.query('action_details')
-			.withIndex('by_action', (q) => q.eq('actionId', actionId))
-			.unique();
 	},
 });

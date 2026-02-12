@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { mutation, query } from 'lib/functions';
 import {

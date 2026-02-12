@@ -1,75 +1,29 @@
-import { zid } from 'convex-helpers/server/zod';
-import type { Id } from './_generated/dataModel';
+import { zid } from 'convex-helpers/server/zod3';
 import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
 import { NotFound } from 'lib/errors';
-import {
-	cancel as cancelSchedule,
-	cancelAllForTask,
-	create,
-	listByTask as listSchedulesByTask,
-	updateJobId,
-	updateLastRun,
-} from './schedules.private';
-import { current } from './users.private';
+import { cancel as cancelSchedule, create, listByTask as listSchedulesByTask } from './schedules.private';
+import { getCurrentUser } from './users.private';
+import { ensureTaskOwner } from 'convex/tasks';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');
 
+// called by skills/builtIn/schedule.ts so the ai can create schedules
 export const _create = internalMutation({
 	args: create.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await create(ctx, args);
-	},
+	handler: create,
 });
 
+// used by magicRock.private.ts to render {{taskSchedules}} from the same normalized listing logic
 export const _listByTask = internalQuery({
 	args: listSchedulesByTask.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await listSchedulesByTask(ctx, args);
-	},
+	handler: listSchedulesByTask,
 });
 
-export const _updateLastRun = internalMutation({
-	args: updateLastRun.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await updateLastRun(ctx, args);
-	},
-});
-
+// called by skills/builtIn/cancelSchedule.ts so the ai can cancel schedules
 export const _cancel = internalMutation({
 	args: cancelSchedule.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await cancelSchedule(ctx, args);
-	},
+	handler: cancelSchedule,
 });
-
-export const _updateJobId = internalMutation({
-	args: updateJobId.args.shape,
-	handler: async (ctx, args) => {
-		//
-		await updateJobId(ctx, args);
-	},
-});
-
-export const _cancelAllForTask = internalMutation({
-	args: cancelAllForTask.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await cancelAllForTask(ctx, args);
-	},
-});
-
-const ensureTaskIsOwnedByCurrentUser = async (ctx: Parameters<typeof current>[0], taskId: Id<'tasks'>) => {
-	//
-	const currentUser = await current(ctx, {});
-	const task = await ctx.db.get(taskId);
-
-	if (!task) throw NotFound();
-	if (task.owner !== currentUser._id) throw NotFound();
-};
 
 export const cancel = mutation({
 	args: {
@@ -80,7 +34,7 @@ export const cancel = mutation({
 		const schedule = await ctx.db.get(scheduleId);
 		if (!schedule) throw NotFound();
 
-		await ensureTaskIsOwnedByCurrentUser(ctx, schedule.taskId);
+		await ensureTaskOwner(ctx, { taskId: schedule.taskId });
 
 		if (schedule.scheduledJobId) {
 			//
@@ -98,7 +52,7 @@ export const listByTask = query({
 	},
 	handler: async (ctx, { taskId }) => {
 		//
-		await ensureTaskIsOwnedByCurrentUser(ctx, taskId);
+		await ensureTaskOwner(ctx, { taskId });
 
 		return await listSchedulesByTask(ctx, { taskId });
 	},
@@ -108,7 +62,7 @@ export const listByOwner = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await current(ctx, {});
+		const currentUser = await getCurrentUser(ctx, {});
 
 		const schedules = await ctx.db
 			.query('schedules')

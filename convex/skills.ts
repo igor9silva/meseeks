@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -19,6 +19,7 @@ import {
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
 
+// used by skills/tools.ts to load hard/soft skill docs before building ai tool definitions
 export const _findAll = internalQuery({
 	args: {
 		owner: zid('users'),
@@ -33,6 +34,7 @@ export const _findAll = internalQuery({
 	handler: findAll,
 });
 
+// used by builtIn/getSkillDetails.ts so the ai can inspect one skill by key/owner
 export const _findOne = internalQuery({
 	args: {
 		key: z.string(),
@@ -41,6 +43,7 @@ export const _findOne = internalQuery({
 	handler: findSkill,
 });
 
+// used by magicRock.private.ts to expand {{allSkills}} in system instructions
 export const _listAllKeys = internalQuery({
 	args: {
 		userId: zid('users'),
@@ -48,6 +51,7 @@ export const _listAllKeys = internalQuery({
 	handler: listAllKeys,
 });
 
+// used by magicRock.private.ts to expand {{activeSkills}} with enabled skill schemas
 export const _listEnabledSkillsWithDetails = internalQuery({
 	args: {
 		userId: zid('users'),
@@ -55,6 +59,7 @@ export const _listEnabledSkillsWithDetails = internalQuery({
 	handler: listEnabledSkillsWithDetails,
 });
 
+// called by builtIn/createSkill.ts to persist a generated skill from tool execution
 export const _create = internalMutation({
 	args: {
 		skill: newSkillSchema,
@@ -63,6 +68,7 @@ export const _create = internalMutation({
 	handler: createSkill,
 });
 
+// called by builtIn/updateSkill.ts to patch a skill from tool execution
 export const _update = internalMutation({
 	args: {
 		skill: newSkillSchema,
@@ -71,6 +77,7 @@ export const _update = internalMutation({
 	handler: updateSkill,
 });
 
+// called by builtIn/createSkill.ts and builtIn/updateSkill.ts to enable the created/updated skill
 export const _enableSkill = internalMutation({
 	args: {
 		userId: zid('users'),

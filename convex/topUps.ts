@@ -1,5 +1,5 @@
 import { Polar } from '@polar-sh/sdk';
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
 import { action, internalMutation, internalQuery, mutation, query } from 'lib/functions';
@@ -18,16 +18,19 @@ import {
 } from './topUps.private';
 import { getCurrentUser, isProSubscriber } from './users.private';
 
+// called by startTopUp action after checkout creation to persist a waiting top-up record
 export const _add = internalMutation({
 	args: add.args.shape,
 	handler: add,
 });
 
+// called from lib/polar.ts on order.paid webhook to mark top-up confirmed and credit balance
 export const _finish = internalMutation({
 	args: finish.args.shape,
 	handler: finish,
 });
 
+// called from lib/polar.ts to persist raw webhook events for audit/debug before branching logic
 export const _persistPolarEvent = internalMutation({
 	args: persistPolarEvent.args.shape,
 	handler: persistPolarEvent,

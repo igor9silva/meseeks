@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';

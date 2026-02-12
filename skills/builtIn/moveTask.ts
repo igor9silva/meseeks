@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';

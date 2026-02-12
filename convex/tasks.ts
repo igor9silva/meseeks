@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { Doc, Id } from './_generated/dataModel';
 import { MutationCtx, QueryCtx } from './_generated/server';
@@ -22,36 +22,43 @@ import {
 } from './tasks.private';
 import { getCurrentUser } from './users.private';
 
+// used by magicRock.private.ts to expand {{activeTasks}} inside generated system instructions
 export const _findActiveTasks = internalQuery({
 	args: findActiveTasks.args.shape,
 	handler: findActiveTasks,
 });
 
+// called by skills/builtIn/updateInstructions.ts so the ai can patch title/instructions/summary/available skills
 export const _updateInstructions = internalMutation({
 	args: updateInstructions.args.shape,
 	handler: updateInstructions,
 });
 
+// called by skills/builtIn/createSkill.ts and skills/builtIn/updateSkill.ts to append newly enabled skills to a task
 export const _addAvailableSkill = internalMutation({
 	args: addAvailableSkill.args.shape,
 	handler: addAvailableSkill,
 });
 
+// called by builtIn skills resolve/discard/reopen to drive task lifecycle transitions
 export const _setStatus = internalMutation({
 	args: setStatus.args.shape,
 	handler: setStatus,
 });
 
+// called by skills/builtIn/increaseBudget.ts so the ai can fund a task from account balance
 export const _increaseBudget = internalMutation({
 	args: increaseBudget.args.shape,
 	handler: increaseBudget,
 });
 
+// called by skills/builtIn/decreaseBudget.ts to refund unused task budget back to account balance
 export const _removeFunds = internalMutation({
 	args: removeFunds.args.shape,
 	handler: removeFunds,
 });
 
+// called by skills/builtIn/moveTask.ts so the ai can move a task to another parent or inbox
 export const _move = internalMutation({
 	args: move.args.shape,
 	handler: move,

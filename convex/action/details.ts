@@ -1,20 +1,22 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { internalMutation, query } from 'lib/functions';
 import { NotFound } from 'lib/errors';
-import { findByAction as findActionDetails, persist, update } from './details.private';
+import { findActionDetails, persistActionDetails, updateActionDetails } from './details.private';
 import { getCurrentUser } from '../users.private';
 
+// used by action/lifecycle.ts to persist initial execution details before a skill runs
 export const _persist = internalMutation({
-	args: persist.args.shape,
-	handler: persist,
+	args: persistActionDetails.args.shape,
+	handler: persistActionDetails,
 });
 
+// used by createAITool/createHttpTool to append runtime metadata after tool execution
 export const _update = internalMutation({
-	args: update.args.shape,
-	handler: update,
+	args: updateActionDetails.args.shape,
+	handler: updateActionDetails,
 });
 
-export const findByAction = query({
+export const find = query({
 	args: {
 		actionId: zid('actions'),
 	},

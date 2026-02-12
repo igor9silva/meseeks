@@ -1,4 +1,4 @@
-import { zid } from 'convex-helpers/server/zod';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/functions';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
@@ -15,6 +15,7 @@ import {
 	findRunning,
 } from './action.private';
 
+// used by auto-approval in action/lifecycle.ts
 export const _authorize = internalMutation({
 	args: {
 		taskId: zid('tasks'),
@@ -28,6 +29,7 @@ export const _authorize = internalMutation({
 	handler: authorizeAction,
 });
 
+// used by runNextActionIfNeeded in action/lifecycle.private.ts to avoid starting when approval is pending
 export const _findPendingAuthorization = internalQuery({
 	args: {
 		taskId: zid('tasks'),
@@ -35,6 +37,7 @@ export const _findPendingAuthorization = internalQuery({
 	handler: findPendingAuthorization,
 });
 
+// used by runNextActionIfNeeded in action/lifecycle.private.ts to pull the next enqueued action
 export const _findNext = internalQuery({
 	args: {
 		taskId: zid('tasks'),
@@ -42,6 +45,7 @@ export const _findNext = internalQuery({
 	handler: findNext,
 });
 
+// used by magicRock history rendering and by lifecycle's consecutive-companion guard
 export const _findLastActions = internalQuery({
 	args: {
 		taskId: zid('tasks'),
@@ -50,6 +54,7 @@ export const _findLastActions = internalQuery({
 	handler: findLastActions,
 });
 
+// used by runNextActionIfNeeded in action/lifecycle.private.ts to enforce one running action per task
 export const _findRunning = internalQuery({
 	args: {
 		taskId: zid('tasks'),

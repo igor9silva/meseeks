@@ -5,7 +5,7 @@ import { api } from 'convex/_generated/api';
 
 export function useActionDetails(actionId: Id<'actions'>) {
 	//
-	const query = convexQuery(api.action.details.findByAction, { actionId });
+	const query = convexQuery(api.action.details.find, { actionId });
 	const result = useSuspenseQuery(query);
 
 	return {

@@ -1,19 +1,17 @@
-import { z } from 'zod';
 import { internalMutation, query } from 'lib/functions';
 import { findActiveTasks } from './tasks.private';
 import { getCurrentUser, isProSubscriber, markAreReady } from './users.private';
 
+// scheduled from users.private.seedIfNeeded to flip isReady after the onboarding seed finishes
 export const _markAreReady = internalMutation({
 	args: markAreReady.args.shape,
 	handler: markAreReady,
 });
 
+// public entrypoint used by the app; keeps auth + allowlist logic centralized in users.private.getCurrentUser
 export const current = query({
 	args: getCurrentUser.args.shape,
-	handler: async (ctx, args) => {
-		//
-		return await getCurrentUser(ctx, args);
-	},
+	handler: getCurrentUser,
 });
 
 export const currentIfPro = query({
