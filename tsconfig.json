@@ -12,9 +12,12 @@
 		"resolveJsonModule": true,
 		"target": "ES2022",
 		"allowJs": false,
-		"baseUrl": ".",
 		"paths": {
-			"~/*": ["./src/*"]
+			"~/*": ["./src/*"],
+			"convex/*": ["./convex/*"],
+			"schemas/*": ["./schemas/*"],
+			"lib/*": ["./lib/*"],
+			"skills/*": ["./skills/*"]
 		},
 		"noEmit": true,
 
@@ -26,7 +29,7 @@
 		"noFallthroughCasesInSwitch": true,
 		// "noUnusedLocals": true,
 		// "noUnusedParameters": true,
-		"noPropertyAccessFromIndexSignature": true,
+		"noPropertyAccessFromIndexSignature": false,
 		"allowUnreachableCode": true
 	}
 }

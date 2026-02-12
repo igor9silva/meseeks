@@ -4,8 +4,8 @@ import { api } from 'convex/_generated/api';
 
 export function useCurrentUser() {
 	//
-	const query = convexQuery(api.users.public.current, {});
-	const { data: user } = useSuspenseQuery(query);
+	const query = convexQuery(api.users.current, {});
+	const { data } = useSuspenseQuery(query);
 
-	return user;
+	return data;
 }

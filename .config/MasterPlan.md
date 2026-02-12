@@ -65,6 +65,13 @@ If you cannot implement a type-safe solution, stop and ask for help rather than 
 - Add imports AFTER first usage (prevents prettier from removing unused imports)
 - Import specific React hooks: `import { useState, useEffect } from 'react'`
 - Never import entire React library
+- Never use namespace imports (`import * as ...`) unless the user explicitly asks for it.
+  - bad: `import * as subscriptionsPrivate from './subscriptions.private'`
+  - good: `import { add, activate, findActive } from './subscriptions.private'`
+
+### Return Types
+- Prefer inferred return types for local/private helpers.
+- Add explicit return types only at public API boundaries or when inference is ambiguous.
 
 ### Tailwind
 - Never use hardcoded values like `min-w-[256px]`
@@ -124,8 +131,9 @@ Always use Zod for any kind of validation.
 Do not run `bunx convex deploy` - this deploys to production.
 
 ### File Structure
-- `public.ts` - client-callable functions (queries, mutations, actions)
-- `private.ts` - internal functions prefixed with underscore (`_functionName`)
+- Prefer `<module>.ts` + `<module>.private.ts` for Convex domains.
+- `<module>.ts` - Convex entrypoints (`query`, `mutation`, `action`, `internal*`)
+- `<module>.private.ts` - reusable helper functions (not Convex entrypoints)
 - `schemas/` - Zod schemas
 - `lib/` - shared utilities
 
@@ -134,10 +142,21 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Validate args with Zod schemas
 - Must include authentication/authorization checks
 
-### Private Functions
-- Always prefix with underscore: `_functionName`
-- Use `internalQuery`, `internalMutation`, `internalAction`
-- No auth checks (internal use only)
+### Internal Functions
+- Internal Convex exports in `<module>.ts` must use underscore prefix: `_functionName`.
+- Helper functions in `<module>.private.ts` must not use underscore prefixes.
+- Use `internalQuery`, `internalMutation`, `internalAction` only for Convex exports in `<module>.ts`.
+
+### Helper Composition
+- Helpers should receive `(ctx, argsObject)` so call sites stay labeled.
+- Define Zod args at helper declaration time; avoid separate `argsSchema` constants unless the exact schema is reused in multiple declarations.
+- Do not rename helper imports unless required by a real collision.
+  - bad: `import { findActive as findActiveSubscriptions } from './subscriptions.private'`
+  - good: `import { findActive } from './subscriptions.private'`
+- If a helper name collides with a local export name, rename the imported helper (not the local export) with a concise alias.
+  - bad: `const findActiveQuery = query(...findActive...)` then `export { findActiveQuery as findActive }`
+  - good: `import { findActive as findActiveSubscriptions } from './subscriptions.private'` and keep `export const findActive = query(...)`
+- Reuse existing domain helpers for current-user loading (for example `users.current`) instead of duplicating auth+user lookup logic in each module.
 
 ### Authorization
 - Never mention "authorization" in error messages - use generic "not found"
@@ -188,6 +207,7 @@ One file per hook in `src/hooks/`.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
+- After file moves/renames, update all call sites in the same pass (`api.*`, `internal.*`, and imports), then verify with a targeted search.
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
@@ -197,6 +217,12 @@ One file per hook in `src/hooks/`.
 - Never present assumptions as facts; if uncertain, say it's an assumption and verify before claiming behavior
 - Do not invent justifications (such as "compatibility" or existing constraints) that are not explicitly present in code, docs, or user requirements
 - If scope shifts or the user says the execution is off-track, restate the exact requested outcome and complete that before proposing extras
+- Preserve exact user-specified literals (names/tags/phrases) when implementing instructions; do not substitute near-synonyms.
+  - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`
+  - good: keep exact literal requested by the user
+- Whenever you are blocked, stop and present a few concrete next-step alternatives with tradeoffs, then wait for user choice.
+  - bad: keep expanding refactors while still blocked on the same root error
+  - good: "Option 1: break import cycle between A/B (small diff); Option 2: move helper to neutral module; Option 3: revert experiment and bisect"
 - Prefer example-driven guidance when defining or updating rules; use concise `bad`/`good` examples when wording could be interpreted in multiple ways
 - Use logical quote punctuation for inline quoted fragments: when a comma belongs to the sentence (not the quote), place it outside the closing quote. bad: `keep “don’t add rules for already-correct behavior,” allow preference capture`; good: `keep “don’t add rules for already-correct behavior”, allow preference capture`
 

@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { cn } from '~/lib/utils';
 
-import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'convex/lib/errors';
-import { INTELLIGENCE_PROGRESSION, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'lib/errors';
+import { INTELLIGENCE_PROGRESSION, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { ArrowUp, Mic } from 'lucide-react';
 import { RecordingState } from '~/components/ActionComposer/RecordingState';
 import { TranscribingState } from '~/components/ActionComposer/TranscribingState';

@@ -1,7 +1,7 @@
-import { api } from 'convex/_generated/api';
 import { useAction } from 'convex/react';
 import { useCallback, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { api } from 'convex/_generated/api';
 
 type RecordingStatus = 'idle' | 'recording' | 'transcribing';
 
@@ -11,7 +11,7 @@ interface UseVoiceRecordingProps {
 
 export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecordingProps) {
 	//
-	const transcribeAction = useAction(api.magicRock.public.transcribe);
+	const transcribeAction = useAction(api.magicRock.transcribe);
 
 	const streamRef = useRef<MediaStream | null>(null);
 	const currentStatusRef = useRef<RecordingStatus>('idle');

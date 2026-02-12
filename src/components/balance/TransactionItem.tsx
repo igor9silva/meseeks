@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Doc, Id } from 'convex/_generated/dataModel';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';

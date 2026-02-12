@@ -1,14 +1,14 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { defaultFilter, useCommandState } from 'cmdk';
 import { Loading } from '~/components/Loading';
-import { api } from 'convex/_generated/api';
 import type { Id } from 'convex/_generated/dataModel';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import * as React from 'react';
 import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { api } from 'convex/_generated/api';
 
 import { useAuthActions } from '@convex-dev/auth/react';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import {
 	BrushCleaning,
 	CalendarClock,
@@ -140,7 +140,7 @@ export function LauncherDialog() {
 		status: paginationStatus,
 		loadMore,
 	} = usePaginatedQuery(
-		api.tasks.public.findAllPaginated,
+		api.tasks.findAllPaginated,
 		{ paginationOpts: { numItems: PAGE_SIZE, cursor: null } },
 		{ initialNumItems: PAGE_SIZE },
 	);
@@ -292,7 +292,7 @@ function ResolveTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const { resolve, isResolving } = useResolve();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
@@ -314,7 +314,7 @@ function DiscardTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const { discard, isDiscarding } = useDiscard();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
@@ -337,7 +337,7 @@ function ReopenTaskCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || currentTask.isActive) return null;
 
 	const handleSelect = () => {
@@ -360,7 +360,7 @@ function StopReactionsCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const { stop, isStopping } = useStop();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || currentTask.status !== 'acting') return null;
 
 	const handleSelect = () => {
@@ -384,7 +384,7 @@ function IncreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {
@@ -409,7 +409,7 @@ function DecreaseBudgetCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const { decreaseBudget, isDecreasingBudget } = useDecreaseBudget();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive || currentTask.energyBudget.available <= 0n) return null;
 
 	const handleSelect = () => {
@@ -431,7 +431,7 @@ function ScheduleIterationCommandItem({ taskId }: { taskId: Id<'tasks'> }) {
 	const { close } = useLauncher();
 	const scheduleDialog = useScheduleDialog();
 
-	const currentTask = useQuery(api.tasks.public.findOne, { taskId });
+	const currentTask = useQuery(api.tasks.findOne, { taskId });
 	if (!currentTask || !currentTask.isActive) return null;
 
 	const handleSelect = () => {

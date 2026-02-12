@@ -1,15 +1,15 @@
 import { useMutation as useTanStackMutation } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { useMutation } from 'convex/react';
-import { intelligenceKeys } from 'convex/schemas/intelligenceSchema';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { z } from 'zod';
 import { BudgetStep } from '~/components/ui/budget-selector';
+import { api } from 'convex/_generated/api';
 
 export function useAddTask() {
 	//
-	const addTask = useMutation(api.tasks.public.add);
+	const addTask = useMutation(api.tasks.add);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -42,7 +42,7 @@ export function useAddTask() {
  */
 export function useSay() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -77,7 +77,7 @@ export function useSay() {
  */
 export function useRequestIteration() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -104,7 +104,7 @@ export function useRequestIteration() {
 
 export function useStop() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -134,7 +134,7 @@ export function useStop() {
  */
 export function useIncreaseBudget() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -171,7 +171,7 @@ export function useIncreaseBudget() {
  */
 export function useDecreaseBudget() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -206,7 +206,7 @@ export function useDecreaseBudget() {
  */
 export function useResolve() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -236,7 +236,7 @@ export function useResolve() {
  */
 export function useDiscard() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -266,7 +266,7 @@ export function useDiscard() {
  */
 export function useReopen() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -293,7 +293,7 @@ export function useReopen() {
 
 export function useApproveAction() {
 	//
-	const authorize = useMutation(api.action.public.authorize);
+	const authorize = useMutation(api.action.authorize);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -321,7 +321,7 @@ export function useApproveAction() {
 
 export function useRejectAction() {
 	//
-	const authorize = useMutation(api.action.public.authorize);
+	const authorize = useMutation(api.action.authorize);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -349,7 +349,7 @@ export function useRejectAction() {
 
 export function useUpdateInstructions() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -381,7 +381,7 @@ export function useUpdateInstructions() {
 
 export function useUpdateTitle() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -413,7 +413,7 @@ export function useUpdateTitle() {
 
 export function useUpdateAvailableSkills() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -445,7 +445,7 @@ export function useUpdateAvailableSkills() {
 
 export function useScheduleIteration() {
 	//
-	const act = useMutation(api.action.public.act);
+	const act = useMutation(api.action.act);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({
@@ -491,7 +491,7 @@ export function useScheduleIteration() {
 
 export function useSetPreferredIntelligence() {
 	//
-	const setPreferredIntelligenceMutation = useMutation(api.tasks.public.setPreferredIntelligence);
+	const setPreferredIntelligenceMutation = useMutation(api.tasks.setPreferredIntelligence);
 
 	const mutation = useTanStackMutation({
 		mutationFn: async ({

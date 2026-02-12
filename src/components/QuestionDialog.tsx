@@ -1,11 +1,11 @@
-import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
-import { userRequestSchema } from 'convex/schemas/userSchema';
+import { userRequestSchema } from 'schemas/userSchema';
 import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
+import { api } from 'convex/_generated/api';
 import {
 	Dialog,
 	DialogContent,
@@ -30,7 +30,7 @@ export function QuestionDialog({ className }: { className?: string }) {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [open, setOpen] = useState(false);
 
-	const submit = useMutation(api.users.requests.public.submitRequest);
+	const submit = useMutation(api.users.requests.submitRequest);
 	const submitHotkey = useSubmitHotkey();
 
 	const handleSubmit = useHandleSubmit({

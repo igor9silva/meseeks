@@ -1,5 +1,5 @@
 import { Doc } from 'convex/_generated/dataModel';
-import { taskStatusSchema } from 'convex/schemas/taskSchema';
+import { taskStatusSchema } from 'schemas/taskSchema';
 import { z } from 'zod';
 import { StatusIndicator } from '~/components/StatusIndicator';
 import { cn } from '~/lib/utils';

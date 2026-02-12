@@ -1,4 +1,4 @@
-import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
 import { forwardRef, Suspense, useCallback, useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';

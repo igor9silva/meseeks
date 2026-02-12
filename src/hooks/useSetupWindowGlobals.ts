@@ -1,4 +1,4 @@
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import React from 'react';
 import { useActionDetails } from '~/hooks/query/useActionDetails';
 import { useComposition } from '~/hooks/query/useComposition';

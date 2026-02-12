@@ -5,7 +5,7 @@ import { ActionComponentProps } from '~/components/actions';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { cn } from '~/lib/utils';
 
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { LoadingButton } from '~/components/ui/loading-button';

@@ -1,18 +1,18 @@
 import { authTables } from '@convex-dev/auth/server';
 import { zodToConvex } from 'convex-helpers/server/zod';
 import { defineSchema, defineTable } from 'convex/server';
-import { actionDetailSchema } from './schemas/actionDetailSchema';
-import { actionSchema } from './schemas/actionSchema';
-import { componentSchema } from './schemas/componentSchema';
-import { draftSchema } from './schemas/draftSchema';
-import { polarEventSchema } from './schemas/polarEventSchema';
-import { scheduleSchema } from './schemas/scheduleSchema';
-import { skillSchema } from './schemas/skillSchema';
-import { subscriptionSchema } from './schemas/subscriptionSchema';
-import { taskSchema } from './schemas/taskSchema';
-import { topUpSchema } from './schemas/topUpSchema';
-import { transactionSchema } from './schemas/transactionSchema';
-import { userPreferencesSchema, userRequestSchema, userSchema } from './schemas/userSchema';
+import { actionDetailSchema } from 'schemas/actionDetailSchema';
+import { actionSchema } from 'schemas/actionSchema';
+import { componentSchema } from 'schemas/componentSchema';
+import { draftSchema } from 'schemas/draftSchema';
+import { polarEventSchema } from 'schemas/polarEventSchema';
+import { scheduleSchema } from 'schemas/scheduleSchema';
+import { skillSchema } from 'schemas/skillSchema';
+import { subscriptionSchema } from 'schemas/subscriptionSchema';
+import { taskSchema } from 'schemas/taskSchema';
+import { topUpSchema } from 'schemas/topUpSchema';
+import { transactionSchema } from 'schemas/transactionSchema';
+import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/userSchema';
 
 // prettier-ignore
 export default defineSchema({

@@ -4,6 +4,13 @@
 	 * You can modify it, but some settings required to use Convex.
 	 */
 	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"convex/*": ["./*"],
+			"lib/*": ["../lib/*"],
+			"schemas/*": ["../schemas/*"],
+			"skills/*": ["../skills/*"]
+		},
 		/* These settings are not required by Convex and can be modified. */
 		"allowJs": false,
 		"strict": true,

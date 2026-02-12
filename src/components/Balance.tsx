@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { Button } from '~/components/ui/button';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { cn } from '~/lib/utils';

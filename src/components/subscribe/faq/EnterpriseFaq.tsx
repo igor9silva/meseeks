@@ -1,17 +1,6 @@
-export const EnterpriseFaq = {
-	//
-	question: 'Do you offer enterprise plans?',
-	answer: (
-		<div className="space-y-3 text-muted-foreground leading-relaxed">
-			<p>Not yet.</p>
-			<EnterpriseEarlyAccessDialog />
-		</div>
-	),
-};
-
 import { api } from 'convex/_generated/api';
 import { useMutation } from 'convex/react';
-import { userRequestSchema } from 'convex/schemas/userSchema';
+import { userRequestSchema } from 'schemas/userSchema';
 import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -32,13 +21,24 @@ import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 
+export const EnterpriseFaq = {
+	//
+	question: 'Do you offer enterprise plans?',
+	answer: (
+		<div className="space-y-3 text-muted-foreground leading-relaxed">
+			<p>Not yet.</p>
+			<EnterpriseEarlyAccessDialog />
+		</div>
+	),
+};
+
 function EnterpriseEarlyAccessDialog() {
 	//
 	const [message, setMessage] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [open, setOpen] = useState(false);
 
-	const submit = useMutation(api.users.requests.public.submitRequest);
+	const submit = useMutation(api.users.requests.submitRequest);
 	const submitHotkey = useSubmitHotkey();
 
 	const handleSubmit = useHandleSubmit({

@@ -1,4 +1,4 @@
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';

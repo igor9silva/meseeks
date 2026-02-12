@@ -1,5 +1,5 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -261,7 +261,9 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 						))}
 					</div>
 				) : (
-					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">No arguments</div>
+					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">
+						No arguments
+					</div>
 				))}
 		</div>
 	);

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { newSkillSchema } from 'convex/schemas/skillSchema';
+import { newSkillSchema } from 'schemas/skillSchema';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { useSkillMutations } from './useSkillMutations';

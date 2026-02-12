@@ -1,11 +1,11 @@
 ---
 name: learn
-description: Extract lessons from conversation mistakes and update project rules to prevent recurrence. Use when the user says "learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
+description: Extract lessons from conversation mistakes and update project rules and skills to prevent recurrence. Use when the user says "learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
 ---
 
 # Learn from Mistakes
 
-Review the full conversation, identify every place where the user corrected the model, and update `.config/MasterPlan.md` so the same mistakes never happen again.
+Review the full conversation, identify every place where the user corrected the model, and update `.config/MasterPlan.md` and `.config/skills/` so the same mistakes never happen again.
 
 ## Step 1: Scan the conversation
 
@@ -18,12 +18,20 @@ Read every message in the conversation. Look for signals that the model made a m
 - User said "that's not what I asked" or similar
 - User manually did something the model should have done
 
+Also note which skills (if any) were invoked during the conversation. A skill misbehaved if:
+
+- It produced wrong output, missed steps, or had bad instructions
+- The user had to override, work around, or redo something the skill guided
+- The skill's documented behavior didn't match what actually happened
+- The skill was missing a capability that would have prevented a mistake
+
 For each mistake found, extract:
 
 1. **What happened** — the specific bad behavior
 2. **Why it was wrong** — what the user expected instead
 3. **Root cause** — the general pattern behind the mistake (not the specific instance)
 4. **Evidence** — the concrete user correction/steering message that proves the mistake happened
+5. **Skill involvement** — if a skill contributed to the mistake, note which one and how
 
 ### Generalizing properly
 
@@ -105,12 +113,47 @@ If the file would be cleaner rewritten from scratch, do it. Preserve all existin
 - Do NOT add rules that are just common sense for any competent developer (e.g., "test your code")
 - Do NOT add rules so specific they'll never apply again
 
-## Step 4: Summary
+## Step 4: Update skills
+
+If any skills were used in the conversation, review whether they need updating. Skip this step if no skills were involved or they all behaved correctly.
+
+### What to look for
+
+Read the SKILL.md for each skill that was invoked. Compare what it told the model to do vs. what the user actually needed. Look for:
+
+- **Wrong instructions** — steps that led to incorrect behavior
+- **Missing steps** — gaps the user had to fill manually
+- **Outdated information** — references to APIs, paths, or patterns that have changed
+- **Missing edge cases** — scenarios the skill didn't account for
+- **Unclear wording** — instructions that were ambiguous enough to cause a wrong interpretation
+
+### Where to edit
+
+Only edit skill files under `.config/skills/` — these are the source of truth. All other skill paths (`.agents/skills/`, etc.) are codegenerated and will be overwritten.
+
+### How to update
+
+Apply the same principles as rule updates:
+
+- Fix the root cause, not the symptom
+- Keep the skill's existing structure and tone
+- Don't bloat — if a one-line fix prevents the mistake, that's enough
+- If the skill's self-improvement section encourages edits (like `scrape-content` does), lean into it
+- If the skill was fundamentally fine and the mistake was a general model behavior issue, update rules instead — don't duplicate guidance across rules and skills
+
+### When NOT to update a skill
+
+- The mistake was caused by the model ignoring the skill's correct instructions (that's a rules problem, not a skill problem)
+- The skill wasn't involved in the mistake at all
+- The fix would be so specific it would never apply again
+
+## Step 5: Summary
 
 Tell the user:
 - How many mistakes were identified
 - What rules were added, modified, or merged
 - Whether any existing rules were tightened or reorganized
+- What skills were updated (if any), and what changed
 - Which candidate lessons were skipped (if any) because they were already covered or would not change behavior
 - If the thread was compacted, include a short **Compaction Notes** line listing preserved steering/learning cues and any missing context that could limit confidence
 - Which example-based rules/examples were added (or why none were needed)

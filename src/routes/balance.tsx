@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { useCallback, useRef } from 'react';
 import { z } from 'zod';
 import { ActiveTasksTab } from '~/components/balance/ActiveTasksTab';

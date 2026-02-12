@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Doc } from 'convex/_generated/dataModel';
-import { intelligenceKeys, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import SoftSkillConfig from '~/components/skills/SoftSkillConfig';

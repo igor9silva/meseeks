@@ -1,4 +1,4 @@
-import { DEFAULT_INTELLIGENCE, type IntelligenceKey } from 'convex/schemas/intelligenceSchema';
+import { DEFAULT_INTELLIGENCE, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';

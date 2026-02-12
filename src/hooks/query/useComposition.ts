@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 
 export function useComposition(slug: string) {
 	//
-	const query = convexQuery(api.components.public.findOneBySlug, { slug });
+	const query = convexQuery(api.components.findOneBySlug, { slug });
 	const result = useSuspenseQuery(query);
 
 	return {

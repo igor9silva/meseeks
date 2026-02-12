@@ -1,4 +1,4 @@
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '~/components/ui/card';
 

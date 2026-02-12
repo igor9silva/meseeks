@@ -1,7 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useQueryClient } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
+import { api } from 'convex/_generated/api';
 
 /**
  * Type for task update function parameters
@@ -40,13 +40,13 @@ export function useOptimisticTaskUpdate() {
 	const updateTaskStatus = ({ task, isActive }: TaskUpdateParams): void => {
 		//
 		// Create query objects for all places where this task might appear
-		const inboxQuery = convexQuery(api.tasks.public.findAll, {});
+		const inboxQuery = convexQuery(api.tasks.findAll, {});
 
 		const parentListQuery = task.parentId
-			? convexQuery(api.tasks.public.findAll, { parentId: task.parentId })
+			? convexQuery(api.tasks.findAll, { parentId: task.parentId }) //
 			: null;
 
-		const singleTaskQuery = convexQuery(api.tasks.public.findOne, { taskId: task._id });
+		const singleTaskQuery = convexQuery(api.tasks.findOne, { taskId: task._id });
 
 		// Update the task in the inbox list
 		queryClient.setQueryData<Doc<'tasks'>[]>(inboxQuery.queryKey, (oldData) =>

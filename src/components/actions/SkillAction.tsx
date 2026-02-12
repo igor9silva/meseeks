@@ -1,7 +1,7 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
-import { simplifiedSkillSchema } from 'convex/schemas/skillSchema';
+import { simplifiedSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
 import { ActionComponentProps } from '~/components/actions';
 import { LoadingButton } from '~/components/ui/loading-button';

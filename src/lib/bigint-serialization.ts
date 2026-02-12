@@ -3,7 +3,7 @@
  * This allows BigInt values to be properly serialized with JSON.stringify
  */
 
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 
 // Extend the BigInt prototype
 if (typeof BigInt !== 'undefined') {

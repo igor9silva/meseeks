@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { usePayment } from '~/hooks/usePayment';
 import { cn } from '~/lib/utils';
+import { api } from 'convex/_generated/api';
 
-import { asDollars } from 'convex/lib/money';
+import { asDollars } from 'lib/money';
 import { BasicError } from '~/components/BasicError';
 import { topUpStatusColors } from '~/components/TopUpItem';
 import { Badge } from '~/components/ui/badge';
@@ -23,7 +23,7 @@ export function RouteComponent({ className }: { className?: string }) {
 	const { id } = Route.useParams();
 	const { topUp } = useTopUp(id as Id<'topUps'>);
 
-	const discard = useMutation(api.topUps.public.discard);
+	const discard = useMutation(api.topUps.discard);
 
 	const { pay, isPending, error } = usePayment(topUp);
 

@@ -1,9 +1,9 @@
-import { api } from 'convex/_generated/api';
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject, useEffect, useState } from 'react';
 import { Loading } from '~/components/Loading';
 import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
 import { TransactionItem } from './TransactionItem';
+import { api } from 'convex/_generated/api';
 
 const PAGE_SIZE = 50;
 
@@ -30,7 +30,7 @@ export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 		loadMore,
 		status,
 	} = usePaginatedQuery(
-		api.transactions.public.findAllPaginated,
+		api.transactions.findAllPaginated,
 		{ search: debouncedSearchTerm || undefined },
 		{ initialNumItems: PAGE_SIZE },
 	);

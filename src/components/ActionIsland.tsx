@@ -1,11 +1,11 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { AnimatePresence, motion } from 'motion/react';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { useClickOutside } from '~/hooks/useClickOutside';
 import { cn } from '~/lib/utils';
+import { api } from 'convex/_generated/api';
 
 // import { TaskAction } from '~/components/TaskAction';
 import { Button } from '~/components/ui/button';
@@ -23,7 +23,7 @@ export function ActionIsland({
 	const ref = useRef<HTMLDivElement>(null);
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	const query = convexQuery(api.action.public.findAllRunning, { taskId });
+	const query = convexQuery(api.action.findAllRunning, { taskId });
 	const { data: runningActions } = useSuspenseQuery(query);
 
 	// if click outside, close

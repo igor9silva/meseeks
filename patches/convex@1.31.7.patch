@@ -1,0 +1,252 @@
+diff --git a/dist/cjs/cli/codegen_templates/api.js b/dist/cjs/cli/codegen_templates/api.js
+index ce200d99df13d77204fb0673bf73307e7a82e07d..2304ef2ca09d4b1118a58ec337dff3f2d0c290fa 100644
+--- a/dist/cjs/cli/codegen_templates/api.js
++++ b/dist/cjs/cli/codegen_templates/api.js
+@@ -111,8 +111,17 @@ function apiCodegen(modulePaths, opts) {
+       (modulePath) => `"${importPath(modulePath)}": typeof ${moduleIdentifier(modulePath)},`
+     ).join("\n")}
+   }>;
+-  export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+-  export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
++  type ByVisibility<API, V extends string> = {
++    [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++      ? K
++      : API[K] extends FunctionReference<any, any, any, any>
++        ? never
++        : K]: API[K] extends FunctionReference<any, V, any, any>
++      ? API[K]
++      : ByVisibility<API[K], V>;
++  };
++  export declare const api: ByVisibility<typeof fullApi, "public">;
++  export declare const internal: ByVisibility<typeof fullApi, "internal">;
+   `;
+     const apiJS = `${(0, import_common.header)("Generated `api` utility.")}
+   import { anyApi } from "convex/server";
+@@ -156,7 +165,17 @@ const fullApi: ApiFromModules<{
+  * const myFunctionReference = api.myModule.myFunction;
+  * \`\`\`
+  */
+-export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> = anyApi as any;
++type ByVisibility<API, V extends string> = {
++  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++    ? K
++    : API[K] extends FunctionReference<any, any, any, any>
++      ? never
++      : K]: API[K] extends FunctionReference<any, V, any, any>
++    ? API[K]
++    : ByVisibility<API[K], V>;
++};
++
++export const api: ByVisibility<typeof fullApi, "public"> = anyApi as any;
+ 
+ /**
+  * A utility for referencing Convex functions in your app's internal API.
+@@ -166,7 +185,7 @@ export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> =
+  * const myFunctionReference = internal.myModule.myFunction;
+  * \`\`\`
+  */
+-export const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">> = anyApi as any;
++export const internal: ByVisibility<typeof fullApi, "internal"> = anyApi as any;
+ `;
+     return {
+       TS: apiTS
+diff --git a/dist/cli.bundle.cjs b/dist/cli.bundle.cjs
+index 7fcf1d02bf5ef11565b1e3c777bac7d6713edb54..fca72715925514cff4d0e21b01edbb1326a04df7 100644
+--- a/dist/cli.bundle.cjs
++++ b/dist/cli.bundle.cjs
+@@ -164917,8 +164917,17 @@ function apiCodegen(modulePaths, opts) {
+       (modulePath) => `"${importPath(modulePath)}": typeof ${moduleIdentifier(modulePath)},`
+     ).join("\n")}
+   }>;
+-  export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+-  export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
++  type ByVisibility<API, V extends string> = {
++    [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++      ? K
++      : API[K] extends FunctionReference<any, any, any, any>
++        ? never
++        : K]: API[K] extends FunctionReference<any, V, any, any>
++      ? API[K]
++      : ByVisibility<API[K], V>;
++  };
++  export declare const api: ByVisibility<typeof fullApi, "public">;
++  export declare const internal: ByVisibility<typeof fullApi, "internal">;
+   `;
+     const apiJS = `${header("Generated `api` utility.")}
+   import { anyApi } from "convex/server";
+@@ -164962,7 +164971,17 @@ const fullApi: ApiFromModules<{
+  * const myFunctionReference = api.myModule.myFunction;
+  * \`\`\`
+  */
+-export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> = anyApi as any;
++type ByVisibility<API, V extends string> = {
++  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++    ? K
++    : API[K] extends FunctionReference<any, any, any, any>
++      ? never
++      : K]: API[K] extends FunctionReference<any, V, any, any>
++    ? API[K]
++    : ByVisibility<API[K], V>;
++};
++
++export const api: ByVisibility<typeof fullApi, "public"> = anyApi as any;
+ 
+ /**
+  * A utility for referencing Convex functions in your app's internal API.
+@@ -164972,7 +164991,7 @@ export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> =
+  * const myFunctionReference = internal.myModule.myFunction;
+  * \`\`\`
+  */
+-export const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">> = anyApi as any;
++export const internal: ByVisibility<typeof fullApi, "internal"> = anyApi as any;
+ `;
+     return {
+       TS: apiTS
+@@ -166661,10 +166680,19 @@ async function* codegenDynamicApiObjects(ctx, componentDirectory) {
+   }
+   yield `}>;`;
+   yield `
++    type ByVisibility<API, V extends string> = {
++      [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++        ? K
++        : API[K] extends FunctionReference<any, any, any, any>
++          ? never
++          : K]: API[K] extends FunctionReference<any, V, any, any>
++        ? API[K]
++        : ByVisibility<API[K], V>;
++    };
+     ${apiComment("api", "public")}
+-    export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
++    export declare const api: ByVisibility<typeof fullApi, "public">;
+     ${apiComment("internal", "internal")}
+-    export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
++    export declare const internal: ByVisibility<typeof fullApi, "internal">;
+   `;
+ }
+ async function* codegenDynamicApiObjectsTS(ctx, componentDirectory) {
+@@ -166692,10 +166720,19 @@ async function* codegenDynamicApiObjectsTS(ctx, componentDirectory) {
+   }
+   yield `}> = anyApi as any;`;
+   yield `
++    type ByVisibility<API, V extends string> = {
++      [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++        ? K
++        : API[K] extends FunctionReference<any, any, any, any>
++          ? never
++          : K]: API[K] extends FunctionReference<any, V, any, any>
++        ? API[K]
++        : ByVisibility<API[K], V>;
++    };
+     ${apiComment("api", "public")}
+-    export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> = anyApi as any;
++    export const api: ByVisibility<typeof fullApi, "public"> = anyApi as any;
+     ${apiComment("internal", "internal")}
+-    export const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">> = anyApi as any;
++    export const internal: ByVisibility<typeof fullApi, "internal"> = anyApi as any;
+   `;
+ }
+ async function buildApiTree(ctx, functions, visibility2) {
+diff --git a/dist/esm/cli/codegen_templates/api.js b/dist/esm/cli/codegen_templates/api.js
+index 990352acd08b7e8b8a7bad2d9018ef4dc399b57c..80adfa8544d246c66424a4ce95b8ab89cc0dd4af 100644
+--- a/dist/esm/cli/codegen_templates/api.js
++++ b/dist/esm/cli/codegen_templates/api.js
+@@ -87,8 +87,17 @@ export function apiCodegen(modulePaths, opts) {
+       (modulePath) => `"${importPath(modulePath)}": typeof ${moduleIdentifier(modulePath)},`
+     ).join("\n")}
+   }>;
+-  export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+-  export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
++  type ByVisibility<API, V extends string> = {
++    [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++      ? K
++      : API[K] extends FunctionReference<any, any, any, any>
++        ? never
++        : K]: API[K] extends FunctionReference<any, V, any, any>
++      ? API[K]
++      : ByVisibility<API[K], V>;
++  };
++  export declare const api: ByVisibility<typeof fullApi, "public">;
++  export declare const internal: ByVisibility<typeof fullApi, "internal">;
+   `;
+     const apiJS = `${header("Generated `api` utility.")}
+   import { anyApi } from "convex/server";
+@@ -132,7 +141,17 @@ const fullApi: ApiFromModules<{
+  * const myFunctionReference = api.myModule.myFunction;
+  * \`\`\`
+  */
+-export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> = anyApi as any;
++type ByVisibility<API, V extends string> = {
++  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++    ? K
++    : API[K] extends FunctionReference<any, any, any, any>
++      ? never
++      : K]: API[K] extends FunctionReference<any, V, any, any>
++    ? API[K]
++    : ByVisibility<API[K], V>;
++};
++
++export const api: ByVisibility<typeof fullApi, "public"> = anyApi as any;
+ 
+ /**
+  * A utility for referencing Convex functions in your app's internal API.
+@@ -142,7 +161,7 @@ export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> =
+  * const myFunctionReference = internal.myModule.myFunction;
+  * \`\`\`
+  */
+-export const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">> = anyApi as any;
++export const internal: ByVisibility<typeof fullApi, "internal"> = anyApi as any;
+ `;
+     return {
+       TS: apiTS
+diff --git a/src/cli/codegen_templates/api.ts b/src/cli/codegen_templates/api.ts
+index ab16768902426a7ffebdf3fe548c63ed40f1c4ba..62d189728a80d6b14eab7bc2f1381b4778bd90bd 100644
+--- a/src/cli/codegen_templates/api.ts
++++ b/src/cli/codegen_templates/api.ts
+@@ -110,8 +110,17 @@ export function apiCodegen(
+       )
+       .join("\n")}
+   }>;
+-  export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+-  export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
++  type ByVisibility<API, V extends string> = {
++    [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++      ? K
++      : API[K] extends FunctionReference<any, any, any, any>
++        ? never
++        : K]: API[K] extends FunctionReference<any, V, any, any>
++      ? API[K]
++      : ByVisibility<API[K], V>;
++  };
++  export declare const api: ByVisibility<typeof fullApi, "public">;
++  export declare const internal: ByVisibility<typeof fullApi, "internal">;
+   `;
+ 
+     const apiJS = `${header("Generated `api` utility.")}
+@@ -163,7 +172,17 @@ const fullApi: ApiFromModules<{
+  * const myFunctionReference = api.myModule.myFunction;
+  * \`\`\`
+  */
+-export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> = anyApi as any;
++type ByVisibility<API, V extends string> = {
++  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
++    ? K
++    : API[K] extends FunctionReference<any, any, any, any>
++      ? never
++      : K]: API[K] extends FunctionReference<any, V, any, any>
++    ? API[K]
++    : ByVisibility<API[K], V>;
++};
++
++export const api: ByVisibility<typeof fullApi, "public"> = anyApi as any;
+ 
+ /**
+  * A utility for referencing Convex functions in your app's internal API.
+@@ -173,7 +192,7 @@ export const api: FilterApi<typeof fullApi, FunctionReference<any, "public">> =
+  * const myFunctionReference = internal.myModule.myFunction;
+  * \`\`\`
+  */
+-export const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">> = anyApi as any;
++export const internal: ByVisibility<typeof fullApi, "internal"> = anyApi as any;
+ `;
+     return {
+       TS: apiTS,

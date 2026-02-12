@@ -1,11 +1,11 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { api } from 'convex/_generated/api';
 
 export function useActionDetails(actionId: Id<'actions'>) {
 	//
-	const query = convexQuery(api.action_details.public.findByAction, { actionId });
+	const query = convexQuery(api.action.details.findByAction, { actionId });
 	const result = useSuspenseQuery(query);
 
 	return {

@@ -4,7 +4,7 @@ import { api } from 'convex/_generated/api';
 
 export function useIsPro() {
 	//
-	const activeSubsQuery = convexQuery(api.subscriptions.public.findActive, {});
+	const activeSubsQuery = convexQuery(api.subscriptions.findActive, {});
 	const { data: activeSubs } = useSuspenseQuery(activeSubsQuery);
 
 	const isPro = Boolean(activeSubs && activeSubs.length > 0);

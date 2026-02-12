@@ -1,5 +1,5 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
-import { asBigInt } from 'convex/lib/money';
+import { asBigInt } from 'lib/money';
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { EnqueuedSkill, SkillToEnqueue } from '~/components/ActionComposer/types';
