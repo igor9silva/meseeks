@@ -179,8 +179,8 @@ One file per hook in `src/hooks/`.
 
 ## Generated Files
 
-- `.config/rules.md` is the source of truth for AI assistant rules
-- `AGENTS.md` is auto-generated from `rules.md` on file change — never edit it directly, never run the generator manually
+- `.config/MasterPlan.md` is the source of truth for AI assistant rules
+- `AGENTS.md` is auto-generated from `MasterPlan.md` on file change — never edit it directly, never run the generator manually
 - `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
 
 ## Making Changes

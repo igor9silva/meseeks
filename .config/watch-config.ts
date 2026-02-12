@@ -7,7 +7,7 @@
  *
  * Watched sources:
  *   - .config/mcp.config.ts → MCP configs
- *   - .config/rules.md → AI assistant rules
+ *   - .config/MasterPlan.md → AI assistant rules
  *   - .config/skills/ → AI assistant skills
  *
  * Usage:
@@ -19,7 +19,7 @@ import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 
 const CONFIG_FILE = resolve(__dirname, './mcp.config.ts');
-const RULES_FILE = resolve(__dirname, './rules.md');
+const RULES_FILE = resolve(__dirname, './MasterPlan.md');
 const SKILLS_DIR = resolve(__dirname, './skills');
 const GENERATOR_SCRIPT = resolve(__dirname, './generate-configs.ts');
 

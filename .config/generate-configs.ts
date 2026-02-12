@@ -17,7 +17,7 @@
  *
  * Sources:
  *   - .config/mcp.config.ts → MCP configs
- *   - .config/rules.md → AI assistant rules
+ *   - .config/MasterPlan.md → AI assistant rules
  *   - .config/skills/ → AI assistant skills
  *
  * Note: Generated files are gitignored. Edit the source files only.
@@ -28,7 +28,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const RULES_SOURCE = path.join(PROJECT_ROOT, '.config', 'rules.md');
+const RULES_SOURCE = path.join(PROJECT_ROOT, '.config', 'MasterPlan.md');
 const SKILLS_SOURCE = path.join(PROJECT_ROOT, '.config', 'skills');
 const SKILLS_TARGET = path.join(PROJECT_ROOT, '.agents', 'skills');
 

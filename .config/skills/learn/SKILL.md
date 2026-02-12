@@ -5,7 +5,7 @@ description: Extract lessons from conversation mistakes and update project rules
 
 # Learn from Mistakes
 
-Review the full conversation, identify every place where the user corrected the model, and update `.config/rules.md` so the same mistakes never happen again.
+Review the full conversation, identify every place where the user corrected the model, and update `.config/MasterPlan.md` so the same mistakes never happen again.
 
 ## Step 1: Scan the conversation
 
@@ -59,7 +59,7 @@ When context is compacted or partially missing, use the best available signals a
 
 ## Step 2: Read and critique current rules
 
-Read the full `.config/rules.md` file. Never assume it's properly written or efficient — it was built incrementally and may have accumulated cruft, weak wording, or missed opportunities.
+Read the full `.config/MasterPlan.md` file. Never assume it's properly written or efficient — it was built incrementally and may have accumulated cruft, weak wording, or missed opportunities.
 
 Look at it with fresh eyes every time:
 
@@ -73,7 +73,7 @@ Improve anything you find, even if it's unrelated to the current session's mista
 
 ## Step 3: Update rules
 
-Open `.config/rules.md` and apply changes. For each lesson learned:
+Open `.config/MasterPlan.md` and apply changes. For each lesson learned:
 
 1. **Already covered?** — skip it, or strengthen the wording if the current version wasn't clear enough to prevent the mistake
 2. **Fits an existing section?** — add it there

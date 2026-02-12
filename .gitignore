@@ -26,7 +26,7 @@ dist/
 .opencode/opencode.jsonc
 .codex/config.toml
 
-## Rules (source: .config/rules.md)
+## Rules (source: .config/MasterPlan.md)
 .cursorrules
 .cursor/rules/*
 AGENTS.md
