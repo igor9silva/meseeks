@@ -8,8 +8,9 @@ export const componentSchema = z.object({
 		z.literal('isPro'),
 	]),
 	// author: authorSchema,
-	body: z.string().max(1000).describe('MDX'),
+	body: z.string().max(10000).describe('MDX'),
 	defaultTaskId: zid('tasks').optional(),
+	isPublic: z.boolean().optional().default(false),
 	slug: z
 		.string()
 		.optional()

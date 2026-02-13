@@ -2,7 +2,7 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { QueryClient } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
@@ -97,6 +97,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	//
+	const { pathname } = useLocation();
+	const isShareRoute = pathname.startsWith('/share/');
+
+	if (isShareRoute) {
+		return <div className="h-dvh w-full">{children}</div>;
+	}
+
 	return (
 		<div>
 			<AuthLoading>
@@ -164,7 +171,7 @@ function AccessDenied() {
 
 	const handleSignIn = () => {
 		setIsSigningIn(true);
-		signIn('google', { redirectTo: location.href });
+		signIn('google', { redirectTo: window.location.href });
 	};
 
 	return (

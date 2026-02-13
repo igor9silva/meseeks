@@ -2,11 +2,11 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { Id, TableNames } from 'convex/_generated/dataModel';
+import { Id } from 'convex/_generated/dataModel';
 import { api } from 'convex/_generated/api';
 import { BasicError } from '~/components/BasicError';
-import { useIframeRenderer } from '~/hooks/useIframeRenderer';
-import { TextShimmer } from '~/components/ui/text-shimmer';
+import { CompositionFrame } from '~/components/CompositionFrame';
+import { Loading } from '~/components/Loading';
 
 const errorText = 'Failed to load or render this action.';
 
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/action_/$id')({
 	errorComponent: () => <BasicError text={errorText} />,
 });
 
-function isNonEmptyString(value: string | undefined): value is string {
+function isActionId(value: string | undefined): value is Id<'actions'> {
 	//
 	return Boolean(value && value.length > 0);
 }
@@ -29,24 +29,21 @@ function RouteComponent() {
 		mode: 'direct-link',
 	});
 
-	if (!isNonEmptyString(id)) return <BasicError text={errorText} />;
+	if (!isActionId(id)) return <BasicError text={errorText} />;
 
-	const query = convexQuery(api.action.findOne, { actionId: id as Id<'actions'> });
+	return <ActionRouteRenderer actionId={id} />;
+}
+
+function ActionRouteRenderer({ actionId }: { actionId: Id<'actions'> }) {
+	//
+	const query = convexQuery(api.action.findOne, { actionId });
 	const { data: action, isLoading, isError } = useSuspenseQuery(query);
 
-	if (isLoading) return <TextShimmer text="Loading..." />;
+	if (isLoading) return <Loading className="h-svh" />;
 	if (isError) return <BasicError text={errorText} />;
 
 	if (action.skillKey !== 'render') return <BasicError text={errorText} />;
 	if (action.status !== 'succeeded') return <BasicError text={errorText} />;
 
-	const transpiledCode = action.result?.text || '';
-	const { dataUrl } = useIframeRenderer({ code: transpiledCode });
-
-	if (!dataUrl) return <BasicError text={errorText} />;
-
-	// TODO: unify all <iframe>
-	return (
-		<iframe src={dataUrl} title="Rendered Composition" className="fixed inset-0 z-50 h-full w-full border-none" />
-	);
+	return <CompositionFrame code={action.result?.text} title="Rendered Composition" errorText={errorText} />;
 }

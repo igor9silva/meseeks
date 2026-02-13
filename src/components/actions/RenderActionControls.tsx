@@ -1,9 +1,10 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { Bug, Expand, ExternalLink, Minimize2 } from 'lucide-react';
+import { Bug, Expand, ExternalLink, Loader2, Minimize2, Share } from 'lucide-react';
 import { CopyButton } from '~/components/CopyButton';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { useComponentShare } from '~/hooks/useComponentShare';
 
 interface RenderActionControlsProps {
 	//
@@ -23,6 +24,7 @@ export function RenderActionControls({
 }: RenderActionControlsProps) {
 	//
 	const navigate = useNavigate();
+	const { shareComponent, isSharingComponent } = useComponentShare();
 
 	const handleDebugClick = (e?: React.MouseEvent) => {
 		e?.stopPropagation();
@@ -34,10 +36,16 @@ export function RenderActionControls({
 			hash: `action-${action._id}`,
 		});
 	};
+	const handleShareClick = (e?: React.MouseEvent) => {
+		e?.stopPropagation();
+		e?.preventDefault();
+		void shareComponent({ actionId: action._id });
+	};
 
 	return (
 		<div className={className}>
 			<DebugButton onClick={handleDebugClick} />
+			<ShareButton onClick={handleShareClick} isSharing={isSharingComponent} />
 			<OpenInNewTabButton href={`/action/${action._id}`} />
 			{isFullscreen ? (
 				<MinimizeButton onClick={onToggleFullscreen} />
@@ -110,6 +118,28 @@ function OpenInNewTabButton({ href }: { href: string }) {
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent className="px-2 py-1 text-xs">Open in new tab</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
+	);
+}
+
+function ShareButton({
+	onClick,
+	isSharing,
+}: {
+	onClick: (e?: React.MouseEvent) => void;
+	isSharing: boolean;
+}) {
+	//
+	return (
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button variant="outline" size="icon" className="h-6 w-6 border" onClick={onClick} disabled={isSharing}>
+						{isSharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share className="h-4 w-4" />}
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent className="px-2 py-1 text-xs">Share publicly</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);

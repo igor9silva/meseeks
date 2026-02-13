@@ -141,6 +141,9 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Descriptive names without underscores
 - Validate args with Zod schemas
 - Must include authentication/authorization checks
+- Keep public entrypoints focused on orchestration (args parsing, authorization, policy checks, and helper composition). If a DB read/write helper exists (or should exist), call the private helper instead of using `ctx.db.*` inline.
+  - bad: public query does `ctx.db.get(componentId)` directly for domain reads
+  - good: public query calls `findComponent(...)` from `<module>.private.ts`, then applies endpoint-specific policy checks
 
 ### Internal Functions
 - Internal Convex exports in `<module>.ts` must use underscore prefix: `_functionName`.
@@ -164,6 +167,9 @@ Do not run `bunx convex deploy` - this deploys to production.
 ### Authorization
 - Never mention "authorization" in error messages - use generic "not found"
 - Check ownership before public-facing operations
+- Perform ownership/auth checks in public Convex entrypoints (`<module>.ts`) before calling reusable private helpers.
+  - bad: private helper called by a public mutation runs `ensureTaskOwner(...)`
+  - good: public mutation runs `ensureTaskOwner(...)`, then passes validated/trusted args into the private helper
 
 ### Database
 - Always use indexes for queries
