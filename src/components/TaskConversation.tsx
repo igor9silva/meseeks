@@ -112,7 +112,7 @@ function TaskConversationInner({
 	useKeyboardShortcut({
 		global: true,
 		ignoreWhenTyping: true,
-		combo: { key: '[' },
+		combo: { key: 'b', withCommand: true },
 		callback: () => onToggleList?.(),
 	});
 
