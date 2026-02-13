@@ -8,6 +8,10 @@
 			"name": "Data",
 			"path": "./data",
 		},
+		{
+			"name": "Browser POC",
+			"path": "./browser-poc",
+		},
 	],
 	"settings": {
 		"files.exclude": {

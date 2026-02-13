@@ -96,6 +96,8 @@ export function generateThemeStyles(themeVariables: ThemeVariables): string {
  */
 export function generateIframeHtml(code: string, themeVariables: ThemeVariables): string {
 	//
+	const safeCode = code.replace(/<\/script/gi, '<\\/script');
+
 	return `
 		<!DOCTYPE html>
 		<html>
@@ -120,9 +122,51 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 					</div>
 				</div>
 				<script>
+					const rootElement = document.getElementById('root');
+					const escapeHtml = (value) =>
+						String(value)
+							.replace(/&/g, '&amp;')
+							.replace(/</g, '&lt;')
+							.replace(/>/g, '&gt;')
+							.replace(/"/g, '&quot;')
+							.replace(/'/g, '&#39;');
+
+					const renderMessage = (message, color = '#666') => {
+						if (!rootElement) return;
+						rootElement.innerHTML =
+							'<div style="color: ' +
+							color +
+							'; padding: 16px; text-align: center; font-family: sans-serif;">' +
+							escapeHtml(message) +
+							'</div>';
+					};
+
+					const renderError = (error) => {
+						console.error('Error in AI-generated code:', error);
+
+						if (error instanceof Error) {
+							renderMessage('Error during render: ' + error.message, '#ef4444');
+							return;
+						}
+
+						renderMessage('Error during render: ' + String(error), '#ef4444');
+					};
+
+					window.addEventListener('error', (event) => {
+						renderError(event.error ?? event.message);
+					});
+
+					window.addEventListener('unhandledrejection', (event) => {
+						renderError(event.reason);
+					});
+
 					try {
+						if (typeof window.React === 'undefined' || typeof window.ReactDOM === 'undefined') {
+							throw new Error('Renderer runtime failed to load.');
+						}
+
 						// Pre-transpiled AI-generated code
-						${code}
+						${safeCode}
 						
 						// Check if Composition is available
 						let ComponentToRender = null;
@@ -134,22 +178,20 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 						}
 
 						// Render the component if found
-						if (ComponentToRender) {
-							ReactDOM.render(React.createElement(ComponentToRender), document.getElementById('root'));
+						if (!ComponentToRender) {
+							renderMessage('Nothing to render.');
+						} else if (!rootElement) {
+							throw new Error('Renderer root was not found.');
+						} else if (typeof ReactDOM.render === 'function') {
+							ReactDOM.render(React.createElement(ComponentToRender), rootElement);
+						} else if (typeof ReactDOM.createRoot === 'function') {
+							const root = ReactDOM.createRoot(rootElement);
+							root.render(React.createElement(ComponentToRender));
 						} else {
-							// Show nothing to render message
-							document.getElementById('root').innerHTML = 
-								'<div style="color: #666; padding: 16px; text-align: center; font-family: sans-serif;">' +
-								'Nothing to render.' +
-								'</div>';
+							throw new Error('React renderer was not available.');
 						}
-
 					} catch (error) {
-						console.error('Error in AI-generated code:', error);
-						document.getElementById('root').innerHTML = 
-							'<div style="color: red; padding: 1rem; font-family: sans-serif">' +
-							'Error during render: ' + error
-							'</div>';
+						renderError(error);
 					}
 				</script>
 			</body>

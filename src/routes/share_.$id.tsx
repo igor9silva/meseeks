@@ -1,5 +1,5 @@
 import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Id } from 'convex/_generated/dataModel';
 import { api } from 'convex/_generated/api';
@@ -31,10 +31,11 @@ function RouteComponent() {
 function SharedComposition({ componentId }: { componentId: Id<'components'> }) {
 	//
 	const query = convexQuery(api.components.findPublicById, { componentId });
-	const { data: composition, isLoading, isError } = useSuspenseQuery(query);
+	const { data: composition, isPending, isError } = useQuery(query);
 
-	if (isLoading) return <Loading className="h-svh" />;
+	if (isPending) return <Loading className="h-svh" />;
 	if (isError) return <BasicError text={errorText} />;
+	if (!composition) return <BasicError text={errorText} />;
 
 	return <CompositionFrame code={composition.body} title="Shared Composition" errorText={errorText} />;
 }

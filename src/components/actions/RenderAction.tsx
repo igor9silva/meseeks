@@ -69,7 +69,7 @@ function RenderActionContent(props: ActionComponentProps) {
 	const originalCode = action.args['code'];
 
 	// Use iframe renderer hook with pre-transpiled code
-	const { dataUrl } = useIframeRenderer({ code: transpiledCode });
+	const { iframeHtml } = useIframeRenderer({ code: transpiledCode });
 
 	const toggleFullscreen = (e?: React.MouseEvent) => {
 		e?.stopPropagation();
@@ -93,10 +93,10 @@ function RenderActionContent(props: ActionComponentProps) {
 			{/* Container for relative positioning context - never hidden */}
 			<div className={cn('relative group', className, isFullscreen ? 'pointer-events-none' : '')}>
 				{/* Single persistent iframe that changes position only */}
-				{dataUrl && (
+				{iframeHtml && (
 					<iframe
 						ref={iframeRef}
-						src={dataUrl}
+						srcDoc={iframeHtml}
 						title="Rendered Composition"
 						className={cn(
 							'border-none pointer-events-auto',

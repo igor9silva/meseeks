@@ -1,5 +1,5 @@
 import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { Id } from 'convex/_generated/dataModel';
@@ -37,10 +37,11 @@ function RouteComponent() {
 function ActionRouteRenderer({ actionId }: { actionId: Id<'actions'> }) {
 	//
 	const query = convexQuery(api.action.findOne, { actionId });
-	const { data: action, isLoading, isError } = useSuspenseQuery(query);
+	const { data: action, isPending, isError } = useQuery(query);
 
-	if (isLoading) return <Loading className="h-svh" />;
+	if (isPending) return <Loading className="h-svh" />;
 	if (isError) return <BasicError text={errorText} />;
+	if (!action) return <BasicError text={errorText} />;
 
 	if (action.skillKey !== 'render') return <BasicError text={errorText} />;
 	if (action.status !== 'succeeded') return <BasicError text={errorText} />;
