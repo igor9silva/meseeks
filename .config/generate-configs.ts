@@ -176,7 +176,24 @@ function generateCodexConfig(): void {
 	const enabledServers = getEnabledServers();
 	let tomlContent = `# MCP Servers Configuration
 # Generated from .config/mcp.config.ts
+
+responses_websocket_v2 = true
+collab = true
+model_reasoning_summary = "detailed"
+model_verbosity = "high"
+web_search = "live"
+
+[history]
+persistence = "save-all"
 `;
+
+	// other interesting codex settings:
+	// compact_prompt = override the compactation propmpt, inline
+	// experimental_compact_prompt_file
+	// developer_instructions
+	// model_auto_compact_token_limit
+	// model_context_window
+	//
 
 	if (enabledServers.length === 0) {
 		tomlContent += '# No enabled MCP servers.\n';
