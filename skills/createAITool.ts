@@ -70,7 +70,7 @@ export function createAITool(
 			let reason = finishReason;
 			if (toolCalls.length > 0 && reason === 'stop') {
 				reason = 'tool-calls';
-				console.warn(
+				console.info(
 					`(${intelligenceKey}) Has tool calls but finish reason is 'stop': ${toolCalls.map((call) => call.toolName).join(', ')}`,
 				);
 			}
