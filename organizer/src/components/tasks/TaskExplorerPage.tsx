@@ -64,7 +64,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 					...previous,
 					...partial,
 				}),
-				replace: true,
+				replace: false,
 			});
 		},
 		[navigate],
@@ -103,19 +103,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			clearTimeout(debounceHandle);
 		};
 	}, [searchDraft, queryInput, updateQueryInput]);
-
-	useEffect(() => {
-		if (!selectedTaskKey) return;
-		if (explorerQuery.isFetching) return;
-		if (!explorerQuery.data) return;
-		if (!explorerQuery.data.health.isReady) return;
-
-		const tasks = explorerQuery.data.tasks;
-		const isVisible = tasks.some((task) => task.key === selectedTaskKey);
-		if (isVisible) return;
-
-		updateSearch({ taskKey: undefined });
-	}, [selectedTaskKey, explorerQuery.data, explorerQuery.isFetching, updateSearch]);
 
 	useEffect(() => {
 		const appTitle = 'Organizer';
