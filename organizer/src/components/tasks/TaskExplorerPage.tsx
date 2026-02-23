@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
+import { Lock } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Mdx } from '~/components/ui/mdx';
 import {
@@ -333,9 +334,9 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 							>
 								<div className="flex items-start justify-between gap-2">
 									<div className="font-medium text-sm">{task.title}</div>
-									<div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-										{task.taskSource}
-									</div>
+									{task.taskSource === 'private' ? (
+										<Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Private task" />
+									) : null}
 								</div>
 
 								<div className="mt-1 text-xs text-muted-foreground break-all">{task.id}</div>
@@ -360,10 +361,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 										))}
 									</div>
 								)}
-
-								<div className="mt-2 text-xs text-muted-foreground line-clamp-2">
-									{task.bodyExcerpt}
-								</div>
 							</Link>
 						))}
 					</div>
@@ -459,7 +456,17 @@ function TaskDetailView({
 					)}
 				</div>
 
-				<div className="flex flex-wrap gap-2 text-xs mt-3">
+				{detail.task.tags.length > 0 && (
+					<div className="mt-2 flex flex-wrap gap-1">
+						{detail.task.tags.map((tag) => (
+							<span key={tag} className="px-2 py-1 rounded-md bg-muted text-xs">
+								#{tag}
+							</span>
+						))}
+					</div>
+				)}
+
+				<div className="flex flex-wrap gap-2 text-xs mt-2">
 					<span className="px-2 py-1 rounded-md border border-border">{detail.task.taskSource}</span>
 					<span className="px-2 py-1 rounded-md border border-border">{detail.task.status}</span>
 					{detail.task.priority && (
@@ -469,34 +476,12 @@ function TaskDetailView({
 			</header>
 
 			<div className="p-4 space-y-4">
-				{detail.task.tags.length > 0 && (
-					<div className="space-y-1">
-						<div className="text-xs uppercase tracking-wide text-muted-foreground">Tags</div>
-						<div className="flex flex-wrap gap-1">
-							{detail.task.tags.map((tag) => (
-								<span key={tag} className="px-2 py-1 rounded-md bg-muted text-xs">
-									#{tag}
-								</span>
-							))}
-						</div>
-					</div>
-				)}
-
 				<div className="grid gap-4 md:grid-cols-2">
 					{detail.relations.parentKey && renderRelation('Parent', [detail.relations.parentKey])}
 					{renderRelation('Children', detail.relations.children)}
 				</div>
 
 				<Mdx text={detail.task.body} className="text-sm" />
-
-				{detail.task.rawFrontmatter && (
-					<details className="rounded-md border border-border p-3">
-						<summary className="cursor-pointer text-sm font-medium">Raw frontmatter</summary>
-						<pre className="mt-2 whitespace-pre-wrap text-xs text-muted-foreground">
-							{detail.task.rawFrontmatter}
-						</pre>
-					</details>
-				)}
 
 				{detail.task.warnings.length > 0 && (
 					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
