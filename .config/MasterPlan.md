@@ -236,6 +236,7 @@ One file per hook in `src/hooks/`.
 
 - Never present assumptions as facts; if uncertain, say it's an assumption and verify before claiming behavior
 - Do not invent justifications (such as "compatibility" or existing constraints) that are not explicitly present in code, docs, or user requirements
+- Always clearly communicate tradeoffs you make
 - If scope shifts or the user says the execution is off-track, restate the exact requested outcome and complete that before proposing extras
 - Preserve exact user-specified literals (names/tags/phrases) when implementing instructions; do not substitute near-synonyms.
   - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`

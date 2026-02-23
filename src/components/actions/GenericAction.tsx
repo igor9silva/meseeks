@@ -157,11 +157,7 @@ function Result({
 }) {
 	if (status === 'failed') {
 		return (
-			<FailedMessage
-				text={`Failed to perform ${skillKey}()`}
-				error={result}
-				isAuthorCurrentUser={isAuthorCurrentUser}
-			/>
+			<FailedMessage text={`Failed to ${skillKey}()`} error={result} isAuthorCurrentUser={isAuthorCurrentUser} />
 		);
 	}
 

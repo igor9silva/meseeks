@@ -18,12 +18,15 @@ Read every message in the conversation. Look for signals that the model made a m
 - User said "that's not what I asked" or similar
 - User manually did something the model should have done
 
-Also note which skills (if any) were invoked during the conversation. A skill misbehaved if:
+Build a skill review queue from all skills under `.config/skills/`, not just the skills invoked in this conversation.
+
+Track which skills were invoked, but do not limit analysis to them. A skill needs changes if:
 
 - It produced wrong output, missed steps, or had bad instructions
 - The user had to override, work around, or redo something the skill guided
 - The skill's documented behavior didn't match what actually happened
 - The skill was missing a capability that would have prevented a mistake
+- The conversation revealed a durable preference the skill should encode, even if that skill was not invoked
 
 For each mistake found, extract:
 
@@ -115,21 +118,31 @@ If the file would be cleaner rewritten from scratch, do it. Preserve all existin
 
 ## Step 4: Update skills
 
-If any skills were used in the conversation, review whether they need updating. Skip this step if no skills were involved or they all behaved correctly.
+Review all skills under `.config/skills/` on every `learn` run. Do not limit this step to invoked skills.
+
+For each skill, decide one of: no change, tighten wording, add missing guidance, or remove stale guidance. Make edits only when they improve future behavior.
 
 ### What to look for
 
-Read the SKILL.md for each skill that was invoked. Compare what it told the model to do vs. what the user actually needed. Look for:
+Read `SKILL.md` for every skill in `.config/skills/`. Compare what each skill tells the model to do vs. what this conversation proved the user expects. Look for:
 
 - **Wrong instructions** — steps that led to incorrect behavior
 - **Missing steps** — gaps the user had to fill manually
 - **Outdated information** — references to APIs, paths, or patterns that have changed
 - **Missing edge cases** — scenarios the skill didn't account for
 - **Unclear wording** — instructions that were ambiguous enough to cause a wrong interpretation
+- **Preference drift** — durable user preferences from this conversation that should be codified in the skill even if it was not invoked
 
 ### Where to edit
 
 Only edit skill files under `.config/skills/` — these are the source of truth. All other skill paths (`.agents/skills/`, etc.) are codegenerated and will be overwritten.
+
+### review method
+
+1. Enumerate all skill directories under `.config/skills/`.
+2. Read each `SKILL.md` and assess whether this conversation exposes a gap or improvement.
+3. Update only the skills where a change would prevent future mistakes or capture durable preferences.
+4. Leave explicitly unchanged skills untouched (no churn edits).
 
 ### How to update
 
@@ -143,8 +156,8 @@ Apply the same principles as rule updates:
 
 ### When NOT to update a skill
 
-- The mistake was caused by the model ignoring the skill's correct instructions (that's a rules problem, not a skill problem)
-- The skill wasn't involved in the mistake at all
+- The skill is already aligned with current expectations and no wording improvement is needed
+- The issue is purely a general model behavior problem better handled in `.config/MasterPlan.md`
 - The fix would be so specific it would never apply again
 
 ## Step 5: Summary
@@ -153,7 +166,7 @@ Tell the user:
 - How many mistakes were identified
 - What rules were added, modified, or merged
 - Whether any existing rules were tightened or reorganized
-- What skills were updated (if any), and what changed
+- How many skills were reviewed, which skills were updated (if any), and what changed
 - Which candidate lessons were skipped (if any) because they were already covered or would not change behavior
 - If the thread was compacted, include a short **Compaction Notes** line listing preserved steering/learning cues and any missing context that could limit confidence
 - Which example-based rules/examples were added (or why none were needed)

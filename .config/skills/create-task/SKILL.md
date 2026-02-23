@@ -1,6 +1,6 @@
 ---
 name: create-task
-description: Create new task markdown files in the Meseeks task system with valid frontmatter, correct folder placement, and parent/subtask links. Use when the user asks to create a task, add a backlog item, open an active task, create subtasks, or scaffold task files under data/tasks.
+description: Create new task MDX files in the Meseeks task system with valid frontmatter, correct folder placement, and parent/subtask links. Use when the user asks to create a PROJECT task, add a backlog item, create subtasks, or scaffold task files under data/tasks.
 ---
 
 # Create Task
@@ -12,7 +12,7 @@ Create tasks that comply with `data/tasks/README.md`.
 Before creating any task file:
 
 1. Read `data/tasks/README.md`.
-2. If creating a subtask, read the full parent hierarchy (`_index.md` files from root to immediate parent).
+2. If creating a subtask, read the full parent hierarchy (`_index.*` files from root to immediate parent).
 
 ## Placement Rules
 
@@ -24,13 +24,14 @@ Pick file location from status:
 - `blocked` -> keep in the work stream folder (`active` or `backlog`) with `status: blocked`
 
 Use kebab-case filenames. Keep names short and descriptive. Do not include dates in filenames.
+Default extension is `.mdx`.
 
 ## Subtask Rules
 
 For a parent task with subtasks, use a directory:
 
-- `data/tasks/<status>/<task-slug>/_index.md` for the parent task
-- `data/tasks/<status>/<task-slug>/<subtask-slug>.md` for each child
+- `data/tasks/<status>/<task-slug>/_index.mdx` for the parent task
+- `data/tasks/<status>/<task-slug>/<subtask-slug>.mdx` for each child
 
 Set:
 
@@ -69,7 +70,7 @@ Rules:
 
 After frontmatter, use this structure:
 
-```markdown
+```mdx
 # <Task Title>
 
 ## Context
@@ -104,4 +105,4 @@ After creating the file:
 2. Verify frontmatter keys are complete and valid.
 3. Verify `parent` points to the correct task ID for subtasks.
 4. Verify `updated` matches the creation date.
-5. Confirm markdown headings and sections are present.
+5. Confirm MDX headings and sections are present.
