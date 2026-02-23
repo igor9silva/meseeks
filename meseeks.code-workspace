@@ -5,8 +5,8 @@
 			"path": "./",
 		},
 		{
-			"name": "Data",
-			"path": "./data",
+			"name": "Private",
+			"path": "./private",
 		},
 		{
 			"name": "Browser POC",

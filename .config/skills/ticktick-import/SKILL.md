@@ -74,7 +74,7 @@ The script will warn about any group IDs it encounters that aren't in this mappi
 2. Set env vars
 3. Run `fetch-tasks.ts` to snapshot your TickTick tasks
 4. Review the JSON output and decide which tasks to convert to Meseeks task files
-5. Use the task format from `data/tasks/README.md` for conversion
+5. Use the task format from `private/tasks/README.md` for conversion
 
 ## Self-Improvement
 

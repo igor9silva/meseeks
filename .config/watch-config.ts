@@ -21,7 +21,7 @@ const TASK_GENERATOR = resolve(__dirname, './generate-task-index.ts');
 
 const TASK_ROOTS = [
 	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
-	{ label: 'private', root: join(PROJECT_ROOT, 'data', 'tasks') },
+	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
 ];
 
 const TASK_BUCKETS = ['active', 'backlog', 'completed'];

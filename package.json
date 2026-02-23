@@ -17,12 +17,12 @@
 		"build:tasks": "bun run .config/generate-task-index.ts",
 		"start": "bun .output/server/index.mjs",
 		"typecheck": "bunx tsgo --noEmit --incremental --tsBuildInfoFile .output/typecheck.tsbuildinfo",
-		"lint": "prettier --check '**/*' '!data/**' '!**/*.md' --ignore-unknown && eslint --ext .ts,.tsx ./src",
-		"format": "prettier --write '**/*' '!data/**' '!**/*.md' --ignore-unknown",
-		"skills:deploy:dev": "cd data/skills && bun deploy.ts --env dev",
-		"skills:deploy:prod": "cd data/skills && bun deploy.ts --env prod",
-		"skills:deploy:dev:delete": "cd data/skills && bun deploy.ts --env dev --delete-unspecified",
-		"skills:deploy:prod:delete": "cd data/skills && bun deploy.ts --env prod --delete-unspecified"
+		"lint": "prettier --check '**/*' '!private/**' '!**/*.md' --ignore-unknown && eslint --ext .ts,.tsx ./src",
+		"format": "prettier --write '**/*' '!private/**' '!**/*.md' --ignore-unknown",
+		"skills:deploy:dev": "cd private/skills && bun deploy.ts --env dev",
+		"skills:deploy:prod": "cd private/skills && bun deploy.ts --env prod",
+		"skills:deploy:dev:delete": "cd private/skills && bun deploy.ts --env dev --delete-unspecified",
+		"skills:deploy:prod:delete": "cd private/skills && bun deploy.ts --env prod --delete-unspecified"
 	},
 	"keywords": [],
 	"author": "",

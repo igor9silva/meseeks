@@ -1,8 +1,8 @@
 .env.local
 
 # Inner repos
-data/
-data
+private/
+private
 browser-poc/
 browser-poc
 

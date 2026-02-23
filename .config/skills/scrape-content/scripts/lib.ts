@@ -1,6 +1,6 @@
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, resolve } from 'path';
-import { API_KEYS } from '../../../../data/skills/config';
+import { API_KEYS } from '../../../../private/skills/config';
 
 const RAPID_API_KEY = API_KEYS.RAPID_API;
 

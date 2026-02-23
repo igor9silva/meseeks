@@ -3,7 +3,7 @@
  * task index generator
  *
  * builds normalized indexes for task documents across multiple task roots.
- * scans both public tasks (tasks/) and private tasks (data/tasks/).
+ * scans both public tasks (tasks/) and private tasks (private/tasks/).
  * supports mdx/markdown/plain text, optional frontmatter, and malformed files.
  *
  * usage:
@@ -15,7 +15,7 @@ import { extname, join, posix, relative, resolve } from 'node:path';
 import { z } from 'zod';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
-const OUTPUT_DIR = join(PROJECT_ROOT, 'data', 'tasks', '.generated');
+const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'tasks', '.generated');
 const OUTPUT_VERSION = 2;
 const VERBOSE = process.argv.includes('--verbose');
 
@@ -28,7 +28,7 @@ interface TaskSource {
 
 const TASK_SOURCES: TaskSource[] = [
 	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
-	{ label: 'private', root: join(PROJECT_ROOT, 'data', 'tasks') },
+	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
 ];
 
 const TASK_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '']);

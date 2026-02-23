@@ -1,6 +1,6 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules", "data"],
+	"exclude": ["node_modules", "private"],
 	"compilerOptions": {
 		"types": ["vite/client", "node"],
 		"esModuleInterop": true,
@@ -17,7 +17,8 @@
 			"convex/*": ["./convex/*"],
 			"schemas/*": ["./schemas/*"],
 			"lib/*": ["./lib/*"],
-			"skills/*": ["./skills/*"]
+			"skills/*": ["./skills/*"],
+			"private/*": ["./private/*"]
 		},
 		"noEmit": true,
 
