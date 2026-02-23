@@ -30,7 +30,10 @@ dist/
 # Sentry Config File
 .env.sentry-build-plugin
 
-# Generated 
+# Generated
+
+## Task indexes
+tasks/.generated/
 
 ## MCP configs
 .cursor/mcp.json

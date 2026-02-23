@@ -32,6 +32,12 @@ const PROJECT_ROOT = path.resolve(__dirname, '..');
 const RULES_SOURCE = path.join(PROJECT_ROOT, '.config', 'MasterPlan.md');
 const SKILLS_SOURCE = path.join(PROJECT_ROOT, '.config', 'skills');
 const SKILLS_TARGET = path.join(PROJECT_ROOT, '.agents', 'skills');
+const VERBOSE = process.argv.includes('--verbose');
+
+function log(message: string): void {
+	//
+	if (VERBOSE) console.log(message);
+}
 
 /**
  * Filter out disabled servers
@@ -69,7 +75,7 @@ function generateCursorConfig(): void {
 
 	fs.writeFileSync(cursorPath, `${JSON.stringify(output, null, 2)}\n`);
 
-	console.log(`✓ Generated ${cursorPath}`);
+	log(`  cursor: ${cursorPath}`);
 }
 
 /**
@@ -136,7 +142,7 @@ function writeOpenCodeConfig(content: string): void {
 
 	fs.writeFileSync(opencodePath, content);
 
-	console.log(`✓ Generated ${opencodePath}`);
+	log(`  opencode: ${opencodePath}`);
 }
 
 function toTomlString(value: string): string {
@@ -157,7 +163,7 @@ function getCodexServerConfig(key: string, server: MCPServerConfig): MCPServerCo
 		return server;
 	}
 
-	const args = ['run', '.config/codex/convex-mcp-bridge.ts', '--', server.command].concat(server.args);
+	const args = ['run', '.config/convex-mcp-bridge.ts', '--', server.command].concat(server.args);
 
 	return {
 		name: server.name,
@@ -237,7 +243,7 @@ function writeCodexConfig(content: string): void {
 
 	fs.writeFileSync(codexPath, `${content.trimEnd()}\n`);
 
-	console.log(`✓ Generated ${codexPath}`);
+	log(`  codex: ${codexPath}`);
 }
 
 function generateCodexEnvironmentsConfig(): void {
@@ -263,7 +269,7 @@ command = "bun dev"
 `;
 
 	fs.writeFileSync(codexEnvironmentsPath, `${environmentsContent.trimEnd()}\n`);
-	console.log(`✓ Generated ${codexEnvironmentsPath}`);
+	log(`  codex environments: ${codexEnvironmentsPath}`);
 }
 
 /**
@@ -286,7 +292,7 @@ function generateRules(): void {
 	const rulesContent = readRulesSource();
 	const rulesPath = path.join(PROJECT_ROOT, 'AGENTS.md');
 	fs.writeFileSync(rulesPath, rulesContent);
-	console.log(`✓ Generated ${rulesPath}`);
+	log(`  rules: ${rulesPath}`);
 
 	// clean up deprecated rule files
 	const deprecatedFiles = [
@@ -297,7 +303,7 @@ function generateRules(): void {
 	for (const filePath of deprecatedFiles) {
 		if (fs.existsSync(filePath)) {
 			fs.unlinkSync(filePath);
-			console.log(`✓ Removed deprecated ${filePath}`);
+			log(`  removed deprecated: ${filePath}`);
 		}
 	}
 }
@@ -333,7 +339,7 @@ function copyDirRecursive(src: string, dest: string): void {
 function generateSkills(): void {
 	//
 	if (!fs.existsSync(SKILLS_SOURCE)) {
-		console.log('  No skills source directory found, skipping');
+		log('  no skills source directory found, skipping');
 		return;
 	}
 
@@ -346,33 +352,29 @@ function generateSkills(): void {
 
 	const skillDirs = fs.readdirSync(SKILLS_SOURCE, { withFileTypes: true }).filter((e) => e.isDirectory());
 
-	console.log(`✓ Generated ${SKILLS_TARGET} (${skillDirs.length} skills)`);
+	log(`  skills: ${SKILLS_TARGET} (${skillDirs.length} skills)`);
 }
 
 // Main execution
-console.log('🔄 Generating configuration files...\n');
-
 try {
 	// Generate MCP configs
-	console.log('📡 MCP Configurations:');
 	generateCursorConfig();
 	generateOpenCodeConfig();
 	generateCodexConfig();
 	generateCodexEnvironmentsConfig();
 
 	// Generate rules
-	console.log('\n📋 AI Assistant Rules:');
 	generateRules();
 
 	// Generate skills
-	console.log('\n🧠 AI Assistant Skills:');
 	generateSkills();
 
-	console.log('\n✅ All configurations generated successfully!');
-	console.log('\nNext steps:');
-	console.log('  1. Restart your editor to load new rules');
-	console.log('  2. To modify configs, edit files in .config/ and rerun this script');
+	const skillCount = fs.existsSync(SKILLS_SOURCE)
+		? fs.readdirSync(SKILLS_SOURCE, { withFileTypes: true }).filter((e) => e.isDirectory()).length
+		: 0;
+
+	console.info(`✓ configs: mcp, rules, ${skillCount} skills`);
 } catch (error) {
-	console.error('\n❌ Error generating configs:', error);
+	console.error('✗ config generation failed:', error);
 	process.exit(1);
 }

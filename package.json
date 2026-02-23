@@ -14,6 +14,7 @@
 		"dev:config": "bun run .config/watch-config.ts",
 		"build": "vite build",
 		"build:config": "bun run .config/generate-configs.ts",
+		"build:tasks": "bun run .config/generate-task-index.ts",
 		"start": "bun .output/server/index.mjs",
 		"typecheck": "bunx tsgo --noEmit --incremental --tsBuildInfoFile .output/typecheck.tsbuildinfo",
 		"lint": "prettier --check '**/*' '!data/**' '!**/*.md' --ignore-unknown && eslint --ext .ts,.tsx ./src",
