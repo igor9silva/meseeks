@@ -27,6 +27,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			{ rel: "icon", href: "/favicon.ico" },
 		],
 	}),
+	notFoundComponent: RootNotFoundComponent,
 	component: RootComponent,
 });
 
@@ -36,6 +37,13 @@ function RootComponent() {
 		<RootDocument>
 			<Outlet />
 		</RootDocument>
+	);
+}
+
+function RootNotFoundComponent() {
+	//
+	return (
+		<div className="p-6 text-sm text-muted-foreground">Page not found.</div>
 	);
 }
 
