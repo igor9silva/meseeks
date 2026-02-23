@@ -357,6 +357,9 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				taskSource: relatedTask.taskSource,
 			}));
 
+		const absolutePath =
+			typeof task.absolutePath === "string" ? task.absolutePath : null;
+
 		return {
 			health: snapshotResult.health,
 			task: {
@@ -368,6 +371,7 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				taskSource: task.taskSource,
 				tags: task.tags,
 				relativePath: task.relativePath,
+				absolutePath,
 				parentId: task.parentId,
 				parentKey: task.parentKey,
 				blocks: task.blocks,

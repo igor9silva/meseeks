@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { useCallback, useEffect, useId, useMemo } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Mdx } from '~/components/ui/mdx';
 import {
 	type ExplorerQueryInput,
@@ -19,7 +19,14 @@ function formatSourceLabel(source: TaskSource): string {
 	return source === 'private' ? 'Private' : 'Public';
 }
 
+function toCursorFileHref(absolutePath: string | null): string | null {
+	//
+	if (!absolutePath) return null;
+	return `cursor://file${encodeURI(absolutePath)}`;
+}
+
 const taskSourceOptions: TaskSource[] = ['public', 'private'];
+const SEARCH_DEBOUNCE_MS = 220;
 
 export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	//
@@ -27,6 +34,8 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	const searchInputId = useId();
 	const queryInput = useMemo(() => parseExplorerQuery(search), [search]);
 	const selectedTaskKey = search.taskKey ?? null;
+	const [searchDraft, setSearchDraft] = useState(queryInput.q);
+	const lastCommittedSearchRef = useRef(queryInput.q);
 	const getExplorerSnapshotServer = useServerFn(getExplorerSnapshot);
 	const getTaskDetailServer = useServerFn(getTaskDetail);
 
@@ -72,6 +81,27 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		},
 		[updateSearch],
 	);
+
+	useEffect(() => {
+		if (queryInput.q === lastCommittedSearchRef.current) return;
+		setSearchDraft(queryInput.q);
+		lastCommittedSearchRef.current = queryInput.q;
+	}, [queryInput.q]);
+
+	useEffect(() => {
+		const debounceHandle = setTimeout(() => {
+			if (searchDraft === queryInput.q) return;
+			lastCommittedSearchRef.current = searchDraft;
+			updateQueryInput({
+				...queryInput,
+				q: searchDraft,
+			});
+		}, SEARCH_DEBOUNCE_MS);
+
+		return () => {
+			clearTimeout(debounceHandle);
+		};
+	}, [searchDraft, queryInput, updateQueryInput]);
 
 	useEffect(() => {
 		if (!selectedTaskKey) return;
@@ -165,13 +195,8 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 							</label>
 							<input
 								id={searchInputId}
-								value={queryInput.q}
-								onChange={(event) =>
-									updateQueryInput({
-										...queryInput,
-										q: event.currentTarget.value,
-									})
-								}
+								value={searchDraft}
+								onChange={(event) => setSearchDraft(event.currentTarget.value)}
 								placeholder="title, id, tags, body..."
 								className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 							/>
@@ -382,6 +407,7 @@ function TaskDetailView({
 	if (!detail.task) return null;
 
 	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
+	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
 
 	const renderRelation = (label: string, keys: string[]) => {
 		if (keys.length === 0) return null;
@@ -413,12 +439,27 @@ function TaskDetailView({
 
 	return (
 		<div className="h-full overflow-auto">
-			<header className="border-b border-border p-4 space-y-2">
-				<h2 className="text-xl font-semibold">{detail.task.title}</h2>
-				<div className="text-sm text-muted-foreground break-all">{detail.task.id}</div>
-				<div className="text-xs text-muted-foreground break-all">{detail.task.relativePath}</div>
+			<header className="border-b border-border p-4 flex flex-col gap-0">
+				<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+					<h2 className="text-xl font-semibold">{detail.task.title}</h2>
+					<span className="text-sm text-muted-foreground break-all">{detail.task.id}</span>
+				</div>
+				<div className="text-xs text-muted-foreground break-all">
+					{cursorFileHref ? (
+						<a
+							href={cursorFileHref}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="cursor-pointer underline underline-offset-4 hover:text-foreground"
+						>
+							{detail.task.relativePath}
+						</a>
+					) : (
+						detail.task.relativePath
+					)}
+				</div>
 
-				<div className="flex flex-wrap gap-2 text-xs">
+				<div className="flex flex-wrap gap-2 text-xs mt-3">
 					<span className="px-2 py-1 rounded-md border border-border">{detail.task.taskSource}</span>
 					<span className="px-2 py-1 rounded-md border border-border">{detail.task.status}</span>
 					{detail.task.priority && (
@@ -448,10 +489,7 @@ function TaskDetailView({
 					{renderRelation('Blocked by', detail.relations.blockedBy)}
 				</div>
 
-				<div className="space-y-2">
-					<div className="text-xs uppercase tracking-wide text-muted-foreground">Body</div>
-					<Mdx text={detail.task.body} className="text-sm" />
-				</div>
+				<Mdx text={detail.task.body} className="text-sm" />
 
 				{detail.task.rawFrontmatter && (
 					<details className="rounded-md border border-border p-3">
@@ -463,14 +501,16 @@ function TaskDetailView({
 				)}
 
 				{detail.task.warnings.length > 0 && (
-					<div className="space-y-1 rounded-md border border-orange-500/30 bg-orange-500/10 p-3">
-						<div className="text-xs uppercase tracking-wide text-orange-300">Warnings</div>
-						<ul className="list-disc pl-5 space-y-1 text-sm text-orange-200/90">
+					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
+						<summary className="cursor-pointer font-medium">
+							Warnings ({detail.task.warnings.length})
+						</summary>
+						<ul className="mt-2 list-disc pl-5 space-y-1">
 							{detail.task.warnings.map((warning) => (
 								<li key={warning}>{warning}</li>
 							))}
 						</ul>
-					</div>
+					</details>
 				)}
 			</div>
 		</div>

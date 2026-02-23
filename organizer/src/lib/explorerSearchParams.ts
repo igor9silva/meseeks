@@ -92,7 +92,7 @@ export function parseExplorerQuery(
 ): ExplorerQueryInput {
 	//
 	return {
-		q: search.q?.trim() ?? "",
+		q: search.q ?? "",
 		sources: parseSources(search.sources),
 		statuses: parseStatuses(search.statuses),
 		tags: parseTags(search.tags),

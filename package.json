@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"dev": "concurrently -r bun:dev:web bun:dev:db bun:dev:config",
+		"organizer": "cd organizer && bun --bun run dev",
 		"dev:web": "vite dev --port 3000",
 		"dev:db": "bunx convex dev",
 		"dev:config": "bun run .config/watch-config.ts",

@@ -1,17 +1,9 @@
-import {
-	Children,
-	Component,
-	isValidElement,
-	type ReactNode,
-	useEffect,
-	useId,
-	useState,
-} from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { useMDX } from "~/hooks/useMDX";
-import { cn } from "~/lib/utils";
+import { Children, Component, isValidElement, type ReactNode, useEffect, useId, useState } from 'react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Textarea } from '~/components/ui/textarea';
+import { useMDX } from '~/hooks/useMDX';
+import { cn } from '~/lib/utils';
 
 type MdxComponentProps = {
 	children?: ReactNode;
@@ -32,19 +24,16 @@ interface ElementWithChildrenProps {
 
 let hasInitializedMermaid = false;
 
-async function renderMermaidSvg(
-	diagramId: string,
-	source: string,
-): Promise<string> {
+async function renderMermaidSvg(diagramId: string, source: string): Promise<string> {
 	//
-	const mermaidModule = await import("mermaid");
+	const mermaidModule = await import('mermaid');
 	const mermaid = mermaidModule.default;
 
 	if (!hasInitializedMermaid) {
 		mermaid.initialize({
 			startOnLoad: false,
-			securityLevel: "loose",
-			theme: "dark",
+			securityLevel: 'loose',
+			theme: 'dark',
 		});
 		hasInitializedMermaid = true;
 	}
@@ -55,46 +44,44 @@ async function renderMermaidSvg(
 
 function readNodeText(node: ReactNode): string {
 	//
-	if (typeof node === "string") return node;
-	if (typeof node === "number") return String(node);
+	if (typeof node === 'string') return node;
+	if (typeof node === 'number') return String(node);
 	if (isValidElement<ElementWithChildrenProps>(node)) {
 		return readNodeText(node.props.children);
 	}
-	if (!Array.isArray(node)) return "";
+	if (!Array.isArray(node)) return '';
 
-	return node.map((entry) => readNodeText(entry)).join("");
+	return node.map((entry) => readNodeText(entry)).join('');
 }
 
 function hasMermaidClassName(className: string): boolean {
 	//
-	const classTokens = className
-		.split(/\s+/)
-		.filter((token) => token.length > 0);
-	return classTokens.includes("language-mermaid");
+	const classTokens = className.split(/\s+/).filter((token) => token.length > 0);
+	return classTokens.includes('language-mermaid');
 }
 
 function looksLikeMermaidSource(source: string): boolean {
 	//
 	const firstLine = source
-		.split("\n")
+		.split('\n')
 		.map((line) => line.trim())
 		.find((line) => line.length > 0);
 
 	if (!firstLine) return false;
 
 	const knownStarts = [
-		"flowchart ",
-		"graph ",
-		"sequenceDiagram",
-		"classDiagram",
-		"stateDiagram",
-		"erDiagram",
-		"journey",
-		"gantt",
-		"pie ",
-		"mindmap",
-		"timeline",
-		"gitGraph",
+		'flowchart ',
+		'graph ',
+		'sequenceDiagram',
+		'classDiagram',
+		'stateDiagram',
+		'erDiagram',
+		'journey',
+		'gantt',
+		'pie ',
+		'mindmap',
+		'timeline',
+		'gitGraph',
 	];
 
 	return knownStarts.some((entry) => firstLine.startsWith(entry));
@@ -102,7 +89,7 @@ function looksLikeMermaidSource(source: string): boolean {
 
 function findMermaidSource(node: ReactNode): string | null {
 	//
-	if (node === null || node === undefined || typeof node === "boolean") {
+	if (node === null || node === undefined || typeof node === 'boolean') {
 		return null;
 	}
 
@@ -116,8 +103,7 @@ function findMermaidSource(node: ReactNode): string | null {
 
 	if (!isValidElement<ElementWithChildrenProps>(node)) return null;
 
-	const className =
-		typeof node.props.className === "string" ? node.props.className : "";
+	const className = typeof node.props.className === 'string' ? node.props.className : '';
 	const source = readNodeText(node.props.children).trim();
 
 	if (source.length > 0) {
@@ -145,9 +131,9 @@ function readMermaidSource(children: ReactNode): string | null {
 
 function toMermaidDomId(rawId: string): string {
 	//
-	const sanitized = rawId.replace(/[^a-zA-Z0-9_-]/g, "");
+	const sanitized = rawId.replace(/[^a-zA-Z0-9_-]/g, '');
 	if (sanitized.length > 0) return `mermaid-${sanitized}`;
-	return "mermaid-diagram";
+	return 'mermaid-diagram';
 }
 
 function toSvgDataUrl(svg: string): string {
@@ -176,10 +162,7 @@ function MermaidBlock({ source }: { source: string }) {
 			.catch((renderError: unknown) => {
 				if (!isActive) return;
 
-				const message =
-					renderError instanceof Error
-						? renderError.message
-						: "unknown render error";
+				const message = renderError instanceof Error ? renderError.message : 'unknown render error';
 				setError(message);
 			});
 
@@ -191,9 +174,7 @@ function MermaidBlock({ source }: { source: string }) {
 	if (error) {
 		return (
 			<div className="space-y-2">
-				<div className="text-sm text-destructive">
-					Could not render Mermaid diagram. Showing source.
-				</div>
+				<div className="text-sm text-destructive">Could not render Mermaid diagram. Showing source.</div>
 				<pre className="bg-muted text-foreground rounded-md p-3 overflow-x-auto text-sm border border-border">
 					{source}
 				</pre>
@@ -202,28 +183,17 @@ function MermaidBlock({ source }: { source: string }) {
 	}
 
 	if (!svg) {
-		return (
-			<div className="text-sm text-muted-foreground">
-				Rendering Mermaid diagram...
-			</div>
-		);
+		return <div className="text-sm text-muted-foreground">Rendering Mermaid diagram...</div>;
 	}
 
 	return (
-		<div className="rounded-md border border-border bg-background p-3 overflow-x-auto">
-			<img
-				alt="Mermaid diagram"
-				className="max-w-none"
-				src={toSvgDataUrl(svg)}
-			/>
+		<div className="rounded-md border border-border bg-background p-3 overflow-x-auto max-h-[50rem]">
+			<img alt="Mermaid diagram" className="max-w-none" src={toSvgDataUrl(svg)} />
 		</div>
 	);
 }
 
-class MdxErrorBoundary extends Component<
-	{ fallback: ReactNode; children: ReactNode },
-	MdxErrorBoundaryState
-> {
+class MdxErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, MdxErrorBoundaryState> {
 	state: MdxErrorBoundaryState = { hasError: false };
 
 	static getDerivedStateFromError(): MdxErrorBoundaryState {
@@ -252,7 +222,7 @@ class MdxErrorBoundary extends Component<
 
 function isRuntimeMdxComponent(value: unknown): value is RuntimeMdxComponent {
 	//
-	return typeof value === "function";
+	return typeof value === 'function';
 }
 
 const mdxComponents: Record<string, (props: MdxComponentProps) => ReactNode> = {
@@ -261,7 +231,7 @@ const mdxComponents: Record<string, (props: MdxComponentProps) => ReactNode> = {
 	Textarea,
 	a: ({ children, href }) => (
 		<a
-			href={typeof href === "string" ? href : undefined}
+			href={typeof href === 'string' ? href : undefined}
 			target="_blank"
 			rel="noopener noreferrer"
 			className="text-blue-600 hover:text-blue-500 underline break-all"
@@ -276,7 +246,7 @@ const mdxComponents: Record<string, (props: MdxComponentProps) => ReactNode> = {
 		return (
 			<pre
 				className={cn(
-					"bg-muted text-foreground rounded-md p-3 overflow-x-auto text-sm border border-border",
+					'bg-muted text-foreground rounded-md p-3 overflow-x-auto text-sm border border-border',
 					className,
 				)}
 			>
@@ -285,9 +255,7 @@ const mdxComponents: Record<string, (props: MdxComponentProps) => ReactNode> = {
 		);
 	},
 	code: ({ children, className }) => (
-		<code className={cn("bg-muted rounded px-1.5 py-0.5 text-sm", className)}>
-			{children}
-		</code>
+		<code className={cn('bg-muted rounded px-1.5 py-0.5 text-sm', className)}>{children}</code>
 	),
 };
 
@@ -296,21 +264,13 @@ export function Mdx({ text, className }: { text: string; className?: string }) {
 	const { component, error, isPending } = useMDX(text);
 
 	if (isPending) {
-		return (
-			<div className="text-sm text-muted-foreground">
-				Rendering task content...
-			</div>
-		);
+		return <div className="text-sm text-muted-foreground">Rendering task content...</div>;
 	}
 
 	const fallback = (
 		<div className="space-y-2">
-			<div className="text-sm text-destructive">
-				Could not render MDX. Showing raw content.
-			</div>
-			<pre className="bg-muted rounded-md p-3 overflow-x-auto whitespace-pre-wrap text-sm">
-				{text}
-			</pre>
+			<div className="text-sm text-destructive">Could not render MDX. Showing raw content.</div>
+			<pre className="bg-muted rounded-md p-3 overflow-x-auto whitespace-pre-wrap text-sm">{text}</pre>
 		</div>
 	);
 
@@ -318,12 +278,8 @@ export function Mdx({ text, className }: { text: string; className?: string }) {
 	if (!isRuntimeMdxComponent(component)) return fallback;
 
 	return (
-		<div
-			className={cn("prose prose-sm max-w-none dark:prose-invert", className)}
-		>
-			<MdxErrorBoundary fallback={fallback}>
-				{component({ components: mdxComponents })}
-			</MdxErrorBoundary>
+		<div className={cn('prose prose-sm max-w-none dark:prose-invert', className)}>
+			<MdxErrorBoundary fallback={fallback}>{component({ components: mdxComponents })}</MdxErrorBoundary>
 		</div>
 	);
 }
