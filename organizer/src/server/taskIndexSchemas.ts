@@ -17,15 +17,12 @@ const taskSummarySchema = z
 		status: z.string().min(1),
 		priority: z.string().min(1).nullable(),
 		tags: z.array(z.string()),
-		blocks: z.array(z.string()),
-		blockedBy: z.array(z.string()),
 		parentId: z.string().nullable(),
 		parentKey: z.string().nullable(),
 		parentSource: z.string().min(1),
-		created: z.string().nullable(),
-		updated: z.string().nullable(),
-		source: z.string().nullable(),
-		sourceId: z.string().nullable(),
+		created: z.string().min(1),
+		updated: z.string().min(1),
+		source: taskSourceSchema,
 		bodyExcerpt: z.string(),
 		bodySearch: z.string(),
 		relativePath: z.string().min(1),
@@ -79,7 +76,7 @@ const graphNodeSchema = z
 
 const graphEdgeSchema = z
 	.object({
-		type: z.enum(["parent", "blocks", "blocked_by"]),
+		type: z.enum(["parent"]),
 		from: z.string().min(1),
 		to: z.string().nullable(),
 		targetId: z.string().min(1),

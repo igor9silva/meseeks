@@ -26,7 +26,7 @@ function toCursorFileHref(absolutePath: string | null): string | null {
 }
 
 const taskSourceOptions: TaskSource[] = ['public', 'private'];
-const SEARCH_DEBOUNCE_MS = 220;
+const SEARCH_DEBOUNCE_MS = 150;
 
 export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	//
@@ -485,8 +485,6 @@ function TaskDetailView({
 				<div className="grid gap-4 md:grid-cols-2">
 					{detail.relations.parentKey && renderRelation('Parent', [detail.relations.parentKey])}
 					{renderRelation('Children', detail.relations.children)}
-					{renderRelation('Blocks', detail.relations.blocks)}
-					{renderRelation('Blocked by', detail.relations.blockedBy)}
 				</div>
 
 				<Mdx text={detail.task.body} className="text-sm" />

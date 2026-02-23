@@ -272,8 +272,6 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				relations: {
 					parentKey: null,
 					children: [],
-					blocks: [],
-					blockedBy: [],
 				},
 			};
 		}
@@ -288,8 +286,6 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				relations: {
 					parentKey: null,
 					children: [],
-					blocks: [],
-					blockedBy: [],
 				},
 			};
 		}
@@ -315,35 +311,11 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 			)
 			.map((edge) => edge.from);
 
-		const blockKeys = graphEdges
-			.filter(
-				(edge) =>
-					edge.type === "blocks" &&
-					edge.from === task.key &&
-					edge.resolved &&
-					edge.to !== null,
-			)
-			.map((edge) => edge.to)
-			.filter((value): value is string => value !== null);
-
-		const blockedByKeys = graphEdges
-			.filter(
-				(edge) =>
-					edge.type === "blocked_by" &&
-					edge.from === task.key &&
-					edge.resolved &&
-					edge.to !== null,
-			)
-			.map((edge) => edge.to)
-			.filter((value): value is string => value !== null);
-
 		const parentKey = parentEdge?.to ?? null;
 
 		const relationKeys = dedupeStrings([
 			...(parentKey ? [parentKey] : []),
 			...childKeys,
-			...blockKeys,
-			...blockedByKeys,
 		]);
 
 		const relatedTasks = relationKeys
@@ -374,12 +346,9 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				absolutePath,
 				parentId: task.parentId,
 				parentKey: task.parentKey,
-				blocks: task.blocks,
-				blockedBy: task.blockedBy,
 				created: task.created,
 				updated: task.updated,
 				source: task.source,
-				sourceId: task.sourceId,
 				warnings: task.warnings,
 				body: contentEntry?.body ?? "",
 				rawFrontmatter: contentEntry?.rawFrontmatter ?? null,
@@ -387,8 +356,6 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 			relations: {
 				parentKey,
 				children: childKeys,
-				blocks: blockKeys,
-				blockedBy: blockedByKeys,
 			},
 			relatedTasks,
 		};

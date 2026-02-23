@@ -32,9 +32,8 @@ const TASK_SOURCES: TaskSource[] = [
 ];
 
 const TASK_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '']);
-const TASK_BUCKET_NAMES = new Set(['active', 'backlog', 'completed']);
 
-type TaskBucket = 'active' | 'backlog' | 'completed' | 'other';
+type TaskBucket = string;
 type BodyFormat = 'md' | 'mdx' | 'text' | 'empty';
 type FrontmatterScalar = string | number | boolean | null;
 type FrontmatterValue = FrontmatterScalar | FrontmatterScalar[];
@@ -61,6 +60,7 @@ interface ParsedTaskFile {
 	fileBytes: number;
 	fileMtimeMs: number;
 	fileCtimeMs: number;
+	fileBirthtimeMs: number;
 	isEmptyFile: boolean;
 	warnings: string[];
 }
@@ -70,26 +70,12 @@ const optionalLowerStringSchema = z
 	.preprocess((value) => normalizeOptionalLowerString(value), z.string().min(1))
 	.optional();
 const optionalStringArraySchema = z.preprocess((value) => normalizeStringArray(value), z.array(z.string())).optional();
-const optionalNullableStringSchema = z
-	.preprocess((value) => normalizeNullableString(value), z.string().min(1).nullable())
-	.optional();
 
 const frontmatterSchema = z
 	.object({
-		id: optionalStringSchema,
 		title: optionalStringSchema,
-		status: optionalLowerStringSchema,
 		priority: optionalLowerStringSchema,
-		created: optionalStringSchema,
-		updated: optionalStringSchema,
 		tags: optionalStringArraySchema,
-		blocks: optionalStringArraySchema,
-		blocked_by: optionalStringArraySchema,
-		blockedBy: optionalStringArraySchema,
-		parent: optionalNullableStringSchema,
-		source: optionalStringSchema,
-		source_id: optionalNullableStringSchema,
-		sourceId: optionalNullableStringSchema,
 	})
 	.passthrough();
 
@@ -99,27 +85,18 @@ interface TaskRecord {
 	key: string;
 	taskSource: TaskSourceLabel;
 	id: string;
-	declaredId: string | null;
-	idSource: 'frontmatter' | 'path';
 	title: string;
 	declaredTitle: string | null;
 	titleSource: 'frontmatter' | 'heading' | 'filename';
 	status: string;
-	declaredStatus: string | null;
-	statusSource: 'frontmatter' | 'path';
 	priority: string | null;
 	tags: string[];
-	blocks: string[];
-	blockedBy: string[];
 	parentId: string | null;
-	declaredParentId: string | null;
 	parentKey: string | null;
-	inferredParentKey: string | null;
-	parentSource: 'frontmatter' | 'inferred-index' | 'none' | 'unresolved';
-	created: string | null;
-	updated: string | null;
-	source: string | null;
-	sourceId: string | null;
+	parentSource: 'filesystem' | 'none';
+	created: string;
+	updated: string;
+	source: TaskSourceLabel;
 	hasFrontmatter: boolean;
 	rawFrontmatter: string | null;
 	bodyFormat: BodyFormat;
@@ -143,26 +120,18 @@ interface TaskSummary {
 	key: string;
 	taskSource: TaskSourceLabel;
 	id: string;
-	declaredId: string | null;
-	idSource: 'frontmatter' | 'path';
 	title: string;
 	declaredTitle: string | null;
 	titleSource: 'frontmatter' | 'heading' | 'filename';
 	status: string;
-	declaredStatus: string | null;
-	statusSource: 'frontmatter' | 'path';
 	priority: string | null;
 	tags: string[];
-	blocks: string[];
-	blockedBy: string[];
 	parentId: string | null;
-	declaredParentId: string | null;
 	parentKey: string | null;
-	parentSource: 'frontmatter' | 'inferred-index' | 'none' | 'unresolved';
-	created: string | null;
-	updated: string | null;
-	source: string | null;
-	sourceId: string | null;
+	parentSource: 'filesystem' | 'none';
+	created: string;
+	updated: string;
+	source: TaskSourceLabel;
 	hasFrontmatter: boolean;
 	bodyFormat: BodyFormat;
 	bodyExcerpt: string;
@@ -193,7 +162,7 @@ interface TaskGraphNode {
 }
 
 interface TaskGraphEdge {
-	type: 'parent' | 'blocks' | 'blocked_by';
+	type: 'parent';
 	from: string;
 	to: string | null;
 	targetId: string;
@@ -217,22 +186,6 @@ interface BuildSummary {
 	byBodyFormat: Record<string, number>;
 	totalWarnings: number;
 }
-
-interface IdResolutionSingle {
-	kind: 'single';
-	key: string;
-}
-
-interface IdResolutionMissing {
-	kind: 'missing';
-}
-
-interface IdResolutionAmbiguous {
-	kind: 'ambiguous';
-	keys: string[];
-}
-
-type IdResolution = IdResolutionSingle | IdResolutionMissing | IdResolutionAmbiguous;
 
 function log(message: string): void {
 	//
@@ -275,12 +228,9 @@ function main(): void {
 	}
 
 	const idToKeys = buildIdToKeysMap(taskRecords);
-	applyDuplicateIdWarnings(taskRecords, idToKeys);
-
 	const graphEdges: TaskGraphEdge[] = [];
 
-	resolveParentLinks(taskRecords, keyToTask, idToKeys, graphEdges);
-	resolveReferenceLinks(taskRecords, idToKeys, graphEdges);
+	resolveParentLinks(taskRecords, keyToTask, graphEdges);
 
 	const warnings = buildWarningEntries(taskRecords);
 	const summary = buildSummary(taskRecords, warnings);
@@ -293,12 +243,15 @@ function main(): void {
 function findTaskFiles(tasksRoot: string): string[] {
 	//
 	const files: string[] = [];
+	const entries = readdirSync(tasksRoot, { withFileTypes: true });
 
-	for (const bucketName of TASK_BUCKET_NAMES) {
-		const bucketDirectory = join(tasksRoot, bucketName);
+	for (const entry of entries) {
+		if (entry.name.startsWith('.')) continue;
+		if (!entry.isDirectory()) continue;
+		if (entry.name === '.generated') continue;
 
-		if (!existsSync(bucketDirectory)) continue;
-		collectTaskFiles(bucketDirectory, files);
+		const statusDirectory = join(tasksRoot, entry.name);
+		collectTaskFiles(statusDirectory, files);
 	}
 
 	files.sort((left, right) => left.localeCompare(right));
@@ -365,6 +318,7 @@ function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTask
 		fileBytes: fileStats.size,
 		fileMtimeMs: fileStats.mtimeMs,
 		fileCtimeMs: fileStats.ctimeMs,
+		fileBirthtimeMs: fileStats.birthtimeMs,
 		isEmptyFile: normalizedContent.trim().length === 0,
 		warnings: extraction.warnings,
 	};
@@ -385,9 +339,7 @@ function inferTaskBucket(relativePath: string): TaskBucket {
 	const segments = relativePath.split('/');
 	const firstSegment = segments[0];
 
-	if (firstSegment === 'active') return 'active';
-	if (firstSegment === 'backlog') return 'backlog';
-	if (firstSegment === 'completed') return 'completed';
+	if (firstSegment && firstSegment.length > 0) return firstSegment;
 
 	return 'other';
 }
@@ -706,18 +658,6 @@ function normalizeOptionalLowerString(value: unknown): unknown {
 	return scalar.toLowerCase();
 }
 
-function normalizeNullableString(value: unknown): unknown {
-	//
-	if (value === null) return null;
-
-	const scalar = normalizeScalarString(value);
-
-	if (scalar === null) return undefined;
-	if (scalar.toLowerCase() === 'null') return null;
-
-	return scalar;
-}
-
 function normalizeStringArray(value: unknown): unknown {
 	//
 	if (value === undefined || value === null) return undefined;
@@ -774,9 +714,7 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 		warnings.push('frontmatter schema parse failed, using fallback defaults');
 	}
 
-	const declaredId = frontmatter.id ?? null;
-	const id = declaredId ?? parsedTask.key;
-	const idSource = declaredId === null ? 'path' : 'frontmatter';
+	const id = buildTaskIdFromRelativePath(parsedTask.relativePath);
 
 	const headingTitle = extractHeadingTitle(parsedTask.body);
 	const declaredTitle = frontmatter.title ?? null;
@@ -784,22 +722,10 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 	const title = declaredTitle ?? headingTitle ?? fallbackTitle;
 	const titleSource = declaredTitle ? 'frontmatter' : headingTitle ? 'heading' : 'filename';
 
-	const declaredStatus = frontmatter.status ?? null;
-	const inferredStatus = inferredStatusFromBucket(parsedTask.bucket);
-	const status = declaredStatus ?? inferredStatus;
-	const statusSource = declaredStatus ? 'frontmatter' : 'path';
+	const status = parsedTask.bucket;
 
 	const priority = frontmatter.priority ?? null;
 	const tags = dedupeStrings(frontmatter.tags ?? []);
-	const blocks = dedupeStrings(frontmatter.blocks ?? []);
-	const blockedByValues = (frontmatter.blocked_by ?? []).concat(frontmatter.blockedBy ?? []);
-	const blockedBy = dedupeStrings(blockedByValues);
-
-	const declaredParentId = frontmatter.parent ?? null;
-	const inferredParentKey = inferParentKey(parsedTask.relativePath, parsedTask.source);
-
-	const source = frontmatter.source ?? null;
-	const sourceId = frontmatter.source_id ?? frontmatter.sourceId ?? null;
 
 	const bodyFormat = inferBodyFormat(parsedTask.extension, parsedTask.body);
 	const bodyExcerpt = buildBodyExcerpt(parsedTask.body, 280);
@@ -807,36 +733,25 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 	const bodySearch = normalizeSearchText(parsedTask.body);
 
 	if (!parsedTask.hasFrontmatter) warnings.push('missing frontmatter');
-	if (declaredId === null) warnings.push('missing id in frontmatter, using path key');
 	if (declaredTitle === null) warnings.push('missing title in frontmatter, using heading or filename');
-	if (declaredStatus === null) warnings.push('missing status in frontmatter, using folder status');
 	if (bodyFormat === 'empty') warnings.push('empty body');
 
 	return {
 		key: parsedTask.key,
 		taskSource: parsedTask.source,
 		id,
-		declaredId,
-		idSource,
 		title,
 		declaredTitle,
 		titleSource,
 		status,
-		declaredStatus,
-		statusSource,
 		priority,
 		tags,
-		blocks,
-		blockedBy,
-		parentId: declaredParentId,
-		declaredParentId,
+		parentId: null,
 		parentKey: null,
-		inferredParentKey,
 		parentSource: 'none',
-		created: frontmatter.created ?? null,
-		updated: frontmatter.updated ?? null,
-		source,
-		sourceId,
+		created: toIsoTimestamp(resolveCreatedTimestampMs(parsedTask)),
+		updated: toIsoTimestamp(parsedTask.fileMtimeMs),
+		source: parsedTask.source,
 		hasFrontmatter: parsedTask.hasFrontmatter,
 		rawFrontmatter: parsedTask.rawFrontmatter,
 		bodyFormat,
@@ -888,26 +803,30 @@ function buildTitleFromPath(relativePath: string): string {
 	return 'untitled';
 }
 
-function inferredStatusFromBucket(bucket: TaskBucket): string {
-	//
-	if (bucket === 'active') return 'active';
-	if (bucket === 'backlog') return 'backlog';
-	if (bucket === 'completed') return 'completed';
-
-	return 'unknown';
-}
-
-function inferParentKey(relativePath: string, sourceLabel: TaskSourceLabel): string | null {
+function buildTaskIdFromRelativePath(relativePath: string): string {
 	//
 	const withoutExtension = stripExtension(relativePath);
 	const baseName = posix.basename(withoutExtension);
 
-	if (baseName === '_index') return null;
+	if (baseName !== '_index') return withoutExtension;
 
 	const directoryName = posix.dirname(withoutExtension);
-	if (directoryName === '.') return null;
+	if (directoryName === '.') return '_index';
+	return directoryName;
+}
 
-	return `${sourceLabel}:${directoryName}`;
+function toIsoTimestamp(epochMs: number): string {
+	//
+	return new Date(epochMs).toISOString();
+}
+
+function resolveCreatedTimestampMs(parsedTask: ParsedTaskFile): number {
+	//
+	if (Number.isFinite(parsedTask.fileBirthtimeMs) && parsedTask.fileBirthtimeMs > 0) {
+		return parsedTask.fileBirthtimeMs;
+	}
+
+	return parsedTask.fileCtimeMs;
 }
 
 function inferBodyFormat(extension: string, body: string): BodyFormat {
@@ -980,155 +899,63 @@ function buildIdToKeysMap(tasks: TaskRecord[]): Map<string, string[]> {
 	return idToKeys;
 }
 
-function applyDuplicateIdWarnings(tasks: TaskRecord[], idToKeys: Map<string, string[]>): void {
-	//
-	for (const [id, keys] of idToKeys) {
-		if (keys.length <= 1) continue;
-
-		const duplicatePaths = keys.join(', ');
-
-		for (const task of tasks) {
-			if (task.id !== id) continue;
-			task.warnings.push(`duplicate task id "${id}" found in: ${duplicatePaths}`);
-		}
-	}
-}
-
 function resolveParentLinks(
 	tasks: TaskRecord[],
 	keyToTask: Map<string, TaskRecord>,
-	idToKeys: Map<string, string[]>,
 	graphEdges: TaskGraphEdge[],
 ): void {
 	//
 	for (const task of tasks) {
-		if (task.declaredParentId !== null) {
-			const parentResolution = resolveIdToKey(task.declaredParentId, idToKeys);
+		const parentKey = inferFilesystemParentKey(task, keyToTask);
 
-			if (parentResolution.kind === 'single') {
-				task.parentId = task.declaredParentId;
-				task.parentKey = parentResolution.key;
-				task.parentSource = 'frontmatter';
-				graphEdges.push({
-					type: 'parent',
-					from: task.key,
-					to: parentResolution.key,
-					targetId: task.declaredParentId,
-					resolved: true,
-				});
-				continue;
-			}
-
-			if (parentResolution.kind === 'ambiguous') {
-				task.parentSource = 'unresolved';
-				task.warnings.push(
-					`parent id "${task.declaredParentId}" is ambiguous across: ${parentResolution.keys.join(', ')}`,
-				);
-			} else {
-				task.parentSource = 'unresolved';
-				task.warnings.push(`parent id "${task.declaredParentId}" was not found`);
-			}
-
-			graphEdges.push({
-				type: 'parent',
-				from: task.key,
-				to: null,
-				targetId: task.declaredParentId,
-				resolved: false,
-			});
-			continue;
-		}
-
-		if (task.inferredParentKey !== null) {
-			const inferredParentTask = keyToTask.get(task.inferredParentKey);
-
-			if (inferredParentTask) {
-				task.parentId = inferredParentTask.id;
-				task.parentKey = inferredParentTask.key;
-				task.parentSource = 'inferred-index';
-				graphEdges.push({
-					type: 'parent',
-					from: task.key,
-					to: inferredParentTask.key,
-					targetId: inferredParentTask.id,
-					resolved: true,
-				});
-				continue;
-			}
-
+		if (parentKey === null) {
 			task.parentSource = 'none';
 			continue;
 		}
 
-		task.parentSource = 'none';
-	}
-}
+		const parentTask = keyToTask.get(parentKey);
 
-function resolveReferenceLinks(
-	tasks: TaskRecord[],
-	idToKeys: Map<string, string[]>,
-	graphEdges: TaskGraphEdge[],
-): void {
-	//
-	for (const task of tasks) {
-		resolveReferenceList(task, 'blocks', task.blocks, idToKeys, graphEdges);
-		resolveReferenceList(task, 'blocked_by', task.blockedBy, idToKeys, graphEdges);
-	}
-}
-
-function resolveReferenceList(
-	task: TaskRecord,
-	edgeType: 'blocks' | 'blocked_by',
-	targetIds: string[],
-	idToKeys: Map<string, string[]>,
-	graphEdges: TaskGraphEdge[],
-): void {
-	//
-	for (const targetId of targetIds) {
-		const resolution = resolveIdToKey(targetId, idToKeys);
-
-		if (resolution.kind === 'single') {
-			graphEdges.push({
-				type: edgeType,
-				from: task.key,
-				to: resolution.key,
-				targetId,
-				resolved: true,
-			});
+		if (!parentTask) {
+			task.parentSource = 'none';
 			continue;
 		}
 
-		if (resolution.kind === 'ambiguous') {
-			task.warnings.push(
-				`${edgeType} reference "${targetId}" is ambiguous across: ${resolution.keys.join(', ')}`,
-			);
-		} else {
-			task.warnings.push(`${edgeType} reference "${targetId}" was not found`);
-		}
+		task.parentId = parentTask.id;
+		task.parentKey = parentTask.key;
+		task.parentSource = 'filesystem';
 
 		graphEdges.push({
-			type: edgeType,
+			type: 'parent',
 			from: task.key,
-			to: null,
-			targetId,
-			resolved: false,
+			to: parentTask.key,
+			targetId: parentTask.id,
+			resolved: true,
 		});
 	}
 }
 
-function resolveIdToKey(id: string, idToKeys: Map<string, string[]>): IdResolution {
+function inferFilesystemParentKey(task: TaskRecord, keyToTask: Map<string, TaskRecord>): string | null {
 	//
-	const keys = idToKeys.get(id);
+	const pathWithoutExtension = stripExtension(task.relativePath);
+	const baseName = posix.basename(pathWithoutExtension);
+	let directoryPath =
+		baseName === '_index' ? posix.dirname(pathWithoutExtension) : posix.dirname(pathWithoutExtension);
 
-	if (!keys || keys.length === 0) {
-		return { kind: 'missing' };
+	if (baseName === '_index') {
+		directoryPath = posix.dirname(directoryPath);
 	}
 
-	if (keys.length > 1) {
-		return { kind: 'ambiguous', keys: keys.slice().sort((left, right) => left.localeCompare(right)) };
+	while (directoryPath !== '.' && directoryPath.length > 0) {
+		const candidateKey = `${task.taskSource}:${directoryPath}`;
+
+		if (candidateKey !== task.key && keyToTask.has(candidateKey)) {
+			return candidateKey;
+		}
+
+		directoryPath = posix.dirname(directoryPath);
 	}
 
-	return { kind: 'single', key: keys[0] };
+	return null;
 }
 
 function buildWarningEntries(tasks: TaskRecord[]): TaskWarningEntry[] {
@@ -1249,26 +1076,18 @@ function toTaskSummary(task: TaskRecord): TaskSummary {
 		key: task.key,
 		taskSource: task.taskSource,
 		id: task.id,
-		declaredId: task.declaredId,
-		idSource: task.idSource,
 		title: task.title,
 		declaredTitle: task.declaredTitle,
 		titleSource: task.titleSource,
 		status: task.status,
-		declaredStatus: task.declaredStatus,
-		statusSource: task.statusSource,
 		priority: task.priority,
 		tags: task.tags,
-		blocks: task.blocks,
-		blockedBy: task.blockedBy,
 		parentId: task.parentId,
-		declaredParentId: task.declaredParentId,
 		parentKey: task.parentKey,
 		parentSource: task.parentSource,
 		created: task.created,
 		updated: task.updated,
 		source: task.source,
-		sourceId: task.sourceId,
 		hasFrontmatter: task.hasFrontmatter,
 		bodyFormat: task.bodyFormat,
 		bodyExcerpt: task.bodyExcerpt,
