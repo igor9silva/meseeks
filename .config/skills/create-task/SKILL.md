@@ -116,6 +116,8 @@ Instead, make each task directly actionable:
 - include measurable acceptance criteria (counts, tests, or behavior checks)
 - include command evidence when the task references tooling failures
 
+If you are updating an existing task and the title/intent changes materially, rename the task filename to a short, intent-aligned kebab-case slug and update references in the same pass.
+
 Examples:
 
 - bad: "Review TODOs and create backlog items"
@@ -129,3 +131,4 @@ After creating the file:
 - Verify root (`tasks/` vs `private/tasks/`) matches sensitivity and user intent.
 - Verify subtask hierarchy is encoded via `_index.*` placement.
 - Confirm MDX headings and sections are present.
+- If title/intent changed materially, verify filename slug remains short and intent-aligned (it does not need to mirror the full title).

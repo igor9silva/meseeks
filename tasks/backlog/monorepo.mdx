@@ -1,0 +1,59 @@
+---
+title: Reorganize repository into Bun monorepo
+priority: high
+tags: [debt]
+---
+
+# Reorganize repository into Bun monorepo
+
+## Context
+
+The CI/tooling drift is a repository-structure problem, not just a script problem. Root-level commands currently traverse mixed projects with different constraints (main app, organizer, proof-of-concepts), which forces brittle exclusions and creates noisy failures.
+
+The durable fix is to make workspace boundaries explicit through a proper monorepo layout with a `packages/` directory.
+
+Bun is the preferred workspace/package manager for this migration. Use pnpm only if we hit a documented blocking issue.
+
+Note: we have a private/ dir which is a completely separate repo (because it should remaing private). However, it does interact with the main repo constantly (For example, it has a task structure that follows the same pattern as the parent repo, and they are all handled by the same scripts and also configs.). Ideally it should sit as a package in the monorepo, but it MUST REMAIN PRIVATE. The only cost of this approach is that Worktrees or Cloud Tasks on Codex might not be able to see private stuff. But this is okay; I'm willing to pay for that and only work on private stuff in local mode.
+
+## Objective
+
+Reorganize this repository into a Bun-first monorepo where each package has explicit ownership, scripts, and CI gates, so default quality checks run only on intended packages without ad-hoc directory exclusions.
+
+## Subtasks
+
+-   [ ] Define and approve target monorepo layout with `packages/` as the source of truth.
+-   [ ] Move current projects into package boundaries (main app, organizer, browser POC, compiler POC, and shared libraries where needed).
+-   [ ] Introduce Bun workspace configuration and per-package scripts for `typecheck`, `lint`, and `format:check`.
+-   [ ] Replace root "scan everything" commands with orchestrated per-package workspace commands.
+-   [ ] Ensure proof-of-concept packages are opt-in in CI by default (manual or dedicated workflow), not implicitly part of core gates.
+-   [ ] Normalize TypeScript config strategy across packages (`tsconfig.base.json` plus package-local extensions).
+-   [ ] Normalize ESLint and Prettier strategy across packages with shared config and package-specific overrides only when required.
+-   [ ] Update CI pipeline to run package-scoped gates independently and report failures per package.
+-   [ ] Document local developer workflows for workspace commands using Bun.
+-   [ ] Add migration checklist and rollback plan for path/import/script changes.
+
+## Progress Log
+
+### 2026-02-24
+
+-   Task created
+-   Rewritten with command evidence and concrete CI stabilization plan
+-   Re-scoped to monorepo migration as the primary fix
+
+## Notes
+
+Proposed baseline package map (to validate before moving files):
+
+-   `packages/app` for the main Meseeks web app and Convex runtime code
+-   `packages/organizer` for the organizer app
+-   `packages/browser-poc` for browser proof-of-concept
+-   `packages/compiler-poc` for compiler proof-of-concept
+-   `packages/shared/*` for reusable cross-package code where extraction is justified
+
+Acceptance criteria:
+
+-   Root CI commands target workspace packages explicitly, not raw repo globs.
+-   Core CI passes without relying on default exclusion lists for POC directories.
+-   POC packages keep their own checks and can run independently.
+-   Bun remains the primary workspace toolchain unless a blocker is documented with reason and fallback decision.

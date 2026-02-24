@@ -1,0 +1,56 @@
+---
+title: Resolve deferred-work markers
+priority: high
+tags: [debt]
+---
+
+# Resolve deferred-work markers
+
+## Context
+Current code-only scan (excluding `compiler-poc/` and `browser-poc/`) shows **73** deferred-work markers (`TODO/FIXME/HACK/XXX/BUG`).
+
+Highest-concentration files right now:
+- `schemas/intelligenceSchema.ts` (7)
+- `convex/tasks.private.ts` (7)
+- `skills/createAITool.ts` (6)
+- `convex/magicRock.private.ts` (6)
+- `schemas/skillSchema.tsx` (4)
+- `convex/users.private.ts` (4)
+- `lib/polar.ts` (3)
+
+The previous version of this task was too meta. This version is the execution tracker for closing high-risk markers, not creating more placeholder work.
+
+## Objective
+Close or convert the highest-risk deferred markers into implemented behavior with tests, and reduce code-only marker count from **73** to **45 or fewer** in this batch.
+
+## Subtasks
+- [ ] Resolve task lifecycle markers in `convex/tasks.private.ts`:
+  - implement deterministic active-task ordering for budget-prioritized processing (`findActiveTasks`)
+  - replace hardcoded bootstrap actions in `addTask` with explicit action construction flow
+  - enforce `moveTask` invariants (self-parent and cycle checks) and parent-change propagation semantics
+  - decide and implement partial-vs-replace semantics for `updateTaskInstructions`
+- [ ] Resolve orchestration/config markers across `convex/magicRock.private.ts` and `skills/createAITool.ts`:
+  - remove provider-specific hacks by codifying capabilities in model/intelligence config
+  - move static model mapping responsibilities out of ad-hoc code paths
+  - implement cached-token handling from provider metadata in persisted usage and cost calculation
+  - replace "workaround because async" instruction rendering path with explicit async composition step
+- [ ] Resolve schema-quality markers in `schemas/intelligenceSchema.ts` and `schemas/skillSchema.tsx`:
+  - enforce provider type from known set (not plain `z.string()`)
+  - decide and add missing schema fields with defaults (`speed`, deprecation flags)
+  - remove stale "move to env/models.dev" placeholders by implementing one source of truth strategy
+- [ ] Resolve billing/lifecycle markers by implementing linked tasks:
+  - [harden-billing-and-lifecycle-behavior.mdx](/Users/igor/Insync/igor9ferreira9@gmail.com/Drive/Personal/Code/meseeks/tasks/backlog/harden-billing-and-lifecycle-behavior.mdx)
+  - [type-hardening-critical-paths.mdx](/Users/igor/Insync/igor9ferreira9@gmail.com/Drive/Personal/Code/meseeks/tasks/backlog/type-hardening-critical-paths.mdx)
+- [ ] Remove stale marker comments immediately when implemented; if a marker survives this batch, rewrite it with concrete acceptance criteria.
+
+## Progress Log
+### 2026-02-24
+- Task created
+- Rewritten with concrete file-level execution plan and reduction target (`73 -> 45 or fewer`)
+
+## Notes
+Audit command baseline:
+```bash
+rg -n "TODO|FIXME|HACK|XXX|BUG" src convex lib schemas skills organizer --glob '*.{ts,tsx,js,jsx}'
+```
+This task is complete only when marker count is reduced and remaining markers are either low-risk or linked to active scoped tasks.

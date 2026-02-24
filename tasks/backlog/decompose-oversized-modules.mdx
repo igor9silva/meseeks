@@ -1,0 +1,67 @@
+---
+title: Decompose oversized modules
+priority: high
+tags: [debt]
+---
+
+# Decompose oversized modules
+
+## Context
+Top oversized modules (non-generated, non-POC) currently include:
+- `src/components/DebugAction.tsx` (1023)
+- `convex/magicRock.private.ts` (738)
+- `src/components/RenderActionTestSuite.tsx` (700)
+- `convex/tasks.private.ts` (621)
+- `src/components/ui/sidebar.tsx` (620)
+- `src/components/Launcher.tsx` (531)
+- `organizer/src/components/tasks/TaskExplorerPage.tsx` (519)
+- `src/hooks/useTaskMutations.ts` (514)
+- `src/components/skills/HardSkillConfig.tsx` (503)
+
+The file list is known; this task is the execution plan for splitting them intentionally.
+
+## Objective
+Reduce cognitive load and merge conflict risk by decomposing high-churn oversized modules into cohesive units with stable boundaries.
+
+## Subtasks
+- [ ] Phase 1: split `src/components/DebugAction.tsx` into a feature folder:
+  - move section components (`ApprovalSection`, `AuthorSection`, `ArgumentsSection`, `ResultSection`, `CostSection`, `LlmDetailsSection`, `HttpDetailsSection`) into dedicated files
+  - keep `DebugAction` as orchestration-only container
+  - target: main file 350 lines or fewer
+- [ ] Phase 2: split backend orchestrators by concern:
+  - `convex/tasks.private.ts` into focused task-domain helpers (read, mutation/update, funds, hierarchy)
+  - `convex/magicRock.private.ts` into context assembly, model registry, and variable rendering helpers
+  - target: each file 400 lines or fewer with explicit ownership boundaries
+- [ ] Phase 3: split command/mutation heavy UI modules:
+  - `src/components/Launcher.tsx`: keep provider/dialog shells; extract command item implementations
+  - `src/hooks/useTaskMutations.ts`: one hook per file in `src/hooks/` (align with repo rule)
+  - `src/components/skills/HardSkillConfig.tsx`: split form sections and helpers
+- [ ] Phase 4: isolate organizer explorer concerns:
+  - `organizer/src/components/tasks/TaskExplorerPage.tsx` into data-loading hook + filter UI + detail panel
+  - preserve current UX behavior while reducing component surface
+- [ ] For each phase: add or update tests/smoke checks before and after split to guarantee no behavior regressions.
+
+## Progress Log
+### 2026-02-24
+- Task created
+- Rewritten with concrete file list, phase plan, and line-count targets
+
+## Notes
+Sizing baseline command:
+```bash
+python3 - <<'PY'
+import os
+skip={'node_modules','.git','dist','compiler-poc','browser-poc'}
+rows=[]
+for dp,dn,fn in os.walk('.'):
+    dn[:] = [d for d in dn if d not in skip]
+    for f in fn:
+        if f.endswith(('.ts','.tsx','.js','.jsx')):
+            p=os.path.join(dp,f)
+            with open(p,'r',encoding='utf-8',errors='ignore') as fh:
+                rows.append((sum(1 for _ in fh),p[2:] if p.startswith('./') else p))
+for n,p in sorted(rows, reverse=True)[:20]:
+    print(n,p)
+PY
+```
+Generated/config files can exceed limits when justified; this task focuses on high-churn product/runtime modules.

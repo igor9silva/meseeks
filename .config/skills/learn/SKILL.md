@@ -91,6 +91,20 @@ Open `.config/MasterPlan.md` and apply changes. For each lesson learned:
 2. **Fits an existing section?** — add it there
 3. **New category?** — create a new section in a logical position, matching the file's existing structure and conventions
 
+### Rule placement boundary (avoid duplication)
+
+Decide where each lesson belongs before editing:
+
+- Put cross-cutting behavior in `.config/MasterPlan.md` (applies across many tasks/skills).
+- Put workflow-specific behavior in the relevant skill under `.config/skills/*/SKILL.md`.
+- Do not copy the same operational guidance into both files.
+- If both files must change, keep MasterPlan as a short principle and keep concrete workflow steps/examples only in the skill.
+
+Examples:
+
+- bad: add task-file naming minutiae to both MasterPlan and `create-task` with near-identical wording
+- good: keep detailed task-file naming rules in `create-task`; keep only a generic non-duplication principle in `learn`
+
 ### quality check for rule changes
 
 Use this as a lightweight checklist (not a hard gate):
@@ -99,6 +113,7 @@ Use this as a lightweight checklist (not a hard gate):
 2. It is grounded in user correction/steering or explicit user preference from this conversation
 3. It addresses root cause and is scoped enough to avoid over-correcting unrelated work
 4. It includes concise examples when examples would materially reduce ambiguity
+5. It is not a duplicate of guidance already captured in a more specific skill
 
 ### Keeping the file concise
 

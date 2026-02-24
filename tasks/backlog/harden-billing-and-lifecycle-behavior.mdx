@@ -1,0 +1,53 @@
+---
+title: Harden billing and lifecycle behavior
+priority: high
+tags: [debt]
+---
+
+# Harden billing and lifecycle behavior
+
+## Context
+Known behavior gaps are explicit in production paths:
+- `lib/polar.ts`
+  - uses fixed `durationMonths: 1` instead of webhook period end
+  - `order.refunded` path is not implemented
+  - canceled subscription status transition is deferred/commented
+- `convex/action/lifecycle.ts`
+  - interruption costs are not tracked when action result is ignored
+- `convex/action/lifecycle.private.ts`
+  - reactions are not persisted in details payload
+  - `maxTokens` DB naming mismatch is pending rename cleanup
+
+These are reliability issues, not cosmetic TODOs.
+
+## Objective
+Make billing and action lifecycle paths explicit, auditable, and regression-tested for edge cases.
+
+## Subtasks
+- [ ] Harden webhook-to-billing mapping in `lib/polar.ts`:
+  - derive subscription validity from webhook timestamps/period end (not fixed month constants)
+  - implement `order.refunded` handling path with idempotent credit rollback semantics
+  - implement cancellation transition scheduling/state update flow
+- [ ] Enforce lifecycle persistence invariants in action pipeline:
+  - persist resolved reactions in action details (`convex/action/lifecycle.private.ts`)
+  - record interruption-cost metadata when result is discarded due to skip/stop
+  - complete DB naming cleanup for token/max-output fields and migrate readers
+- [ ] Add deterministic idempotency and replay guards:
+  - ensure duplicate webhook delivery does not double-credit or double-revoke
+  - validate action resolve path is single-write and replay-safe
+- [ ] Add regression tests for critical scenarios:
+  - webhook fixtures: `order.paid`, `order.refunded`, `subscription.revoked`, cancellation flow
+  - lifecycle fixtures: timeout, manual stop, pending-authorization, multi-reaction resolve
+- [ ] Add operational checks:
+  - logging should keep Sentry severity semantics already in use (`info`/`warn`/`error`) while avoiding false urgent noise
+
+## Progress Log
+### 2026-02-24
+- Task created
+- Rewritten with concrete billing/lifecycle invariants and test matrix
+
+## Notes
+Primary files:
+- `/Users/igor/Insync/igor9ferreira9@gmail.com/Drive/Personal/Code/meseeks/lib/polar.ts`
+- `/Users/igor/Insync/igor9ferreira9@gmail.com/Drive/Personal/Code/meseeks/convex/action/lifecycle.ts`
+- `/Users/igor/Insync/igor9ferreira9@gmail.com/Drive/Personal/Code/meseeks/convex/action/lifecycle.private.ts`
