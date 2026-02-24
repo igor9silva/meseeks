@@ -255,6 +255,12 @@ One file per hook in `src/hooks/`.
 
 CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, discuss with the user. Document any exceptions with a comment.
 
-## Proof of Concepts
+## Packages
 
-We have some PoCs within this repo, such as browser-poc/ and compiler-poc/. These are not part of the main codebase and are not used in production. They are for experimentation and learning, so they should not be included in typechecking or refactors or anything else unless specified by the user.
+Some directories are intentionally outside the main app scope:
+
+- `compiler-poc/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
+- `browser-poc/`: isolated browser-focused PoC workspace (when present in the local workspace).
+- `organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
+
+Scope rule: treat these as separate from the main codebase. Do not include them in broad typechecking, refactors, or migrations unless the user explicitly asks.
