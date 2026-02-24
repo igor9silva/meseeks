@@ -17,6 +17,7 @@ Read every message in the conversation. Look for signals that the model made a m
 - User pointed out leftover artifacts, dead code, or incomplete changes
 - User said "that's not what I asked" or similar
 - User manually did something the model should have done
+- User explicitly said an existing behavior/location/label was correct or "perfect", and the model changed it anyway
 
 Build a skill review queue from all skills under `.config/skills/`, not just the skills invoked in this conversation.
 

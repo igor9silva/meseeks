@@ -238,7 +238,7 @@ One file per hook in `src/hooks/`.
 - Do not invent justifications (such as "compatibility" or existing constraints) that are not explicitly present in code, docs, or user requirements
 - Always clearly communicate tradeoffs you make
 - If scope shifts or the user says the execution is off-track, restate the exact requested outcome and complete that before proposing extras
-- Preserve exact user-specified literals (names/tags/phrases) when implementing instructions; do not substitute near-synonyms.
+- Preserve exact user-specified literals (names/tags/phrases/UI labels) when implementing instructions; do not substitute near-synonyms.
   - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`
   - good: keep exact literal requested by the user
 - Whenever you are blocked, stop and present a few concrete next-step alternatives with tradeoffs, then wait for user choice.
