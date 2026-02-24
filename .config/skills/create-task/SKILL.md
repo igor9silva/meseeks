@@ -16,12 +16,17 @@ Before creating any task file:
 
 ## Placement Rules
 
-Pick file location from status directories:
+Choose task root first:
 
-- `active` -> `private/tasks/active/`
-- `backlog` -> `private/tasks/backlog/`
-- `completed` -> `private/tasks/completed/`
-- any additional status -> `private/tasks/<status>/`
+- Use `tasks/` for Meseeks product/repo work (default)
+- Use `private/tasks/` only for sensitive or personal work
+
+Then pick status path inside that root:
+
+- `active` -> `<root>/active/`
+- `backlog` -> `<root>/backlog/`
+- `completed` -> `<root>/completed/`
+- any additional status -> `<root>/<status>/`
 
 Use kebab-case filenames. Keep names short and descriptive. Do not include dates in filenames.
 Default extension is `.mdx`.
@@ -30,8 +35,8 @@ Default extension is `.mdx`.
 
 For a parent task with subtasks, use a directory:
 
-- `private/tasks/<status>/<task-slug>/_index.mdx` for the parent task
-- `private/tasks/<status>/<task-slug>/<subtask-slug>.mdx` for each child
+- `<root>/<status>/<task-slug>/_index.mdx` for the parent task
+- `<root>/<status>/<task-slug>/<subtask-slug>.mdx` for each child
 
 Parent/child relationships come from filesystem shape, not frontmatter:
 
@@ -47,7 +52,7 @@ Keep frontmatter minimal. Use:
 ---
 title: Human readable title
 priority: critical | high | medium | low
-tags: [security] # or [ux] or []
+tags: [security] # or [ux] or [] or another user-requested tag
 ---
 ```
 
@@ -87,7 +92,7 @@ If there are no known subtasks yet, keep one checkbox item as a placeholder.
 
 After creating the file:
 
-1. Verify path matches status.
-2. Verify frontmatter only includes allowed keys.
-3. Verify subtask hierarchy is encoded via `_index.*` placement.
-4. Confirm MDX headings and sections are present.
+- Verify path matches status.
+- Verify root (`tasks/` vs `private/tasks/`) matches sensitivity and user intent.
+- Verify subtask hierarchy is encoded via `_index.*` placement.
+- Confirm MDX headings and sections are present.

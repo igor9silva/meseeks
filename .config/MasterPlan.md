@@ -254,3 +254,7 @@ One file per hook in `src/hooks/`.
 ## Rule Conflicts
 
 CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, discuss with the user. Document any exceptions with a comment.
+
+## Proof of Concepts
+
+We have some PoCs within this repo, such as browser-poc/ and compiler-poc/. These are not part of the main codebase and are not used in production. They are for experimentation and learning, so they should not be included in typechecking or refactors or anything else unless specified by the user.
