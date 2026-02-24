@@ -20,10 +20,27 @@ function formatSourceLabel(source: TaskSource): string {
 	return source === 'private' ? 'Private' : 'Public';
 }
 
+type TaskDetailTask = NonNullable<NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>['task']>;
+
 function toCursorFileHref(absolutePath: string | null): string | null {
 	//
 	if (!absolutePath) return null;
 	return `cursor://file${encodeURI(absolutePath)}`;
+}
+
+function buildCodexPrompt(task: TaskDetailTask): string {
+	//
+	return task.body.trim();
+}
+
+function toCodexTaskHref(task: TaskDetailTask): string {
+	//
+	const url = new URL('codex://new');
+	const prompt = buildCodexPrompt(task);
+
+	url.searchParams.set('prompt', prompt);
+
+	return url.toString();
 }
 
 const taskSourceOptions: TaskSource[] = ['public', 'private'];
@@ -392,6 +409,7 @@ function TaskDetailView({
 
 	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
 	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
+	const codexTaskHref = toCodexTaskHref(detail.task);
 
 	const renderRelation = (label: string, keys: string[]) => {
 		if (keys.length === 0) return null;
@@ -428,7 +446,7 @@ function TaskDetailView({
 					<h2 className="text-xl font-semibold">{detail.task.title}</h2>
 					<span className="text-sm text-muted-foreground break-all">{detail.task.id}</span>
 				</div>
-				<div className="text-xs text-muted-foreground break-all">
+				<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground break-all">
 					{cursorFileHref ? (
 						<a
 							href={cursorFileHref}
@@ -441,6 +459,14 @@ function TaskDetailView({
 					) : (
 						detail.task.relativePath
 					)}
+					<a
+						href={codexTaskHref}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="cursor-pointer underline underline-offset-4 hover:text-foreground"
+					>
+						Open in Codex
+					</a>
 				</div>
 
 				{detail.task.tags.length > 0 && (
