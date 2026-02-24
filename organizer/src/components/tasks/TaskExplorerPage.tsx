@@ -22,21 +22,31 @@ function formatSourceLabel(source: TaskSource): string {
 
 type TaskDetailTask = NonNullable<NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>['task']>;
 
+function buildTaskPrompt(task: TaskDetailTask): string {
+	//
+	return task.body.trim();
+}
+
 function toCursorFileHref(absolutePath: string | null): string | null {
 	//
 	if (!absolutePath) return null;
 	return `cursor://file${encodeURI(absolutePath)}`;
 }
 
-function buildCodexPrompt(task: TaskDetailTask): string {
+function toCursorTaskHref(task: TaskDetailTask): string {
 	//
-	return task.body.trim();
+	const url = new URL('cursor://anysphere.cursor-deeplink/prompt');
+	const prompt = buildTaskPrompt(task);
+
+	url.searchParams.set('text', prompt);
+
+	return url.toString();
 }
 
 function toCodexTaskHref(task: TaskDetailTask): string {
 	//
 	const url = new URL('codex://new');
-	const prompt = buildCodexPrompt(task);
+	const prompt = buildTaskPrompt(task);
 
 	url.searchParams.set('prompt', prompt);
 
@@ -409,6 +419,7 @@ function TaskDetailView({
 
 	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
 	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
+	const cursorTaskHref = toCursorTaskHref(detail.task);
 	const codexTaskHref = toCodexTaskHref(detail.task);
 
 	const renderRelation = (label: string, keys: string[]) => {
@@ -457,8 +468,16 @@ function TaskDetailView({
 							{detail.task.relativePath}
 						</a>
 					) : (
-						detail.task.relativePath
+						<span>{detail.task.relativePath}</span>
 					)}
+					<a
+						href={cursorTaskHref}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="cursor-pointer underline underline-offset-4 hover:text-foreground"
+					>
+						Open in Cursor
+					</a>
 					<a
 						href={codexTaskHref}
 						target="_blank"
