@@ -41,6 +41,10 @@ If you cannot implement a type-safe solution, stop and ask for help rather than 
 - Forms: TanStack Form with Zod validation
 - Toasts: Sonner
 
+## No Microsoft Rule
+
+We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABLE rule.
+
 ## Code Style
 
 ### Formatting

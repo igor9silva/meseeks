@@ -156,11 +156,10 @@ Meseeks has 1 listed contributor on GitHub, **but it's truly made by decades of 
 
 ## 🤝 Contributing
 
-Just open a pull request!
+We have 1 single rule: we don't use or support anything Microsoft. Everything else is acceptable, just open a pull request 😁
 
 - **Bun**: We use `bun` instead of npm/yarn/pnpm.
 - **TypeScript**: Everything must be type-safe (no `any`).
-- **Cursor**: The project comes with minimally decent cursor rules, so we suggest using Cursor.
 
 ## 🚢 Deployment
 
