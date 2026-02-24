@@ -95,15 +95,6 @@ Rules:
 - child tasks inherit nearest ancestor `_index.*` as parent
 - folders without `_index.*` are grouping only, not parent tasks
 
-## Tags Policy
-
-Current allowed task tags are:
-
-- `security`
-- `ux`
-
-If none apply, use `tags: []`.
-
 ## Task Body Template
 
 ```mdx
