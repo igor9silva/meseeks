@@ -52,7 +52,7 @@ Keep frontmatter minimal. Use:
 ---
 title: Human readable title
 priority: critical | high | medium | low
-tags: [security] # or [ux] or [] or another user-requested tag
+tags: [security] # or [ux] or [debt] or [] or another appropriate tag
 ---
 ```
 
@@ -60,6 +60,24 @@ Rules:
 
 - do not add `id`, `status`, `created`, `updated`, `parent`, `source`, `source_id`, `blocks`, or `blocked_by`
 - ids, status, timestamps, parent links, and task source are derived by the indexer
+- choose tags by primary task intent, not incidental wording in context
+
+## Tag Selection
+
+Tags are for durable categorization, not for summarizing every detail in the task text.
+
+Use this selection order:
+
+1. Check tags already used in the same task root (`tasks/` or `private/tasks/`) and prefer reusing one that matches the task intent.
+2. Pick the smallest set of tags that captures the main intent (often one tag, sometimes none).
+3. Add a new tag only when existing tags do not fit and the new tag is likely reusable by future tasks.
+
+If tag intent is ambiguous, use `tags: []` instead of guessing.
+
+Examples:
+
+- bad: choose `ux` because context mentions UX pain, even though the task is primarily architecture/workflow work
+- good: choose the tag that matches the primary deliverable; if none clearly fit, use `[]`
 
 ## Body Template
 
@@ -87,6 +105,21 @@ After frontmatter, use this structure:
 ```
 
 If there are no known subtasks yet, keep one checkbox item as a placeholder.
+
+## Actionability Rule
+
+Avoid writing meta tasks about "creating tasks" or "reviewing later".
+
+Instead, make each task directly actionable:
+
+- include concrete in-repo scope (specific files/modules)
+- include measurable acceptance criteria (counts, tests, or behavior checks)
+- include command evidence when the task references tooling failures
+
+Examples:
+
+- bad: "Review TODOs and create backlog items"
+- good: "Reduce TODO markers in `convex/tasks.private.ts` and `skills/createAITool.ts`; remove or resolve N markers and update tests"
 
 ## Final Checks
 
