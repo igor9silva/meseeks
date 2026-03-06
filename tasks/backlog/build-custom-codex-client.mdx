@@ -1,0 +1,30 @@
+# Build custom Codex client with Electrobun
+
+## Context
+The current Codex macOS app has UX friction points that slow down daily work. We want a custom macOS client built with Electrobun while keeping Codex model performance and capabilities.
+
+The recommended approach is App Server-first (not SDK-first): use `codex app-server` over `stdio`, and bundle the Codex runtime so the app does not depend on the Codex desktop app being installed or running.
+
+## Objective
+Ship a macOS-only Electrobun Codex client prototype that supports core interactive coding flows through App Server and runs without requiring the Codex desktop app.
+
+## Subtasks
+- [ ] Scaffold Electrobun app shell with renderer/main-process split and stable local dev run command.
+- [ ] Integrate Codex App Server process lifecycle in the main process (`spawn`, health checks, restart strategy, graceful shutdown).
+- [ ] Implement protocol client over `stdio` with typed request/response wrappers for thread start, run, stream events, and approvals.
+- [ ] Build first-pass UX for threads, live streaming output, command/file approvals, and error recovery states.
+- [ ] Bundle Codex runtime with the app artifact and verify fresh-machine startup with no Codex desktop install.
+- [ ] Define fallback path for API-only mode (Responses API) and capture scope delta versus App Server mode.
+
+## Progress Log
+### 2026-02-24
+- Task created
+
+## Notes
+Constraints:
+- macOS only
+- speed of iteration matters more than protocol stability
+- no dependency on Codex desktop app process
+
+Decision rule:
+- use App Server as primary integration surface

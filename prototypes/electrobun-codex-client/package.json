@@ -1,0 +1,12 @@
+{
+  "name": "electrobun-codex-client-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/main/dev.ts",
+    "typecheck": "bunx tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}
