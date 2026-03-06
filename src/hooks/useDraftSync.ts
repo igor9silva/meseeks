@@ -1,8 +1,8 @@
+import { useDebouncer } from '@tanstack/react-pacer';
 import type { Id } from 'convex/_generated/dataModel';
+import { api } from 'convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';
 import { useCallback, useEffect, useRef } from 'react';
-import { useDebounce } from './useDebounce';
-import { api } from 'convex/_generated/api';
 
 const SAVE_DEBOUNCE_MS = 500;
 
@@ -58,31 +58,38 @@ export function useDraftSync({
 	isSaveBlockedRef.current = isSaveBlocked;
 
 	// debounced save
-	const saveDebouncer = useDebounce((taskIdToSave: Id<'tasks'>, queue: QueueItem[], msg: string) => {
-		//
-		const isEmpty = queue.length === 0 && !msg.trim();
+	const saveDebouncer = useDebouncer(
+		(taskIdToSave: Id<'tasks'>, queue: QueueItem[], msg: string) => {
+			//
+			const isEmpty = queue.length === 0 && !msg.trim();
 
-		if (isEmpty) {
-			clearDraftMutation({ taskId: taskIdToSave });
-		} else {
-			saveDraftMutation({ taskId: taskIdToSave, queue, message: msg });
-		}
+			if (isEmpty) {
+				clearDraftMutation({ taskId: taskIdToSave });
+			} else {
+				saveDraftMutation({ taskId: taskIdToSave, queue, message: msg });
+			}
 
-		hasPendingSaveRef.current = false;
-		//
-	}, SAVE_DEBOUNCE_MS);
+			hasPendingSaveRef.current = false;
+			//
+		},
+		{ wait: SAVE_DEBOUNCE_MS },
+		(state) => state.isPending,
+	);
+
+	const cancelPendingSave = saveDebouncer.cancel;
+	const queueSave = saveDebouncer.maybeExecute;
 
 	// handle task change: reset state
 	useEffect(() => {
 		//
 		if (taskId !== lastTaskIdRef.current) {
-			saveDebouncer.cancel();
+			cancelPendingSave();
 			hasPendingSaveRef.current = false;
 			hasReceivedInitialDraftRef.current = false;
 			lastTaskIdRef.current = taskId;
 			hasLoadedServerDraftRef.current = false;
 		}
-	}, [taskId, saveDebouncer]);
+	}, [taskId, cancelPendingSave]);
 
 	// handle initial server draft load
 	useEffect(() => {
@@ -97,7 +104,7 @@ export function useDraftSync({
 			//
 			if (hasPendingSaveRef.current && !isSaveBlockedRef.current) {
 				const { queue, message } = getLocalStateRef.current();
-				saveDebouncer.call(taskId, queue, message);
+				queueSave(taskId, queue, message);
 			}
 			return;
 		}
@@ -119,7 +126,7 @@ export function useDraftSync({
 			if (isSaveBlockedRef.current) return;
 			if (!hasLoadedServerDraftRef.current) return;
 
-			saveDebouncer.cancel();
+			cancelPendingSave();
 			const { queue, message } = getLocalStateRef.current();
 			const isEmpty = queue.length === 0 && !message.trim();
 
@@ -129,7 +136,7 @@ export function useDraftSync({
 				saveDraftMutation({ taskId, queue, message });
 			}
 		};
-	}, [taskId, saveDebouncer, clearDraftMutation, saveDraftMutation]);
+	}, [taskId, cancelPendingSave, clearDraftMutation, saveDraftMutation]);
 
 	// prompt before unload
 	useEffect(() => {
@@ -151,28 +158,28 @@ export function useDraftSync({
 			if (!hasLoadedServerDraftRef.current) return;
 			if (isSaveBlockedRef.current) return;
 
-			saveDebouncer.call(taskId, queue, message);
+			queueSave(taskId, queue, message);
 		},
-		[taskId, saveDebouncer],
+		[taskId, queueSave],
 	);
 
 	const clear = useCallback(() => {
 		//
-		saveDebouncer.cancel();
+		cancelPendingSave();
 		hasPendingSaveRef.current = false;
 		clearDraftMutation({ taskId });
-	}, [taskId, saveDebouncer, clearDraftMutation]);
+	}, [taskId, cancelPendingSave, clearDraftMutation]);
 
 	const cancel = useCallback(() => {
 		//
-		saveDebouncer.cancel();
+		cancelPendingSave();
 		hasPendingSaveRef.current = false;
-	}, [saveDebouncer]);
+	}, [cancelPendingSave]);
 
 	return {
 		save,
 		clear,
 		cancel,
-		hasPendingSave: hasPendingSaveRef.current,
+		hasPendingSave: hasPendingSaveRef.current || saveDebouncer.state,
 	};
 }

@@ -1,5 +1,5 @@
+import { useDebouncedCallback } from '@tanstack/react-pacer';
 import { useCallback } from 'react';
-import { useDebounce } from './useDebounce';
 
 interface UseResizablePanelGroupOptions {
 	getValue: () => number;
@@ -21,18 +21,18 @@ export function useResizablePanelGroup({
 		//
 	}, [getValue, defaultValue]);
 
-	const { call } = useDebounce((size: number) => {
+	const handleResize = useDebouncedCallback((size: number) => {
 		//
 		if (!size) return;
 		setValue(size);
 		//
-	}, debounceMs);
+	}, { wait: debounceMs });
 
 	const handleLayout = useCallback(
 		(sizes: number[]) => {
-			call(sizes[0]);
+			handleResize(sizes[0]);
 		},
-		[call],
+		[handleResize],
 	);
 
 	return {
