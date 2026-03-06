@@ -1,4 +1,4 @@
-import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import { ChildProcessWithoutNullStreams, spawn, spawnSync } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export type AppServerSupervisorConfig = {
@@ -8,6 +8,8 @@ export type AppServerSupervisorConfig = {
   restartBackoffMs: number;
   maxRestartAttempts: number;
 };
+
+export type CodexRuntimeMode = 'app-server' | 'proto';
 
 const defaultConfig: AppServerSupervisorConfig = {
   command: 'codex',
@@ -23,6 +25,10 @@ export class AppServerSupervisor {
   private restartCount = 0;
   private readonly config: AppServerSupervisorConfig;
   private lastSpawnError: Error | null = null;
+  private lastExitCode: number | null = null;
+  private lastExitSignal: NodeJS.Signals | null = null;
+  private recentStderr = '';
+  private mode: CodexRuntimeMode = 'app-server';
   private readonly listeners = {
     restarting: new Set<() => void>(),
     started: new Set<() => void>(),
@@ -32,6 +38,7 @@ export class AppServerSupervisor {
 
   constructor(config: Partial<AppServerSupervisorConfig> = {}) {
     this.config = { ...defaultConfig, ...config };
+    if (this.config.args[0] === 'proto') this.mode = 'proto';
   }
 
   onRestarting(listener: () => void): void {
@@ -55,9 +62,14 @@ export class AppServerSupervisor {
     return this.process;
   }
 
+  get runtimeMode(): CodexRuntimeMode {
+    return this.mode;
+  }
+
   async start(): Promise<void> {
     if (this.process) return;
 
+    this.resolveRuntimeMode();
     this.spawnProcess();
     await this.waitForHealthy();
     this.emitStarted();
@@ -98,13 +110,22 @@ export class AppServerSupervisor {
 
   private spawnProcess(): void {
     this.lastSpawnError = null;
+    this.lastExitCode = null;
+    this.lastExitSignal = null;
+    this.recentStderr = '';
     this.process = spawn(this.config.command, this.config.args, {
       cwd: this.config.cwd,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: process.env,
     });
 
-    this.process.once('exit', () => {
+    this.process.stderr.on('data', (chunk: Buffer) => {
+      this.captureStderr(chunk);
+    });
+
+    this.process.once('exit', (code, signal) => {
+      this.lastExitCode = code;
+      this.lastExitSignal = signal;
       const shouldRestart = !this.isShuttingDown;
       this.process = null;
 
@@ -146,10 +167,67 @@ export class AppServerSupervisor {
 
     if (this.lastSpawnError) throw this.lastSpawnError;
 
-    if (!this.process) throw new Error('app server process ended before health check');
+    if (!this.process) throw this.createEarlyExitError();
 
     if (this.process.exitCode !== null) {
-      throw new Error(`app server exited early with code ${this.process.exitCode}`);
+      throw this.createEarlyExitError();
     }
+  }
+
+  private captureStderr(chunk: Buffer): void {
+    const merged = this.recentStderr.concat(chunk.toString('utf8'));
+    this.recentStderr = merged.slice(-4000);
+  }
+
+  private createEarlyExitError(): Error {
+    const exitDescription = this.lastExitSignal
+      ? `signal ${this.lastExitSignal}`
+      : this.lastExitCode === null
+        ? 'an unknown exit'
+        : `code ${this.lastExitCode}`;
+
+    const stderr = this.recentStderr.trim();
+    const message = stderr
+      ? `app server exited before health check (${exitDescription}): ${stderr}`
+      : `app server exited before health check (${exitDescription})`;
+    return new Error(message);
+  }
+
+  private resolveRuntimeMode(): void {
+    const shouldCheckCommand = this.config.command === 'codex' && this.config.args[0] === 'app-server';
+    if (!shouldCheckCommand) {
+      this.mode = this.config.args[0] === 'proto' ? 'proto' : 'app-server';
+      return;
+    }
+
+    const helpProbe = spawnSync(this.config.command, ['--help'], {
+      cwd: this.config.cwd,
+      env: process.env,
+      encoding: 'utf8',
+    });
+
+    if (helpProbe.error) {
+      throw new Error(`failed to probe codex app-server support: ${helpProbe.error.message}`);
+    }
+
+    const helpOutput = [helpProbe.stdout, helpProbe.stderr].join('\n').toLowerCase();
+    if (helpOutput.includes('app-server')) {
+      this.mode = 'app-server';
+      return;
+    }
+
+    const versionProbe = spawnSync(this.config.command, ['--version'], {
+      cwd: this.config.cwd,
+      env: process.env,
+      encoding: 'utf8',
+    });
+    const version = versionProbe.error
+      ? 'unknown version'
+      : [versionProbe.stdout, versionProbe.stderr].join('\n').trim() || 'unknown version';
+    console.warn(
+      `codex CLI does not expose "app-server". Falling back to "codex proto". Detected ${version}.`,
+    );
+    this.config.args = ['proto', '-c', 'model_reasoning_effort="high"'];
+    this.mode = 'proto';
   }
 }

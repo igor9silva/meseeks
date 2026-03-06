@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meseeks Codex</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="thread-sidebar">
+        <header class="sidebar-header">
+          <div>
+            <h1>Meseeks Codex</h1>
+            <p class="sidebar-subhead">Desktop thread history</p>
+          </div>
+          <button id="new-thread-button" class="ghost-button" type="button">New</button>
+        </header>
+
+        <div class="runtime-row">
+          <span id="boot-status" class="status-pill">idle</span>
+          <span id="runtime-mode" class="runtime-pill">runtime unknown</span>
+        </div>
+
+        <p id="boot-error" class="error-line"></p>
+        <ul id="thread-list" class="thread-list"></ul>
+      </aside>
+
+      <section class="chat-pane">
+        <header class="chat-header">
+          <div class="chat-title-wrap">
+            <h2 id="thread-title">No thread selected</h2>
+            <p id="thread-subtitle"></p>
+          </div>
+          <button id="boot-button" class="ghost-button" type="button">Reconnect</button>
+        </header>
+
+        <section id="message-list" class="message-list"></section>
+
+        <section class="approval-pane">
+          <h3>Approvals</h3>
+          <div id="approval-list" class="approval-list"></div>
+        </section>
+
+        <form id="composer-form" class="composer-form">
+          <textarea id="prompt-input" name="prompt" rows="3" placeholder="Message Codex"></textarea>
+          <div class="composer-footer">
+            <p id="composer-hint" class="composer-hint"></p>
+            <button id="send-button" class="send-button" type="submit">Send</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -3,10 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run src/main/dev.ts",
+    "dev": "electrobun dev --watch",
+    "start": "electrobun dev",
+    "headless": "bun run src/main/dev.ts",
     "typecheck": "bunx tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
+    "electrobun": "1.14.3",
     "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.8"
   }
 }

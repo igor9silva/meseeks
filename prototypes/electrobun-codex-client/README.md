@@ -1,11 +1,14 @@
 # Electrobun Codex Client Prototype (macOS)
 
-This is a macOS-first prototype that implements the Codex client integration in an **App Server-first** shape:
+This prototype now runs as a real Electrobun desktop app window on macOS.
 
-- spawn `codex app-server --transport stdio` in the main process
-- speak JSON-RPC over stdio with typed request/response validation
-- stream run events into a renderer-facing view model
-- handle command/file approvals and explicit error recovery state
+runtime behavior:
+- opens a native Electrobun window
+- hosts a local Bun API + WebSocket bridge on `127.0.0.1` (defaults to `48676`, then scans `48677+` when busy unless `CODEX_APP_API_PORT` is set)
+- renderer UI drives thread start, prompt submit, and approval responses
+- Codex runtime mode auto-selects:
+  - `codex app-server --transport stdio` when available
+  - `codex proto` fallback when `app-server` is not exposed by the installed CLI
 
 ## Run locally
 
@@ -15,12 +18,18 @@ bun install
 bun run dev
 ```
 
+headless debug mode (no window):
+
+```bash
+bun run headless
+```
+
 ## What is implemented
 
 ### app shell split
-- `src/main/*`: process lifecycle, protocol client, orchestration
-- `src/renderer/viewModel.ts`: renderer state updates for thread transcript/approvals/errors
-- stable dev entrypoint: `bun run dev`
+- `src/bun/index.ts`: Electrobun main process, API bridge, window bootstrap
+- `src/main/*`: Codex process lifecycle, protocol client, orchestration
+- `src/mainview/*`: renderer UI (thread, prompts, approvals, transcript, state panel)
 
 ### app server lifecycle
 - supervisor with spawn, restart budget + backoff, health gate, graceful shutdown (`SIGTERM` then `SIGKILL` fallback)
@@ -32,13 +41,15 @@ bun run dev
   - `health.check`
   - `approval.command.respond`
   - `approval.file.respond`
-- stream events validated with Zod discriminated union
+- stream events validated with Zod schemas for both JSON-RPC and proto envelopes
 
 ### ux states (first pass)
+- runtime boot status + errors
+- thread start form
+- prompt submission
 - transcript streaming (`output.delta`)
-- approval cards for command/file approvals
-- run completion / failure handling
-- reconnect/restart and stderr transport error capture
+- command/file approval cards with approve/deny actions
+- live state sync via WebSocket
 
 ### bundling direction
 - current code expects `codex` on PATH; for app artifact bundling, embed a fixed Codex runtime binary path and pass it into `AppServerSupervisorConfig.command`.
