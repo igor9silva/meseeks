@@ -43,6 +43,12 @@ const moonshot = createOpenAICompatible({
 	baseURL: 'https://api.moonshot.ai/v1',
 });
 
+const inception = createOpenAICompatible({
+	name: 'inception',
+	apiKey: env.INCEPTION_API_KEY,
+	baseURL: 'https://api.inceptionlabs.ai/v1',
+});
+
 // hardcoded for now, TODO: make it dynamic per intelligence config
 const MAX_CONTEXT_TOKENS = 128_000;
 function estimateTokenCount(message: ModelMessage): number {
@@ -245,6 +251,9 @@ function languageModelFrom(
 		'moonshot/kimi-2': moonshot('kimi-k2-0905-preview'),
 		'moonshot/kimi-2.5': moonshot('kimi-k2.5'),
 		// 'moonshot/kimi-2': groq('moonshotai/kimi-k2-instruct'),
+
+		// Inception Labs
+		'inception/mercury-2': inception('mercury-2'),
 
 		// Cerebras
 		'cerebras/qwen3-235b': cerebras('qwen-3-235b-a22b'),

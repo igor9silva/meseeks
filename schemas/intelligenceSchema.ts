@@ -98,6 +98,9 @@ export const intelligenceKeys = z.enum([
 	'moonshot/kimi-2',
 	'moonshot/kimi-2.5',
 
+	// Inception Labs
+	'inception/mercury-2',
+
 	// Cerebras
 	'cerebras/qwen3-235b',
 	'cerebras/zai-glm-4.7',
@@ -388,6 +391,18 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		pricing: buildPricing({ input: 0.6, output: 2.5 }),
 		context: buildContext(128_000),
 		intelligenceLevel: 7,
+	},
+
+	// ==============================
+	//         Inception Labs
+	// ==============================
+	'inception/mercury-2': {
+		key: 'inception/mercury-2',
+		name: 'Mercury 2',
+		provider: 'Inception Labs',
+		pricing: buildPricing({ input: 0.25, output: 0.75 }),
+		context: buildContext(128_000),
+		intelligenceLevel: 5,
 	},
 
 	// ==============================

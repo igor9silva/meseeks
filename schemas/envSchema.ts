@@ -97,8 +97,6 @@ export const env = createEnv({
 			.describe('The maximum number of actions to load before token-based cropping.')
 			.default('40'),
 
-		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
-
 		ACTIVE_TASKS_RENDER_LIMIT: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
@@ -106,6 +104,8 @@ export const env = createEnv({
 			.describe('Maximum number of active tasks to show in activeTasks variable.')
 			.default('20'),
 
+		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
+		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
 		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
 
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
