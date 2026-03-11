@@ -51,7 +51,7 @@ Sizing baseline command:
 ```bash
 python3 - <<'PY'
 import os
-skip={'node_modules','.git','dist','compiler-poc','browser-poc'}
+skip={'node_modules','.git','dist','compiler-poc','browser-poc','organizer'}
 rows=[]
 for dp,dn,fn in os.walk('.'):
     dn[:] = [d for d in dn if d not in skip]

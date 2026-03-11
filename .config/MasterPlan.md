@@ -246,11 +246,17 @@ One file per hook in `src/hooks/`.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
+- When the same config value or path is used across multiple layers, define one shared source of truth instead of repeating the literal in each file.
+  - bad: repeat `'/api/auth'` in app client setup, server proxy setup, and Convex auth setup
+  - good: define `authBasePath` once and import it everywhere that needs it
 - After file moves/renames, update all call sites in the same pass (`api.*`, `internal.*`, and imports), then verify with a targeted search.
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
+- Avoid unnecessary layers. Only add wrappers or indirection if they do real work or are truly needed.
+  - bad: pointless config/function wrappers that just forward calls
+  - good: direct, honest factories with clear purpose
 - Before changing an existing workaround patch or local tooling fix, read why it exists and confirm the current task actually requires touching it. If not, leave it alone.
   - bad: rewrite an existing `patches/*.patch` workaround because a migration regenerated files nearby
   - good: read the existing patch rationale first and only touch it when the task genuinely depends on changing that workaround

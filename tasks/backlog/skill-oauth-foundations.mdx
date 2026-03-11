@@ -1,0 +1,35 @@
+---
+title: Build skill OAuth foundations
+priority: high
+tags: []
+---
+
+# Skill OAuth foundations
+
+## Context
+The app auth migration is moving from Convex Auth to Better Auth, but that only solves user sign-in.
+
+Skill OAuth is a separate problem: skills need service-specific OAuth 2 connections, token refresh, callback handling, and action resumption when authorization is missing.
+
+There is already a design note in `private/other/oauth-integration-design.md`, but it mixes broad ideas with implementation details and still leaves one scope trap open: fixed-provider Twitter OAuth and “users bring arbitrary OAuth endpoints” are not the same project.
+
+## Objective
+Define and scaffold the first real Skill OAuth foundation in Convex so a skill can require a user-owned service connection, starting with fixed-provider Twitter API v2 flow and explicitly excluding arbitrary user-defined OAuth endpoints from v1.
+
+## Subtasks
+- [ ] Define the first concrete schema for service connections, pending authorization state, and token refresh metadata.
+- [ ] Implement a provider registry for fixed first-party services, with Twitter API v2 as the first supported provider.
+- [ ] Add the Convex HTTP callback and authorization bootstrap flow, including state validation and safe redirect-back behavior.
+- [ ] Define how actions/skills pause when authorization is missing and resume once the required connection exists.
+- [ ] Add token refresh and connection invalidation rules so expired or revoked connections fail predictably.
+- [ ] Document the v1 boundary: fixed-provider OAuth only; no arbitrary user-defined OAuth endpoints yet.
+
+## Progress Log
+### 2026-03-09
+- Task created
+- Split Skill OAuth groundwork from the Better Auth app-sign-in migration
+
+## Notes
+Use `tasks/active/better-auth.md` and `private/other/oauth-integration-design.md` as source context, but keep this task opinionated and implementation-first.
+
+Acceptance should include one end-to-end Twitter OAuth happy path, one expired-token refresh path, and one pending-authorization action-resume path.
