@@ -1,11 +1,11 @@
 ---
 name: learn
-description: Extract lessons from conversation mistakes and update project rules and skills to prevent recurrence. Use when the user says "learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
+description: Extract lessons from conversation mistakes and update project rules, skills, and relevant tasks to prevent recurrence. Use when the user says "learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
 ---
 
 # Learn from Mistakes
 
-Review the full conversation, identify every place where the user corrected the model, and update `.config/MasterPlan.md` and `.config/skills/` so the same mistakes never happen again.
+Review the full conversation, identify every place where the user corrected the model, and update `.config/MasterPlan.md`, `.config/skills/`, and relevant task files so the same mistakes never happen again and concrete follow-up work does not disappear.
 
 ## Step 1: Scan the conversation
 
@@ -19,7 +19,17 @@ Read every message in the conversation. Look for signals that the model made a m
 - User manually did something the model should have done
 - User explicitly said an existing behavior/location/label was correct or "perfect", and the model changed it anyway
 
+If the thread was compacted, read the compaction summary first and look for a `Learn hints` section. Treat those hints as preserved evidence, not optional flavor text.
+
+Treat each user message as potentially meaningful. When compaction drops verbatim text, recover at least:
+
+- what the user was trying to get done
+- why they steered or corrected the model
+- what assumption, omission, or drift caused the miss
+
 Build a skill review queue from all skills under `.config/skills/`, not just the skills invoked in this conversation.
+
+Build a task review queue from the task(s) directly involved in the conversation plus any clearly related existing tasks you find with a focused search. Do not trawl the whole task tree unless the user explicitly asked for a broad task review.
 
 Track which skills were invoked, but do not limit analysis to them. A skill needs changes if:
 
@@ -36,6 +46,7 @@ For each mistake found, extract:
 3. **Root cause** — the general pattern behind the mistake (not the specific instance)
 4. **Evidence** — the concrete user correction/steering message that proves the mistake happened
 5. **Skill involvement** — if a skill contributed to the mistake, note which one and how
+6. **Task impact** — whether the lesson should change tracked work, such as scope, acceptance criteria, notes, or a missing follow-up task
 
 ### Generalizing properly
 
@@ -67,7 +78,7 @@ Do **not** add a rule when:
 
 Do add or update rules for explicit user preferences when the preference is durable (conventions, naming, process expectations) and capturing it will improve future behavior.
 
-When context is compacted or partially missing, use the best available signals and avoid inventing facts. Do not block useful rule updates only because confidence is not perfect. Make it explict so learn() can catch it.
+When context is compacted or partially missing, use the best available signals and avoid inventing facts. Do not block useful rule updates only because confidence is not perfect. Make the confidence limit explicit so `learn` can catch it.
 
 ## Step 2: Read and critique current rules
 
@@ -97,8 +108,9 @@ Decide where each lesson belongs before editing:
 
 - Put cross-cutting behavior in `.config/MasterPlan.md` (applies across many tasks/skills).
 - Put workflow-specific behavior in the relevant skill under `.config/skills/*/SKILL.md`.
+- Put concrete follow-up implementation work in task files.
 - Do not copy the same operational guidance into both files.
-- If both files must change, keep MasterPlan as a short principle and keep concrete workflow steps/examples only in the skill.
+- If multiple outputs must change, keep MasterPlan as a short principle, keep concrete workflow steps/examples only in the skill, and keep actionable execution work in tasks.
 
 Examples:
 
@@ -176,13 +188,61 @@ Apply the same principles as rule updates:
 - The issue is purely a general model behavior problem better handled in `.config/MasterPlan.md`
 - The fix would be so specific it would never apply again
 
-## Step 5: Summary
+## Step 5: Update tasks
+
+Rules and skills change future behavior. Tasks track concrete follow-up work. `learn` should update tasks when the lesson changes planned work, not just because a task file exists nearby.
+
+Before touching any task file:
+
+1. Read `tasks/README.md`.
+2. If touching a subtask, read the parent `_index.*` chain.
+3. Prefer updating an existing relevant task over creating a duplicate.
+4. If creating or materially reshaping a task, follow `.config/skills/create-task/SKILL.md`.
+
+### When to update an existing task
+
+Update an existing task when the conversation:
+
+- Clarified scope, acceptance criteria, constraints, or next steps
+- Revealed a missing subtask, risk, or note that belongs in tracked work
+- Changed status or priority in a way that should be preserved
+- Produced progress worth recording in `## Progress Log`
+
+Keep task updates concrete:
+
+- tighten `Objective`, `Subtasks`, `Notes`, or `Progress Log`
+- add a dated progress entry explaining why the task changed
+- rename the task file only when the task intent materially changed
+
+### When to create a new task
+
+Create a new task only when all of these are true:
+
+- There is durable unresolved repo work
+- The work is specific enough to be actionable now
+- No existing task already owns it
+- Capturing it only in rules/skills would lose important implementation follow-up
+
+Examples:
+
+- bad: create `learn from this mistake later`
+- good: create `tighten learn task-selection rules and update summary output`
+
+### When NOT to touch tasks
+
+- The lesson is fully handled by rule/skill edits
+- The conversation surfaced only a one-off preference with no concrete follow-up work
+- The task idea is vague, speculative, or duplicative
+
+## Step 6: Summary
 
 Tell the user:
 - How many mistakes were identified
 - What rules were added, modified, or merged
 - Whether any existing rules were tightened or reorganized
 - How many skills were reviewed, which skills were updated (if any), and what changed
+- How many task files were reviewed, which tasks were updated or created (if any), and why
 - Which candidate lessons were skipped (if any) because they were already covered or would not change behavior
-- If the thread was compacted, include a short **Compaction Notes** line listing preserved steering/learning cues and any missing context that could limit confidence
+- Which candidate task updates were skipped (if any) because they were vague, duplicative, or already captured elsewhere
+- If the thread was compacted, include a short **Compaction Notes** line stating whether `Learn hints` were present, which preserved steering/learning cues were used, and any missing context that could limit confidence
 - Which example-based rules/examples were added (or why none were needed)

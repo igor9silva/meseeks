@@ -4,8 +4,6 @@ import { useCallback } from 'react';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
 import { usePreferences } from '~/hooks/usePreferences';
 import { SkillCard } from './SkillCard';
-import { skillSchema } from 'schemas/skillSchema';
-import { z } from 'zod';
 
 /**
  * Fetches and displays the filtered list of skills
@@ -42,14 +40,14 @@ export function SkillListContent({
 	);
 
 	// Filter skills based on search term
-	const filteredSkills = skills?.filter(
-		(skill: z.infer<typeof skillSchema>) =>
+	const filteredSkills = skills.filter(
+		(skill) =>
 			skill.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			skill.description.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
 	// Empty state
-	if (filteredSkills?.length === 0) {
+	if (filteredSkills.length === 0) {
 		return (
 			<div className="text-center py-6">
 				{searchTerm.length > 0 ? (
@@ -69,7 +67,7 @@ export function SkillListContent({
 
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{filteredSkills?.map((skill) => (
+			{filteredSkills.map((skill) => (
 				<SkillCard
 					key={skill._id}
 					skill={skill}

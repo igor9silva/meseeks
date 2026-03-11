@@ -314,7 +314,7 @@ export default function MDX({
 
 							return (
 								<CodeBlock className={className}>
-									<CodeBlockCode code={children as string} language={language} />
+									<CodeBlockCode code={children} language={language} />
 								</CodeBlock>
 							);
 						},

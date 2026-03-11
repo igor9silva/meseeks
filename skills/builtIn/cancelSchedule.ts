@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
+import { zid } from 'convex-helpers/server/zod3';
 import { messageFrom } from 'lib/errors';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
@@ -8,7 +8,7 @@ export const cancelSchedule = defineSkill({
 	preApprovedCost: 0n,
 	description: 'Cancel an existing schedule.',
 	parameters: z.object({
-		scheduleId: z.string().describe('The ID of the schedule to cancel'),
+		scheduleId: zid('schedules').describe('The ID of the schedule to cancel'),
 	}),
 	knownReactions: [
 		{
@@ -24,7 +24,7 @@ export const cancelSchedule = defineSkill({
 			try {
 				//
 				await execution.ctx.runMutation(internal.schedules._cancel, {
-					scheduleId: args.scheduleId as Id<'schedules'>,
+					scheduleId: args.scheduleId,
 				});
 
 				return {

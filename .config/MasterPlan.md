@@ -77,6 +77,13 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Prefer inferred return types for local/private helpers.
 - Add explicit return types only at public API boundaries or when inference is ambiguous.
 
+### Type Inference
+- Prefer inferred types for local variables, array callback params, and intermediate collections.
+- Add explicit type annotations only at real boundaries or when inference is genuinely ambiguous after checking the source type.
+- When a type issue shows up in app code, fix the source type or boundary first instead of annotating every usage site.
+  - bad: `const filteredSkills: Doc<'skills'>[] = skills.filter((skill: Doc<'skills'>) => ...)`
+  - good: `const filteredSkills = skills.filter((skill) => ...)`
+
 ### Tailwind
 - Never use hardcoded values like `min-w-[256px]`
 - Use Tailwind conventions: `min-w-64`
@@ -120,6 +127,16 @@ if (isLoading) return <Loading />;
 if (hasError) return <Error />;
 return <Content />;
 ```
+
+### Hydration
+- Never add `suppressHydrationWarning` silently. Fix the mismatch instead, or stop and explain why the mismatch exists.
+  - bad: slap `suppressHydrationWarning` on `<html>` to hide a server/client mismatch during a migration
+  - good: make the server and client agree, or ask before using `suppressHydrationWarning` as an explicit last resort
+
+### Event Props
+- When an event prop can call an existing function directly, pass the function directly instead of wrapping it in an inline async callback.
+  - bad: `<DropdownMenuItem onClick={async () => { await signOutAndReload(); }} />`
+  - good: `<DropdownMenuItem onClick={signOutAndReload} />`
 
 ### Queries
 - Suspense queries (preferred) suspend to nearest `<Suspense>` and throw to nearest `<ErrorBoundary>`
@@ -181,8 +198,12 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Use `zid('tableName')` for typed IDs
 
 ### Environment Variables
-- Always import from `./schemas/envSchema`: `import { env } from './schemas/envSchema'`
-- Never use `process.env` directly
+- Never edit `.env`, `.env.local`, `.env.*`, or similar local env files unless the user explicitly asks. These files are user-owned configuration.
+- Never run `bunx convex env set`, `bunx convex env unset`, or similar Convex env mutation commands unless the user explicitly asks. If backend code needs a new Convex env var, tell the user the exact variable name, where it is read, and ask them to set it.
+  - bad: silently add `BETTER_AUTH_SECRET` to `.env.local` or mutate Convex envs during a migration
+  - good: say `convex/auth.ts` now reads `BETTER_AUTH_SECRET`; ask the user to set it in the Convex environment they own
+- This is also true for Vercel envs; never set them through the CLI or API; ask the user to set them in the Vercel environment they own
+- In Convex backend modules, import app-owned env vars from `./schemas/envSchema`: `import { env } from './schemas/envSchema'`
 
 ### Types
 - Use Zod schemas for all custom types
@@ -230,6 +251,9 @@ One file per hook in `src/hooks/`.
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
+- Before changing an existing workaround patch or local tooling fix, read why it exists and confirm the current task actually requires touching it. If not, leave it alone.
+  - bad: rewrite an existing `patches/*.patch` workaround because a migration regenerated files nearby
+  - good: read the existing patch rationale first and only touch it when the task genuinely depends on changing that workaround
 - If you notice unrelated code issues or Master Plan violations while working, do not fix them silently in the same pass. Surface them at the first user-facing opportunity and ask whether to handle now or create a task with the `create tasks` filter.
   - bad: include unrelated cleanups in the current diff without calling them out
   - good: `I noticed <issue>. Want me to handle it now, or should I create a task with the create task skill?`
@@ -253,7 +277,11 @@ One file per hook in `src/hooks/`.
 
 ## Context Compaction
 
-- When compacting context or writing handoff summaries, explicitly preserve user corrections, steering moments, rejected approaches, and unresolved decisions so the final `learn` pass can use them
+- When compacting context or writing handoff summaries, preserve every user message when practical. If full text would add noise, keep at least the user's intent, why they steered, and which model assumption was wrong.
+- Include a `Learn hints` section in every compaction or handoff summary. Keep it short and evidence-focused so the final `learn` pass can recover corrections, rejected approaches, durable preferences, and unresolved decisions without guessing.
+  - bad: "user wanted a different approach"
+  - good: "`Learn hints`: user pushed scope back to auth-only after the model drifted into unrelated cleanup; wrong assumption was that broad cleanup was welcome"
+- If you must compress aggressively, lose surface wording before you lose steering context.
 
 ## Rule Conflicts
 

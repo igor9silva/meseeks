@@ -1,6 +1,6 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules", "private"],
+	"exclude": ["node_modules", "private", "browser-poc", "organizer", "compiler-poc"],
 	"compilerOptions": {
 		"types": ["vite/client", "node"],
 		"esModuleInterop": true,

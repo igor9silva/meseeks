@@ -10,7 +10,7 @@ export function InnateSkillsList() {
 	const [searchTerm, setSearchTerm] = useState('');
 	const { skills: innateSkills } = useInnateSkills();
 
-	const filteredSkills = innateSkills?.filter(
+	const filteredSkills = innateSkills.filter(
 		(skill) =>
 			skill.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			skill.description.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -30,7 +30,7 @@ export function InnateSkillsList() {
 				</div>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{filteredSkills?.map((skill) => (
+					{filteredSkills.map((skill) => (
 						<Link
 							key={skill.key}
 							to="/skills/innate/$key"
