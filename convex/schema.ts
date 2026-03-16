@@ -1,4 +1,3 @@
-import { authTables } from '@convex-dev/auth/server';
 import { zodToConvex } from 'convex-helpers/server/zod3';
 import { defineSchema, defineTable } from 'convex/server';
 import { actionDetailSchema } from 'schemas/actionDetailSchema';
@@ -17,10 +16,10 @@ import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/us
 // prettier-ignore
 export default defineSchema({
 
-	...authTables,
-
 	users: defineTable(
 		zodToConvex(userSchema),
+	).index(
+		'authUserId', ['authUserId'],
 	).index(
 		'email', ['email'],
 	).index(

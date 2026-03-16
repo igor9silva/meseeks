@@ -8,6 +8,7 @@ export const env = createEnv({
 	server: {
 		//
 		SITE_URL: z.string().min(1).describe('The app public URL.'),
+		BETTER_AUTH_SECRET: z.string().min(1).describe('Better Auth application secret.'),
 
 		POLAR_SERVER: z.enum(['sandbox', 'production']).default('sandbox').describe('Polar server.'),
 		POLAR_ACCESS_TOKEN: z.string().min(1).describe('Polar Access Token for payment processing.'),

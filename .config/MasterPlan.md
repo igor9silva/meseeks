@@ -54,6 +54,9 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Prefer `Boolean()` over `!!`
 - Prefer `const` over `let`
 - Comments: lowercase, no capitalization
+- Add brief in-place comments for non-obvious framework, runtime, SSR, auth, or tooling constraints. Do not leave future readers guessing why a weird config or code path exists.
+  - bad: `noExternal: ['@convex-dev/better-auth']`
+  - good: comment that vite must bundle and transform the package during ssr instead of externalizing it
 - One-liner guards: `if (!element) return;` - use braces only when it doesn't fit on one line
 
 ### Naming
@@ -223,6 +226,14 @@ Do not run `bunx convex deploy` - this deploys to production.
 - `$.tsx` - splat/catch-all
 - `_layout.tsx` - pathless layouts
 - `-file.tsx` - excluded from routing
+
+### Search State
+- Inside routed UI, prefer TanStack Router's parsed location/search APIs over manual URL or query-string parsing.
+  - bad: `new URLSearchParams(searchStr).get('error')`
+  - good: `const authError = authErrorSearchSchema.parse(search).error`
+- When updating or deriving routed URLs, prefer `navigate({ search })` or `router.buildLocation(...)` over mutating query strings by hand.
+  - bad: `const url = new URL(window.location.href); url.searchParams.delete('error')`
+  - good: `router.buildLocation({ to: pathname, search: (prev) => ({ ...prev, error: undefined }) }).url.href`
 
 ## Hooks
 

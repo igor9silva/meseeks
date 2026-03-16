@@ -2,7 +2,6 @@
 // We moved away from AI SDK's transcribe() after finding out it was forcing
 // file type to audio/wav, breaking transcription. We spent too many hours on that already.
 
-import { getAuthUserId } from '@convex-dev/auth/server';
 import { z } from 'zod';
 import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
@@ -25,8 +24,8 @@ export const transcribe = action({
 	},
 	handler: async (ctx, { audio }) => {
 		//
-		const userId = await getAuthUserId(ctx);
-		if (!userId) throw new Error('Unauthorized');
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) throw new Error('Unauthorized');
 
 		const audioBlob = new Blob([audio]);
 		const file = new File([audioBlob], 'recording.webm');

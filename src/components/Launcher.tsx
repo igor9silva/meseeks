@@ -7,7 +7,6 @@ import * as React from 'react';
 import { startTransition, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from 'convex/_generated/api';
 
-import { useAuthActions } from '@convex-dev/auth/react';
 import { asBigInt } from 'lib/money';
 import {
 	BrushCleaning,
@@ -42,6 +41,7 @@ import { useIsPro } from '~/hooks/useIsPro';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useSplatParams } from '~/hooks/useSplatParams';
+import { signOutAndReload } from 'lib/auth-client';
 import { useDecreaseBudget, useDiscard, useIncreaseBudget, useResolve, useStop } from '~/hooks/useTaskMutations';
 
 interface LauncherContextType {
@@ -146,8 +146,6 @@ export function LauncherDialog() {
 	);
 
 	const { taskId: currentTaskId } = useSplatParams();
-
-	const { signOut } = useAuthActions();
 
 	const hasMore = paginationStatus === 'CanLoadMore';
 	const isLoadingMore = paginationStatus === 'LoadingMore';
@@ -257,7 +255,7 @@ export function LauncherDialog() {
 						<Github className="mr-2" />
 						View source code on GitHub
 					</CommandItem>
-					<CommandItem value="signout" keywords={['sign', 'out']} onSelect={() => signOut()}>
+					<CommandItem value="signout" keywords={['sign', 'out']} onSelect={signOutAndReload}>
 						<LogOut className="mr-2" />
 						Sign out
 					</CommandItem>

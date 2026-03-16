@@ -7,6 +7,13 @@ import { defineConfig } from 'vite';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
+	server: {
+		strictPort: true,
+	},
+	ssr: {
+		// don't externalize this package during ssr; vite needs to transform the react-start entry instead of leaving node to resolve it raw.
+		noExternal: ['@convex-dev/better-auth'],
+	},
 	plugins: [
 		tanstackStart(),
 		nitroV2Plugin(), // installing 'nitro' brings v3 alpha, which breaks

@@ -1,4 +1,3 @@
-import { useAuthActions } from '@convex-dev/auth/react';
 import { QueryClient } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
@@ -6,14 +5,13 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation }
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
-import { useState } from 'react';
+import { AccessDenied } from '~/components/AccessDenied';
 import { LauncherDialog } from '~/components/Launcher';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
 import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
-import { LoadingButton } from '~/components/ui/loading-button';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
@@ -81,7 +79,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html className="overflow-hidden">
+		<html className="dark overflow-hidden">
 			<head>
 				<HeadContent />
 			</head>
@@ -160,44 +158,6 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 					onOpenChange={toggleSchedule}
 				/>
 			)}
-		</div>
-	);
-}
-
-function AccessDenied() {
-	//
-	const { signIn } = useAuthActions();
-	const [isSigningIn, setIsSigningIn] = useState(false);
-
-	const handleSignIn = () => {
-		setIsSigningIn(true);
-		signIn('google', { redirectTo: window.location.href });
-	};
-
-	return (
-		<div className="h-screen w-full flex flex-col items-center justify-center gap-4">
-			<LoadingButton onClick={handleSignIn} loading={isSigningIn} loadingText="Redirecting...">
-				Continue with Google
-			</LoadingButton>
-			<footer className="absolute bottom-4 text-sm text-muted-foreground flex gap-4">
-				<a
-					href="/static/privacy-policy.md"
-					className="hover:underline"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Privacy Policy
-				</a>
-				<span>•</span>
-				<a
-					href="https://github.com/igor9silva/meseeks"
-					className="hover:underline"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					GitHub
-				</a>
-			</footer>
 		</div>
 	);
 }

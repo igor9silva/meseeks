@@ -1,10 +1,11 @@
 import { httpRouter } from 'convex/server';
-import { auth } from './auth';
+import { betterAuthComponent } from './betterAuth/component';
+import { createBetterAuth } from './betterAuth/runtime.private';
 import { handlePolarWebhook } from 'lib/polar';
 
 const http = httpRouter();
 
-auth.addHttpRoutes(http);
+betterAuthComponent.registerRoutes(http, createBetterAuth);
 
 http.route({
 	path: '/polar/webhook',

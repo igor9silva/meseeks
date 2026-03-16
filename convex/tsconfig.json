@@ -4,7 +4,6 @@
 	 * You can modify it, but some settings required to use Convex.
 	 */
 	"compilerOptions": {
-		"baseUrl": ".",
 		"paths": {
 			"convex/*": ["./*"],
 			"lib/*": ["../lib/*"],

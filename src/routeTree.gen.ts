@@ -24,6 +24,7 @@ import { Route as PolarToppedRouteImport } from './routes/polar/topped'
 import { Route as PolarSubscribedRouteImport } from './routes/polar/subscribed'
 import { Route as ActionIdRouteImport } from './routes/action_.$id'
 import { Route as SkillsInnateKeyRouteImport } from './routes/skills_.innate_.$key'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const TopUpRoute = TopUpRouteImport.update({
   id: '/top-up',
@@ -100,6 +101,11 @@ const SkillsInnateKeyRoute = SkillsInnateKeyRouteImport.update({
   path: '/skills/innate/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/polar': typeof PolarRouteRouteWithChildren
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
   '/top-up/$id': typeof TopUpIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/skills/innate/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
   '/top-up/$id': typeof TopUpIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/skills/innate/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRoutesById {
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/skills_/$id': typeof SkillsIdRoute
   '/skills_/new': typeof SkillsNewRoute
   '/top-up_/$id': typeof TopUpIdRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/skills_/innate_/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRouteTypes {
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
+    | '/api/auth/$'
     | '/skills/innate/$key'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
+    | '/api/auth/$'
     | '/skills/innate/$key'
   id:
     | '__root__'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/skills_/$id'
     | '/skills_/new'
     | '/top-up_/$id'
+    | '/api/auth/$'
     | '/skills_/innate_/$key'
   fileRoutesById: FileRoutesById
 }
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   SkillsIdRoute: typeof SkillsIdRoute
   SkillsNewRoute: typeof SkillsNewRoute
   TopUpIdRoute: typeof TopUpIdRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   SkillsInnateKeyRoute: typeof SkillsInnateKeyRoute
 }
 
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillsInnateKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -360,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkillsIdRoute: SkillsIdRoute,
   SkillsNewRoute: SkillsNewRoute,
   TopUpIdRoute: TopUpIdRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   SkillsInnateKeyRoute: SkillsInnateKeyRoute,
 }
 export const routeTree = rootRouteImport

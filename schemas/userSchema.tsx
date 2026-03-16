@@ -2,6 +2,7 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod';
 
 export const userSchema = z.object({
+	authUserId: z.string().optional(),
 	name: z.string().optional(),
 	image: z.string().optional(),
 	email: z.string().optional(),

@@ -1,5 +1,3 @@
-import { useAuthActions } from '@convex-dev/auth/react';
-
 import { CaretSortIcon, ComponentPlaceholderIcon } from '@radix-ui/react-icons';
 import { Link } from '@tanstack/react-router';
 import { BadgeCheck, Bell, LogOut, Sparkles } from 'lucide-react';
@@ -15,13 +13,13 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '~/components/ui/sidebar';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { signOutAndReload } from 'lib/auth-client';
 
 export function UserMenuItem() {
 	//
 	const user = useCurrentUser();
 
 	const { isMobile } = useSidebar();
-	const { signOut } = useAuthActions();
 
 	return (
 		<SidebarMenu>
@@ -86,7 +84,7 @@ export function UserMenuItem() {
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={signOut}>
+						<DropdownMenuItem onClick={signOutAndReload}>
 							<LogOut />
 							Sign out
 						</DropdownMenuItem>

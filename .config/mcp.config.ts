@@ -36,6 +36,13 @@ export const mcpConfig: MCPConfig = {
 			enabled: true,
 			description: 'Convex MCP server for database operations',
 		},
+		Playwright: {
+			name: 'Playwright',
+			command: 'bunx',
+			args: ['-y', '@playwright/mcp@latest'],
+			enabled: false,
+			description: 'Playwright MCP server for browser automation',
+		},
 		// Add more MCP servers here as needed:
 		// Example:
 		// github: {
