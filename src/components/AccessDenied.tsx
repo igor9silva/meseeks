@@ -19,11 +19,16 @@ export function AccessDenied() {
 		//
 		// use the router's location builder so auth callbacks follow the same search serialization rules
 		// as the rest of the app while stripping the one-off oauth error param.
-		return router.buildLocation({
+		const callbackPath = router.buildLocation({
 			to: pathname,
 			hash,
 			search: (prev) => ({ ...prev, error: undefined }),
-		}).url.href;
+		}).href;
+
+		// better-auth wants a full callback url in the browser, but the router now returns href strings here.
+		if (typeof window === 'undefined') return callbackPath;
+
+		return new URL(callbackPath, window.location.origin).href;
 		//
 	}, [hash, pathname, router]);
 

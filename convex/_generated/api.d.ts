@@ -33,7 +33,6 @@ import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-  FunctionVisibility,
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
@@ -59,16 +58,6 @@ declare const fullApi: ApiFromModules<{
   "users/requests": typeof users_requests;
 }>;
 
-type ByVisibility<API, V extends FunctionVisibility> = {
-  [K in keyof API as API[K] extends FunctionReference<any, V, any, any>
-    ? K
-    : API[K] extends FunctionReference<any, any, any, any>
-      ? never
-      : K]: API[K] extends FunctionReference<any, V, any, any>
-    ? API[K]
-    : ByVisibility<API[K], V>;
-};
-
 /**
  * A utility for referencing Convex functions in your app's public API.
  *
@@ -77,7 +66,10 @@ type ByVisibility<API, V extends FunctionVisibility> = {
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-export declare const api: ByVisibility<typeof fullApi, "public">;
+export declare const api: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "public">
+>;
 
 /**
  * A utility for referencing Convex functions in your app's internal API.
@@ -87,7 +79,10 @@ export declare const api: ByVisibility<typeof fullApi, "public">;
  * const myFunctionReference = internal.myModule.myFunction;
  * ```
  */
-export declare const internal: ByVisibility<typeof fullApi, "internal">;
+export declare const internal: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "internal">
+>;
 
 export declare const components: {
   betterAuth: {
