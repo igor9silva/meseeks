@@ -3,7 +3,7 @@ import { Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { useMutation } from 'convex/react';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { BudgetStep } from '~/components/ui/budget-selector';
 import { api } from 'convex/_generated/api';
 

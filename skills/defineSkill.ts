@@ -1,22 +1,22 @@
 import { z } from 'zod';
 import { Doc } from 'convex/_generated/dataModel';
-import { ActionCtx } from 'convex/_generated/server';
+import { ActionCtx, MutationCtx } from 'convex/_generated/server';
 
 export type Skill<T extends z.AnyZodObject> = {
 	preApprovedCost: bigint | 'none';
 	description: string;
 	parameters: T;
 	knownReactions: Array<Reaction>;
-	use: (execution: ToolExecution) => (args: z.infer<T>) => Promise<ExecutionResult>;
+	use: (execution: ToolExecution<T>) => (args: z.infer<T>) => Promise<ExecutionResult>;
 	hidden?: boolean;
 	priority?: number;
 };
 
-export type ToolExecution = {
-	ctx: ActionCtx; //
+export type ToolExecution<T extends z.AnyZodObject = z.AnyZodObject> = {
+	ctx: ActionCtx | MutationCtx;
 	task: Doc<'tasks'>;
 	action: Doc<'actions'>;
-	skill: Skill<z.AnyZodObject>;
+	skill: Skill<T>;
 };
 
 export const reactionSchema = z.object({

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { BasicError } from '~/components/BasicError';
 import MDX from '~/components/ui/mdx';
 import { useComposition } from '~/hooks/query/useComposition';

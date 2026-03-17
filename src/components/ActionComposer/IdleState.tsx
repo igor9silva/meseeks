@@ -2,7 +2,7 @@ import type { Doc } from 'convex/_generated/dataModel';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { ArrowUp, Hourglass, Mic, Sparkles, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
 import { ActionButton } from '~/components/ui/action-button';

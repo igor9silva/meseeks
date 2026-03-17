@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Doc, Id } from '../_generated/dataModel';
 import type { ActionCtx, MutationCtx } from '../_generated/server';
 import { internal } from '../_generated/api';

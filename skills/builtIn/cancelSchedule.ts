@@ -8,7 +8,7 @@ export const cancelSchedule = defineSkill({
 	preApprovedCost: 0n,
 	description: 'Cancel an existing schedule.',
 	parameters: z.object({
-		scheduleId: zid('schedules').describe('The ID of the schedule to cancel'),
+		scheduleId: z.string().describe('The ID of the schedule to cancel'),
 	}),
 	knownReactions: [
 		{
@@ -24,7 +24,7 @@ export const cancelSchedule = defineSkill({
 			try {
 				//
 				await execution.ctx.runMutation(internal.schedules._cancel, {
-					scheduleId: args.scheduleId,
+					scheduleId: zid('schedules').parse(args.scheduleId),
 				});
 
 				return {

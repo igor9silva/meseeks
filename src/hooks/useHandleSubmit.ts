@@ -1,5 +1,5 @@
 import { type FormEvent } from 'react';
-import { type z } from 'zod';
+import { type z } from 'zod/v3';
 
 export function useHandleSubmit<T extends z.ZodType>({
 	schema,

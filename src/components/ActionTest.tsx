@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Textarea } from '~/components/ui/textarea';
 
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { cn } from '~/lib/utils';
 import { actionSchema } from 'schemas/actionSchema';
 

@@ -2,7 +2,7 @@
 // We moved away from AI SDK's transcribe() after finding out it was forcing
 // file type to audio/wav, breaking transcription. We spent too many hours on that already.
 
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
 

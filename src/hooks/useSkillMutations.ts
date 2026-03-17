@@ -1,6 +1,6 @@
 import { useMutation } from 'convex/react';
 import { newSkillSchema } from 'schemas/skillSchema';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { api } from 'convex/_generated/api';
 
 export function useSkillMutations() {

@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Doc } from 'convex/_generated/dataModel';
 import { useForm } from 'react-hook-form';
 import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
@@ -21,7 +21,7 @@ interface HardSkillFormProps {
 export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) {
 	//
 	const form = useForm<HardSkillFormValues>({
-		resolver: zodResolver(hardSkillFormSchema),
+		resolver: standardSchemaResolver(hardSkillFormSchema),
 		defaultValues: getDefaultHardSkill(skill),
 		mode: 'onChange',
 	});

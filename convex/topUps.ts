@@ -1,6 +1,6 @@
 import { Polar } from '@polar-sh/sdk';
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { Id } from './_generated/dataModel';
 import { action, internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';

@@ -1,7 +1,7 @@
 import { DEFAULT_INTELLIGENCE, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';

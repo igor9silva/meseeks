@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
 import { addAction, skipPendingAuthorizationByTaskAuthor } from '../action.private';

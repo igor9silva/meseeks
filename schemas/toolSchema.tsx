@@ -1,5 +1,5 @@
 import type { Tool, ToolSet } from 'ai';
-import type { z } from 'zod';
+import type { z } from 'zod/v3';
 import type { newActionSchema } from './actionSchema';
 import type { tokenSchema } from './topUpSchema';
 

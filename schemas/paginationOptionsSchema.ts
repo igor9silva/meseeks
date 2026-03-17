@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export const paginationOptionsSchema = z.object({
 	numItems: z.number(),

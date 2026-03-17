@@ -1,7 +1,7 @@
 import { ConvexProviderWithAuth, type ConvexReactClient } from 'convex/react';
 import { convexJwtCookieNames } from 'lib/auth';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { getConvexToken } from 'lib/auth-client';
 
 const tokenRefreshLeewaySeconds = 60;

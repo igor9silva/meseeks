@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { getCurrentUser } from './users.private';

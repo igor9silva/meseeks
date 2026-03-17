@@ -1,6 +1,6 @@
 import { NoOp } from 'convex-helpers/server/customFunctions';
 import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { ActionCtx, MutationCtx, QueryCtx } from 'convex/_generated/server';
 import {
 	action as actionOG,

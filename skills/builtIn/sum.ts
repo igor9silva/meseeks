@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const sum = defineSkill({
 	preApprovedCost: 0n,
@@ -15,7 +15,7 @@ export const sum = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {

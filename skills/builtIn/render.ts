@@ -19,6 +19,11 @@ export const render = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
+			// TODO: remove after new reactor (that only takes action ctx)
+			if (!('runAction' in execution.ctx)) {
+				throw new Error('Render can only run from an action context.');
+			}
+
 			const transpiledCode = await execution.ctx.runAction(internal.babel._transpileCode, {
 				code: args.code,
 			});

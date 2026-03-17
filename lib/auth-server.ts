@@ -1,5 +1,5 @@
 import { convexBetterAuthReactStart } from '@convex-dev/better-auth/react-start';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const authServerEnv = z
 	.object({

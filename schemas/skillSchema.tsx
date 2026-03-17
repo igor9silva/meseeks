@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 import { intelligenceKeys } from './intelligenceSchema';

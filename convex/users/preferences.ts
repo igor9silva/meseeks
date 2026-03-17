@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { findUserPreference, setUserPreference } from './preferences.private';
 import { getCurrentUser } from '../users.private';

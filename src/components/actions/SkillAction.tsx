@@ -2,7 +2,7 @@ import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
 import { simplifiedSkillSchema } from 'schemas/skillSchema';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';

@@ -2,7 +2,7 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { DefaultValues } from 'react-hook-form';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 // Extract the individual schemas from newSkillSchema union
 type NewSkillUnion = z.infer<typeof newSkillSchema>;

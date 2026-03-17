@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { mutation } from 'lib/convex';
 import { userRequestKeySchema } from 'schemas/userSchema';
 import { getCurrentUser } from '../users.private';

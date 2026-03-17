@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { asDollars } from 'lib/money';
 import { useCallback, useRef } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { ActiveTasksTab } from '~/components/balance/ActiveTasksTab';
 import { LowBalanceWarning } from '~/components/balance/LowBalanceWarning';
 import { TopUpSection } from '~/components/balance/TopUpSection';

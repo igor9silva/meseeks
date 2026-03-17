@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Doc, Id } from './_generated/dataModel';
 import { addActions } from './action.private';
 import { defineMutation, defineQuery } from 'lib/convex';

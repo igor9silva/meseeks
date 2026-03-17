@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { asBigInt } from 'lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';

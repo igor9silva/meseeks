@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { asDollars, asBigInt } from 'lib/money';
 
 // TODO: dynamic read from models.dev

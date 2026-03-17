@@ -12,7 +12,7 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, posix, relative, resolve } from 'node:path';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'tasks', '.generated');

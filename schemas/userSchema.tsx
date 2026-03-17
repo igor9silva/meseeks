@@ -1,5 +1,5 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 export const userSchema = z.object({
 	authUserId: z.string().optional(),

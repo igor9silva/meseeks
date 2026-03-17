@@ -1,5 +1,5 @@
 import { Polar } from '@polar-sh/sdk';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { action, internalMutation, internalQuery, query } from 'lib/convex';
 import { env } from 'schemas/envSchema';
 import {
