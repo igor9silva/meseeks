@@ -1,0 +1,57 @@
+---
+title: Upgrade app schemas to native Zod 4 and remove Zodex
+priority: high
+tags: [debt]
+---
+
+# Upgrade app schemas to native Zod 4 and remove Zodex
+
+## Context
+The current schema stack is split across `zod/v3`, `convex-helpers/server/zod3`, `better-auth` on Zod 4, and `zodex` for schema serialization. That split already caused SSR/runtime breakage in production, including Nitro resolving a Zod 4 runtime while parts of the app still composed Zod 3 schemas.
+
+One possible interim mitigation is to keep importing `zod/v3` while moving `package.json` to Zod 4. That was tested, but it is still a compatibility shim and did not hold cleanly across this repo's package boundaries.
+
+## Objective
+Move the repo to a coherent Zod 4 stack, remove `zodex`, and replace stored schema serialization with a format that works with the AI SDK and survives SSR/runtime bundling without mixed-major failures.
+
+The exact serializer decision is still open:
+- replace `zodex` with native Zod 4 to/from JSON Schema helpers
+- or upgrade `zodex` itself if a Zod 4-compatible path exists and is good enough
+
+## Subtasks
+- [ ] Audit all imports of `zod/v3`, `convex-helpers/server/zod3`, and `zodex` across `convex/`, `schemas/`, `src/`, `lib/`, and `skills/`.
+- [ ] Replace Convex helper imports with `convex-helpers/server/zod4` where supported, and move app-owned schemas to Zod 4 definitions.
+- [ ] Decide whether to replace `zodex` with native Zod 4 to/from JSON Schema helpers or upgrade `zodex` itself, then implement that choice in `lib/zodToString.ts` and the `skills.inputSchema` flow.
+- [ ] Add backward-compatible reads for legacy `skills.inputSchema` values already stored in Convex so old skills do not break immediately after deploy.
+- [ ] Add and validate a one-off migration that rewrites persisted legacy `skills.inputSchema` strings to the new JSON Schema format.
+- [ ] Remove `zodex` and any remaining Zod 3-only compatibility code once reads, writes, build, and migrations are green.
+
+## Progress Log
+### 2026-03-17
+- Task created
+- Tested `zod@4` at the package root while keeping `zod/v3` imports; reverted because the mixed-major setup still broke real integration boundaries (`zodex`, form resolvers, env/schema helpers, and tool typing).
+
+### 2026-03-18
+- Confirmed the production 500 was the SSR/runtime packaging bug: Nitro/Vercel resolved top-level `zod` to 4.x while parts of the server bundle still expected raw `zod/v3` runtime imports.
+- Rejected the duplicate-schema workaround. Keep a single shared schema layer; this task should fix mixed-major packaging and serialization cleanly, not fork app schemas or remove `zid()` usage as a workaround.
+
+## Notes
+- Relevant hotspots:
+  - `lib/zodToString.ts`
+  - `convex/skills.private.ts`
+  - `skills/createAITool.ts`
+  - `skills/createHttpTool.ts`
+  - `skills/builtIn/createSkill.ts`
+  - `lib/convex.ts`
+  - `zodex` compatibility with Zod 4, or removal path if JSON Schema becomes the new source of truth
+  - all schema modules currently using `convex-helpers/server/zod3`
+- Acceptance should include at least:
+  - `bun typecheck`
+  - `bun run build`
+  - local Node preview without the prior 500 on `/`
+- Production failure context to preserve:
+  - Nitro runtime loaded Zod 4 while app code still mixed Zod 3 schema instances
+  - `zodex@3.0.0` is pinned to `zod@^3.x` and is the main blocker for a clean upgrade
+- Constraints to preserve during this task:
+  - do not fork shared schemas into parallel app/Convex trees as a workaround
+  - do not treat `zid()` itself as the bug; the bug was mixed-major runtime resolution in SSR/Vercel output

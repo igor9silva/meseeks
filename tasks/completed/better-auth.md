@@ -33,6 +33,10 @@ Ship Better Auth for platform sign-in without regressing the old Convex Auth sta
 - Kept a narrow `users.current` fallback from `identity.userId` to `authUserId` because the first Convex JWT after sign-in can arrive before the Better Auth `user.userId` bridge is present in the token payload.
 - Task resolved after user review. If we want to remove that first-login fallback later, that is a separate follow-up, not unfinished migration work.
 
+### 2026-03-18
+- User explicitly confirmed Better Auth is finally done.
+- Treat future auth changes as follow-up work, not as reopened Better Auth migration cleanup.
+
 ## Notes
 - `skills-only` OAuth providers remain separate work; see `tasks/backlog/skill-oauth-foundations.mdx`.
 - Reverting primary platform sign-in back to Convex Auth was a valid fallback, but was not needed.
