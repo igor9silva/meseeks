@@ -2,7 +2,7 @@ import { tool } from 'ai';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { AITool } from 'schemas/toolSchema';
-import type { z } from 'zod';
+import type { z } from 'zod/v3';
 import { createReactions } from './createReactions';
 import type { Skill, ToolExecution } from './defineSkill';
 

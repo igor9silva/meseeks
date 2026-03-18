@@ -11,8 +11,9 @@ export default defineConfig({
 		strictPort: true,
 	},
 	ssr: {
-		// don't externalize this package during ssr; vite needs to transform the react-start entry instead of leaving node to resolve it raw.
-		noExternal: ['@convex-dev/better-auth'],
+		// don't externalize these packages during ssr; vite needs to transform the react-start entry instead of leaving node to resolve it raw.
+		// zod must stay bundled too, because the vercel function hoists top-level `zod` to 4.x via better-auth and breaks bare `zod/v3` runtime imports.
+		noExternal: ['@convex-dev/better-auth', 'zod'],
 	},
 	plugins: [
 		tanstackStart(),

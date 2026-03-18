@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { Doc } from 'convex/_generated/dataModel';
 import { ActionCtx, MutationCtx } from 'convex/_generated/server';
 

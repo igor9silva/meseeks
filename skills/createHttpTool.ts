@@ -1,12 +1,12 @@
 import { tool } from 'ai';
 import { dset } from 'dset';
-import type { z } from 'zod';
+import type { z } from 'zod/v3';
 import { internal } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
+import type { hardSkillSchema } from 'schemas/skillSchema';
 import { stringToZod } from 'lib/zodToString';
 import { env } from 'schemas/envSchema';
-import type { hardSkillSchema } from 'schemas/skillSchema';
 import type { AITool } from 'schemas/toolSchema';
 import { createReactions } from './createReactions';
 

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const multiply = defineSkill({

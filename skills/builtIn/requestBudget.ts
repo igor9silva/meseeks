@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { asBigInt } from 'lib/money';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 

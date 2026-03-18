@@ -1,15 +1,15 @@
 import { tool, type ModelMessage, type SystemModelMessage, type ToolSet } from 'ai';
-import type { z } from 'zod';
+import type { z } from 'zod/v3';
 import { internal } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
+import type { newActionSchema } from 'schemas/actionSchema';
+import type { skillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { asDollars } from 'lib/money';
 import { stringToZod } from 'lib/zodToString';
 import { askMagicRock, type MagicRockContext } from 'convex/magicRock.private';
-import type { newActionSchema } from 'schemas/actionSchema';
 import { env } from 'schemas/envSchema';
 import { DEFAULT_INTELLIGENCE, INTELLIGENCES, intelligenceKeys } from 'schemas/intelligenceSchema';
-import { type skillSchema, type softSkillSchema } from 'schemas/skillSchema';
 import type { AITool, AIToolResult } from 'schemas/toolSchema';
 
 export function createAITool(

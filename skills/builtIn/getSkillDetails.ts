@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { internal } from 'convex/_generated/api';
-import { asDollars } from 'lib/money';
 import { skillSchema } from 'schemas/skillSchema';
+import { asDollars } from 'lib/money';
 import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const getSkillDetails = defineSkill({
