@@ -82,6 +82,15 @@ export const env = createEnv({
 			.pipe(z.number())
 			.describe('JWT session duration in milliseconds.'),
 
+		JWT_SESSION_UPDATE_AGE_MS: z
+			.string()
+			.min(1)
+			// transform to number
+			.transform((s) => Number.parseInt(s, 10))
+			// make sure transform worked
+			.pipe(z.number())
+			.describe('Session update age in milliseconds (how often to refresh rolling sessions in background).'),
+
 		OPENAI_API_KEY: z.string().min(1).describe('OpenAI API key.'),
 
 		MAX_CONSECUTIVE_COMPANION_ACTIONS: z

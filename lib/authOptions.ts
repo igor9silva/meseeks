@@ -10,6 +10,7 @@ type CreateAuthOptionsArgs = {
 	googleClientId: string;
 	googleClientSecret: string;
 	sessionDurationSeconds: number;
+	sessionUpdateAgeSeconds: number;
 	database?: AdapterFactory;
 };
 
@@ -25,7 +26,7 @@ export function createAuthOptions(input: CreateAuthOptionsArgs) {
 		...(input.database ? { database: input.database } : {}),
 		session: {
 			expiresIn: input.sessionDurationSeconds,
-			updateAge: input.sessionDurationSeconds,
+			updateAge: input.sessionUpdateAgeSeconds,
 		},
 		account: {
 			encryptOAuthTokens: true,
@@ -71,6 +72,7 @@ export function createCodegenAuthOptions() {
 		secret: 'component-auth-secret',
 		googleClientId: 'component-google-client-id',
 		googleClientSecret: 'component-google-client-secret',
-		sessionDurationSeconds: 60 * 60 * 24 * 7,
+		sessionDurationSeconds: 60 * 60 * 24 * 7, // 7 days
+		sessionUpdateAgeSeconds: 60 * 60 * 24, // 1 day
 	});
 }

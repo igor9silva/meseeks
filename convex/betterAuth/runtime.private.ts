@@ -16,6 +16,7 @@ export function createBetterAuth(ctx: GenericCtx<DataModel>) {
 			googleClientId: env.AUTH_GOOGLE_ID,
 			googleClientSecret: env.AUTH_GOOGLE_SECRET,
 			sessionDurationSeconds: Math.floor(env.JWT_SESSION_DURATION_MS / 1000),
+			sessionUpdateAgeSeconds: Math.floor(env.JWT_SESSION_UPDATE_AGE_MS / 1000),
 			database: betterAuthComponent.adapter(ctx),
 		}),
 	);
