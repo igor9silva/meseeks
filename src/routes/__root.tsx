@@ -45,7 +45,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			{ name: 'application-name', content: 'Meseeks' },
 			{ name: 'apple-mobile-web-app-title', content: 'Meseeks' },
 			{ name: 'theme-color', content: '#000000', media: '(prefers-color-scheme: dark)' },
-			{ name: 'theme-color', content: '#ffffff', media: '(prefers-color-scheme: light)' },
+			{ name: 'theme-color', content: '#FFF0D1', media: '(prefers-color-scheme: light)' },
 			{ name: 'mobile-web-app-capable', content: 'yes' },
 			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
 			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
