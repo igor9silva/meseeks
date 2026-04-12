@@ -13,6 +13,7 @@ import {
 	findEnabledSkillsWithDetails,
 	findSkill,
 	isBuiltInSkillKey,
+	replaceProSkills,
 	updateSkill,
 } from './skills.private';
 import { _builtInSkills } from 'skills/builtIn/index';
@@ -77,6 +78,12 @@ export const _enableSkill = internalMutation({
 		skillKey: z.string(),
 	},
 	handler: enableSkill,
+});
+
+// called by private/skills/deploy.ts to sync the db-backed isPro skill catalog
+export const _replaceProSkills = internalMutation({
+	args: replaceProSkills.args,
+	handler: replaceProSkills,
 });
 
 export const findAllPublic = query({
