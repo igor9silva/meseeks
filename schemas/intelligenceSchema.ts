@@ -66,6 +66,7 @@ export const intelligenceKeys = z.enum([
 	// 'openai/gpt-5.1-chat',
 	// 'openai/gpt-5.1-codex',
 	// 'openai/gpt-5.1-codex-mini',
+	'openai/gpt-5.4',
 	'openai/gpt-5',
 	'openai/gpt-5-mini',
 	'openai/gpt-5-nano',
@@ -195,6 +196,15 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//             OpenAI
 	// ==============================
+	'openai/gpt-5.4': {
+		key: 'openai/gpt-5.4',
+		name: 'GPT-5.4',
+		description: '~le state of the art',
+		provider: 'OpenAI',
+		pricing: buildPricing({ input: 2.5, output: 15 }),
+		context: buildContext(250_000),
+		intelligenceLevel: 10,
+	},
 	'openai/gpt-5': {
 		key: 'openai/gpt-5',
 		name: 'GPT-5',

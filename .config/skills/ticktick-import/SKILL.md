@@ -1,19 +1,51 @@
 ---
 name: ticktick-import
-description: Import tasks from TickTick into the Meseeks task system. Use when the user asks to fetch TickTick tasks, import from TickTick, sync TickTick, pull tasks from TickTick, or discover their TickTick inbox ID.
+description: Import tasks from TickTick into the Meseeks task system, sync link buckets from TickTick Inbox, or create TickTick tasks from local link files. Use when the user asks to fetch TickTick tasks, import from TickTick, sync TickTick, pull tasks from TickTick, discover their inbox ID, or push curated local links back into TickTick.
 ---
 
 # TickTick Import
 
-Fetch tasks from TickTick's API and import them into the Meseeks task system as markdown files.
+This skill now has two real paths. Pick the one that matches the job instead of forcing everything through the public Open API.
 
-## Prerequisites
+## Paths
 
-Set the `TICKTICK_API_TOKEN` environment variable with your TickTick API token (from [TickTick Developer Portal](https://developer.ticktick.com/)).
+### 1. Open API path
 
-```bash
-export TICKTICK_API_TOKEN="your_token_here"
-```
+Use this when you need a broad snapshot of projects/tasks from TickTick's public API.
+
+Scripts:
+
+- `scripts/fetch-tasks.ts`
+- `scripts/discover-inbox.ts`
+
+Requirements:
+
+- `TICKTICK_API_TOKEN`
+- optionally `TICKTICK_INBOX_ID`
+- optionally `TICKTICK_GROUP_NAMES`
+
+### 2. Native macOS app path
+
+Use this when you need Inbox-specific link syncing or to create TickTick tasks from local files and the public API token is unavailable.
+
+This path reads TickTick's local macOS data and, when needed, uses the native app's authenticated session to call TickTick's private API.
+
+Scripts:
+
+- `scripts/import-links.ts`
+- `scripts/reshape-links.ts`
+- `scripts/create-reference-ticktick-tasks.ts`
+
+Requirements:
+
+- macOS
+- TickTick desktop app installed and signed in
+- local TickTick store at `~/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`
+
+Hard rule:
+
+- do not write directly into TickTick's SQLite task tables unless the user explicitly asks for that hack
+- prefer the native app session + HTTP API for writes
 
 ## Scripts
 
@@ -21,65 +53,166 @@ All scripts live in `scripts/` next to this file. Run with `bun`.
 
 ### Fetch all tasks
 
-Fetches all projects and uncompleted tasks from TickTick, saving JSON snapshots.
+Fetches all projects and uncompleted tasks from TickTick's public Open API and saves JSON snapshots.
 
 ```bash
 bun scripts/fetch-tasks.ts [--output-dir <dir>]
 ```
 
-Output files (saved to `--output-dir` or the script directory):
+Output files:
 
-- `projects.json` — all projects with path info
-- `all-tasks.json` — all uncompleted tasks across projects
-- `tasks-by-project.json` — tasks grouped by project
-- `summary.json` — overview with counts
+- `projects.json`
+- `all-tasks.json`
+- `tasks-by-project.json`
+- `summary.json`
 
 ### Discover inbox ID
 
-TickTick's API doesn't expose the Inbox project ID directly. This script discovers it by creating and immediately deleting a temporary task.
+TickTick's Open API does not expose the Inbox project ID directly. This script discovers it by creating and deleting a temporary task.
 
 ```bash
 bun scripts/discover-inbox.ts
 ```
 
-Prints the inbox ID. Set it as `TICKTICK_INBOX_ID` environment variable for `fetch-tasks.ts` to include Inbox tasks.
+It prints the inbox ID so it can be exported as:
 
 ```bash
 export TICKTICK_INBOX_ID="inbox118693896"
 ```
 
+### Import link buckets from TickTick Inbox
+
+Reads a parent task from TickTick Inbox via the local macOS database, scrapes each child link, and writes `.mdx` files into `private/tasks/links`.
+
+```bash
+bun scripts/import-links.ts \
+  --parent-title 'twitter links' \
+  --skip-existing \
+  --import-date 2026-04-12 \
+  --summary-file /tmp/twitter-links-sync-summary.json
+```
+
+Useful flags:
+
+- `--parent-title <title>`: pick the Inbox grouping task, for example `twitter links` or `other links`
+- `--skip-existing`: leave already-imported child tasks alone
+- `--delete-missing`: remove local files whose TickTick child task no longer exists under that parent
+- `--summary-file <file>`: write a machine-readable summary of `created`, `kept`, and `deleted`
+- `--import-date <YYYY-MM-DD>`: stamp imports explicitly
+- `--concurrency <n>`: scrape in parallel
+- `--output-dir <dir>`: override the default `private/tasks/links`
+
+Current behavior:
+
+- dedupes by TickTick child task id
+- scans the output directory recursively, so manually moved files under `links/*/*` still count as existing
+- does not preserve custom subfolder placement for newly created files; it only avoids touching existing moved files
+- for existing tasks under `--skip-existing`, it does not rescrape or rewrite
+
+### Reshape imported link files
+
+Rewrites already-imported link files into the flat format used now:
+
+- original link
+- separator
+- raw scraped markdown
+- separator
+- preserved TickTick snapshot / metadata
+
+```bash
+bun scripts/reshape-links.ts
+```
+
+Use this when the file shape changes but the underlying imported data should stay the same.
+
+### Create TickTick `References` tasks from local files
+
+Creates TickTick tasks in the `References` project from local files under `private/tasks/links/references`.
+
+```bash
+bun scripts/create-reference-ticktick-tasks.ts \
+  --summary-file /tmp/ticktick-references-create-summary.json
+```
+
+Current behavior:
+
+- reads local files from `private/tasks/links/references`
+- extracts the original link from the file metadata payload
+- derives a human title from the first meaningful scraped line instead of using the raw URL
+- stores the original link plus scraped body in TickTick `content`
+- dedupes against existing `References` tasks by link
+- creates only missing tasks
+- uses the native app's authenticated session from local cookie/app state
+
+Implementation note:
+
+- this script writes through TickTick's private API using:
+  - cookie `t=...` from the app cookie store
+  - `X-Device` from the active user in the local DB
+- this is the right compromise when the public Open API token is unavailable
+
 ## Configuration
 
-All configuration is via environment variables:
+### Open API env vars
 
 | Variable | Required | Description |
 |---|---|---|
-| `TICKTICK_API_TOKEN` | Yes | Bearer token for TickTick API |
-| `TICKTICK_INBOX_ID` | No | Inbox project ID (use `discover-inbox.ts` to find it) |
-| `TICKTICK_GROUP_NAMES` | No | JSON mapping of group IDs to names (e.g. `{"abc123": "Work"}`) |
+| `TICKTICK_API_TOKEN` | Yes for Open API scripts | Bearer token for TickTick Open API |
+| `TICKTICK_INBOX_ID` | No | Inbox project ID for `fetch-tasks.ts` |
+| `TICKTICK_GROUP_NAMES` | No | JSON mapping of group IDs to names |
 
-### Group names
-
-TickTick's v1 API doesn't expose group (folder) names, only IDs. To get human-readable paths, set `TICKTICK_GROUP_NAMES` as a JSON object:
+Example:
 
 ```bash
-export TICKTICK_GROUP_NAMES='{"6456ad357415514d9ac101b5": "To", "66b90a07e2cf110236120901": "Other"}'
+export TICKTICK_GROUP_NAMES='{"6456ad357415514d9ac101b5":"To","66b90a07e2cf110236120901":"Other"}'
 ```
 
-The script will warn about any group IDs it encounters that aren't in this mapping.
+### Native macOS app state
 
-## Workflow
+For the local/native path, the important files are:
 
-1. Run `discover-inbox.ts` once to find your inbox ID
-2. Set env vars
-3. Run `fetch-tasks.ts` to snapshot your TickTick tasks
-4. Review the JSON output and decide which tasks to convert to Meseeks task files
-5. Use the task format from `tasks/README.md` for conversion
+- `~/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`
+- `~/Library/Containers/com.TickTick.task.mac/Data/Library/Cookies/Cookies.binarycookies`
+
+These are read by the scripts automatically. No env var is required for that path.
+
+## Workflow Guidance
+
+### Broad snapshot
+
+Use:
+
+1. `discover-inbox.ts` if needed
+2. `fetch-tasks.ts`
+
+### Inbox links -> local files
+
+Use:
+
+1. `import-links.ts --parent-title ... --skip-existing`
+2. optionally `reshape-links.ts` if the target file shape changed
+
+### Local references -> TickTick References
+
+Use:
+
+1. `create-reference-ticktick-tasks.ts`
+2. inspect the summary JSON
+
+## Warnings
+
+- The Open API token and the native app session are not interchangeable.
+- `ZTTUSER.ZACCESSTOKEN` from the local DB is not accepted by the public Open API.
+- For native writes, the working auth came from the app cookie store plus `X-Device`.
+- If the user manually reorganized `private/tasks/links`, do not flatten or “fix” their folders during sync.
+- If a sync should only import new items, use `--skip-existing`.
+- If the user explicitly says “do not rescrape anything”, do not rescrape existing files.
 
 ## Self-Improvement
 
-This skill is designed to evolve. You are encouraged to:
+This skill is expected to evolve. Good improvements:
 
-- **Add conversion scripts** to transform TickTick JSON into Meseeks `.mdx` task files
-- **Add filtering** by project, priority, or tags
-- **Update this SKILL.md** as capabilities grow
+- smarter dedupe by URL as well as TickTick task id
+- configurable local subfolder placement for newly imported links
+- generalized local-file -> TickTick project sync, not just `References`
+- explicit dry-run mode for TickTick writes

@@ -219,6 +219,7 @@ function languageModelFrom(
 		'anthropic/claude-3.5-haiku': anthropic('claude-3-5-haiku-latest'),
 
 		// OpenAI
+		'openai/gpt-5.4': openai('gpt-5.4'),
 		'openai/gpt-5': openai('gpt-5'),
 		'openai/gpt-5-mini': openai('gpt-5-mini'),
 		'openai/gpt-5-nano': openai('gpt-5-nano'),
