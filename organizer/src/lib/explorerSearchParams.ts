@@ -13,6 +13,7 @@ export const explorerRouteSearchSchema = z.object({
 	sources: z.string().optional(),
 	statuses: z.string().optional(),
 	tags: z.string().optional(),
+	rootsOnly: z.string().optional(),
 	sort: explorerSortSchema.optional(),
 	taskKey: z.string().optional(),
 });
@@ -26,7 +27,13 @@ export interface ExplorerQueryInput {
 	sources: TaskSource[];
 	statuses: string[];
 	tags: string[];
+	rootsOnly: boolean;
 	sort: ExplorerSort;
+}
+
+function parseBooleanFlag(value: string | undefined): boolean {
+	//
+	return value === 'true';
 }
 
 export function splitCsv(value: string | undefined): string[] {
@@ -72,7 +79,7 @@ export function parseSources(value: string | undefined): TaskSource[] {
 export function parseStatuses(value: string | undefined): string[] {
 	//
 	const statuses = dedupeStrings(splitCsv(value));
-	if (statuses.length === 0) return ["active", "backlog"];
+	if (statuses.length === 0) return ["active", "backlog", "inbox"];
 	return statuses;
 }
 
@@ -96,6 +103,7 @@ export function parseExplorerQuery(
 		sources: parseSources(search.sources),
 		statuses: parseStatuses(search.statuses),
 		tags: parseTags(search.tags),
+		rootsOnly: parseBooleanFlag(search.rootsOnly),
 		sort: search.sort ?? "priority_then_recency",
 	};
 }

@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, renameSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	renameSync,
+	writeFileSync,
+} from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import type { TaskSummary } from "~/server/taskIndexSchemas";
@@ -69,6 +75,130 @@ export interface MarkTaskDoneResult {
 	newTaskKey: string;
 }
 
+type TagMutationAction = "add" | "remove";
+
+interface FrontmatterSection {
+	rawFrontmatter: string;
+	body: string;
+}
+
+export interface UpdateTaskTagsInput {
+	action: TagMutationAction;
+	tag: string;
+}
+
+export interface UpdateTaskTagsResult {
+	tags: string[];
+}
+
+function dedupeStrings(values: string[]): string[] {
+	//
+	const seen = new Set<string>();
+	const output: string[] = [];
+
+	for (const value of values) {
+		const trimmedValue = value.trim();
+		if (trimmedValue.length === 0) continue;
+		if (seen.has(trimmedValue)) continue;
+		seen.add(trimmedValue);
+		output.push(trimmedValue);
+	}
+
+	return output;
+}
+
+function normalizeTaskTag(tag: string): string {
+	//
+	const normalizedTag = tag
+		.trim()
+		.toLowerCase()
+		.replace(/[\s_]+/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedTag)) {
+		throw new Error("tag must use letters, numbers, or hyphens");
+	}
+
+	return normalizedTag;
+}
+
+function extractFrontmatterSection(fileContent: string): FrontmatterSection | null {
+	//
+	const withoutBom = fileContent.replace(/^\uFEFF/, "");
+
+	if (!withoutBom.startsWith("---\n") && withoutBom !== "---") {
+		return null;
+	}
+
+	const lines = withoutBom.split("\n");
+
+	if (lines.length === 0 || lines[0].trim() !== "---") {
+		return null;
+	}
+
+	for (let index = 1; index < lines.length; index += 1) {
+		if (lines[index].trim() !== "---") continue;
+
+		return {
+			rawFrontmatter: lines.slice(1, index).join("\n"),
+			body: lines.slice(index + 1).join("\n"),
+		};
+	}
+
+	return null;
+}
+
+function renderTagsFrontmatterLine(tags: string[]): string {
+	//
+	return `tags: [${tags.join(", ")}]`;
+}
+
+function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
+	//
+	const tagsLine = renderTagsFrontmatterLine(tags);
+	const lines = rawFrontmatter.split("\n");
+
+	for (let index = 0; index < lines.length; index += 1) {
+		const pairMatch = lines[index].match(/^([A-Za-z0-9_.-]+)\s*:\s*(.*)$/);
+		if (!pairMatch || pairMatch[1].trim() !== "tags") continue;
+
+		const rawValue = pairMatch[2].trim();
+		let endIndex = index + 1;
+
+		if (rawValue.length === 0) {
+			while (endIndex < lines.length) {
+				if (!/^\s*-\s+/.test(lines[endIndex])) break;
+				endIndex += 1;
+			}
+		}
+
+		return lines
+			.slice(0, index)
+			.concat(tagsLine, lines.slice(endIndex))
+			.join("\n");
+	}
+
+	if (rawFrontmatter.length === 0) return tagsLine;
+	return `${rawFrontmatter}\n${tagsLine}`;
+}
+
+function renderFileContentWithTags(fileContent: string, tags: string[]): string {
+	//
+	const frontmatterSection = extractFrontmatterSection(fileContent);
+
+	if (frontmatterSection === null) {
+		return `---\n${renderTagsFrontmatterLine(tags)}\n---\n\n${fileContent.replace(/^\uFEFF/, "")}`;
+	}
+
+	const nextRawFrontmatter = upsertTagsFrontmatter(
+		frontmatterSection.rawFrontmatter,
+		tags,
+	);
+
+	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
+}
+
 export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	//
 	if (task.status === "completed" || task.relativePath.startsWith("completed/")) {
@@ -101,5 +231,46 @@ export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	return {
 		newRelativePath,
 		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
+	};
+}
+
+export function updateTaskTags(
+	task: TaskSummary,
+	input: UpdateTaskTagsInput,
+): UpdateTaskTagsResult {
+	//
+	const taskRoot = getTaskRoot(task.taskSource);
+	const absolutePath = join(taskRoot, task.relativePath);
+
+	if (!existsSync(absolutePath)) {
+		throw new Error(`task file no longer exists at ${absolutePath}`);
+	}
+
+	const normalizedTag = normalizeTaskTag(input.tag);
+	const currentTags = dedupeStrings(task.tags);
+	const nextTags =
+		input.action === "add"
+			? dedupeStrings(currentTags.concat(normalizedTag))
+			: currentTags.filter((tag) => tag !== normalizedTag);
+
+	if (nextTags.length === currentTags.length) {
+		const hasSameTags = nextTags.every((tag, index) => tag === currentTags[index]);
+		if (hasSameTags) return { tags: currentTags };
+	}
+
+	const originalContent = readFileSync(absolutePath, "utf-8");
+	const nextContent = renderFileContentWithTags(originalContent, nextTags);
+
+	writeFileSync(absolutePath, nextContent, "utf-8");
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		writeFileSync(absolutePath, originalContent, "utf-8");
+		throw error;
+	}
+
+	return {
+		tags: nextTags,
 	};
 }

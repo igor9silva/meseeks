@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, X } from 'lucide-react';
+import type { FormEvent } from 'react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
 import {
 	type ExplorerQueryInput,
@@ -14,7 +16,12 @@ import {
 	type TaskSource,
 } from '~/lib/explorerSearchParams';
 import { cn } from '~/lib/utils';
-import { getExplorerSnapshot, getTaskDetail, markTaskDone } from '~/server/taskExplorer';
+import {
+	getExplorerSnapshot,
+	getTaskDetail,
+	markTaskDone,
+	updateTaskTags,
+} from '~/server/taskExplorer';
 
 function formatSourceLabel(source: TaskSource): string {
 	//
@@ -105,6 +112,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 				sources: serializeCsv(nextQuery.sources),
 				statuses: serializeCsv(nextQuery.statuses),
 				tags: serializeCsv(nextQuery.tags),
+				rootsOnly: nextQuery.rootsOnly ? 'true' : undefined,
 				sort: nextQuery.sort,
 			});
 		},
@@ -177,6 +185,13 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		const nextTags = hasTag ? queryInput.tags.filter((entry) => entry !== tag) : queryInput.tags.concat(tag);
 
 		updateQueryInput({ ...queryInput, tags: nextTags });
+	};
+
+	const toggleRootsOnly = () => {
+		updateQueryInput({
+			...queryInput,
+			rootsOnly: !queryInput.rootsOnly,
+		});
 	};
 
 	return (
@@ -269,6 +284,16 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 								</select>
 							</div>
 						</div>
+
+						<label className="flex items-center justify-between gap-3 text-sm cursor-pointer">
+							<span className="font-medium">Root tasks only</span>
+							<input
+								type="checkbox"
+								className="cursor-pointer"
+								checked={queryInput.rootsOnly}
+								onChange={toggleRootsOnly}
+							/>
+						</label>
 
 						<div className="space-y-2">
 							<div className="text-sm font-medium">Statuses</div>
@@ -425,13 +450,16 @@ function TaskDetailView({
 	//
 	if (!detail.task) return null;
 
+	const tagInputId = useId();
 	const queryClient = useQueryClient();
 	const markTaskDoneServer = useServerFn(markTaskDone);
+	const updateTaskTagsServer = useServerFn(updateTaskTags);
 	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
 	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
 	const cursorTaskHref = toCursorTaskHref(detail.task);
 	const codexTaskHref = toCodexTaskHref(detail.task);
 	const canMarkDone = detail.task.status !== 'completed';
+	const [tagDraft, setTagDraft] = useState('');
 	const markTaskDoneMutation = useMutation({
 		mutationFn: () => markTaskDoneServer({ data: { taskKey: detail.task.key } }),
 		onSuccess: async (result) => {
@@ -443,6 +471,47 @@ function TaskDetailView({
 			onTaskCompleted(result.newTaskKey);
 		},
 	});
+	const updateTaskTagsMutation = useMutation({
+		mutationFn: ({
+			action,
+			tag,
+		}: {
+			action: 'add' | 'remove';
+			tag: string;
+		}) => updateTaskTagsServer({ data: { taskKey: detail.task.key, action, tag } }),
+		onSuccess: async (_, variables) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
+			]);
+
+			if (variables.action === 'add') {
+				setTagDraft('');
+			}
+		},
+	});
+
+	useEffect(() => {
+		setTagDraft('');
+	}, [detail.task.key]);
+
+	const handleTagSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		if (tagDraft.trim().length === 0) return;
+
+		updateTaskTagsMutation.mutate({
+			action: 'add',
+			tag: tagDraft,
+		});
+	};
+
+	const handleTagRemove = (tag: string) => {
+		updateTaskTagsMutation.mutate({
+			action: 'remove',
+			tag,
+		});
+	};
 
 	const renderRelation = (label: string, keys: string[]) => {
 		if (keys.length === 0) return null;
@@ -527,15 +596,48 @@ function TaskDetailView({
 					</a>
 				</div>
 
-				{detail.task.tags.length > 0 && (
-					<div className="mt-2 flex flex-wrap gap-1">
+				<div className="mt-3 space-y-2">
+					<div className="text-xs uppercase tracking-wide text-muted-foreground">Tags</div>
+					<div className="flex flex-wrap gap-1">
 						{detail.task.tags.map((tag) => (
-							<span key={tag} className="px-2 py-1 rounded-md bg-muted text-xs">
-								#{tag}
-							</span>
+							<Button
+								key={tag}
+								type="button"
+								size="xs"
+								variant="outline"
+								onClick={() => handleTagRemove(tag)}
+								disabled={updateTaskTagsMutation.isPending}
+								className="gap-1"
+							>
+								<span>#{tag}</span>
+								<X className="size-3" />
+							</Button>
 						))}
+						{detail.task.tags.length === 0 && (
+							<div className="text-xs text-muted-foreground">No tags yet.</div>
+						)}
 					</div>
-				)}
+					<form className="flex gap-2" onSubmit={handleTagSubmit}>
+						<label className="sr-only" htmlFor={tagInputId}>
+							Add tag
+						</label>
+						<Input
+							id={tagInputId}
+							value={tagDraft}
+							onChange={(event) => setTagDraft(event.currentTarget.value)}
+							placeholder="add tag"
+							disabled={updateTaskTagsMutation.isPending}
+						/>
+						<Button
+							type="submit"
+							size="sm"
+							variant="secondary"
+							disabled={updateTaskTagsMutation.isPending || tagDraft.trim().length === 0}
+						>
+							{updateTaskTagsMutation.isPending ? 'Saving...' : 'Add tag'}
+						</Button>
+					</form>
+				</div>
 
 				<div className="flex flex-wrap gap-2 text-xs mt-2">
 					<span className="px-2 py-1 rounded-md border border-border">{detail.task.taskSource}</span>
@@ -550,6 +652,13 @@ function TaskDetailView({
 						{markTaskDoneMutation.error instanceof Error
 							? markTaskDoneMutation.error.message
 							: 'failed to mark task as done'}
+					</div>
+				) : null}
+				{updateTaskTagsMutation.error ? (
+					<div className="mt-2 text-sm text-destructive">
+						{updateTaskTagsMutation.error instanceof Error
+							? updateTaskTagsMutation.error.message
+							: 'failed to update task tags'}
 					</div>
 				) : null}
 			</header>

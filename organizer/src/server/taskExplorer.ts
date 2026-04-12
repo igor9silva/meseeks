@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { readTaskIndexSnapshot } from "~/server/taskIndexRepository";
-import { markTaskDone as markTaskDoneInFilesystem } from "~/server/taskMutationRepository";
+import {
+	markTaskDone as markTaskDoneInFilesystem,
+	updateTaskTags as updateTaskTagsInFilesystem,
+} from "~/server/taskMutationRepository";
 import type { TaskSummary } from "~/server/taskIndexSchemas";
 
 const taskSourceSchema = z.enum(["public", "private"]);
@@ -21,8 +24,9 @@ const explorerQuerySchema = z.object({
 	statuses: z
 		.array(z.string().min(1))
 		.optional()
-		.default(["active", "backlog"]),
+		.default(["active", "backlog", "inbox"]),
 	tags: z.array(z.string().min(1)).optional().default([]),
+	rootsOnly: z.boolean().optional().default(false),
 	sort: explorerSortSchema.optional().default("priority_then_recency"),
 });
 
@@ -30,7 +34,22 @@ const detailQuerySchema = z.object({
 	taskKey: z.string().min(1),
 });
 
+const tagMutationSchema = z.object({
+	taskKey: z.string().min(1),
+	action: z.enum(["add", "remove"]),
+	tag: z.string().trim().min(1).max(64),
+});
+
 type ExplorerQuery = z.infer<typeof explorerQuerySchema>;
+type FacetEntry = {
+	value: string;
+	count: number;
+};
+type ExplorerFacets = {
+	sources: FacetEntry[];
+	statuses: FacetEntry[];
+	tags: FacetEntry[];
+};
 
 function dedupeStrings(values: string[]): string[] {
 	//
@@ -55,7 +74,7 @@ function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 	const normalizedStatuses =
 		input.statuses.length > 0
 			? dedupeStrings(input.statuses)
-			: ["active", "backlog"];
+			: ["active", "backlog", "inbox"];
 	const normalizedTags = dedupeStrings(input.tags);
 
 	return {
@@ -63,6 +82,7 @@ function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 		sources: normalizedSources,
 		statuses: normalizedStatuses,
 		tags: normalizedTags,
+		rootsOnly: input.rootsOnly,
 		sort: input.sort,
 	};
 }
@@ -129,42 +149,117 @@ function calculateSearchScore(task: TaskSummary, tokens: string[]): number {
 	return totalScore;
 }
 
-function buildFacets(tasks: TaskSummary[]) {
+function matchesTaskFilters(
+	task: TaskSummary,
+	query: ExplorerQuery,
+	searchTokens: string[],
+	options: {
+		includeSources: boolean;
+		includeStatuses: boolean;
+		includeTags: boolean;
+		includeSearch: boolean;
+	},
+): boolean {
+	//
+	if (query.rootsOnly && task.parentKey !== null) {
+		return false;
+	}
+
+	if (options.includeSources && !query.sources.includes(task.taskSource)) {
+		return false;
+	}
+
+	if (options.includeStatuses && !query.statuses.includes(task.status)) {
+		return false;
+	}
+
+	if (options.includeTags && query.tags.length > 0) {
+		const hasMatchingTag = task.tags.some((tag) => query.tags.includes(tag));
+		if (!hasMatchingTag) return false;
+	}
+
+	if (options.includeSearch && searchTokens.length > 0) {
+		const score = calculateSearchScore(task, searchTokens);
+		if (score <= 0) return false;
+	}
+
+	return true;
+}
+
+function mapCountEntries(
+	counts: Map<string, number>,
+	sort: "alpha" | "count_then_alpha",
+): FacetEntry[] {
+	//
+	const entries = Array.from(counts.entries()).map(([value, count]) => ({
+		value,
+		count,
+	}));
+
+	if (sort === "alpha") {
+		return entries.sort((left, right) => left.value.localeCompare(right.value));
+	}
+
+	return entries.sort((left, right) => {
+		if (left.count !== right.count) return right.count - left.count;
+		return left.value.localeCompare(right.value);
+	});
+}
+
+function buildFacets(
+	tasks: TaskSummary[],
+	query: ExplorerQuery,
+	searchTokens: string[],
+): ExplorerFacets {
 	//
 	const sourceCounts = new Map<string, number>();
 	const statusCounts = new Map<string, number>();
 	const tagCounts = new Map<string, number>();
 
 	for (const task of tasks) {
-		sourceCounts.set(
-			task.taskSource,
-			(sourceCounts.get(task.taskSource) ?? 0) + 1,
-		);
-		statusCounts.set(task.status, (statusCounts.get(task.status) ?? 0) + 1);
+		if (
+			matchesTaskFilters(task, query, searchTokens, {
+				includeSources: false,
+				includeStatuses: true,
+				includeTags: true,
+				includeSearch: true,
+			})
+		) {
+			sourceCounts.set(
+				task.taskSource,
+				(sourceCounts.get(task.taskSource) ?? 0) + 1,
+			);
+		}
 
-		for (const tag of task.tags) {
-			tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+		if (
+			matchesTaskFilters(task, query, searchTokens, {
+				includeSources: true,
+				includeStatuses: false,
+				includeTags: true,
+				includeSearch: true,
+			})
+		) {
+			statusCounts.set(task.status, (statusCounts.get(task.status) ?? 0) + 1);
+		}
+
+		if (
+			matchesTaskFilters(task, query, searchTokens, {
+				includeSources: true,
+				includeStatuses: true,
+				includeTags: false,
+				includeSearch: true,
+			})
+		) {
+			for (const tag of task.tags) {
+				tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+			}
 		}
 	}
 
-	const sources = Array.from(sourceCounts.entries()).map(([value, count]) => ({
-		value,
-		count,
-	}));
-	const statuses = Array.from(statusCounts.entries())
-		.map(([value, count]) => ({ value, count }))
-		.sort((left, right) => left.value.localeCompare(right.value));
-	const tags = Array.from(tagCounts.entries())
-		.map(([value, count]) => ({ value, count }))
-		.sort((left, right) => {
-			if (left.count !== right.count) return right.count - left.count;
-			return left.value.localeCompare(right.value);
-		});
-
 	return {
-		sources,
-		statuses,
-		tags,
+		sources: mapCountEntries(sourceCounts, "alpha"),
+		statuses: mapCountEntries(statusCounts, "alpha"),
+		tags: mapCountEntries(tagCounts, "count_then_alpha"),
 	};
 }
 
@@ -211,14 +306,15 @@ export const getExplorerSnapshot = createServerFn({ method: "GET" })
 		const scoredTasks: Array<{ task: TaskSummary; score: number }> = [];
 
 		for (const task of snapshotResult.snapshot.meta.tasks) {
-			if (!normalizedQuery.sources.includes(task.taskSource)) continue;
-			if (!normalizedQuery.statuses.includes(task.status)) continue;
-
-			if (normalizedQuery.tags.length > 0) {
-				const hasMatchingTag = task.tags.some((tag) =>
-					normalizedQuery.tags.includes(tag),
-				);
-				if (!hasMatchingTag) continue;
+			if (
+				!matchesTaskFilters(task, normalizedQuery, searchTokens, {
+					includeSources: true,
+					includeStatuses: true,
+					includeTags: true,
+					includeSearch: false,
+				})
+			) {
+				continue;
 			}
 
 			const score = calculateSearchScore(task, searchTokens);
@@ -252,7 +348,11 @@ export const getExplorerSnapshot = createServerFn({ method: "GET" })
 		return {
 			health: snapshotResult.health,
 			tasks,
-			facets: buildFacets(snapshotResult.snapshot.meta.tasks),
+			facets: buildFacets(
+				snapshotResult.snapshot.meta.tasks,
+				normalizedQuery,
+				searchTokens,
+			),
 			totals: {
 				all: snapshotResult.snapshot.meta.tasks.length,
 				visible: tasks.length,
@@ -384,5 +484,32 @@ export const markTaskDone = createServerFn({ method: "POST" })
 			oldTaskKey: data.taskKey,
 			newTaskKey: result.newTaskKey,
 			newRelativePath: result.newRelativePath,
+		};
+	});
+
+export const updateTaskTags = createServerFn({ method: "POST" })
+	.inputValidator((input: unknown) => tagMutationSchema.parse(input))
+	.handler(({ data }) => {
+		const snapshotResult = readTaskIndexSnapshot();
+
+		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+			throw new Error("task indexes are unavailable");
+		}
+
+		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+		const task = taskByKey.get(data.taskKey) ?? null;
+
+		if (!task) {
+			throw new Error("task not found");
+		}
+
+		const result = updateTaskTagsInFilesystem(task, {
+			action: data.action,
+			tag: data.tag,
+		});
+
+		return {
+			taskKey: data.taskKey,
+			tags: result.tags,
 		};
 	});
