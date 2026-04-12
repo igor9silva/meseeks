@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { readTaskIndexSnapshot } from "~/server/taskIndexRepository";
+import { markTaskDone as markTaskDoneInFilesystem } from "~/server/taskMutationRepository";
 import type { TaskSummary } from "~/server/taskIndexSchemas";
 
 const taskSourceSchema = z.enum(["public", "private"]);
@@ -358,5 +359,30 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				children: childKeys,
 			},
 			relatedTasks,
+		};
+	});
+
+export const markTaskDone = createServerFn({ method: "POST" })
+	.inputValidator((input: unknown) => detailQuerySchema.parse(input))
+	.handler(({ data }) => {
+		const snapshotResult = readTaskIndexSnapshot();
+
+		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+			throw new Error("task indexes are unavailable");
+		}
+
+		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+		const task = taskByKey.get(data.taskKey) ?? null;
+
+		if (!task) {
+			throw new Error("task not found");
+		}
+
+		const result = markTaskDoneInFilesystem(task);
+
+		return {
+			oldTaskKey: data.taskKey,
+			newTaskKey: result.newTaskKey,
+			newRelativePath: result.newRelativePath,
 		};
 	});

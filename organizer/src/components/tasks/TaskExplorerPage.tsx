@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Button } from '~/components/ui/button';
 import { Mdx } from '~/components/ui/mdx';
 import {
 	type ExplorerQueryInput,
@@ -13,7 +14,7 @@ import {
 	type TaskSource,
 } from '~/lib/explorerSearchParams';
 import { cn } from '~/lib/utils';
-import { getExplorerSnapshot, getTaskDetail } from '~/server/taskExplorer';
+import { getExplorerSnapshot, getTaskDetail, markTaskDone } from '~/server/taskExplorer';
 
 function formatSourceLabel(source: TaskSource): string {
 	//
@@ -399,6 +400,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 						<TaskDetailView
 							detail={taskDetailQuery.data}
 							onNavigateTask={(taskKey) => updateSearch({ taskKey })}
+							onTaskCompleted={(newTaskKey) => {
+								updateSearch({
+									taskKey: queryInput.statuses.includes('completed') ? newTaskKey : undefined,
+								});
+							}}
 						/>
 					)}
 				</section>
@@ -410,17 +416,33 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 function TaskDetailView({
 	detail,
 	onNavigateTask,
+	onTaskCompleted,
 }: {
 	detail: NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
 	onNavigateTask: (taskKey: string) => void;
+	onTaskCompleted: (taskKey: string) => void;
 }) {
 	//
 	if (!detail.task) return null;
 
+	const queryClient = useQueryClient();
+	const markTaskDoneServer = useServerFn(markTaskDone);
 	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
 	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
 	const cursorTaskHref = toCursorTaskHref(detail.task);
 	const codexTaskHref = toCodexTaskHref(detail.task);
+	const canMarkDone = detail.task.status !== 'completed';
+	const markTaskDoneMutation = useMutation({
+		mutationFn: () => markTaskDoneServer({ data: { taskKey: detail.task.key } }),
+		onSuccess: async (result) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
+			]);
+
+			onTaskCompleted(result.newTaskKey);
+		},
+	});
 
 	const renderRelation = (label: string, keys: string[]) => {
 		if (keys.length === 0) return null;
@@ -453,9 +475,26 @@ function TaskDetailView({
 	return (
 		<div className="h-full overflow-auto">
 			<header className="border-b border-border p-4 flex flex-col gap-0">
-				<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-					<h2 className="text-xl font-semibold">{detail.task.title}</h2>
-					<span className="text-sm text-muted-foreground break-all">{detail.task.id}</span>
+				<div className="flex items-start justify-between gap-3">
+					<div className="min-w-0">
+						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+							<h2 className="text-xl font-semibold">{detail.task.title}</h2>
+							<span className="text-sm text-muted-foreground break-all">{detail.task.id}</span>
+						</div>
+					</div>
+
+					{canMarkDone ? (
+						<Button
+							type="button"
+							size="sm"
+							variant="secondary"
+							onClick={() => markTaskDoneMutation.mutate()}
+							disabled={markTaskDoneMutation.isPending}
+						>
+							<Check className="size-4" />
+							{markTaskDoneMutation.isPending ? 'Marking done...' : 'Mark done'}
+						</Button>
+					) : null}
 				</div>
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground break-all">
 					{cursorFileHref ? (
@@ -505,6 +544,14 @@ function TaskDetailView({
 						<span className="px-2 py-1 rounded-md border border-border">{detail.task.priority}</span>
 					)}
 				</div>
+
+				{markTaskDoneMutation.error ? (
+					<div className="mt-2 text-sm text-destructive">
+						{markTaskDoneMutation.error instanceof Error
+							? markTaskDoneMutation.error.message
+							: 'failed to mark task as done'}
+					</div>
+				) : null}
 			</header>
 
 			<div className="p-4 space-y-4">
