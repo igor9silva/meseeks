@@ -97,12 +97,14 @@ export async function prepareContext(
 	const isGoogle = intelligenceKey.startsWith('google/');
 	const isXai = intelligenceKey.startsWith('xai/');
 	const isGPT5 = intelligenceKey.includes('gpt-5');
+	const isGPT5_4 = intelligenceKey.includes('gpt-5.4');
 	const isMoonshot = intelligenceKey.startsWith('moonshot/');
 
 	// TODO: remove those hacks
 	const temperature = (() => {
 		//
 		// those models dont support custom temperatures
+		if (isGPT5_4) return undefined;
 		if (isGPT5) return 1;
 		if (isMoonshot) return 0.6;
 

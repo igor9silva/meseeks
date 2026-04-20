@@ -68,7 +68,7 @@ function Success(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser } = props;
 
-	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
+	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '[]'));
 
 	if (!response.success) {
 		console.warn('Invalid (or no) result found succeeded action', action._id);

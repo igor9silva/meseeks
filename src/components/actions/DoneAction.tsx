@@ -8,6 +8,8 @@ export function DoneAction(props: ActionComponentProps) {
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 	const { action, isAuthorCurrentUser, initialRenderDate, taskId } = props;
 
+	if (action.status !== 'succeeded') return null;
+
 	const message = useMemo(() => {
 		//
 		if (typeof action.args['message'] === 'string') {
