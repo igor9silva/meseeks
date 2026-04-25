@@ -66,13 +66,14 @@ export function createCodegenAuthOptions() {
 	//
 	// better auth component codegen imports this without runtime env, so it needs
 	// deterministic placeholder values just to generate the local adapter types.
+	// runtime session lifetime still comes from convex env in runtime.private.ts.
 	return createAuthOptions({
 		baseURL: `${componentSiteUrl}${authBasePath}`,
 		siteUrl: componentSiteUrl,
 		secret: 'component-auth-secret',
 		googleClientId: 'component-google-client-id',
 		googleClientSecret: 'component-google-client-secret',
-		sessionDurationSeconds: 60 * 60 * 24 * 7, // 7 days
+		sessionDurationSeconds: 60 * 60 * 24 * 30, // 30 days
 		sessionUpdateAgeSeconds: 60 * 60 * 24, // 1 day
 	});
 }

@@ -5,6 +5,7 @@ import { z } from 'zod/v3';
 import { getConvexToken } from 'lib/auth-client';
 
 const tokenRefreshLeewaySeconds = 60;
+const tokenRefreshLeadMs = 1000 * 60 * 60 * 24 * 3; // 3 day
 const jwtPayloadSchema = z.object({
 	exp: z.number(),
 });
@@ -22,7 +23,6 @@ function useCookieBackedConvexAuth() {
 	//
 	const [hasLoadedToken, setHasLoadedToken] = useState(false);
 	const [token, setToken] = useState<string | null>(null);
-	const pendingTokenRef = useRef<Promise<string | null> | null>(null);
 	const tokenRef = useRef<string | null>(null);
 
 	useEffect(() => {
@@ -32,54 +32,68 @@ function useCookieBackedConvexAuth() {
 		setHasLoadedToken(true);
 	}, []);
 
-	const fetchAccessToken = useCallback(
-		async ({ forceRefreshToken = false }: { forceRefreshToken?: boolean } = {}) => {
+	useEffect(() => {
+		//
+		// better auth only rolls its session cookie on an /api/auth http response.
+		// convex websocket traffic keeps the app alive, but it cannot extend that
+		// browser cookie. when the tab becomes visible again and the cached convex
+		// jwt is nearing expiry, refresh it once in the background instead of
+		// paying an auth request before first render.
+		if (!token) return;
+
+		let isCancelled = false;
+		let isRefreshing = false;
+
+		const handleVisibilityChange = () => {
 			//
-			// convex asks for a token through this callback; reading the cached jwt
-			// here keeps reloads close to the old convex auth behavior.
-			const cachedToken = readConvexJwtCookie();
+			if (document.visibilityState !== 'visible') return;
 
-			if (!forceRefreshToken && cachedToken) {
-				//
-				if (cachedToken !== tokenRef.current) {
-					tokenRef.current = cachedToken;
-					setToken(cachedToken);
-				}
-
-				return cachedToken;
+			const currentToken = readConvexJwtCookie();
+			if (currentToken !== tokenRef.current) {
+				tokenRef.current = currentToken;
+				setToken(currentToken);
 			}
 
-			if (!forceRefreshToken && pendingTokenRef.current) return pendingTokenRef.current;
+			if (!currentToken) return;
+			if (!shouldRefreshConvexJwt(currentToken)) return;
+			if (isRefreshing) return;
 
-			pendingTokenRef.current = getConvexToken({ fetchOptions: { throw: false } })
-				.then(({ data }) => {
+			isRefreshing = true;
+
+			void requestConvexToken()
+				.then((nextToken) => {
 					//
-					const candidateToken = data?.token;
-					if (!candidateToken || !isUsableConvexJwt(candidateToken)) {
-						tokenRef.current = null;
-						setToken(null);
-						return null;
-					}
+					if (isCancelled || !nextToken) return;
 
-					const nextToken: string = candidateToken;
 					tokenRef.current = nextToken;
 					setToken(nextToken);
-
-					return nextToken;
-				})
-				.catch(() => {
-					tokenRef.current = null;
-					setToken(null);
-					return null;
 				})
 				.finally(() => {
-					pendingTokenRef.current = null;
+					isRefreshing = false;
 				});
+		};
 
-			return pendingTokenRef.current;
-		},
-		[],
-	);
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		return () => {
+			isCancelled = true;
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
+	}, [token]);
+
+	const fetchAccessToken = useCallback(async () => {
+		//
+		// convex asks for a token through this callback; reading the cached jwt
+		// here keeps reloads close to the old convex auth behavior while
+		// avoiding auth http on normal app startup.
+		const cachedToken = readConvexJwtCookie();
+		if (cachedToken !== tokenRef.current) {
+			tokenRef.current = cachedToken;
+			setToken(cachedToken);
+		}
+
+		return cachedToken;
+	}, []);
 
 	return useMemo(
 		() => ({
@@ -89,6 +103,21 @@ function useCookieBackedConvexAuth() {
 		}),
 		[fetchAccessToken, hasLoadedToken, token],
 	);
+}
+
+async function requestConvexToken() {
+	//
+	return getConvexToken({ fetchOptions: { throw: false } })
+		.then(({ data }) => {
+			//
+			const candidateToken = data?.token;
+			if (!candidateToken || !isUsableConvexJwt(candidateToken)) return null;
+
+			return candidateToken;
+		})
+		.catch(() => {
+			return null;
+		});
 }
 
 function readConvexJwtCookie() {
@@ -120,6 +149,14 @@ function isUsableConvexJwt(token: string | undefined) {
 
 	const nowInSeconds = Math.floor(Date.now() / 1000);
 	return payload.exp > nowInSeconds + tokenRefreshLeewaySeconds;
+}
+
+function shouldRefreshConvexJwt(token: string) {
+	//
+	const payload = parseJwtPayload(token);
+	if (!payload) return false;
+
+	return payload.exp * 1000 - Date.now() <= tokenRefreshLeadMs;
 }
 
 function parseJwtPayload(token: string) {
