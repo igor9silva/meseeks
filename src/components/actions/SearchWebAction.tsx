@@ -1,17 +1,48 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
 import { z } from 'zod/v3';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
-import { Button } from '~/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
+import {
+	formatScore,
+	formatQueryLabel,
+	getActionQuery,
+	getDisplayUrl,
+	normalizePublishedDate,
+	normalizeText,
+	SearchDisplayResult,
+	SearchResultsPanel,
+} from '~/components/actions/search/SearchResultsPanel';
+import { FailedMessage, SimpleMessage } from '~/components/ui/message';
+
+const SearchWebResultSchema = z
+	.object({
+		title: z.string().nullable().optional(),
+		url: z.string().nullable().optional(),
+		description: z.string().nullable().optional(),
+		snippet: z.string().nullable().optional(),
+		content: z.string().nullable().optional(),
+		raw_content: z.unknown().nullable().optional(),
+		published_date: z.string().nullable().optional(),
+		score: z.number().nullable().optional(),
+		source: z.string().nullable().optional(),
+	})
+	.passthrough();
+
+const SearchWebResponseSchema = z
+	.object({
+		query: z.string().nullable().optional(),
+		answer: z.string().nullable().optional(),
+		results: z.array(SearchWebResultSchema).optional(),
+		sources: z.array(SearchWebResultSchema).optional(),
+	})
+	.passthrough();
+
+type SearchWebResponse = z.infer<typeof SearchWebResponseSchema>;
 
 export function SearchWebAction(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser } = props;
-	// const isNew = useIsNew(action._creationTime, initialRenderDate);
+	const query = getActionQuery(action);
 
 	switch (action.status) {
 		//
@@ -23,13 +54,19 @@ export function SearchWebAction(props: ActionComponentProps) {
 			return <GenericAction {...props} />;
 
 		case 'failed':
-			return <Error {...props} />;
+			return (
+				<FailedMessage
+					text={query ? `Failed to search ${formatQueryLabel(query)}` : 'Failed to search'}
+					error={action.result?.text ?? ''}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+				/>
+			);
 
 		case 'running':
 			return (
 				<SimpleMessage
 					running
-					text={`🔍 Searching "${action.args['query']}"`}
+					text={query ? `Searching ${formatQueryLabel(query)}` : 'Searching'}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 				/>
 			);
@@ -39,72 +76,86 @@ export function SearchWebAction(props: ActionComponentProps) {
 	}
 }
 
-const SearchResultSchema = z.object({
-	query: z.string(),
-	results: z.array(
-		z.object({
-			url: z.string().optional(),
-			title: z.string().optional(),
-		}),
-	),
-});
+function Success(props: ActionComponentProps) {
+	//
+	const { action, isAuthorCurrentUser, className } = props;
+	const response = parseSearchWebResponse(action.result?.text);
 
-function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
+	if (!response) {
+		console.warn('Invalid (or no) result found for succeeded search action', action._id);
+		return (
+			<FailedMessage
+				text={
+					getActionQuery(action)
+						? `Failed to search ${formatQueryLabel(getActionQuery(action) ?? '')}`
+						: 'Failed to search'
+				}
+				error={action.result?.text ?? ''}
+				isAuthorCurrentUser={isAuthorCurrentUser}
+			/>
+		);
+	}
+
+	const query = response.query ?? getActionQuery(action);
+	const answer = normalizeText(response.answer);
+	const results = normalizeSearchWebResults(response);
+
 	return (
-		<FailedMessage
-			text={`Failed to search "${action.args['query']}"`}
-			error={action.result?.text ?? ''}
+		<SearchResultsPanel
+			query={query}
+			answer={answer}
+			results={results}
 			isAuthorCurrentUser={isAuthorCurrentUser}
+			className={className}
 		/>
 	);
 }
 
-function Success(props: ActionComponentProps) {
+function parseSearchWebResponse(resultText: string | undefined) {
 	//
-	const { action, isAuthorCurrentUser } = props;
-	//
-	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
+	if (!resultText) return null;
 
-	if (!response.success) {
-		console.warn('Invalid (or no) result found succeeded action', action._id);
-		return <Error {...props} />;
+	try {
+		const parsed = JSON.parse(resultText);
+		const payload = Array.isArray(parsed) ? { results: parsed } : parsed;
+		const response = SearchWebResponseSchema.safeParse(payload);
+
+		if (!response.success) return null;
+		return response.data;
+	} catch {
+		return null;
 	}
+}
 
-	const { query, results } = response.data;
-	const [isOpen, setIsOpen] = useState(false);
+function normalizeSearchWebResults(response: SearchWebResponse) {
+	//
+	const rawResults = response.results ?? response.sources ?? [];
 
-	return (
-		<Message isAuthorCurrentUser={isAuthorCurrentUser}>
-			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CollapsibleTrigger className="flex gap-0 items-center">
-					<MessageContent
-						className="text-sm text-muted-foreground text-left"
-						text={`🌐 Found ${results.length} results for "${query}"`}
-					/>
-					<Button
-						variant="link"
-						size="sm"
-						className="text-muted-foreground p-1"
-						onClick={() => setIsOpen(!isOpen)}
-					>
-						{isOpen ? <ChevronUp /> : <ChevronDown />}
-					</Button>
-				</CollapsibleTrigger>
-				<CollapsibleContent>
-					<ul>
-						{results.map((result) => (
-							<li key={result.url}>
-								<a className="text-blue-500 hover:underline" rel="noopener" href={result.url}>
-									<p className="text-sm">{result.title}</p>
-									{result.url && (
-										<p className="text-xs text-muted-foreground">{new URL(result.url).hostname}</p>
-									)}
-								</a>
-							</li>
-						))}
-					</ul>
-				</CollapsibleContent>
-			</Collapsible>
-		</Message>
-	);
+	return rawResults.map((result, index): SearchDisplayResult => {
+		const url = normalizeText(result.url);
+		const displayUrl = getDisplayUrl(url, result.source);
+		const description =
+			normalizeText(result.description) ??
+			normalizeText(result.snippet) ??
+			normalizeText(result.content) ??
+			normalizeUnknownText(result.raw_content);
+		const title = normalizeText(result.title) ?? displayUrl?.domain ?? url ?? `Result ${index + 1}`;
+		const { publishedAt, publishedLabel } = normalizePublishedDate(result.published_date);
+
+		return {
+			id: url ?? `${title}-${index}`,
+			title,
+			url,
+			description,
+			displayUrl,
+			publishedAt,
+			publishedLabel,
+			score: formatScore(result.score),
+		};
+	});
+}
+
+function normalizeUnknownText(value: unknown) {
+	//
+	return typeof value === 'string' ? normalizeText(value) : undefined;
 }

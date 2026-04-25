@@ -25,6 +25,7 @@ import { StopAction } from '~/components/actions/StopAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 import { TwitterSearchAction } from '~/components/actions/TwitterSearchAction';
 import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
+import { ValyuSearchAction } from '~/components/actions/ValyuSearchAction';
 
 export type ActionComponentProps = {
 	className?: string;
@@ -50,7 +51,7 @@ export default {
 	askForClarification: SayAction,
 	analyze: AnalyzeAction,
 	searchWeb: SearchWebAction,
-	valyu_search: SearchWebAction,
+	valyu_search: ValyuSearchAction,
 	twitter_search: TwitterSearchAction,
 	scrapeTweet: ScrapeTweetAction,
 	updateInstructions: UpdateInstructionsAction,
