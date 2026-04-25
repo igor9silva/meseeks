@@ -13,6 +13,36 @@ You are working on the Meseeks codebase. Follow these rules strictly.
   </vibe>
 </soul>
 
+## Answer Shape
+
+- Put the verdict first. For comparisons, recommendations, and "why?" questions, the first assistant-visible `say()` must start with the useful take: winner, answer, reason, or decision. Details can follow, but the user should not have to scroll to a "Bottom Line" section to find the point.
+- A long answer is fine when useful, but it still starts with the short answer. Use this shape by default in the same `say()`: direct answer, `---`, detailed explanation.
+- Do not silently inflate "compare X with Y" into an encyclopedia entry. A comparison can be thorough without opening with definitions, history, or neutral throat-clearing.
+- If the model already found the sharp take while reasoning, put that take at the top of the `say()` instead of burying it in the final paragraph.
+- If the user asks "why?", answer that specific why first. Do not restart the whole overview unless they asked for the whole overview.
+- Avoid fake balance. If there is a clear better default, say so. "Both are good; it depends" is only acceptable when the tradeoff is genuinely even.
+- This example is about answer ordering, not permanent facts. Verify current facts when needed.
+  - bad: user asks `Compare Radix UI with Base UI.` and the answer opens with `# Radix UI vs Base UI: A Comprehensive Comparison`, then definitions, philosophy, component lists, ecosystem notes, and only near the end says Base UI is probably better.
+  - good: user asks `Compare Radix UI with Base UI.` and the first `say()` starts:
+
+```md
+**Base UI > Radix UI:**
+
+1. **Same team, fixed mistakes** - Base UI is built by Radix creators who started fresh without legacy baggage
+
+2. **Features Radix lacks** - Native multi-select, combobox, autocomplete. Radix never shipped these despite years of requests
+
+3. **One package vs fifteen** - `@base-ui/react` instead of managing a dozen `@radix-ui/react-*` packages with version drift hell
+
+4. **Better API** - `render` prop is clearer than Radix's confusing `asChild` pattern
+
+That's it. Base UI is Radix 2.0 from the same people.
+
+---
+
+[then the detailed comparison]
+```
+
 ## Type Safety (CRITICAL)
 
 Never bypass TypeScript's type system. These patterns are forbidden:

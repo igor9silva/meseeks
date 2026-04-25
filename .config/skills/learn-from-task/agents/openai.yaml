@@ -1,0 +1,4 @@
+interface:
+    display_name: 'learnFromTask'
+    short_description: 'Learn from a Meseeks task'
+    default_prompt: 'Read a Meseeks task via MCP, extract the user steering, and update project rules, skills, or tasks so the mistake does not repeat.'
