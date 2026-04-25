@@ -8,11 +8,12 @@
 		"url": "https://github.com/igor9silva/meseeks.git"
 	},
 	"scripts": {
-		"dev": "concurrently -r bun:dev:web bun:dev:db bun:dev:config",
-		"organizer": "cd organizer && bun --bun run dev",
-		"dev:web": "vite dev --port 3000",
+		"dev": "concurrently -r bun:dev:web bun:dev:db",
 		"dev:db": "bunx convex dev",
-		"dev:config": "bun run .config/watch-config.ts",
+		"dev:web": "vite dev --port 3000",
+		"organizer": "concurrently -r bun:organizer:app bun:organizer:config",
+		"organizer:app": "cd organizer && bun --bun run dev",
+		"organizer:config": "bun run .config/watch-config.ts",
 		"build": "vite build",
 		"build:config": "bun run .config/generate-configs.ts",
 		"build:tasks": "bun run .config/generate-task-index.ts",
