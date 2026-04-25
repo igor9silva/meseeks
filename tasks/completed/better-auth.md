@@ -37,6 +37,12 @@ Ship Better Auth for platform sign-in without regressing the old Convex Auth sta
 - User explicitly confirmed Better Auth is finally done.
 - Treat future auth changes as follow-up work, not as reopened Better Auth migration cleanup.
 
+### 2026-04-25
+- Follow-up auth tuning kept bootstrap cookie-only again so normal reloads no longer need a startup `/api/auth/convex/token` request.
+- Clarified the rolling-session constraint: Convex websocket/query/mutation traffic cannot refresh the Better Auth browser session cookie; only `/api/auth` responses can do that.
+- Landed the current compromise for platform auth: sparse background `/api/auth/convex/token` refresh on `visibilitychange` when the cached JWT is nearing expiry, with session lifetime fully env-driven again.
+
 ## Notes
 - `skills-only` OAuth providers remain separate work; see `tasks/backlog/skill-oauth-foundations.mdx`.
 - Reverting primary platform sign-in back to Convex Auth was a valid fallback, but was not needed.
+- Runtime session values are env-driven again. For the intended rolling-session behavior, use `JWT_SESSION_DURATION_MS=2592000000` and `JWT_SESSION_UPDATE_AGE_MS=86400000`.
