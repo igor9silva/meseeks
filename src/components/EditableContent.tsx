@@ -1,8 +1,9 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import type { JSX } from 'react';
+import type { JSX, KeyboardEvent, MouseEvent, TouchEvent } from 'react';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
+import { useDoubleTap } from '~/hooks/useDoubleTap';
 import { cn } from '~/lib/utils';
 
 type EditableContentProps = {
@@ -15,7 +16,7 @@ type EditableContentProps = {
 	asView?: (props: {
 		value: string; //
 		className?: string;
-		enterEditMode: (e: React.MouseEvent | React.TouchEvent) => void;
+		enterEditMode: (e: MouseEvent | TouchEvent) => void;
 		isEmpty: boolean;
 		isPending?: boolean;
 	}) => React.ReactNode;
@@ -36,13 +37,15 @@ export function EditableContent({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedValue, setEditedValue] = useState(value);
 
-	const enterEditMode = (e: React.MouseEvent | React.TouchEvent) => {
+	const enterEditMode = (e: MouseEvent | TouchEvent) => {
 		//
 		if (isPending) return;
 		e.preventDefault();
 		e.stopPropagation();
 		setIsEditing(true);
 	};
+
+	const handleDoubleTap = useDoubleTap((event) => enterEditMode(event));
 
 	const saveChanges = () => {
 		//
@@ -54,7 +57,7 @@ export function EditableContent({
 	};
 
 	// cancel on ESC, confirm on Enter (or CMD+Enter for multiline)
-	const handleKeyDown = (e: React.KeyboardEvent) => {
+	const handleKeyDown = (e: KeyboardEvent) => {
 		//
 		if (e.key === 'Escape') {
 			setIsEditing(false);
@@ -98,16 +101,8 @@ export function EditableContent({
 		<div className="relative">
 			<Component
 				className={cn('cursor-magic', isPending && 'opacity-50 cursor-not-allowed', viewClassName)}
-				onMouseUp={(e) => {
-					//
-					// middle click
-					if (e.button === 1) enterEditMode(e);
-				}}
-				onTouchStart={(e) => {
-					//
-					// three finger tap
-					if (e.touches.length === 3) enterEditMode(e);
-				}}
+				onDoubleClick={enterEditMode}
+				onTouchEnd={handleDoubleTap}
 			>
 				{asView
 					? asView({

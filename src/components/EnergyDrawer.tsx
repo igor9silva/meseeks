@@ -3,6 +3,8 @@ import { BudgetSelector } from '~/components/BudgetSelector';
 import { Button } from '~/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '~/components/ui/drawer';
 import { useComposer } from '~/hooks/useComposer';
+import { TaskBudget } from '~/components/TaskBudget';
+import { useCurrentTask } from '~/hooks/useCurrentTask';
 
 const DEFAULT_ENERGY_AMOUNT = 0.2;
 const ENERGY_QUICK_OPTIONS = [0.2, 1, 5] as const;
@@ -16,6 +18,7 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 	//
 	const { queue, setEnergyIncrease } = useComposer();
 	const [selectedEnergy, setSelectedEnergy] = useState(DEFAULT_ENERGY_AMOUNT);
+	const { task } = useCurrentTask();
 
 	const queuedIncreaseBudget = useMemo(() => {
 		return queue.find((skill) => skill.skillKey === 'increaseBudget');
@@ -47,7 +50,10 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent>
 				<DrawerHeader>
-					<DrawerTitle>Increase energy budget</DrawerTitle>
+					<div className="flex justify-between items-center">
+						<DrawerTitle>Increase energy</DrawerTitle>
+						<TaskBudget task={task} />
+					</div>
 				</DrawerHeader>
 				<div className="mt-1 px-4 pb-4 space-y-3">
 					<div className="grid grid-cols-3 gap-2">

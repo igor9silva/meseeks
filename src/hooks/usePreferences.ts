@@ -63,21 +63,6 @@ export function usePreferences({ defaultValue }: { defaultValue?: unknown } = {}
 		return typeof preference === 'number' ? preference : fallback;
 	};
 
-	const setTaskDetailWidthPercentMobile = useCallback(
-		(widthPercent: number) => {
-			setPreference({ key: 'taskDetailWidthPercentMobile', value: widthPercent });
-		},
-		[setPreference],
-	);
-
-	const getTaskDetailWidthPercentMobile = () => {
-		//
-		const preference = getPreference('taskDetailWidthPercentMobile');
-		const fallback = typeof defaultValue === 'number' ? defaultValue : 50;
-
-		return typeof preference === 'number' ? preference : fallback;
-	};
-
 	const setEnabledSkills = useCallback(
 		(enabledSkills: string[]) => {
 			setPreference({ key: 'enabledSkills', value: enabledSkills });
@@ -114,16 +99,31 @@ export function usePreferences({ defaultValue }: { defaultValue?: unknown } = {}
 		return typeof preference === 'boolean' ? preference : fallback;
 	};
 
+	const setIsTaskDetailVisible = useCallback(
+		(isVisible: boolean) => {
+			setPreference({ key: 'taskDetailVisible', value: isVisible });
+		},
+		[setPreference],
+	);
+
+	const getIsTaskDetailVisible = () => {
+		//
+		const preference = getPreference('taskDetailVisible');
+		const fallback = typeof defaultValue === 'boolean' ? defaultValue : true;
+
+		return typeof preference === 'boolean' ? preference : fallback;
+	};
+
 	return {
 		setInboxWidthPercent,
 		getInboxWidthPercent,
 		setTaskDetailWidthPercentDesktop,
 		getTaskDetailWidthPercentDesktop,
-		setTaskDetailWidthPercentMobile,
-		getTaskDetailWidthPercentMobile,
 		setEnabledSkills,
 		getEnabledSkills,
 		setIsTaskListVisible,
 		getIsTaskListVisible,
+		setIsTaskDetailVisible,
+		getIsTaskDetailVisible,
 	};
 }

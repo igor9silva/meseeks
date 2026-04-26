@@ -49,7 +49,7 @@ export function AddBudgetButton(props: {
 	return (
 		<LoadingButton
 			size="sm"
-			variant={variant ?? 'default'}
+			variant={variant ?? 'outline'}
 			onClick={handleAddBudget}
 			loading={isIncreasingBudget}
 			loadingText="Adding..."

@@ -1,7 +1,7 @@
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { Doc } from 'convex/_generated/dataModel';
 import { useMutation, usePaginatedQuery } from 'convex/react';
-import { ChevronDown, CodeXml, RotateCcw } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
@@ -10,7 +10,6 @@ import { DebugAction } from '~/components/DebugAction';
 import { EnergyDrawer } from '~/components/EnergyDrawer';
 import { Button } from '~/components/ui/button';
 import { TaskConversationActions } from '~/components/TaskConversationActions';
-import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { ComposerProvider } from '~/hooks/useComposer';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
@@ -27,7 +26,9 @@ const NEAR_TOP_THRESHOLD = 200; // px
 interface TaskConversationProps {
 	className?: string;
 	onToggleList?: () => void;
+	onToggleTaskDetail?: () => void;
 	isTaskListVisible?: boolean;
+	isTaskDetailVisible?: boolean;
 }
 
 export function TaskConversation(props: TaskConversationProps) {
@@ -39,7 +40,13 @@ export function TaskConversation(props: TaskConversationProps) {
 	);
 }
 
-function TaskConversationContent({ className, onToggleList, isTaskListVisible = true }: TaskConversationProps) {
+function TaskConversationContent({
+	className,
+	onToggleList,
+	onToggleTaskDetail,
+	isTaskListVisible = true,
+	isTaskDetailVisible = true,
+}: TaskConversationProps) {
 	//
 	const { task } = useCurrentTask();
 
@@ -49,7 +56,9 @@ function TaskConversationContent({ className, onToggleList, isTaskListVisible = 
 				task={task}
 				className={className}
 				onToggleList={onToggleList}
+				onToggleTaskDetail={onToggleTaskDetail}
 				isTaskListVisible={isTaskListVisible}
+				isTaskDetailVisible={isTaskDetailVisible}
 			/>
 		</ComposerProvider>
 	);
@@ -59,7 +68,9 @@ function TaskConversationInner({
 	task,
 	className,
 	onToggleList,
+	onToggleTaskDetail,
 	isTaskListVisible = true,
+	isTaskDetailVisible = true,
 }: TaskConversationProps & { task: Doc<'tasks'> }) {
 	//
 	const navigate = useNavigate();
@@ -93,7 +104,16 @@ function TaskConversationInner({
 	useKeyboardShortcut({
 		global: true,
 		combo: { key: 'b', withCommand: true },
-		callback: () => onToggleList?.(),
+		callback: (event) => {
+			if (event.altKey) return;
+			onToggleList?.();
+		},
+	});
+
+	useKeyboardShortcut({
+		global: true,
+		combo: { key: 'b', withCommand: true, withAlt: true },
+		callback: () => onToggleTaskDetail?.(),
 	});
 
 	return (
@@ -102,26 +122,15 @@ function TaskConversationInner({
 				<TaskConversationActions
 					task={task}
 					onToggleList={onToggleList}
+					onToggleTaskDetail={onToggleTaskDetail}
 					isTaskListVisible={isTaskListVisible}
+					isTaskDetailVisible={isTaskDetailVisible}
+					isDebugMode={Boolean(debug)}
 					isResolving={isResolving}
 					isDiscarding={isDiscarding}
 					resolve={resolve}
 					discard={discard}
 				/>
-				<Link
-					to="/$"
-					search={(prev) => ({ ...prev, debug: debug ? undefined : true })}
-					className="hidden md:block"
-				>
-					<Toggle
-						aria-label="Toggle Dev Mode (former Debug)"
-						pressed={Boolean(debug)}
-						className="h-8 px-2 data-[state=on]:bg-primary/10 data-[state=on]:text-primary"
-					>
-						<CodeXml className="h-4 w-4 mr-1" />
-						Dev Mode
-					</Toggle>
-				</Link>
 			</div>
 			<StickToBottom mass={1} initial="instant" resize="instant" className="flex-1 overflow-auto">
 				<StickToBottomContent

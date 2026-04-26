@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { AlignJustify, Bug, Expand, Minimize2, TextQuote } from 'lucide-react';
 import { useState } from 'react';
+import type { MouseEvent, TouchEvent } from 'react';
 import { cn } from '~/lib/utils';
 
 import { ActionComponentProps } from '~/components/actions';
@@ -8,6 +9,7 @@ import { CopyButton } from '~/components/CopyButton';
 import { Button } from '~/components/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { useDoubleTap } from '~/hooks/useDoubleTap';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useSay } from '~/hooks/useTaskMutations';
 
@@ -23,10 +25,18 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	} = props;
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
-	const toggleFullscreen = (e?: React.MouseEvent) => {
+	const toggleFullscreen = (e?: MouseEvent) => {
 		e?.stopPropagation();
-		setIsFullscreen(!isFullscreen);
+		setIsFullscreen((current) => !current);
 	};
+
+	const openFullscreen = (e: MouseEvent | TouchEvent) => {
+		//
+		e.stopPropagation();
+		setIsFullscreen(true);
+	};
+
+	const handleDoubleTap = useDoubleTap((event) => openFullscreen(event));
 
 	const { say, isSaying } = useSay();
 
@@ -42,7 +52,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		);
 	}
 
-	const onClickFix = (e: React.MouseEvent, error: Error) => {
+	const onClickFix = (e: MouseEvent, error: Error) => {
 		e.stopPropagation();
 		if (isSaying) return;
 		say({
@@ -52,7 +62,12 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	};
 
 	return (
-		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'relative group')}>
+		<Message
+			isAuthorCurrentUser={isAuthorCurrentUser}
+			className={cn(className, 'relative group')}
+			onDoubleClick={openFullscreen}
+			onTouchEnd={handleDoubleTap}
+		>
 			<MessageContent
 				isMDX={true}
 				shouldRenderComponents={shouldRenderComponents}

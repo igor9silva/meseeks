@@ -55,9 +55,9 @@ function TaskAvailableSkillsContent({
 	);
 
 	return (
-		<div className="px-2 pb-2">
+		<>
 			{hasSkills && (
-				<div className="flex flex-wrap gap-1 mb-2">
+				<div className="flex flex-wrap gap-1">
 					{availableSkills.map((skillKey) => (
 						<Badge key={skillKey} variant="secondary" className="text-xs flex items-center gap-1">
 							{skillKey}
@@ -141,7 +141,7 @@ function TaskAvailableSkillsContent({
 			{availableSkills.length >= 16 && (
 				<div className="text-xs text-muted-foreground px-2 mt-1">Maximum of 16 skills reached.</div>
 			)}
-		</div>
+		</>
 	);
 }
 

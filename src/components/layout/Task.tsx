@@ -6,8 +6,7 @@ import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
-import { useCurrentTask, useCurrentTaskId } from '~/hooks/useCurrentTask';
-import { useIsMobile } from '~/hooks/useIsMobile';
+import { useCurrentTaskId } from '~/hooks/useCurrentTask';
 import { usePreferences } from '~/hooks/usePreferences';
 import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
 import { cn } from '~/lib/utils';
@@ -28,34 +27,43 @@ export function Task(props: TaskProps) {
 
 function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 	//
-	const isMobile = useIsMobile();
-	const direction = isMobile ? 'vertical' : 'horizontal';
+	const {
+		getInboxWidthPercent,
+		setInboxWidthPercent,
+		getIsTaskListVisible,
+		setIsTaskListVisible,
+		getIsTaskDetailVisible,
+		setIsTaskDetailVisible,
+	} = usePreferences({ defaultValue: 25 });
 
-	const { getInboxWidthPercent, setInboxWidthPercent, getIsTaskListVisible, setIsTaskListVisible } = usePreferences({
-		defaultValue: 25,
-	});
-
-	const { getPanelSize, handleLayout } = useResizablePanelGroup({
+	const { getPanelSize, handleDragging, handleLayout } = useResizablePanelGroup({
 		getValue: getInboxWidthPercent,
 		setValue: setInboxWidthPercent,
 	});
 
 	const preferredWidthPercent = getPanelSize();
-	const isTaskListVisible = getIsTaskListVisible() && !isMobile;
+	const isTaskListPreferredVisible = getIsTaskListVisible();
+	const isTaskDetailPreferredVisible = getIsTaskDetailVisible();
 
 	const handleToggleList = () => {
 		//
-		setIsTaskListVisible(!isTaskListVisible);
+		setIsTaskListVisible(!isTaskListPreferredVisible);
+	};
+
+	const handleToggleTaskDetail = () => {
+		//
+		setIsTaskDetailVisible(!isTaskDetailPreferredVisible);
 	};
 
 	return (
 		<ResizablePanelGroup
-			direction={direction}
-			onLayout={isTaskListVisible ? handleLayout : undefined}
+			direction="horizontal"
+			onLayout={isTaskListPreferredVisible ? handleLayout : undefined}
 			className={cn('overflow-hidden', className)}
 		>
-			{isTaskListVisible && (
+			{isTaskListPreferredVisible && (
 				<ResizablePanel
+					key="task-list-panel"
 					id="list"
 					order={0}
 					defaultSize={preferredWidthPercent}
@@ -67,17 +75,27 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 					</Suspense>
 				</ResizablePanel>
 			)}
-			{isTaskListVisible && <ResizableHandle />}
+			{isTaskListPreferredVisible && (
+				<ResizableHandle
+					className="hidden md:flex"
+					onDoubleClick={handleToggleList}
+					onDragging={handleDragging}
+				/>
+			)}
 			<ResizablePanel
+				key="task-content-panel"
 				id="detail"
 				order={1}
-				defaultSize={isTaskListVisible ? 100 - preferredWidthPercent : 100}
+				defaultSize={isTaskListPreferredVisible ? 100 - preferredWidthPercent : 100}
 				minSize={15}
+				className="max-md:!flex-1"
 			>
 				<Suspense fallback={<Loading />}>
 					<TaskDetailWithConditionalRendering
 						onToggleList={handleToggleList}
-						isTaskListVisible={isTaskListVisible}
+						onToggleTaskDetail={handleToggleTaskDetail}
+						isTaskListVisible={isTaskListPreferredVisible}
+						isTaskDetailVisible={isTaskDetailPreferredVisible}
 					/>
 				</Suspense>
 			</ResizablePanel>
@@ -87,19 +105,28 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 
 function TaskDetailWithConditionalRendering({
 	onToggleList,
+	onToggleTaskDetail,
 	isTaskListVisible,
+	isTaskDetailVisible,
 }: {
-	onToggleList: () => void;
+	onToggleList?: () => void;
+	onToggleTaskDetail?: () => void;
 	isTaskListVisible: boolean;
+	isTaskDetailVisible: boolean;
 }) {
 	//
-	const { task } = useCurrentTask();
-	const taskHasContent = Boolean(task.title?.trim() || task.instructions?.trim());
-
 	return (
 		<TaskDetailAndConversation
-			list={taskHasContent ? <TaskDetail /> : undefined}
-			detail={<TaskConversation onToggleList={onToggleList} isTaskListVisible={isTaskListVisible} />}
+			list={isTaskDetailVisible ? <TaskDetail /> : undefined}
+			detail={
+				<TaskConversation
+					onToggleList={onToggleList}
+					onToggleTaskDetail={onToggleTaskDetail}
+					isTaskListVisible={isTaskListVisible}
+					isTaskDetailVisible={isTaskDetailVisible}
+				/>
+			}
+			onToggleTaskDetail={onToggleTaskDetail}
 		/>
 	);
 }

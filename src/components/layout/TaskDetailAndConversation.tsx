@@ -1,92 +1,67 @@
-import { useRef } from 'react';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
-import { useContainerBreakpoint } from '~/hooks/useContainerBreakpoint';
 import { usePreferences } from '~/hooks/usePreferences';
 import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
-import { DEFAULT_MD_BREAKPOINT } from '~/lib/tailwind';
 import { cn } from '~/lib/utils';
-
-const MIN_HEIGHT_FOR_CONVERSATION = 550;
 
 export function TaskDetailAndConversation({
 	list,
 	detail,
 	className,
 	defaultListSize = 70,
-	widthBreakpoint = DEFAULT_MD_BREAKPOINT,
-	heightBreakpoint = MIN_HEIGHT_FOR_CONVERSATION,
+	onToggleTaskDetail,
 }: {
 	list: React.ReactNode;
 	detail?: React.ReactNode;
 	defaultListSize?: number;
 	className?: string;
-	widthBreakpoint?: number;
-	heightBreakpoint?: number;
+	onToggleTaskDetail?: () => void;
 }) {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const isBelowWidthBreakpoint = useContainerBreakpoint(containerRef, 'width', widthBreakpoint);
-	const isBelowHeightBreakpoint = useContainerBreakpoint(containerRef, 'height', heightBreakpoint);
+	//
+	const { getTaskDetailWidthPercentDesktop: getWidthDesktop, setTaskDetailWidthPercentDesktop: setWidthDesktop } =
+		usePreferences({ defaultValue: defaultListSize });
 
-	const direction = isBelowWidthBreakpoint ? 'vertical' : 'horizontal';
-
-	// determine if the detail (conversation) panel should be rendered
-	// render if there is detail data AND the container height is sufficient
-	const shouldRenderDetailPanel = Boolean(detail) && !isBelowHeightBreakpoint;
-
-	// determine if the list panel should be rendered
-	const shouldRenderListPanel = Boolean(list);
-
-	const {
-		getTaskDetailWidthPercentDesktop: getWidthDesktop,
-		setTaskDetailWidthPercentDesktop: setWidthDesktop,
-		getTaskDetailWidthPercentMobile: getWidthMobile,
-		setTaskDetailWidthPercentMobile: setWidthMobile,
-	} = usePreferences({
-		defaultValue: isBelowWidthBreakpoint ? 20 : defaultListSize,
-	});
-
-	const { getPanelSize, handleLayout } = useResizablePanelGroup({
-		getValue: isBelowWidthBreakpoint ? getWidthMobile : getWidthDesktop,
-		setValue: isBelowWidthBreakpoint ? setWidthMobile : setWidthDesktop,
+	const { getPanelSize, handleDragging, handleLayout } = useResizablePanelGroup({
+		getValue: getWidthDesktop,
+		setValue: setWidthDesktop,
 	});
 
 	const panelSize = getPanelSize() ?? defaultListSize;
-
-	// when there's no list (TaskDetail), just render the detail (TaskConversation) in a single panel
-	if (!shouldRenderListPanel) {
-		return (
-			<div ref={containerRef} className={cn('h-full w-full', className)}>
-				{detail}
-			</div>
-		);
-	}
+	const shouldRenderListPanel = Boolean(list);
 
 	return (
-		<div ref={containerRef} className={cn('h-full w-full', className)}>
+		<div className={cn('h-full w-full', className)}>
 			<ResizablePanelGroup
-				direction={direction}
+				direction="horizontal"
 				className={cn('overflow-hidden', className)}
-				onLayout={shouldRenderDetailPanel ? handleLayout : undefined}
+				onLayout={shouldRenderListPanel ? handleLayout : undefined}
 			>
 				<ResizablePanel
-					id="list"
+					key="conversation-panel"
+					id="conversation"
 					order={0}
-					defaultSize={shouldRenderDetailPanel ? panelSize : undefined}
-					minSize={isBelowWidthBreakpoint ? 10 : 25}
+					defaultSize={shouldRenderListPanel ? panelSize : 100}
+					minSize={25}
+					className="max-md:!flex-1"
 				>
-					{/* the content of the first panel depends on the layout direction */}
-					{direction === 'vertical' ? list : detail}
+					{detail}
 				</ResizablePanel>
-				{shouldRenderDetailPanel && <ResizableHandle />}
-				{shouldRenderDetailPanel && (
+				{shouldRenderListPanel && (
+					<ResizableHandle
+						className="hidden md:flex"
+						onDoubleClick={onToggleTaskDetail}
+						onDragging={handleDragging}
+					/>
+				)}
+				{shouldRenderListPanel && (
 					<ResizablePanel
-						id="detail"
+						key="task-detail-panel"
+						id="task-detail"
 						order={1}
 						defaultSize={100 - panelSize}
-						minSize={isBelowWidthBreakpoint ? 30 : 25}
+						minSize={25}
+						className="hidden md:block"
 					>
-						{/* the content of the second panel depends on the layout direction */}
-						{direction === 'vertical' ? detail : list}
+						{list}
 					</ResizablePanel>
 				)}
 			</ResizablePanelGroup>

@@ -1,42 +1,23 @@
 import { TimeAgo } from '~/components/TimeAgo';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
-import { LoadingCheckbox } from '~/components/ui/loading-checkbox';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
-import {
-	useReopen,
-	useResolve,
-	useUpdateAvailableSkills,
-	useUpdateInstructions,
-	useUpdateTitle,
-} from '~/hooks/useTaskMutations';
+import { useUpdateAvailableSkills, useUpdateInstructions, useUpdateTitle } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskAvailableSkills } from './TaskAvailableSkills';
-import { useIsMobile } from '~/hooks/useIsMobile';
 
 export default function TaskDetail({
 	className, //
-	showExpand = false,
 }: {
 	className?: string;
-	showExpand?: boolean;
 }) {
+	//
 	const { task } = useCurrentTask();
-	const isMobile = useIsMobile();
-	const { resolve, isResolving } = useResolve();
-	const { reopen, isReopening } = useReopen();
 	const { updateTitle, isUpdatingTitle } = useUpdateTitle();
 	const { updateInstructions, isUpdatingInstructions } = useUpdateInstructions();
 	const { updateAvailableSkills, isUpdatingAvailableSkills } = useUpdateAvailableSkills();
-
-	const handleCheckboxChange = (hasChecked: boolean) => {
-		//
-		if (isResolving || isReopening) return;
-
-		hasChecked ? resolve({ taskId: task._id }) : reopen({ taskId: task._id });
-	};
 
 	const handleAvailableSkillsChange = (availableSkills: string[]) => {
 		//
@@ -54,26 +35,16 @@ export default function TaskDetail({
 				className,
 			)}
 		>
-			<CardHeader className="p-0 md:p-4 max-w-full sticky top-0 z-10">
+			<CardHeader className="p-4 max-w-full top-0 z-10">
 				<div className="flex flex-col">
 					<div className="flex flex-row justify-between gap-2 items-center min-w-0">
 						<div className="flex items-center gap-2 min-w-0 flex-1">
-							<LoadingCheckbox
-								id={`task-checkbox-${task._id}`}
-								checked={!task.isActive}
-								onCheckedChange={handleCheckboxChange}
-								loading={isResolving || isReopening}
-								className="flex-shrink-0"
-							/>
 							<EditableContent
 								key={task.title}
 								value={task.title ?? ''}
 								onSave={(newTitle) => updateTitle({ taskId: task._id, title: newTitle })}
 								isPending={isUpdatingTitle}
-								viewClassName={cn(
-									'text-2xl font-bold leading-none break-words overflow-wrap-anywhere min-w-0 flex-1',
-									isMobile ? 'text-base' : 'text-xl',
-								)}
+								viewClassName="text-base md:text-xl font-bold leading-none break-words overflow-wrap-anywhere min-w-0 flex-1"
 								asView={({ value, className, isEmpty, isPending }) => (
 									<h1
 										className={cn(
@@ -82,23 +53,29 @@ export default function TaskDetail({
 											className,
 										)}
 									>
-										{isEmpty ? <span className="text-muted-foreground">Untitled task</span> : value}
+										{isEmpty ? (
+											<span className="text-muted-foreground italic">
+												Double tap to set title
+											</span>
+										) : (
+											value
+										)}
 									</h1>
 								)}
 							/>
 						</div>
 					</div>
-					<div className="flex items-center gap-0.5 p-2">
+					<div className="flex items-center gap-0.5">
 						<TimeAgo date={task._creationTime} suffix="old" className="text-sm text-muted-foreground" />
 					</div>
-					<TaskAvailableSkills
-						availableSkills={task.availableSkills ?? []}
-						onAvailableSkillsChange={handleAvailableSkillsChange}
-						isPending={isUpdatingAvailableSkills}
-					/>
 				</div>
+				<TaskAvailableSkills
+					availableSkills={task.availableSkills ?? []}
+					onAvailableSkillsChange={handleAvailableSkillsChange}
+					isPending={isUpdatingAvailableSkills}
+				/>
 			</CardHeader>
-			<CardContent className="p-0 md:p-4 md:pt-0 flex-grow flex flex-col">
+			<CardContent className="px-4 py-0 flex-grow flex flex-col">
 				<EditableContent
 					key={task.instructions}
 					value={task.instructions ?? ''}
@@ -110,7 +87,7 @@ export default function TaskDetail({
 					asView={({ value, enterEditMode, className, isEmpty, isPending }) => (
 						<div className={cn(isPending && 'opacity-50', className)}>
 							{isEmpty ? (
-								<div className="text-muted-foreground text-sm">No instructions.</div>
+								<div className="text-muted-foreground text-sm italic">Double tap to edit plan</div>
 							) : (
 								<MDX text={value} onClickFix={enterEditMode} />
 							)}

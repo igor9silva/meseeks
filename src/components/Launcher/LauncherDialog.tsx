@@ -1,12 +1,25 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { defaultFilter } from 'cmdk';
 import { usePaginatedQuery, useQuery } from 'convex/react';
-import { startTransition, type UIEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+	Suspense,
+	startTransition,
+	type KeyboardEvent,
+	type UIEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
 import { api } from 'convex/_generated/api';
+import { Loading } from '~/components/Loading';
+import TaskDetail from '~/components/TaskDetail';
 import { useTheme } from '~/components/ThemeProvider';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
 import { CommandDialog, CommandInput, CommandList } from '~/components/ui/command';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
+import { useIsMobile } from '~/hooks/useIsMobile';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { LauncherContent } from './LauncherContent';
@@ -21,6 +34,7 @@ const SCROLL_THRESHOLD = 200;
 export function LauncherDialog() {
 	//
 	const { isOpen, close } = useLauncher();
+	const isMobile = useIsMobile();
 	const {
 		clearThemePreview,
 		hasCustomTheme,
@@ -39,6 +53,7 @@ export function LauncherDialog() {
 	const defaultSearch = pathname + searchStr;
 
 	const feedbackDialog = useFeedbackDialog();
+	const [hasRequestedMobileList, setHasRequestedMobileList] = useState(false);
 	const [launcherState, setLauncherState] = useState<LauncherState>(() => ({
 		view: 'main',
 		mainSearch: defaultSearch,
@@ -96,6 +111,29 @@ export function LauncherDialog() {
 		});
 	}, []);
 
+	const handleSearchChange = useCallback(
+		(nextSearch: string) => {
+			//
+			if (view === 'main' && nextSearch !== defaultSearch) {
+				setHasRequestedMobileList(true);
+			}
+
+			setSearch(nextSearch);
+		},
+		[defaultSearch, isMobile, setSearch, view],
+	);
+
+	const handleInputKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			//
+			if (view !== 'main') return;
+			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+			setHasRequestedMobileList(true);
+		},
+		[isMobile, view],
+	);
+
 	const showMainLauncherView = useCallback(() => {
 		clearThemePreview();
 		setLauncherState((state) => ({ ...state, view: 'main' }));
@@ -119,6 +157,7 @@ export function LauncherDialog() {
 
 	const closeAndResetLauncher = useCallback(() => {
 		clearThemePreview();
+		setHasRequestedMobileList(false);
 		setLauncherState({
 			view: 'main',
 			mainSearch: defaultSearch,
@@ -126,6 +165,11 @@ export function LauncherDialog() {
 		});
 		close();
 	}, [clearThemePreview, close, defaultSearch]);
+
+	useEffect(() => {
+		if (!isOpen) return;
+		setHasRequestedMobileList(false);
+	}, [isOpen]);
 
 	const handleEscapeKeyDown = useCallback(
 		(event: Event) => {
@@ -149,6 +193,8 @@ export function LauncherDialog() {
 	const { taskId: currentTaskId } = useSplatParams();
 	const hasMore = paginationStatus === 'CanLoadMore';
 	const isLoadingMore = paginationStatus === 'LoadingMore';
+	const shouldShowMobileTaskDetail =
+		view === 'main' && Boolean(currentTaskId) && !shouldFilter && !hasRequestedMobileList;
 
 	const handleScroll = useCallback(
 		(e: UIEvent<HTMLDivElement>) => {
@@ -181,8 +227,13 @@ export function LauncherDialog() {
 		>
 			<DialogTitle className="hidden">Launcher</DialogTitle>
 			<DialogDescription className="hidden">Search for tasks, notes, files, and more.</DialogDescription>
-			<CommandInput placeholder="Act or search..." value={search} onValueChange={setSearch} />
-			<CommandList className="max-h-[500px]" onScroll={handleScroll}>
+			<CommandInput
+				placeholder="Act or search..."
+				value={search}
+				onKeyDown={handleInputKeyDown}
+				onValueChange={handleSearchChange}
+			/>
+			<CommandList className="max-h-[800px]" onScroll={handleScroll}>
 				{view === 'themes' ? (
 					<ThemePickerView
 						hasCustomTheme={hasCustomTheme}
@@ -202,6 +253,12 @@ export function LauncherDialog() {
 						themeIconNameById={themeIconNameById}
 						themeSearch={themeSearch}
 					/>
+				) : shouldShowMobileTaskDetail ? (
+					<div className="h-96 overflow-hidden">
+						<Suspense fallback={<Loading className="py-4" />}>
+							<TaskDetail />
+						</Suspense>
+					</div>
 				) : (
 					<LauncherContent
 						currentTaskId={currentTaskId}
