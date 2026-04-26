@@ -45,7 +45,7 @@ export function EditableContent({
 		setIsEditing(true);
 	};
 
-	const handleDoubleTap = useDoubleTap((event) => enterEditMode(event));
+	const doubleTapHandlers = useDoubleTap((event) => enterEditMode(event));
 
 	const saveChanges = () => {
 		//
@@ -102,7 +102,7 @@ export function EditableContent({
 			<Component
 				className={cn('cursor-magic', isPending && 'opacity-50 cursor-not-allowed', viewClassName)}
 				onDoubleClick={enterEditMode}
-				onTouchEnd={handleDoubleTap}
+				{...doubleTapHandlers}
 			>
 				{asView
 					? asView({

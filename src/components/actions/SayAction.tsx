@@ -36,7 +36,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		setIsFullscreen(true);
 	};
 
-	const handleDoubleTap = useDoubleTap((event) => openFullscreen(event));
+	const doubleTapHandlers = useDoubleTap((event) => openFullscreen(event));
 
 	const { say, isSaying } = useSay();
 
@@ -66,7 +66,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 			isAuthorCurrentUser={isAuthorCurrentUser}
 			className={cn(className, 'relative group')}
 			onDoubleClick={openFullscreen}
-			onTouchEnd={handleDoubleTap}
+			{...doubleTapHandlers}
 		>
 			<MessageContent
 				isMDX={true}
@@ -112,6 +112,14 @@ function FullscreenMessage({
 	//
 	const [isReaderMode, setIsReaderMode] = useState(true);
 
+	const closeFullscreen = (e: MouseEvent | TouchEvent) => {
+		//
+		e.stopPropagation();
+		onClose();
+	};
+
+	const doubleTapHandlers = useDoubleTap((event) => closeFullscreen(event));
+
 	// ESC key to close fullscreen
 	useKeyboardShortcut({
 		combo: { key: 'Escape' },
@@ -139,6 +147,8 @@ function FullscreenMessage({
 					'min-h-full p-4 mx-auto transition-[max-width] duration-300 ease-out',
 					isReaderMode ? 'max-w-prose' : 'max-w-full',
 				)}
+				onDoubleClick={closeFullscreen}
+				{...doubleTapHandlers}
 			>
 				<MessageContent
 					isMDX={true}
