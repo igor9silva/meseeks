@@ -19,7 +19,6 @@ import { useTheme } from '~/components/ThemeProvider';
 import { DialogDescription, DialogTitle } from '~/components/ui/dialog';
 import { CommandDialog, CommandInput, CommandList } from '~/components/ui/command';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
-import { useIsMobile } from '~/hooks/useIsMobile';
 import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { LauncherContent } from './LauncherContent';
@@ -34,7 +33,6 @@ const SCROLL_THRESHOLD = 200;
 export function LauncherDialog() {
 	//
 	const { isOpen, close } = useLauncher();
-	const isMobile = useIsMobile();
 	const {
 		clearThemePreview,
 		hasCustomTheme,
@@ -63,6 +61,11 @@ export function LauncherDialog() {
 	const { mainSearch, themeSearch, view } = launcherState;
 	const previousDefaultSearchRef = useRef(defaultSearch);
 	const search = view === 'themes' ? themeSearch : mainSearch;
+	const openFeedbackDialogRef = useRef(feedbackDialog.open);
+
+	useEffect(() => {
+		openFeedbackDialogRef.current = feedbackDialog.open;
+	}, [feedbackDialog.open]);
 
 	// new task shortcut (⌘+J)
 	useKeyboardShortcut({
@@ -120,7 +123,7 @@ export function LauncherDialog() {
 
 			setSearch(nextSearch);
 		},
-		[defaultSearch, isMobile, setSearch, view],
+		[defaultSearch, setSearch, view],
 	);
 
 	const handleInputKeyDown = useCallback(
@@ -131,7 +134,7 @@ export function LauncherDialog() {
 
 			setHasRequestedMobileList(true);
 		},
-		[isMobile, view],
+		[view],
 	);
 
 	const showMainLauncherView = useCallback(() => {
@@ -154,6 +157,11 @@ export function LauncherDialog() {
 		},
 		[navigate, close],
 	);
+
+	const handleFeedback = useCallback(() => {
+		close();
+		openFeedbackDialogRef.current();
+	}, [close]);
 
 	const closeAndResetLauncher = useCallback(() => {
 		clearThemePreview();
@@ -233,7 +241,7 @@ export function LauncherDialog() {
 				onKeyDown={handleInputKeyDown}
 				onValueChange={handleSearchChange}
 			/>
-			<CommandList className="max-h-[800px]" onScroll={handleScroll}>
+			<CommandList className="max-h-[80svh]" onScroll={handleScroll}>
 				{view === 'themes' ? (
 					<ThemePickerView
 						hasCustomTheme={hasCustomTheme}
@@ -253,26 +261,26 @@ export function LauncherDialog() {
 						themeIconNameById={themeIconNameById}
 						themeSearch={themeSearch}
 					/>
-				) : shouldShowMobileTaskDetail ? (
-					<div className="h-96 overflow-hidden">
-						<Suspense fallback={<Loading className="py-4" />}>
-							<TaskDetail />
-						</Suspense>
-					</div>
 				) : (
-					<LauncherContent
-						currentTaskId={currentTaskId}
-						isLoadingMore={isLoadingMore}
-						onClose={close}
-						onFeedback={() => {
-							close();
-							feedbackDialog.open();
-						}}
-						onNavigate={onSelect}
-						onOpenThemePicker={openThemePicker}
-						shouldUseSearch={shouldFilter}
-						tasks={tasks}
-					/>
+					<>
+						{shouldShowMobileTaskDetail && (
+							<Suspense fallback={<Loading className="py-4" />}>
+								<TaskDetail />
+							</Suspense>
+						)}
+						<div hidden={shouldShowMobileTaskDetail}>
+							<LauncherContent
+								currentTaskId={currentTaskId}
+								isLoadingMore={isLoadingMore}
+								onClose={close}
+								onFeedback={handleFeedback}
+								onNavigate={onSelect}
+								onOpenThemePicker={openThemePicker}
+								shouldUseSearch={shouldFilter}
+								tasks={tasks}
+							/>
+						</div>
+					</>
 				)}
 			</CommandList>
 		</CommandDialog>
