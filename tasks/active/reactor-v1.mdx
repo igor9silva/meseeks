@@ -1,0 +1,142 @@
+different implementations per provider?
+like GPT specific?
+---
+# Reactor
+
+The engine. The platform.
+
+Note: start from existing active/action-execution-model.md
+
+- files
+	- virtual tasks, skills
+	- support "bash pipe", multi-action per request
+- safe secrets
+- paralell execution
+	- per depth?
+	- it should be able to have long-running stuff, like Codex
+	- we could have like a "timeout trigger" 
+- testable as a unit
+- more robust authorization
+	- support for OAuth, OIDC and other auth types
+	- specific controls per skills (like search authorizes per domain)
+- native CoT support?
+	- sort of like a multi-reaction action? simply that?
+	- 5.4 reasons, becomes a subaction. if it call tools, then it becomes a subaction. etc.
+- multi-reactions as a whole
+	- hard (code) skills can also trigger multi-reactions
+- triggers primitive
+	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
+	- "every 5 rounds"
+	- "on context > X%"
+- skill grouping!
+	- this is very important
+	- built-in stuff should be versioned btw
+		- innate/say@0.1.0
+		- core/say@0.1.0
+		- pro/searchWeb@0.1.0
+- sharing skills
+	- at least some basic importing/exporting support
+- subtasks
+	- I should be able to create and move freely, controlling reactions
+- keep "magic rock" naming for fun
+	- including the comment in the file
+- energy as a first-class citizen
+	- estimated cost should be "max theoretical cost"
+		- based on maxOutputTokens, fixed costs, and so on
+		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
+- multi-provider
+	- code sandbox
+	- LLM/AI
+	- storage
+	- 💡 we could support "provider credits", like what we have with Daytona
+		- this could also be very useful for accounting!
+		- so we need "provider" as a primitive, and trace usage to it
+- notifications
+	- time-sensitive
+- support for sync/pre-executed action
+- take ActionCtx only (not MutationCtx anymore)
+- maybe we need minimal support for TRANSactions?
+	- so actions that affects multiple tasks are visible on both?
+	- possible requirement for subtasks
+- branching
+- standardized solution for huge responses
+	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
+- multi-player
+	- fix authorization from the beginning
+- root task should be "Igor's life"
+
+## Nice to have
+
+- some streaming support?
+	- check Convex persistent streaming thing
+	- maybe a switch between "reading" and "writing" (after it starts streaming back)?
+
+## Current Issues
+
+- Failed to persist initial action details for m973c5rz0br28x3v4t8vtqq2k982tb2c:' [Error: Uncaught Error: Action detail already exists\n    at handler (../../convex/action/details.private.ts:28:54
+- Write conflicts
+- I should be able to "discard" a closed task? Or Resolve if discarded?
+	- should I rename those to "Archive" / "Complete" or smth?
+- Compose() should be renamed to build()
+	- and it should default to being a soft skill loop as a sub task!
+		>call build()
+		>build() starts a subtask with Build loop
+		>say("Working on it, will keep you posted.")
+- we really need BYOK for the transparency
+
+
+## Architectural Ideas
+
+- External Fan-Out Queue (like Vercel Queues)
+- Env Safety
+	- Perplexity uses a proxy `agent-proxy.perplexity.ai` with their own API key
+	- OpenAI/Anthropic-compatible proxies so they set BASE_URL to it
+	- we could do similar and "run the action" in the background?!
+- retry on technical failures
+- we should probably be using "aggregators" for computed stuff like task status? not sure
+- look into modern AI SDK and TanStack AI; consider choosing one as a native layer
+- Actions should likely have a maximum size (because of context)
+	- and/or/at least expose a "size" thing we can do math on
+
+---
+
+Chapter 1: the platform
+	- tasks, actions, reactions, skills, loops, etc.
+	- macOS app
+	- iOS app
+Chapter 2: multiplayer
+	- the programmatic interface 
+		- email as first class citizen
+		- http api, open responses, websocket
+	- shared resources
+	- realtime collaboration
+	- chat (DMs)
+	- human verification
+Pahse 3: 
+
+meta/microsoft:
+- spot market opportunity
+- build dark pattern software around it
+- burn money to monopolize that industry
+- work as hard as possible to LOCK YOU IN
+- 
+
+---
+
+>China and US get unimaginably rich
+>US starts buying poorest countries
+>they do great
+>small countries start to sell off to US
+>a big chunk of that income flows to the new economy (distributed, decentralized, open source, etc)
+>China starts expanding too
+>new econ is already >15% of the global GDP
+
+>US, China and new econ.
+
+>US and China is all that left, weirdly distributed
+	x Europe? North Korea? The arabs?
+>all extreme shit (religions, centralized states, )
+
+
+>our take into AI is like owning a car
+	>you OWN it, you do whatever the F you want with it, and you're responsible for the outcomes
