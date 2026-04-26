@@ -32,7 +32,7 @@ export function useThemeVariables() {
 			mutations.forEach((mutation) => {
 				if (
 					mutation.type === 'attributes' &&
-					mutation.attributeName === 'class' &&
+					(mutation.attributeName === 'class' || mutation.attributeName === 'data-theme') &&
 					mutation.target === document.documentElement
 				) {
 					// Theme changed, force recalculation
@@ -43,7 +43,7 @@ export function useThemeVariables() {
 
 		observer.observe(document.documentElement, {
 			attributes: true,
-			attributeFilter: ['class'],
+			attributeFilter: ['class', 'data-theme'],
 		});
 
 		return () => observer.disconnect();

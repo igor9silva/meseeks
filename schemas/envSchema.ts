@@ -112,7 +112,6 @@ export const env = createEnv({
 			.describe('Maximum number of active tasks to show in activeTasks variable.')
 			.default('20'),
 
-		OPENAI_API_KEY: z.string().min(1).describe('OpenAI API key.'),
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
 		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
 		MISTRAL_API_KEY: z.string().min(1).describe('Mistral API key.'),

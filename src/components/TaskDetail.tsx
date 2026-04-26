@@ -52,7 +52,7 @@ export default function TaskDetail({
 				className,
 			)}
 		>
-			<CardHeader className="p-0 md:p-4 max-w-full sticky top-0 bg-background/75 z-10">
+			<CardHeader className="p-0 md:p-4 max-w-full sticky top-0 z-10">
 				<div className="flex flex-col">
 					<div className="flex flex-row justify-between gap-2 items-center min-w-0">
 						<div className="flex items-center gap-2 min-w-0 flex-1">

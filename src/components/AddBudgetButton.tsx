@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { asBigInt } from 'lib/money';
 import { Button, type ButtonProps } from '~/components/ui/button';
@@ -5,13 +6,17 @@ import { LoadingButton } from '~/components/ui/loading-button';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useIncreaseBudget } from '~/hooks/useTaskMutations';
 
-export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string }) {
+export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string; content?: ReactNode }) {
 	//
 	return (
-		<Link to="." search={(prev) => ({ ...prev, isBudgetDrawerOpen: true })} className="no-underline">
+		<Link to="." search={(prev) => ({ ...prev, isEnergyDrawerOpen: true })} className="no-underline">
 			<Button size="sm" variant={props.variant ?? 'default'} className="flex items-center gap-1">
-				<span>⚡</span>
-				{props.text ?? 'Add energy'}
+				{props.content ?? (
+					<>
+						<span>⚡</span>
+						{props.text ?? 'Add energy'}
+					</>
+				)}
 			</Button>
 		</Link>
 	);

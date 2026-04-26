@@ -24,14 +24,16 @@ const CommandDialog = ({
 	children,
 	shouldFilter,
 	filter,
+	onEscapeKeyDown,
 	...props
 }: DialogProps & {
 	shouldFilter: boolean;
 	filter?: (value: string, search: string, keywords?: string[]) => number;
+	onEscapeKeyDown?: React.ComponentPropsWithoutRef<typeof DialogContent>['onEscapeKeyDown'];
 }) => {
 	return (
 		<Dialog {...props}>
-			<DialogContent className="overflow-hidden p-0 max-w-2xl rounded-3xl">
+			<DialogContent className="overflow-hidden p-0 max-w-2xl rounded-3xl" onEscapeKeyDown={onEscapeKeyDown}>
 				<Command
 					loop
 					shouldFilter={shouldFilter}

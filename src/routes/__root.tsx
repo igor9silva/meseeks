@@ -17,6 +17,13 @@ import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
 import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { seo } from '~/lib/seo';
+import {
+	baseThemeCssText,
+	defaultDarkThemeColor,
+	defaultLightThemeColor,
+	getRootDocumentTheme,
+	getThemeInitScript,
+} from '~/lib/themes/document';
 
 import appCss from '~/styles/app.css?url';
 
@@ -44,8 +51,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 			{ name: 'application-name', content: 'Meseeks' },
 			{ name: 'apple-mobile-web-app-title', content: 'Meseeks' },
-			{ name: 'theme-color', content: '#000000', media: '(prefers-color-scheme: dark)' },
-			{ name: 'theme-color', content: '#FFF0D1', media: '(prefers-color-scheme: light)' },
+			{ name: 'theme-color', content: defaultDarkThemeColor, media: '(prefers-color-scheme: dark)' },
+			{ name: 'theme-color', content: defaultLightThemeColor, media: '(prefers-color-scheme: light)' },
 			{ name: 'mobile-web-app-capable', content: 'yes' },
 			{ name: 'apple-mobile-web-app-capable', content: 'yes' },
 			{ name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
@@ -78,9 +85,21 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	//
+	const rootDocumentTheme = getRootDocumentTheme();
+
 	return (
-		<html className="dark overflow-hidden">
+		<html
+			className={rootDocumentTheme.htmlClassName}
+			data-theme={rootDocumentTheme.themeId}
+			data-theme-source={rootDocumentTheme.themeSource}
+		>
 			<head>
+				{/**
+				 * The server does not know the signed-in user's saved theme here. We inline the system fallback CSS, then a tiny prepaint script applies the active saved theme snapshot before React hydrates.
+				 */}
+				<style>{baseThemeCssText}</style>
+				<script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
 				<HeadContent />
 			</head>
 			<body>

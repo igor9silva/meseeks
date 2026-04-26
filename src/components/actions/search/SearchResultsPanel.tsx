@@ -1,9 +1,8 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
 import { TimeAgo } from '~/components/TimeAgo';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import MDX from '~/components/ui/mdx';
 import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { cn } from '~/lib/utils';
@@ -97,11 +96,14 @@ function SearchResultRow({ result }: { result: SearchDisplayResult }) {
 			<div className="flex items-start justify-between gap-3">
 				<div className="min-w-0 flex-1 text-xs leading-none">
 					{result.displayUrl && (
-						<div className="truncate">
-							<span className="font-semibold text-foreground">{result.displayUrl.domain}</span>
-							{result.displayUrl.rest && (
-								<span className="text-muted-foreground">{result.displayUrl.rest}</span>
-							)}
+						<div className="flex items-center gap-1">
+							<div className="truncate">
+								<span className="font-semibold text-foreground">{result.displayUrl.domain}</span>
+								{result.displayUrl.rest && (
+									<span className="text-muted-foreground">{result.displayUrl.rest}</span>
+								)}
+							</div>
+							{result.url && <ExternalLink className="size-3 flex-shrink-0 text-muted-foreground" />}
 						</div>
 					)}
 				</div>
@@ -117,11 +119,12 @@ function SearchResultRow({ result }: { result: SearchDisplayResult }) {
 
 			<p className="mt-1 line-clamp-1 text-sm font-normal leading-snug text-foreground/90">{result.title}</p>
 			{result.description && (
-				<MDX
-					text={result.description}
-					shouldRenderComponents={false}
-					className="mt-0.5 overflow-visible p-0 text-xs leading-snug text-muted-foreground [&_h1]:m-0 [&_h1]:text-xs [&_h1]:font-normal [&_h1]:leading-snug [&_h1]:text-muted-foreground [&_h2]:m-0 [&_h2]:text-xs [&_h2]:font-normal [&_h2]:leading-snug [&_h2]:text-muted-foreground [&_li]:text-xs [&_li]:leading-snug [&_p]:m-0 [&_p]:text-xs [&_p]:leading-snug [&_p]:text-muted-foreground [&_ul]:m-0 [&_ul]:pl-4"
-				/>
+				<p
+					title={result.description}
+					className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs leading-snug text-muted-foreground"
+				>
+					{result.description}
+				</p>
 			)}
 		</div>
 	);

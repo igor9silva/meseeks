@@ -28,6 +28,7 @@ import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
 import type * as users_preferences from "../users/preferences.js";
 import type * as users_requests from "../users/requests.js";
+import type * as users_themes from "../users/themes.js";
 
 import type {
   ApiFromModules,
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   "users/preferences": typeof users_preferences;
   "users/requests": typeof users_requests;
+  "users/themes": typeof users_themes;
 }>;
 
 /**

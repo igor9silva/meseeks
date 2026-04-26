@@ -200,12 +200,13 @@ Use this when the user wants the actual asset from a TickTick task instead of a 
 1. Read the task from TickTick using the existing native macOS path or cached local data.
 2. Extract the first real media URL from the task title/content/description.
 3. Use the globally installed `yt-dlp` as the default downloader for supported media sites like Instagram, YouTube, and X video links.
-4. Move the downloaded file into the repo only if the user asked for that; otherwise keep it in a temporary download location and report the path.
+4. If the user wants a transcript after download, run `bun run transcribe:media <downloaded-file>` with `GEMINI_API_KEY` set and keep the transcript next to the media file unless they asked for a different destination.
+5. Move the downloaded file into the repo only if the user asked for that; otherwise keep it in a temporary download location and report the path.
 
 Examples:
 
 - bad: build a custom downloader for an Instagram reel when the request is just `download the video`
-- good: fetch the TickTick task, grab the reel URL, run `yt-dlp`, and then place the file where the user asked
+- good: fetch the TickTick task, grab the reel URL, run `yt-dlp`, optionally transcribe it with `transcribe:media`, and then place the files where the user asked
 
 ### Local references -> TickTick References
 

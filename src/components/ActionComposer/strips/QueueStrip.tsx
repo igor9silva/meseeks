@@ -205,14 +205,14 @@ function formatSkillLabel(skillKey: string, args: Record<string, unknown>, isPen
 		case 'increaseBudget': {
 			const dollars = args['dollars'] as number | undefined;
 			if (dollars) {
-				return `+$${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
+				return `+⚡${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
 			}
 			return 'Increase budget';
 		}
 		case 'decreaseBudget': {
 			const dollars = args['dollars'] as number | undefined;
 			if (dollars) {
-				return `-$${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
+				return `-⚡${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
 			}
 			return 'Decrease budget';
 		}

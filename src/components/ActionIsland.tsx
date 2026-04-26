@@ -1,16 +1,15 @@
-import { convexQuery } from '@convex-dev/react-query';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { Doc, Id } from 'convex/_generated/dataModel';
-import { AnimatePresence, motion } from 'motion/react';
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import { useClickOutside } from '~/hooks/useClickOutside';
-import { cn } from '~/lib/utils';
+import { type Doc, type Id } from 'convex/_generated/dataModel';
+import { usePaginatedQuery } from 'convex/react';
+import { ChevronDown, Clock3, Loader2, ShieldAlert } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { api } from 'convex/_generated/api';
-
-// import { TaskAction } from '~/components/TaskAction';
+import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
+import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
+import { LoadingButton } from '~/components/ui/loading-button';
+import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 
-const TRANSITION = { duration: 0.25, type: 'spring' };
+const INITIAL_ACTION_COUNT = 20;
 
 export function ActionIsland({
 	taskId, //
@@ -20,142 +19,216 @@ export function ActionIsland({
 	className?: string;
 }) {
 	//
-	const ref = useRef<HTMLDivElement>(null);
-	const [isExpanded, setIsExpanded] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
+	const { results } = usePaginatedQuery(
+		api.action.findAllPaginated,
+		{ taskId },
+		{ initialNumItems: INITIAL_ACTION_COUNT },
+	);
 
-	const query = convexQuery(api.action.findAllRunning, { taskId });
-	const { data: runningActions } = useSuspenseQuery(query);
+	const activeActions = useMemo(() => {
+		return results.filter(isActiveAction).sort((a, b) => {
+			const priorityDelta = getActionPriority(a.status) - getActionPriority(b.status);
+			if (priorityDelta !== 0) return priorityDelta;
 
-	// if click outside, close
-	useClickOutside(ref, () => setIsExpanded(false), isExpanded);
+			return b._creationTime - a._creationTime;
+		});
+	}, [results]);
 
-	// collapse on ESC
-	useEffect(() => {
-		//
-		if (!isExpanded) return;
+	if (activeActions.length === 0) return null;
 
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				setIsExpanded(false);
-			}
-		};
-
-		window.addEventListener('keydown', handleEscape);
-		return () => window.removeEventListener('keydown', handleEscape);
-	}, [isExpanded]);
+	const summary = buildSummary(activeActions);
+	const hasApprovalBlocker = activeActions.some((action) => action.status === 'pending authorization');
 
 	return (
-		<motion.div
-			ref={ref}
-			className={cn(
-				'z-100 text-secondary-foreground rounded-lg cursor-pointer overflow-hidden max-w-[95%]',
-				className,
-			)}
-			transition={TRANSITION}
-			initial={{
-				top: 'auto',
-			}}
-			animate={{
-				width: isExpanded ? '24rem' : 'auto',
-				top: '0',
-			}}
-			onClick={() => !isExpanded && setIsExpanded(true)}
-		>
-			<AnimatePresence mode="popLayout">
-				{isExpanded ? <Expanded actions={runningActions} /> : <Collapsed actions={runningActions} />}
-			</AnimatePresence>
-		</motion.div>
+		<Popover open={isOpen} onOpenChange={setIsOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					type="button"
+					variant="secondary"
+					className={cn(
+						'h-10 max-w-64 gap-2 overflow-hidden px-3',
+						hasApprovalBlocker && 'ring-1 ring-amber-500/40',
+						className,
+					)}
+					title={summary}
+				>
+					<SummaryIcon actions={activeActions} />
+					<span className="hidden md:inline truncate text-sm">{summary}</span>
+					<span className="rounded-full bg-background/70 px-2 py-0.5 text-xs leading-none">
+						{activeActions.length}
+					</span>
+					<ChevronDown className={cn('size-4 shrink-0 transition-transform', isOpen && 'rotate-180')} />
+				</Button>
+			</PopoverTrigger>
+
+			<PopoverContent align="end" className="w-96 overflow-hidden p-0">
+				<div className="border-b px-4 py-3">
+					<div className="text-sm font-medium">Active actions</div>
+					<div className="text-xs text-muted-foreground">{summary}</div>
+				</div>
+
+				<div className="max-h-96 space-y-2 overflow-y-auto p-2">
+					{activeActions.map((action) => (
+						<ActiveActionCard key={action._id} action={action} taskId={taskId} />
+					))}
+				</div>
+			</PopoverContent>
+		</Popover>
 	);
 }
 
-const Expanded = forwardRef<HTMLDivElement, { actions: Doc<'actions'>[] }>(({ actions }, ref) => {
+function ActiveActionCard({ action, taskId }: { action: Doc<'actions'>; taskId: Id<'tasks'> }) {
 	//
-	// auto-scroll to bottom when rendered
-	useEffect(() => {
-		//
-		if (ref && typeof ref === 'object' && ref.current) {
-			ref.current.scrollTop = ref.current.scrollHeight;
-		}
-	}, [ref, actions]);
+	const { approveAction, isApprovingAction } = useApproveAction();
+	const { rejectAction, isRejectingAction } = useRejectAction();
+	const preview = buildActionPreview(action);
 
 	return (
-		<motion.div
-			ref={ref}
-			key="expanded"
-			transition={TRANSITION}
-			initial={{ opacity: 0, height: 0 }}
-			animate={{ opacity: 1, height: 'auto' }}
-			className="absolute max-h-96 w-96 bg-secondary rounded-lg overflow-y-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted-foreground/50 hover:scrollbar-thumb-muted-foreground/80 z-50"
-		>
-			<div className="p-4">
-				<div className="flex items-center justify-between mb-4">
-					<h3 className="font-medium">Actions</h3>
-					<span className="text-sm text-gray-400">{actions.length} actions</span>
+		<div className="rounded-3xl border bg-background/60 p-3">
+			<div className="flex items-start gap-3">
+				<StatusDot status={action.status} />
+
+				<div className="min-w-0 flex-1">
+					<div className="truncate text-sm font-medium">
+						<code>{action.skillKey}()</code>
+					</div>
+					<div className="text-xs text-muted-foreground">{getStatusLabel(action.status)}</div>
+					{preview && <div className="mt-1 truncate text-xs text-muted-foreground">{preview}</div>}
 				</div>
-				{/* <div className="space-y-3">
-					{actions.map((action) => (
-						<TaskAction key={action._id} action={action} />
-					))}
-				</div> */}
 			</div>
-		</motion.div>
-	);
-});
-Expanded.displayName = 'Expanded';
 
-const Collapsed = forwardRef<HTMLButtonElement, { actions: Doc<'actions'>[] }>(({ actions }, ref) => {
-	return (
-		<Button
-			ref={ref}
-			variant="ghost"
-			className="h-full flex items-center justify-center gap-2 text-sm px-3 truncate"
-		>
-			<CollapsedContent actions={actions} />
-		</Button>
+			{action.status === 'pending authorization' && (
+				<div className="mt-3 flex gap-2">
+					<LoadingButton
+						size="sm"
+						onClick={() => approveAction({ taskId, actionId: action._id })}
+						loading={isApprovingAction}
+						loadingText="Authorizing..."
+					>
+						Authorize
+					</LoadingButton>
+					<LoadingButton
+						size="sm"
+						variant="destructive"
+						onClick={() => rejectAction({ taskId, actionId: action._id })}
+						loading={isRejectingAction}
+						loadingText="Skipping..."
+					>
+						Skip
+					</LoadingButton>
+				</div>
+			)}
+		</div>
 	);
-});
-Collapsed.displayName = 'Collapsed';
+}
 
-const CollapsedContent = ({ actions }: { actions: Doc<'actions'>[] }) => {
+function SummaryIcon({ actions }: { actions: Doc<'actions'>[] }) {
 	//
-	// const runningActions = actions.filter((action) => action.status === 'running');
-	// const pendingActions = actions.filter((action) => action.status === 'pending');
-	// const failedActions = actions.filter((action) => action.status === 'failed');
-
-	if (actions.length > 0) {
-		//
-		// const runningAction = runningActions[0];
-
-		return (
-			<>
-				{/* <Loader2 className="size-4 animate-spin" /> */}
-				{/* <StatusIndicator className="bg-green-500" /> */}
-				{/* <span>acting</span> */}
-			</>
-		);
+	if (actions.some((action) => action.status === 'pending authorization')) {
+		return <ShieldAlert className="size-4 text-amber-500" />;
 	}
 
-	// if (failedActions.length > 0) {
-	// 	return (
-	// 		<>
-	// 			{/* <X className="size-4" /> */}
-	// 			<Indicator className="bg-red-500" />
-	// 			<span>blocked</span>
-	// 		</>
-	// 	);
-	// }
+	if (actions.some((action) => action.status === 'running')) {
+		return <Loader2 className="size-4 animate-spin" />;
+	}
 
+	return <Clock3 className="size-4" />;
+}
+
+function StatusDot({ status }: { status: Doc<'actions'>['status'] }) {
+	//
 	return (
-		<>
-			{/* <Activity className="size-4" /> */}
-			{/* <span className="size-1.5 animate-pulse rounded-full bg-blue-500" /> */}
-			{/* {actions.length > 0 ? ( //
-				<span>{actions.length} done</span>
-			) : (
-				<span>No activity</span>
-			)} */}
-			{/* <StatusIndicator className="bg-gray-500" pulse={false} /> */}
-			{/* <span>idle</span> */}
-		</>
+		<span
+			className={cn('mt-1.5 size-2 shrink-0 rounded-full', {
+				'bg-amber-500': status === 'pending authorization',
+				'bg-blue-500 animate-pulse': status === 'running',
+				'bg-muted-foreground': status === 'enqueued',
+			})}
+		/>
 	);
-};
+}
+
+function isActiveAction(action: Doc<'actions'>) {
+	//
+	return action.status === 'pending authorization' || action.status === 'running' || action.status === 'enqueued';
+}
+
+function getActionPriority(status: Doc<'actions'>['status']) {
+	//
+	if (status === 'pending authorization') return 0;
+	if (status === 'running') return 1;
+	if (status === 'enqueued') return 2;
+	return 3;
+}
+
+function buildSummary(actions: Doc<'actions'>[]) {
+	//
+	const pendingAuthorizationCount = actions.filter((action) => action.status === 'pending authorization').length;
+	const runningCount = actions.filter((action) => action.status === 'running').length;
+	const enqueuedCount = actions.filter((action) => action.status === 'enqueued').length;
+
+	if (pendingAuthorizationCount > 0) {
+		const approvalsText =
+			pendingAuthorizationCount === 1 ? '1 approval needed' : `${pendingAuthorizationCount} approvals needed`;
+		const remainingActiveCount = runningCount + enqueuedCount;
+
+		return remainingActiveCount > 0 ? `${approvalsText}, ${remainingActiveCount} more active` : approvalsText;
+	}
+
+	if (runningCount > 0 && enqueuedCount > 0) {
+		return `${runningCount} running, ${enqueuedCount} queued`;
+	}
+
+	if (runningCount > 0) {
+		return runningCount === 1 ? '1 running' : `${runningCount} running`;
+	}
+
+	return enqueuedCount === 1 ? '1 queued' : `${enqueuedCount} queued`;
+}
+
+function getStatusLabel(status: Doc<'actions'>['status']) {
+	//
+	if (status === 'pending authorization') return 'waiting for your authorization';
+	if (status === 'running') return 'running now';
+	if (status === 'enqueued') return 'queued';
+	return status;
+}
+
+function buildActionPreview(action: Doc<'actions'>) {
+	//
+	const message = getStringArg(action, 'message');
+	if (message) return truncate(message, 72);
+
+	const instructions = getStringArg(action, 'instructions');
+	if (instructions) return truncate(instructions, 72);
+
+	const query = getStringArg(action, 'query');
+	if (query) return truncate(query, 72);
+
+	const prompt = getStringArg(action, 'prompt');
+	if (prompt) return truncate(prompt, 72);
+
+	const url = getStringArg(action, 'url');
+	if (url) return truncate(url, 72);
+
+	const note = getStringArg(action, 'note');
+	if (note) return truncate(note, 72);
+
+	return null;
+}
+
+function getStringArg(action: Doc<'actions'>, key: string) {
+	//
+	const value = action.args[key];
+	if (typeof value !== 'string') return null;
+
+	return value.trim() || null;
+}
+
+function truncate(value: string, maxLength: number) {
+	//
+	if (value.length <= maxLength) return value;
+
+	return value.slice(0, maxLength - 3) + '...';
+}

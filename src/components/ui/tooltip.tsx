@@ -8,7 +8,7 @@ import { useIsMobileWithMounted } from '~/hooks/useIsMobile';
 import { Button } from './button';
 import { Drawer, DrawerContent, DrawerTrigger } from './drawer';
 
-const TooltipProvider = ({ delayDuration = 0, children, ...props }: TooltipPrimitive.TooltipProviderProps) => {
+const TooltipProvider = ({ delayDuration = 100, children, ...props }: TooltipPrimitive.TooltipProviderProps) => {
 	//
 	return (
 		<TooltipPrimitive.Provider delayDuration={delayDuration} {...props}>

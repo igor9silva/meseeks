@@ -1,65 +1,166 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useConvexAuth, useMutation, useQuery } from 'convex/react';
+import { api } from 'convex/_generated/api';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+	applyThemeToDocument,
+	getInitialCustomThemeId,
+	getInitialSystemThemeMode,
+	subscribeToSystemThemeMode,
+} from '~/lib/themes/document';
+import { getRequiredTheme, getSystemThemeId, resolveTheme } from '~/lib/themes/resolve';
+import { syncThemeSnapshot } from '~/lib/themes/storage';
+import type { AppThemeId, ThemeMode } from '~/lib/themes/catalog';
 
 // TODO:personalization: vision
 // - persist config to server, load during SSR toghether with user data
 // - mode = dark, light or system (auto, tied with OS)
 // - theme = customizable everything (from corner radius to spacing)
 
-type ThemeMode = 'dark' | 'light' | 'system';
+type ThemeSelection = {
+	customThemeId: AppThemeId | null;
+	previewThemeId: AppThemeId | null;
+};
 
-const ThemeProviderContext = createContext({
-	theme: 'system',
-	setTheme: (() => {}) as (theme: ThemeMode) => void,
-});
+type ThemeProviderContextType = {
+	theme: ThemeMode;
+	persistedThemeId: AppThemeId | null;
+	systemThemeId: AppThemeId;
+	hasCustomTheme: boolean;
+	setThemeById: (themeId: AppThemeId) => Promise<void>;
+	resetTheme: () => Promise<void>;
+	previewThemeById: (themeId: AppThemeId) => void;
+	clearThemePreview: () => void;
+};
+
+const ThemeProviderContext = createContext<ThemeProviderContextType | null>(null);
 
 type ThemeProviderProps = {
 	children: React.ReactNode;
-	mode?: ThemeMode;
 };
 
-export function ThemeProvider({ children, mode = 'system', ...props }: ThemeProviderProps) {
+export function ThemeProvider({ children }: ThemeProviderProps) {
 	//
-	const [theme, setTheme] = useState<ThemeMode>(mode);
+	const { isAuthenticated } = useConvexAuth();
+	const userTheme = useQuery(api.users.themes.get, isAuthenticated ? {} : 'skip');
+	const setThemeMutation = useMutation(api.users.themes.set);
+	const resetThemeMutation = useMutation(api.users.themes.reset);
+
+	const [customThemeId, setCustomThemeId] = useState<AppThemeId | null>(() => getInitialCustomThemeId());
+
+	// launcher hover previews should not change the persisted selection marker.
+	const [previewThemeId, setPreviewThemeId] = useState<AppThemeId | null>(null);
+	const [systemThemeMode, setSystemThemeMode] = useState<ThemeMode>(() => getInitialSystemThemeMode());
+
+	const systemThemeId = getSystemThemeId(systemThemeMode);
+	const persistedTheme = resolveTheme({ customThemeId, systemMode: systemThemeMode });
+	const displayedTheme = previewThemeId ? getRequiredTheme(previewThemeId) : persistedTheme;
+	const displayedThemeSource = previewThemeId || customThemeId ? 'custom' : 'system';
+
+	const syncPersistedCustomTheme = useCallback((themeId: AppThemeId | null) => {
+		setCustomThemeId(themeId);
+		syncThemeSnapshot(themeId ? getRequiredTheme(themeId) : null);
+	}, []);
+
+	const restoreThemeSelection = useCallback(
+		(selection: ThemeSelection) => {
+			syncPersistedCustomTheme(selection.customThemeId);
+			setPreviewThemeId(selection.previewThemeId);
+		},
+		[syncPersistedCustomTheme],
+	);
 
 	useEffect(() => {
-		const root = window.document.documentElement;
-		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		// Convex is the source of truth after hydration. The stored snapshot only bridges first paint.
+		if (userTheme === undefined) return;
 
-		const applyTheme = () => {
-			root.classList.remove('light', 'dark');
+		syncPersistedCustomTheme(userTheme.themeId ?? null);
+	}, [syncPersistedCustomTheme, userTheme]);
 
-			if (theme === 'system') {
-				root.classList.add(darkModeMediaQuery.matches ? 'dark' : 'light');
-			} else {
-				root.classList.add(theme);
+	useEffect(() => subscribeToSystemThemeMode(setSystemThemeMode), []);
+
+	useEffect(() => {
+		applyThemeToDocument({
+			mode: displayedTheme.mode,
+			source: displayedThemeSource,
+			themeId: displayedTheme.id,
+			variables: displayedTheme.variables,
+		});
+	}, [displayedTheme.id, displayedTheme.mode, displayedTheme.variables, displayedThemeSource]);
+
+	const setThemeById = useCallback(
+		async (themeId: AppThemeId) => {
+			const previousSelection: ThemeSelection = {
+				customThemeId,
+				previewThemeId,
+			};
+
+			syncPersistedCustomTheme(themeId);
+			setPreviewThemeId(null);
+
+			try {
+				await setThemeMutation({ themeId });
+			} catch (error) {
+				restoreThemeSelection(previousSelection);
+				throw error;
 			}
+		},
+		[customThemeId, previewThemeId, restoreThemeSelection, setThemeMutation, syncPersistedCustomTheme],
+	);
+
+	const resetTheme = useCallback(async () => {
+		const previousSelection: ThemeSelection = {
+			customThemeId,
+			previewThemeId,
 		};
 
-		applyTheme();
+		syncPersistedCustomTheme(null);
+		setPreviewThemeId(null);
 
-		// if using 'system', listen for OS theme changes
-		if (theme === 'system') {
-			darkModeMediaQuery.addEventListener('change', applyTheme);
-			return () => darkModeMediaQuery.removeEventListener('change', applyTheme);
+		try {
+			await resetThemeMutation({});
+		} catch (error) {
+			restoreThemeSelection(previousSelection);
+			throw error;
 		}
-	}, [theme]);
+	}, [customThemeId, previewThemeId, resetThemeMutation, restoreThemeSelection, syncPersistedCustomTheme]);
 
-	const customSetTheme = (theme: ThemeMode) => {
-		setTheme(theme);
-		// TODO:personalization: persist config to server
-	};
+	const previewThemeById = useCallback((themeId: AppThemeId) => {
+		setPreviewThemeId(themeId);
+	}, []);
 
-	return (
-		<ThemeProviderContext.Provider {...props} value={{ theme, setTheme: customSetTheme }}>
-			{children}
-		</ThemeProviderContext.Provider>
+	const clearThemePreview = useCallback(() => {
+		setPreviewThemeId(null);
+	}, []);
+
+	const value = useMemo(
+		() => ({
+			theme: displayedTheme.mode,
+			persistedThemeId: customThemeId,
+			systemThemeId,
+			hasCustomTheme: customThemeId !== null,
+			setThemeById,
+			resetTheme,
+			previewThemeById,
+			clearThemePreview,
+		}),
+		[
+			clearThemePreview,
+			customThemeId,
+			displayedTheme.mode,
+			previewThemeById,
+			resetTheme,
+			setThemeById,
+			systemThemeId,
+		],
 	);
+
+	return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>;
 }
 
-export const useTheme = () => {
+export function useTheme() {
 	//
 	const context = useContext(ThemeProviderContext);
-	if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
+	if (!context) throw new Error('useTheme must be used within a ThemeProvider');
 
 	return context;
-};
+}

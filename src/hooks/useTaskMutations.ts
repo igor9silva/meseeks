@@ -4,7 +4,6 @@ import { asBigInt } from 'lib/money';
 import { useMutation } from 'convex/react';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { z } from 'zod/v3';
-import { BudgetStep } from '~/components/ui/budget-selector';
 import { api } from 'convex/_generated/api';
 
 export function useAddTask() {
@@ -18,7 +17,7 @@ export function useAddTask() {
 			intelligence,
 		}: {
 			message: string;
-			initialFunds: BudgetStep;
+			initialFunds: number;
 			intelligence: z.infer<typeof intelligenceKeys> | undefined;
 		}) => {
 			//
@@ -68,36 +67,6 @@ export function useSay() {
 	return {
 		say: mutation.mutate,
 		isSaying: mutation.isPending,
-		...mutation,
-	};
-}
-
-/**
- * @deprecated use useAct + useComposer for batched skill submission
- */
-export function useRequestIteration() {
-	//
-	const act = useMutation(api.action.act);
-
-	const mutation = useTanStackMutation({
-		mutationFn: async ({
-			taskId, //
-		}: {
-			taskId: Id<'tasks'>;
-		}) => {
-			//
-			return await act({
-				taskId,
-				skills: [
-					{ skillKey: 'requestIteration', args: {} }, //
-				],
-			});
-		},
-	});
-
-	return {
-		requestIteration: mutation.mutate,
-		isRequestingIteration: mutation.isPending,
 		...mutation,
 	};
 }

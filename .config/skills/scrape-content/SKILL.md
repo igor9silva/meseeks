@@ -5,7 +5,7 @@ description: Scrape tweets and web content, saving results as structured markdow
 
 # Scrape Content
 
-Scrape tweets (Twitter/X) and save them as markdown files. API keys and implementation details are handled internally by `scripts/lib.ts`.
+Scrape tweets (Twitter/X), capture web content, and transcribe local media files into markdown. API keys and implementation details are handled by the scripts in `scripts/`.
 
 ## Scope Boundary
 
@@ -30,7 +30,35 @@ bun scripts/scrape-tweet.ts <url> [comment] [--output-dir <dir>]
 bun scripts/scrape-batch.ts <input-file> [--output-dir <dir>]
 ```
 
-Input file format — one URL per entry, optional comment on the next line, separated by `---`:
+### Local media transcription with Gemini 2.5 Flash
+
+Use this when the user already has a downloaded local audio or video file and wants a transcript.
+
+Requirements:
+
+- `GEMINI_API_KEY` in the environment
+
+```bash
+bun scripts/transcribe-media.ts /absolute/path/to/video.mp4
+```
+
+Useful flags:
+
+- `--output <file>`: write somewhere else instead of the default sibling `*.transcript.md`
+- `--stdout`: print the markdown transcript instead of writing a file
+- `--prompt <text>`: override the default transcription prompt
+- `--model <model>`: override the default `gemini-2.5-flash`
+- `--keep-upload`: keep the Gemini Files API upload instead of deleting it after transcription
+
+Current behavior:
+
+- uploads the local media file to Gemini Files API
+- waits until Gemini marks the file `ACTIVE`
+- asks `gemini-2.5-flash` for a transcript
+- writes markdown next to the media file by default
+- deletes the remote Gemini upload after success or failure unless `--keep-upload` is set
+
+Batch input file format — one URL per entry, optional comment on the next line, separated by `---`:
 
 ```
 https://x.com/user/status/123
@@ -64,5 +92,5 @@ Comments are **critically important context** provided by the user. They appear 
 This skill is designed to evolve:
 
 - **Add new scripts** in `scripts/` for new scraping sources
-- **Update `lib.ts`** to fix bugs, improve output, or add shared utilities
+- **Update `lib.ts`** to fix bugs, improve tweet output, or add shared utilities
 - **Edit this SKILL.md** to document new capabilities

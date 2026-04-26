@@ -6,15 +6,14 @@ import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react'
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
-import { AddCustomBudgetButton, AddBudgetButton } from '~/components/AddBudgetButton';
+import { AddBudgetButton } from '~/components/AddBudgetButton';
 import { DebugAction } from '~/components/DebugAction';
-import { BudgetSelector, type BudgetStep } from '~/components/ui/budget-selector';
+import { EnergyDrawer } from '~/components/EnergyDrawer';
 import { Button } from '~/components/ui/button';
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '~/components/ui/drawer';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { ComposerProvider, useComposer } from '~/hooks/useComposer';
+import { ComposerProvider } from '~/hooks/useComposer';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { api } from 'convex/_generated/api';
@@ -66,11 +65,9 @@ function TaskConversationInner({
 	//
 	const navigate = useNavigate();
 	const user = useCurrentUser();
-	const { enqueue } = useComposer();
-	const { debug, isBudgetDrawerOpen } = useSearch({ strict: false });
+	const { debug, isEnergyDrawerOpen } = useSearch({ strict: false });
 	const { discard, isDiscarding } = useDiscard();
 	const { resolve, isResolving } = useResolve();
-	const [selectedBudget, setSelectedBudget] = useState<BudgetStep>(0.2);
 
 	const {
 		results: actions,
@@ -84,21 +81,6 @@ function TaskConversationInner({
 
 	const reversedActions = useMemo(() => [...actions].reverse(), [actions]);
 	const initialRenderDate = useMemo(() => new Date(), []);
-
-	const handleEnqueueBudget = (dollars: number) => {
-		//
-		enqueue({
-			skillKey: 'increaseBudget',
-			args: { dollars },
-			source: 'budget-strip',
-		});
-	};
-
-	const handleBudgetConfirm = () => {
-		//
-		handleEnqueueBudget(selectedBudget);
-		navigate({ to: '.', search: (prev) => ({ ...prev, isBudgetDrawerOpen: undefined }) });
-	};
 
 	const markAsRead = useMutation(api.tasks.markAsRead);
 
@@ -164,7 +146,6 @@ function TaskConversationInner({
 							>
 								Discard
 							</LoadingButton>
-							<AddCustomBudgetButton variant="ghost" text="Add Energy" />
 						</>
 					) : (
 						<>
@@ -221,30 +202,15 @@ function TaskConversationInner({
 
 			<ActionComposer task={task} />
 
-			<Drawer
-				open={Boolean(isBudgetDrawerOpen)}
+			<EnergyDrawer
+				open={Boolean(isEnergyDrawerOpen)}
 				onOpenChange={(open) =>
 					navigate({
 						to: '.',
-						search: (prev) => ({ ...prev, isBudgetDrawerOpen: open || undefined }),
+						search: (prev) => ({ ...prev, isEnergyDrawerOpen: open || undefined }),
 					})
 				}
-			>
-				<DrawerContent>
-					<DrawerHeader>
-						<DrawerTitle>Add energy</DrawerTitle>
-					</DrawerHeader>
-					<div className="px-4 pb-4">
-						<BudgetSelector value={selectedBudget} onChange={setSelectedBudget} className="w-full" />
-					</div>
-					<DrawerFooter className="pt-2">
-						<Button onClick={handleBudgetConfirm}>Confirm</Button>
-						<DrawerClose asChild>
-							<Button variant="outline">Cancel</Button>
-						</DrawerClose>
-					</DrawerFooter>
-				</DrawerContent>
-			</Drawer>
+			/>
 		</div>
 	);
 }

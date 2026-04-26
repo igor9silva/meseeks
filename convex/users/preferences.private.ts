@@ -33,3 +33,17 @@ export const setUserPreference = defineMutation({
 		}
 	},
 });
+
+export const clearUserPreference = defineMutation({
+	args: z.object({
+		userId: zid('users'),
+		key: z.string(),
+	}),
+	handler: async (ctx, { userId, key }) => {
+		//
+		const preference = await findUserPreference(ctx, { userId, key });
+		if (!preference) return;
+
+		await ctx.db.delete(preference._id);
+	},
+});

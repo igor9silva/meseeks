@@ -30,6 +30,7 @@ type ComposerContextValue = {
 
 	// mutations (enqueue returns false if queue is full)
 	enqueue: (skill: SkillToEnqueue, options?: { clearMessage?: boolean }) => boolean;
+	setEnergyIncrease: (dollars: number) => boolean;
 	dequeue: (id: string) => void;
 	setMessage: (message: string) => void;
 	clear: () => void;
@@ -176,6 +177,32 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		[queueItems, message, pendingServerDraft, draftSync],
 	);
 
+	const setEnergyIncrease = useCallback(
+		(dollars: number): boolean => {
+			//
+			const hasExistingIncreaseAction = queueItems.some((item) => item.skillKey === 'increaseBudget');
+
+			if (!hasExistingIncreaseAction && queueItems.length >= MAX_QUEUE_SIZE) {
+				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
+				return false;
+			}
+
+			userHasTypedRef.current = true;
+			const nextQueue = queueItems
+				.filter((item) => item.skillKey !== 'increaseBudget')
+				.concat({ skillKey: 'increaseBudget', args: { dollars } });
+
+			setQueueItems(nextQueue);
+
+			if (!pendingServerDraft) {
+				draftSync.save(nextQueue, message);
+			}
+
+			return true;
+		},
+		[queueItems, message, pendingServerDraft, draftSync],
+	);
+
 	const dequeue = useCallback(
 		(id: string) => {
 			//
@@ -266,6 +293,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		restoreServerDraft,
 		dismissServerDraft,
 		enqueue,
+		setEnergyIncrease,
 		dequeue,
 		setMessage,
 		clear,
@@ -342,7 +370,7 @@ function toSkillToEnqueue(skill: EnqueuedSkill): SkillToEnqueue {
 function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
 	//
 	// budget skills store dollars as number, convert to bigint for backend
-	const dollars = skill.args['dollars'] as number | undefined;
+	const dollars = getDollarsArg(skill.args);
 	const amount = dollars ? asBigInt({ dollars }) : 0n;
 
 	return {
@@ -350,6 +378,12 @@ function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
 		args: { amount },
 		source: skill.source,
 	};
+}
+
+function getDollarsArg(args: Record<string, unknown>) {
+	//
+	const dollars = args['dollars'];
+	return typeof dollars === 'number' ? dollars : undefined;
 }
 
 function areDraftsEqual(queueItems: QueueItem[], message: string, draft: ServerDraft): boolean {

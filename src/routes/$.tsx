@@ -8,7 +8,7 @@ import { useSplatParams } from '~/hooks/useSplatParams';
 
 const searchSchema = z.object({
 	q: z.string().optional(),
-	isBudgetDrawerOpen: z.boolean().optional(),
+	isEnergyDrawerOpen: z.boolean().optional(),
 	debug: z.boolean().optional(),
 });
 
