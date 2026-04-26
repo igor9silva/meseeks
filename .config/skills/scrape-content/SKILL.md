@@ -7,6 +7,15 @@ description: Scrape tweets and web content, saving results as structured markdow
 
 Scrape tweets (Twitter/X) and save them as markdown files. API keys and implementation details are handled internally by `scripts/lib.ts`.
 
+## Scope Boundary
+
+This skill is for content extraction and markdown capture.
+
+If the user wants the actual media file from a supported site, do not improvise with custom scraping first. Use the globally installed `yt-dlp` as the default downloader, then use this skill only if markdown/content extraction is still needed.
+
+- bad: parse an Instagram reel page by hand when the request is `download the video`
+- good: use `yt-dlp` for the reel/video download, then use this skill only for any extra content extraction
+
 ## Usage
 
 ### Single tweet

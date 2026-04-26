@@ -46,6 +46,7 @@ Hard rule:
 
 - do not write directly into TickTick's SQLite task tables unless the user explicitly asks for that hack
 - prefer the native app session + HTTP API for writes
+- when a TickTick task points to downloadable media from a supported site, prefer `yt-dlp` for fetching the actual file after you extract the link
 
 ## Scripts
 
@@ -191,6 +192,20 @@ Use:
 
 1. `import-links.ts --parent-title ... --skip-existing`
 2. optionally `reshape-links.ts` if the target file shape changed
+
+### Inbox task -> media file
+
+Use this when the user wants the actual asset from a TickTick task instead of a markdown import.
+
+1. Read the task from TickTick using the existing native macOS path or cached local data.
+2. Extract the first real media URL from the task title/content/description.
+3. Use the globally installed `yt-dlp` as the default downloader for supported media sites like Instagram, YouTube, and X video links.
+4. Move the downloaded file into the repo only if the user asked for that; otherwise keep it in a temporary download location and report the path.
+
+Examples:
+
+- bad: build a custom downloader for an Instagram reel when the request is just `download the video`
+- good: fetch the TickTick task, grab the reel URL, run `yt-dlp`, and then place the file where the user asked
 
 ### Local references -> TickTick References
 

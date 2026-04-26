@@ -203,7 +203,7 @@ export async function askMagicRock(args: MagicRockContext) {
 	return result;
 }
 
-function languageModelFrom(
+export function languageModelFrom(
 	intelligenceKey: IntelligenceKey, //
 ) {
 	//

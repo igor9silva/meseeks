@@ -172,14 +172,6 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 		}
 	};
 
-	// Get additional status suffix
-	const getStatusSuffix = () => {
-		if (action.status === 'skipped') {
-			`, but skipped.`;
-		}
-		return '';
-	};
-
 	return (
 		<div className="text-xs text-muted-foreground">
 			{getStatusText()}{' '}

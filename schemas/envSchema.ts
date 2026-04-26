@@ -91,8 +91,6 @@ export const env = createEnv({
 			.pipe(z.number())
 			.describe('Session update age in milliseconds (how often to refresh rolling sessions in background).'),
 
-		OPENAI_API_KEY: z.string().min(1).describe('OpenAI API key.'),
-
 		MAX_CONSECUTIVE_COMPANION_ACTIONS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
@@ -114,8 +112,10 @@ export const env = createEnv({
 			.describe('Maximum number of active tasks to show in activeTasks variable.')
 			.default('20'),
 
+		OPENAI_API_KEY: z.string().min(1).describe('OpenAI API key.'),
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
 		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
+		MISTRAL_API_KEY: z.string().min(1).describe('Mistral API key.'),
 		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
 
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),

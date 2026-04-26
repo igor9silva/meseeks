@@ -1,9 +1,9 @@
 ---
 name: learn-from-task
-description: Read a full Meseeks task conversation from Convex MCP, especially when the user says learnFromTask, asks to read a /task/ URL, references a PROD task, or wants project instructions improved from a prior task failure. Use this to recover the original user intent, assistant visible say() output, internal action/debug timeline, and steering corrections, then update MasterPlan, skills, or task files so the mistake does not repeat.
+description: Read a full Meseeks task conversation from Convex MCP, especially when the user says Learn from task, asks to read a /task/ URL, references a PROD task, or wants project instructions improved from a prior task failure. Use this to recover the original user intent, assistant visible say() output, internal action/debug timeline, and steering corrections, then update MasterPlan, skills, or task files so the mistake does not repeat.
 ---
 
-# learnFromTask
+# Learn from task
 
 Use this skill to learn from a completed Meseeks task, not from the current chat alone.
 

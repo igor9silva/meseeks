@@ -72,8 +72,6 @@ export function EditableContent({
 
 	const InputComponent = multiline ? Textarea : Input;
 
-	const isEmpty = !editedValue || !editedValue.trim();
-
 	if (isEditing) {
 		return (
 			<InputComponent

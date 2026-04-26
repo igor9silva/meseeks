@@ -2,9 +2,30 @@
 // We moved away from AI SDK's transcribe() after finding out it was forcing
 // file type to audio/wav, breaking transcription. We spent too many hours on that already.
 
+import { generateText } from 'ai';
 import { z } from 'zod/v3';
 import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
+import { languageModelFrom } from './magicRock.private';
+
+const dictionary = [
+	'Meseeks', //
+].join(',');
+
+const cleanupPrompt = `
+format this raw transcript into readable text.
+
+return only the formatted transcript.
+no title, no intro, no markdown, no explanations.
+
+rules:
+- preserve the original words and meaning
+- do not translate
+- do not add or remove information
+- add punctuation and paragraph breaks only
+- lightly fix obvious spelling mistakes when the intent is clear
+- if unsure, keep the original wording
+`.trim();
 
 const audioArrayBufferSchema = z.unknown().transform((value, ctx) => {
 	//
@@ -32,30 +53,63 @@ export const transcribe = action({
 
 		const formData = new FormData();
 		formData.append('file', file);
-		formData.append('model', 'whisper-large-v3');
-		formData.append(
-			'prompt',
-			"You're transcribing audio for a companion called Meseeks. Please format the output transcription as a structured text, with paragraphs and line breaks, punctuation, etc. Fix misspellings. No title and shit, just text. Make sure to NOT lose any information. It's better to have them unstructured then miss something that was on the original audio. NEVER add extra information into the text, ever. Keep the original language even if the audio mixes languages.",
-		);
-		formData.append('response_format', 'json');
+		formData.append('model', 'voxtral-mini-latest');
+		formData.append('context_bias', dictionary);
 
-		const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+		const response = await fetch('https://api.mistral.ai/v1/audio/transcriptions', {
 			method: 'POST',
 			headers: {
-				Authorization: `Bearer ${env.GROQ_API_KEY}`,
+				Authorization: `Bearer ${env.MISTRAL_API_KEY}`,
 			},
 			body: formData,
 		});
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error('Groq transcription failed:', { status: response.status, error: errorText });
+			console.error('Mistral transcription failed:', { status: response.status, error: errorText });
 			throw new Error(`Transcription failed: ${response.status}`);
 		}
 
 		const json = await response.json();
 		const result = z.object({ text: z.string() }).parse(json);
+		const transcription = result.text.trim();
 
-		return result.text.trim();
+		console.info('Mistral transcription result', {
+			characterCount: transcription.length,
+			contextBias: dictionary,
+			text: transcription,
+		});
+
+		if (!transcription) return transcription;
+
+		try {
+			const cleanupResult = await generateText({
+				model: languageModelFrom('openai/gpt-oss-20b'),
+				temperature: 0,
+				system: cleanupPrompt,
+				prompt: `format this transcript:\n\n${transcription}`,
+			});
+
+			const cleanedTranscription = cleanupResult.text.trim();
+
+			console.info('Transcription cleanup result', {
+				model: 'openai/gpt-oss-20b',
+				characterCount: cleanedTranscription.length,
+				text: cleanedTranscription,
+				finishReason: cleanupResult.finishReason,
+				usage: cleanupResult.usage,
+				warnings: cleanupResult.warnings,
+			});
+
+			if (!cleanedTranscription) {
+				console.warn('Transcription cleanup returned empty text, falling back to raw transcription.');
+				return transcription;
+			}
+
+			return cleanedTranscription;
+		} catch (error) {
+			console.warn('Transcription cleanup failed, falling back to raw transcription.', error);
+			return transcription;
+		}
 	},
 });
