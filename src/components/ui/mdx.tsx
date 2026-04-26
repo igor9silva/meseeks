@@ -321,7 +321,11 @@ export default function MDX({
 								{children}
 							</blockquote>
 						),
-						table: ({ children }) => <table className="w-full border-collapse my-4">{children}</table>,
+						table: ({ children }) => (
+							<div className="overflow-x-auto">
+								<table className="w-full border-collapse my-4">{children}</table>
+							</div>
+						),
 						td: ({ children }) => <td className="border border-border p-2">{children}</td>,
 						th: ({ children }) => (
 							<th className="border border-border p-2 font-bold text-primary">{children}</th>
