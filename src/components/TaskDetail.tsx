@@ -14,6 +14,7 @@ import { cn } from '~/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskAvailableSkills } from './TaskAvailableSkills';
+import { useIsMobile } from '~/hooks/useIsMobile';
 
 export default function TaskDetail({
 	className, //
@@ -23,6 +24,7 @@ export default function TaskDetail({
 	showExpand?: boolean;
 }) {
 	const { task } = useCurrentTask();
+	const isMobile = useIsMobile();
 	const { resolve, isResolving } = useResolve();
 	const { reopen, isReopening } = useReopen();
 	const { updateTitle, isUpdatingTitle } = useUpdateTitle();
@@ -68,7 +70,10 @@ export default function TaskDetail({
 								value={task.title ?? ''}
 								onSave={(newTitle) => updateTitle({ taskId: task._id, title: newTitle })}
 								isPending={isUpdatingTitle}
-								viewClassName="text-2xl font-bold leading-none break-words overflow-wrap-anywhere min-w-0 flex-1"
+								viewClassName={cn(
+									'text-2xl font-bold leading-none break-words overflow-wrap-anywhere min-w-0 flex-1',
+									isMobile ? 'text-base' : 'text-xl',
+								)}
 								asView={({ value, className, isEmpty, isPending }) => (
 									<h1
 										className={cn(

@@ -169,7 +169,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		<TooltipProvider>
 			<div
 				className={cn(
-					'bg-sidebar rounded-3xl border p-2 shadow-xs flex flex-col',
+					'bg-sidebar rounded-3xl border p-2 mx-2 mb-2 shadow-xs flex flex-col',
 					className,
 					isRecordingOrTranscribing && 'flex-row',
 				)}

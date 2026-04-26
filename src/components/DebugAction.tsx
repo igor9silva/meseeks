@@ -849,7 +849,7 @@ function ActionRow({
 				{/* Main row */}
 				<div
 					className={cn(
-						'flex items-center py-2 px-4 hover:bg-muted/50 cursor-pointer group',
+						'flex items-center py-2 hover:bg-muted/50 cursor-pointer group',
 						!isAuthorCurrentUser && 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
 					)}
 					style={{ paddingLeft: `${16 + action.depth * 4}px` }}

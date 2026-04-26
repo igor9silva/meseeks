@@ -77,7 +77,7 @@ export function TaskDetailAndConversation({
 					{/* the content of the first panel depends on the layout direction */}
 					{direction === 'vertical' ? list : detail}
 				</ResizablePanel>
-				{shouldRenderDetailPanel && <ResizableHandle withHandle />}
+				{shouldRenderDetailPanel && <ResizableHandle />}
 				{shouldRenderDetailPanel && (
 					<ResizablePanel
 						id="detail"

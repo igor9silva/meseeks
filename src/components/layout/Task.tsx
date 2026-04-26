@@ -59,7 +59,7 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 					id="list"
 					order={0}
 					defaultSize={preferredWidthPercent}
-					minSize={25}
+					minSize={15}
 					className="hidden md:block"
 				>
 					<Suspense fallback={<Loading />}>
@@ -67,12 +67,12 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 					</Suspense>
 				</ResizablePanel>
 			)}
-			{isTaskListVisible && <ResizableHandle withHandle />}
+			{isTaskListVisible && <ResizableHandle />}
 			<ResizablePanel
 				id="detail"
 				order={1}
 				defaultSize={isTaskListVisible ? 100 - preferredWidthPercent : 100}
-				minSize={25}
+				minSize={15}
 			>
 				<Suspense fallback={<Loading />}>
 					<TaskDetailWithConditionalRendering

@@ -1,16 +1,15 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import type { Doc } from 'convex/_generated/dataModel';
 import { useMutation, usePaginatedQuery } from 'convex/react';
-import { Archive, CheckCircle, ChevronDown, CodeXml, PanelLeftClose, PanelLeftOpen, RotateCcw } from 'lucide-react';
+import { ChevronDown, CodeXml, RotateCcw } from 'lucide-react';
 import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
-import { AddBudgetButton } from '~/components/AddBudgetButton';
 import { DebugAction } from '~/components/DebugAction';
 import { EnergyDrawer } from '~/components/EnergyDrawer';
 import { Button } from '~/components/ui/button';
-import { LoadingButton } from '~/components/ui/loading-button';
+import { TaskConversationActions } from '~/components/TaskConversationActions';
 import { Toggle } from '~/components/ui/toggle';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { ComposerProvider } from '~/hooks/useComposer';
@@ -98,63 +97,17 @@ function TaskConversationInner({
 	});
 
 	return (
-		<div className={cn('flex flex-col h-full gap-2 p-2', debug && 'px-0', className)}>
-			<div className={cn('flex justify-between items-center bg-background/75', debug && 'px-2')}>
-				<div className="flex gap-2">
-					{onToggleList && (
-						<Button
-							size="sm"
-							variant="ghost"
-							onClick={onToggleList}
-							className="hidden md:flex items-center gap-1"
-							title={isTaskListVisible ? 'Hide task list' : 'Show task list'}
-						>
-							{isTaskListVisible ? (
-								<PanelLeftClose className="h-4 w-4" />
-							) : (
-								<PanelLeftOpen className="h-4 w-4" />
-							)}
-						</Button>
-					)}
-					{task.isActive ? (
-						<>
-							<LoadingButton
-								size="sm"
-								variant="ghost"
-								onClick={() => {
-									if (isResolving) return;
-									resolve({ taskId: task._id });
-								}}
-								loading={isResolving}
-								loadingText="Resolving..."
-								icon={<CheckCircle className="mr-2 h-4 w-4" />}
-								className="flex items-center"
-							>
-								Resolve
-							</LoadingButton>
-							<LoadingButton
-								size="sm"
-								variant="ghost"
-								onClick={() => {
-									if (isDiscarding) return;
-									discard({ taskId: task._id });
-								}}
-								loading={isDiscarding}
-								loadingText="Discarding..."
-								icon={<Archive className="mr-2 h-4 w-4" />}
-								className="flex items-center"
-							>
-								Discard
-							</LoadingButton>
-						</>
-					) : (
-						<>
-							<AddBudgetButton amount={0.5} text="Reopen with $0.50" />
-							<AddBudgetButton amount={2} variant="outline" text="Reopen with $2.00" />
-							<AddBudgetButton amount={5} variant="outline" text="Reopen with $5.00" />
-						</>
-					)}
-				</div>
+		<div className={cn('flex flex-col h-full', debug && 'px-0', className)}>
+			<div className="flex justify-between items-center p-2">
+				<TaskConversationActions
+					task={task}
+					onToggleList={onToggleList}
+					isTaskListVisible={isTaskListVisible}
+					isResolving={isResolving}
+					isDiscarding={isDiscarding}
+					resolve={resolve}
+					discard={discard}
+				/>
 				<Link
 					to="/$"
 					search={(prev) => ({ ...prev, debug: debug ? undefined : true })}
@@ -278,14 +231,14 @@ function StickToBottomContent({
 	}, [actions, isAtBottom, isLoaded, scrollToBottom]);
 
 	return (
-		<StickToBottom.Content className={cn('relative h-full', isDebugMode ? 'p-0' : 'p-1 md:p-2')}>
+		<StickToBottom.Content className={cn('relative h-full', isDebugMode ? 'p-0' : 'p-2')}>
 			<div className="h-full">
 				{status === 'LoadingMore' && (
 					<div className="px-4 pt-4">
 						<Loading className="h-6 w-fit" />
 					</div>
 				)}
-				<div className={cn('flex flex-col flex-grow justify-end', className)}>{children}</div>
+				<div className={cn('flex flex-col flex-grow justify-end py-2', className)}>{children}</div>
 				<div className="sticky bottom-2 flex flex-col">
 					<ScrollToBottom />
 				</div>
