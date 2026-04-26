@@ -102,7 +102,7 @@ function RenderActionContent(props: ActionComponentProps) {
 							'border-none pointer-events-auto',
 							isFullscreen
 								? 'fixed inset-0 z-50 w-full h-full'
-								: 'w-[90%] min-h-96 overflow-auto rounded-3xl',
+								: 'w-full min-h-96 overflow-auto rounded-3xl',
 							{
 								'bg-primary text-primary-foreground': isAuthorCurrentUser && !isFullscreen,
 								'bg-secondary text-secondary-foreground': !isAuthorCurrentUser && !isFullscreen,
