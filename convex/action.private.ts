@@ -194,7 +194,9 @@ export const addActions = defineMutation({
 		// reopen if needed and requested
 		const skillsToSchedule = (() => {
 			//
-			if (!task.isActive && shouldReopen) {
+			const hasReopen = skills.some((skill) => skill.skillKey === 'reopen');
+
+			if (!task.isActive && shouldReopen && !hasReopen) {
 				return [{ skillKey: 'reopen', args: {} }].concat(skills);
 			}
 
