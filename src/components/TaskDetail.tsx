@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { TimeAgo } from '~/components/TimeAgo';
+import { TaskSchedules } from '~/components/TaskSchedules';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
@@ -55,7 +57,7 @@ export default function TaskDetail({
 									>
 										{isEmpty ? (
 											<span className="text-muted-foreground italic">
-												Double tap to set title
+												Double tap to set a title
 											</span>
 										) : (
 											value
@@ -96,6 +98,9 @@ export default function TaskDetail({
 					viewClassName="w-full h-full"
 					editClassName="h-full"
 				/>
+				<Suspense>
+					<TaskSchedules taskId={task._id} />
+				</Suspense>
 				{task.summary && <CollapsibleSummary summary={task.summary} />}
 			</CardContent>
 		</Card>

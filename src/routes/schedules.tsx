@@ -1,29 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { Doc } from 'convex/_generated/dataModel';
-import { useMutation } from 'convex/react';
-import { CalendarIcon, ClockIcon, RefreshCwIcon, Trash } from 'lucide-react';
-import { useState } from 'react';
-import { api } from 'convex/_generated/api';
+import { CalendarIcon } from 'lucide-react';
 
-import { TimeAgo } from '~/components/TimeAgo';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '~/components/ui/dialog';
+import { ScheduleCard } from '~/components/schedules/ScheduleCard';
 import { useSchedules } from '~/hooks/query/useSchedules';
 
 export const Route = createFileRoute('/schedules')({
 	component: SchedulesPage,
 });
-
-type ScheduleWithTask = Doc<'schedules'> & { taskTitle: string };
 
 function SchedulesPage() {
 	//
@@ -49,114 +32,9 @@ function SchedulesPage() {
 
 			<div className="space-y-4">
 				{schedules.map((schedule) => (
-					<ScheduleCard key={schedule._id} schedule={schedule} />
+					<ScheduleCard key={schedule._id} schedule={schedule} taskTitle={schedule.taskTitle} />
 				))}
 			</div>
 		</div>
 	);
-}
-
-function ScheduleCard({ schedule }: { schedule: ScheduleWithTask }) {
-	//
-	const [showCancelDialog, setShowCancelDialog] = useState(false);
-	const cancelSchedule = useMutation(api.schedules.cancel);
-
-	const handleCancel = async () => {
-		//
-		try {
-			await cancelSchedule({ scheduleId: schedule._id });
-			setShowCancelDialog(false);
-		} catch (error) {
-			console.error('Failed to cancel schedule:', error);
-		}
-	};
-
-	return (
-		<>
-			<Card className="gap-1">
-				<div className="flex items-center justify-between">
-					<CardHeader className="pb-2">
-						<CardTitle className="flex items-center gap-2">
-							<ScheduleIcon scheduleType={schedule.scheduleType} />
-							<a href={`/task/${schedule.taskId}`} className="text-foreground hover:underline">
-								{schedule.taskTitle}
-							</a>
-						</CardTitle>
-
-						<CardDescription>
-							{schedule.args['instructions'] && (
-								<p className="text-sm text-muted-foreground mt-1">{schedule.args['instructions']}</p>
-							)}
-						</CardDescription>
-					</CardHeader>
-
-					<Button variant="secondary" size="sm" onClick={() => setShowCancelDialog(true)} className="mr-6">
-						<Trash />
-					</Button>
-				</div>
-
-				<CardFooter>
-					<div className="flex flex-wrap gap-2 pt-2">
-						<Badge variant="outline" className="text-xs">
-							<CalendarIcon className="mr-1 h-3 w-3" />
-							<ScheduleTime schedule={schedule} />
-						</Badge>
-						{schedule.scheduleType === 'recurring' && (
-							<Badge variant="secondary" className="text-xs">
-								{schedule.cronExpression}
-							</Badge>
-						)}
-						{schedule.lastRunAt && (
-							<Badge variant="secondary" className="text-xs">
-								Last run:&nbsp;
-								<TimeAgo date={schedule.lastRunAt} />
-							</Badge>
-						)}
-					</div>
-				</CardFooter>
-			</Card>
-
-			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Cancel Schedule</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to cancel this schedule? This action cannot be undone and the task
-							will no longer run automatically.
-						</DialogDescription>
-					</DialogHeader>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-							Keep Schedule
-						</Button>
-						<Button variant="destructive" onClick={handleCancel}>
-							Cancel Schedule
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-		</>
-	);
-}
-
-function ScheduleIcon({ scheduleType }: { scheduleType: 'one-time' | 'recurring' }) {
-	//
-	if (scheduleType === 'one-time') {
-		return <ClockIcon className="h-4 w-4 text-muted-foreground" />;
-	} else {
-		return <RefreshCwIcon className="h-4 w-4 text-muted-foreground" />;
-	}
-}
-
-function ScheduleTime({ schedule }: { schedule: ScheduleWithTask }) {
-	//
-	if (schedule.scheduleType === 'one-time') {
-		return <TimeAgo date={schedule.scheduledAt} suffix="from now" />;
-	} else {
-		return (
-			<span>
-				next run <TimeAgo date={schedule.nextRunAt} suffix="from now" />
-			</span>
-		);
-	}
 }

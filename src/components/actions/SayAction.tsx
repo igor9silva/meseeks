@@ -45,7 +45,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 			<FullscreenMessage
 				message={action.args[contentKey]}
 				isAuthorCurrentUser={isAuthorCurrentUser}
-				onClose={toggleFullscreen}
+				onClose={() => setIsFullscreen(false)}
 				action={action}
 				shouldRenderComponents={shouldRenderComponents}
 			/>
@@ -112,6 +112,12 @@ function FullscreenMessage({
 	//
 	const [isReaderMode, setIsReaderMode] = useState(true);
 
+	const handleDoubleTap = useDoubleTap((event) => {
+		//
+		event.stopPropagation();
+		onClose();
+	});
+
 	// ESC key to close fullscreen
 	useKeyboardShortcut({
 		combo: { key: 'Escape' },
@@ -120,9 +126,17 @@ function FullscreenMessage({
 	});
 
 	return (
-		<div className="fixed inset-0 z-50 overflow-auto bg-background text-foreground">
+		<div
+			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground"
+			onDoubleClick={onClose}
+			onTouchEnd={handleDoubleTap}
+		>
 			{/* floating controls */}
-			<div className="fixed top-4 right-4 flex gap-2 z-10">
+			<div
+				className="fixed top-4 right-4 flex gap-2 z-10"
+				onDoubleClick={(event) => event.stopPropagation()}
+				onTouchEnd={(event) => event.stopPropagation()}
+			>
 				<ReaderModeButton
 					isReaderMode={isReaderMode}
 					onClick={() => setIsReaderMode(!isReaderMode)}
