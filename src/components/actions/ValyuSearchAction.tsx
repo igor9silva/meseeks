@@ -23,10 +23,11 @@ const ValyuResultSchema = z
 		source: z.string().nullable().optional(),
 		price: z.number().nullable().optional(),
 		length: z.number().nullable().optional(),
-		image_url: z.string().nullable().optional(),
+		image_url: z.unknown().nullable().optional(),
 		data_type: z.string().nullable().optional(),
 		source_type: z.string().nullable().optional(),
 		published_date: z.string().nullable().optional(),
+		publication_date: z.string().nullable().optional(),
 		relevance_score: z.number().nullable().optional(),
 		metadata: z.record(z.unknown()).nullable().optional(),
 		description: z.string().nullable().optional(),
@@ -147,7 +148,9 @@ function normalizeValyuSearchResults(response: ValyuSearchResponse) {
 		const url = normalizeText(result.url);
 		const displayUrl = getDisplayUrl(url, result.source);
 		const title = normalizeText(result.title) ?? displayUrl?.domain ?? url ?? `Result ${index + 1}`;
-		const { publishedAt, publishedLabel } = normalizePublishedDate(result.published_date);
+		const { publishedAt, publishedLabel } = normalizePublishedDate(
+			result.published_date ?? result.publication_date,
+		);
 
 		return {
 			id: normalizeText(result.id) ?? url ?? `${title}-${index}`,
