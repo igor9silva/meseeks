@@ -32,6 +32,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 
 	const openFullscreen = (e: MouseEvent | TouchEvent) => {
 		//
+		e.preventDefault();
 		e.stopPropagation();
 		setIsFullscreen(true);
 	};
@@ -64,7 +65,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	return (
 		<Message
 			isAuthorCurrentUser={isAuthorCurrentUser}
-			className={cn(className, 'relative group')}
+			className={cn(className, 'relative group touch-manipulation')}
 			onDoubleClick={openFullscreen}
 			onTouchEnd={handleDoubleTap}
 		>
@@ -112,11 +113,14 @@ function FullscreenMessage({
 	//
 	const [isReaderMode, setIsReaderMode] = useState(true);
 
-	const handleDoubleTap = useDoubleTap((event) => {
+	const close = (event?: MouseEvent | TouchEvent) => {
 		//
-		event.stopPropagation();
+		event?.preventDefault();
+		event?.stopPropagation();
 		onClose();
-	});
+	};
+
+	const handleDoubleTap = useDoubleTap(close);
 
 	// ESC key to close fullscreen
 	useKeyboardShortcut({
@@ -127,8 +131,8 @@ function FullscreenMessage({
 
 	return (
 		<div
-			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground"
-			onDoubleClick={onClose}
+			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground touch-manipulation"
+			onDoubleClick={close}
 			onTouchEnd={handleDoubleTap}
 		>
 			{/* floating controls */}
@@ -165,7 +169,7 @@ function FullscreenMessage({
 	);
 }
 
-function ExpandButton({ onClick, className }: { onClick: (e?: React.MouseEvent) => void; className?: string }) {
+function ExpandButton({ onClick, className }: { onClick: (e?: MouseEvent) => void; className?: string }) {
 	return (
 		<TooltipProvider>
 			<Tooltip>
@@ -199,7 +203,7 @@ function DebugButton({ action, className }: { action: ActionComponentProps['acti
 	//
 	const navigate = useNavigate();
 
-	const handleDebugClick = (e?: React.MouseEvent) => {
+	const handleDebugClick = (e?: MouseEvent) => {
 		e?.stopPropagation();
 
 		// Navigate to dev mode with action anchor
