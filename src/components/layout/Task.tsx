@@ -78,7 +78,7 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 			{isTaskListPreferredVisible && (
 				<ResizableHandle
 					className="hidden md:flex"
-					onDoubleClick={handleToggleList}
+					onClick={handleToggleList}
 					onDragging={handleDragging}
 				/>
 			)}

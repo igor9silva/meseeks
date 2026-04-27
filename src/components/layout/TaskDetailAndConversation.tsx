@@ -48,7 +48,7 @@ export function TaskDetailAndConversation({
 				{shouldRenderListPanel && (
 					<ResizableHandle
 						className="hidden md:flex"
-						onDoubleClick={onToggleTaskDetail}
+						onClick={onToggleTaskDetail}
 						onDragging={handleDragging}
 					/>
 				)}
