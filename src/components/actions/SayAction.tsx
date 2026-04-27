@@ -67,7 +67,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 			isAuthorCurrentUser={isAuthorCurrentUser}
 			className={cn(className, 'relative group touch-manipulation')}
 			onDoubleClick={openFullscreen}
-			onTouchEnd={handleDoubleTap}
+			onTouchStart={handleDoubleTap}
 		>
 			<MessageContent
 				isMDX={true}
@@ -133,12 +133,13 @@ function FullscreenMessage({
 		<div
 			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground touch-manipulation"
 			onDoubleClick={close}
-			onTouchEnd={handleDoubleTap}
+			onTouchStart={handleDoubleTap}
 		>
 			{/* floating controls */}
 			<div
 				className="fixed top-4 right-4 flex gap-2 z-10"
 				onDoubleClick={(event) => event.stopPropagation()}
+				onTouchStart={(event) => event.stopPropagation()}
 				onTouchEnd={(event) => event.stopPropagation()}
 			>
 				<ReaderModeButton
