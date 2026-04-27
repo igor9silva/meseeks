@@ -132,7 +132,6 @@ function FullscreenMessage({
 	return (
 		<div
 			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground touch-manipulation"
-			onDoubleClick={close}
 			onTouchStart={handleDoubleTap}
 		>
 			{/* floating controls */}
