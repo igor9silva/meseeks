@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router';
 import { Id } from 'convex/_generated/dataModel';
 import { Suspense } from 'react';
 
@@ -39,9 +38,7 @@ function SubtaskListContent({
 			<h3 className="py-2 px-4 text-xl font-medium sticky top-0 bg-background/75">Subtasks</h3>
 			<div className={cn('', className)}>
 				{subtasks.map((task) => (
-					<Link key={task._id} to="/$" params={{ _splat: `task/${task._id}` }} resetScroll={false}>
-						<TaskItem task={task} />
-					</Link>
+					<TaskItem key={task._id} task={task} />
 				))}
 			</div>
 		</div>

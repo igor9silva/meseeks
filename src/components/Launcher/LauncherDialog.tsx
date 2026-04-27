@@ -265,7 +265,7 @@ export function LauncherDialog() {
 					<>
 						{shouldShowMobileTaskDetail && (
 							<Suspense fallback={<Loading className="py-4" />}>
-								<TaskDetail />
+								<TaskDetail className="mb-4" />
 							</Suspense>
 						)}
 						<div hidden={shouldShowMobileTaskDetail}>

@@ -284,6 +284,8 @@ One file per hook in `src/hooks/`.
 
 ## Making Changes
 
+- For local browser verification in this repo, use `http://localhost:3000`. Do not silently swap to `127.0.0.1` or `[::1]` unless the user explicitly asks for that.
+- The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns

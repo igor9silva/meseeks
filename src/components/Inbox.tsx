@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router';
 import { useRef } from 'react';
 import { Loading } from '~/components/Loading';
 import { TaskItem } from '~/components/TaskItem';
@@ -43,15 +42,11 @@ export function TaskList({
 			{!isLoadingFirstPage && (
 				<>
 					{subtasks.map((task) => (
-						<Link
+						<TaskItem
 							key={task._id}
-							to="/$"
-							params={{ _splat: `task/${task._id}` }}
-							resetScroll={false}
-							className="block min-w-0"
-						>
-							<TaskItem task={task} className={currentTaskId === task._id ? 'bg-muted' : undefined} />
-						</Link>
+							task={task}
+							className={currentTaskId === task._id ? 'bg-muted' : undefined}
+						/>
 					))}
 
 					{/* Loading more indicator */}
