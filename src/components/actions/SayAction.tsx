@@ -30,7 +30,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		setIsFullscreen((current) => !current);
 	};
 
-	const openFullscreen = (e: MouseEvent | TouchEvent) => {
+	const openFullscreen = (e: TouchEvent) => {
 		//
 		e.preventDefault();
 		e.stopPropagation();
@@ -65,9 +65,8 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	return (
 		<Message
 			isAuthorCurrentUser={isAuthorCurrentUser}
-			className={cn(className, 'relative group touch-manipulation')}
-			onDoubleClick={openFullscreen}
-			onTouchStart={handleDoubleTap}
+			className={cn(className, 'relative group')}
+			onTouchEnd={handleDoubleTap}
 		>
 			<MessageContent
 				isMDX={true}
@@ -113,14 +112,12 @@ function FullscreenMessage({
 	//
 	const [isReaderMode, setIsReaderMode] = useState(true);
 
-	const close = (event?: MouseEvent | TouchEvent) => {
+	const handleDoubleTap = useDoubleTap((event) => {
 		//
-		event?.preventDefault();
-		event?.stopPropagation();
+		event.preventDefault();
+		event.stopPropagation();
 		onClose();
-	};
-
-	const handleDoubleTap = useDoubleTap(close);
+	});
 
 	// ESC key to close fullscreen
 	useKeyboardShortcut({
@@ -131,14 +128,13 @@ function FullscreenMessage({
 
 	return (
 		<div
-			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground touch-manipulation"
-			onTouchStart={handleDoubleTap}
+			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground"
+			onTouchEnd={handleDoubleTap}
 		>
 			{/* floating controls */}
 			<div
 				className="fixed top-4 right-4 flex gap-2 z-10"
 				onDoubleClick={(event) => event.stopPropagation()}
-				onTouchStart={(event) => event.stopPropagation()}
 				onTouchEnd={(event) => event.stopPropagation()}
 			>
 				<ReaderModeButton
