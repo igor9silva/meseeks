@@ -145,6 +145,12 @@ components/
 - Main component first in file, helper components after
 - Related components that are rarely used alone go in their own directory (e.g., `~/components/skills` for `/skills` route)
 
+## UI Implementation
+
+- For existing domain actions, search current UI before choosing icons, labels, colors, and verbs. Existing product vocabulary wins over plausible generic choices.
+  - bad: choose `Trash2` or `CircleX` for a "discard" action because it sounds reasonable
+  - good: search for `discard` and reuse the app's established `Archive` convention when that is what nearby UI already uses
+
 ## React Patterns
 
 ### State
