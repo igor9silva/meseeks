@@ -157,9 +157,14 @@ function toTomlKey(key: string): string {
 	return JSON.stringify(key);
 }
 
+function shouldUseConvexBridge(server: MCPServerConfig): boolean {
+	//
+	return server.command === 'bunx' && server.args.includes('convex@latest') && server.args.includes('mcp');
+}
+
 function getCodexServerConfig(key: string, server: MCPServerConfig): MCPServerConfig {
 	//
-	if (key !== 'Convex') {
+	if (!shouldUseConvexBridge(server)) {
 		return server;
 	}
 

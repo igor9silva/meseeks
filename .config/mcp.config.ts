@@ -31,10 +31,25 @@ export const mcpConfig: MCPConfig = {
 				'convex@latest',
 				'mcp',
 				'start',
-				'--dangerously-enable-production-deployments',
 			],
 			enabled: true,
 			description: 'Convex MCP server for database operations',
+		},
+		ConvexProd: {
+			name: 'Convex Production',
+			command: 'bunx',
+			args: [
+				'-y', //
+				'convex@latest',
+				'mcp',
+				'start',
+				'--project-dir',
+				'.',
+				'--prod',
+				'--cautiously-allow-production-pii', // read-only
+			],
+			enabled: true,
+			description: 'Convex MCP server pinned to the production deployment for logs and read-only debugging',
 		},
 		Playwright: {
 			name: 'Playwright',
