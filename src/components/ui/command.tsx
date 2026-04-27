@@ -25,15 +25,21 @@ const CommandDialog = ({
 	shouldFilter,
 	filter,
 	onEscapeKeyDown,
+	showCloseButton,
 	...props
 }: DialogProps & {
 	shouldFilter: boolean;
 	filter?: (value: string, search: string, keywords?: string[]) => number;
 	onEscapeKeyDown?: React.ComponentPropsWithoutRef<typeof DialogContent>['onEscapeKeyDown'];
+	showCloseButton?: React.ComponentPropsWithoutRef<typeof DialogContent>['showCloseButton'];
 }) => {
 	return (
 		<Dialog {...props}>
-			<DialogContent className="overflow-hidden p-0 max-w-2xl rounded-3xl" onEscapeKeyDown={onEscapeKeyDown}>
+			<DialogContent
+				className="overflow-hidden p-0 max-w-2xl rounded-3xl"
+				onEscapeKeyDown={onEscapeKeyDown}
+				showCloseButton={showCloseButton}
+			>
 				<Command
 					loop
 					shouldFilter={shouldFilter}

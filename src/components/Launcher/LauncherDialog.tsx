@@ -222,6 +222,7 @@ export function LauncherDialog() {
 		<CommandDialog
 			shouldFilter={shouldFilter}
 			open={isOpen}
+			showCloseButton={false}
 			onEscapeKeyDown={handleEscapeKeyDown}
 			onOpenChange={(open) => {
 				if (!open) closeAndResetLauncher();
