@@ -9,11 +9,13 @@ export function TaskBudget({
 	className,
 	precision = 3,
 	showColors = true,
+	showSpent = false,
 }: {
 	task: Doc<'tasks'>;
 	className?: string;
 	precision?: number;
 	showColors?: boolean;
+	showSpent?: boolean;
 }) {
 	//
 	const available = task.energyBudget.available;
@@ -40,7 +42,7 @@ export function TaskBudget({
 								showColors={showColors}
 							/>
 						) : (
-							<TriggerClosed spent={spent} precision={precision} />
+							<TriggerClosed spent={spent} precision={precision} showSpent={showSpent} />
 						)}
 					</div>
 				</TooltipTrigger>
@@ -95,11 +97,11 @@ function TriggerActive(props: {
 	);
 }
 
-function TriggerClosed({ spent, precision }: { spent: bigint; precision: number }) {
+function TriggerClosed({ spent, precision, showSpent }: { spent: bigint; precision: number; showSpent: boolean }) {
 	return (
 		<div className="text-muted-foreground font-medium flex items-center">
 			<span className="text-[0.6rem]">⚡</span>
-			{asDollars({ bigInt: spent, precision })}
+			{asDollars({ bigInt: spent, precision })} {showSpent && ' spent'}
 		</div>
 	);
 }
