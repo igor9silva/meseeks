@@ -1,8 +1,10 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
+import { useQuery } from 'convex/react';
 import { ArrowLeft, Inbox, Loader2, SquarePen } from 'lucide-react';
 import { useTransition } from 'react';
 import { cn } from '~/lib/utils';
 
+import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { Balance } from '~/components/Balance';
 import { useLauncher } from '~/components/Launcher';
@@ -18,8 +20,11 @@ export function MainHeader({ className }: { className?: string }) {
 	const { pathname, searchStr, search } = useLocation();
 	const { open: openLauncher } = useLauncher();
 	const { taskId } = useSplatParams();
+	const currentTask = useQuery(api.tasks.findOne, taskId ? { taskId } : 'skip');
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
+	const currentTaskTitle = currentTask?.title;
+	const launcherTriggerLabel = currentTaskTitle || pathname + searchStr;
 
 	const goBack = () => history.back();
 	const goUp = () => {
@@ -66,13 +71,27 @@ export function MainHeader({ className }: { className?: string }) {
 					<Button
 						variant="outline"
 						onClick={openLauncher}
-						className="flex w-full justify-between gap-2 bg-muted/40 hover:bg-accent text-muted-foreground truncate p-2"
+						className={cn(
+							'w-full bg-muted/40 p-2 text-muted-foreground hover:bg-accent',
+							currentTaskTitle
+								? 'relative flex items-center justify-center'
+								: 'flex justify-between gap-2 truncate',
+						)}
 					>
-						<span className="text-xs md:text-sm">
-							{pathname}
-							{searchStr}
+						<span
+							className={cn(
+								'text-xs md:text-sm',
+								currentTaskTitle ? 'max-w-full truncate text-center' : 'truncate',
+							)}
+						>
+							{launcherTriggerLabel}
 						</span>
-						<kbd className="hidden md:inline-flex h-5 items-center gap-0.5 pt-0.5 rounded border bg-muted px-1 font-mono font-medium text-muted-foreground text-xs">
+						<kbd
+							className={cn(
+								'h-5 items-center gap-0.5 rounded border bg-muted px-1 pt-0.5 font-mono text-xs font-medium text-muted-foreground md:inline-flex',
+								currentTaskTitle ? 'absolute right-2 hidden' : 'hidden',
+							)}
+						>
 							<span className="text-base">⌘</span>K
 						</kbd>
 					</Button>

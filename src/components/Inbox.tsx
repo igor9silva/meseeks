@@ -34,7 +34,7 @@ export function TaskList({
 	});
 
 	return (
-		<div ref={scrollContainerRef} className={`overflow-auto h-full ${className || ''}`}>
+		<div ref={scrollContainerRef} className={`overflow-auto h-full py-2 ${className || ''}`}>
 			{/* Initial loading state */}
 			{isLoadingFirstPage && <Loading className="mt-4" />}
 

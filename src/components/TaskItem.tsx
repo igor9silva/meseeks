@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { Doc } from 'convex/_generated/dataModel';
-import { Archive, Check, Loader2 } from 'lucide-react';
+import { Archive, Check, Dot, Loader2 } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '~/components/ui/button';
@@ -25,21 +25,22 @@ export function TaskItem({
 				to="/$"
 				params={{ _splat: `task/${task._id}` }}
 				resetScroll={false}
-				className="flex items-center gap-1 py-2.5 pr-2 pl-1 align-middle min-w-0 flex-1"
+				className="flex items-center gap-1 align-middle min-w-0 flex-1"
 			>
 				<div className="flex w-4 shrink-0 justify-center self-stretch pt-1.5">
 					<TaskStatusIndicator task={task} />
 				</div>
-				<div className="min-w-0 flex-1">
+				<div className="min-w-0 flex-1 flex flex-col gap-0.5">
 					<div className="flex items-center gap-2 min-w-0">
 						<TaskTitle task={task} />
 					</div>
-					<div className="flex items-center gap-2 min-w-0">
+					<div className="flex items-center min-w-0">
 						<TaskItemTimestamp
 							date={task._creationTime}
 							className="text-sm text-muted-foreground truncate"
 						/>
-						<Separator orientation="vertical" className="h-4 bg-primary" />
+						{/* <Separator orientation="vertical" className="h-4 bg-primary" /> */}
+						<Dot className="size-4" />
 						<TaskBudget
 							task={task}
 							precision={2}
