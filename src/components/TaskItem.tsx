@@ -4,9 +4,7 @@ import { Archive, Check, Dot, Loader2 } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '~/components/ui/button';
-import { Separator } from '~/components/ui/separator';
 import { TextShimmer } from '~/components/ui/text-shimmer';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
 import { formatTaskItemTimestamp, formatTaskItemTimestampTooltip } from '~/lib/taskItemTimestamp';
 import { cn } from '~/lib/utils';
@@ -20,7 +18,7 @@ export function TaskItem({
 }) {
 	//
 	return (
-		<div className={cn('group flex items-stretch justify-between min-w-0', className)}>
+		<div className={cn('group flex items-stretch justify-between min-w-0 pt-1', className)}>
 			<Link
 				to="/$"
 				params={{ _splat: `task/${task._id}` }}
@@ -45,6 +43,7 @@ export function TaskItem({
 							task={task}
 							precision={2}
 							showColors={false}
+							showTooltip={false}
 							className="text-sm text-muted-foreground"
 						/>
 					</div>
@@ -86,42 +85,32 @@ function TaskItemActions({ task }: { task: Doc<'tasks'> }) {
 	};
 
 	return (
-		<TooltipProvider>
-			<div className="flex shrink-0 items-center gap-1.5 py-2 pr-3 pl-1">
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							size="icon"
-							className="hidden size-8 rounded-xl text-muted-foreground hover:text-destructive group-hover:inline-flex group-focus-within:inline-flex"
-							onClick={handleDiscard}
-							disabled={isBusy}
-							aria-label="Discard task"
-						>
-							{isDiscarding ? <Loader2 className="animate-spin" /> : <Archive />}
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent>Discard</TooltipContent>
-				</Tooltip>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<Button
-							type="button"
-							variant="outline"
-							size="icon"
-							className="size-8 rounded-xl"
-							onClick={handleResolve}
-							disabled={isBusy}
-							aria-label="Resolve task"
-						>
-							{isResolving ? <Loader2 className="animate-spin" /> : <Check />}
-						</Button>
-					</TooltipTrigger>
-					<TooltipContent>Resolve</TooltipContent>
-				</Tooltip>
-			</div>
-		</TooltipProvider>
+		<div className="flex shrink-0 items-center gap-1.5 py-2 pr-3 pl-1">
+			<Button
+				type="button"
+				variant="outline"
+				size="icon"
+				className="hidden size-8 rounded-xl text-muted-foreground hover:text-destructive group-hover:inline-flex group-focus-within:inline-flex"
+				onClick={handleDiscard}
+				disabled={isBusy}
+				title="Discard"
+				aria-label="Discard task"
+			>
+				{isDiscarding ? <Loader2 className="animate-spin" /> : <Archive />}
+			</Button>
+			<Button
+				type="button"
+				variant="outline"
+				size="icon"
+				className="size-8 rounded-xl"
+				onClick={handleResolve}
+				disabled={isBusy}
+				title="Resolve"
+				aria-label="Resolve task"
+			>
+				{isResolving ? <Loader2 className="animate-spin" /> : <Check />}
+			</Button>
+		</div>
 	);
 }
 
@@ -134,21 +123,14 @@ function TaskItemTimestamp({
 }) {
 	//
 	const value = new Date(date);
+	const fullTimestamp = formatTaskItemTimestampTooltip(value);
 
 	return (
-		<TooltipProvider>
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<time className={cn('cursor-help', className)} dateTime={formatTaskItemTimestampTooltip(value)}>
-						{formatTaskItemTimestamp(value)}
-					</time>
-				</TooltipTrigger>
-				<TooltipContent className="text-xs">
-					<span>Created at:</span>
-					<div className="font-mono">{formatTaskItemTimestampTooltip(value)}</div>
-				</TooltipContent>
-			</Tooltip>
-		</TooltipProvider>
+		<>
+			<time className={cn(className)} dateTime={fullTimestamp} title={fullTimestamp} aria-label={fullTimestamp}>
+				{formatTaskItemTimestamp(value)}
+			</time>
+		</>
 	);
 }
 

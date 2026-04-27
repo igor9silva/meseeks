@@ -85,7 +85,7 @@ export function generateThemeStyles(themeVariables: ThemeVariables): string {
 			background: ${get('--background')};
 			color: ${get('--foreground')};
 			font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-			margin: 0; padding: 0; width: 100%; height: 100%; overflow: auto;
+			margin: 0; padding: 0; width: 100%; height: 100%; overflow: auto; overscroll-behavior: contain;
 		}
 		#root { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 	`;
@@ -123,6 +123,32 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 				</div>
 				<script>
 					const rootElement = document.getElementById('root');
+					const doubleTapDelayMs = 300;
+					let lastTouchAt = 0;
+					let lastTouchTarget = null;
+
+					document.addEventListener(
+						'touchend',
+						(event) => {
+							const now = Date.now();
+							const hasDoubleTapped = now - lastTouchAt < doubleTapDelayMs;
+							const hasSameTarget = event.target === lastTouchTarget;
+
+							if (!hasDoubleTapped || !hasSameTarget) {
+								lastTouchAt = now;
+								lastTouchTarget = event.target;
+								return;
+							}
+
+							lastTouchAt = 0;
+							lastTouchTarget = null;
+							event.preventDefault();
+							event.stopPropagation();
+							window.parent.postMessage({ type: 'meseeks:render-double-tap' }, '*');
+						},
+						{ capture: true, passive: false },
+					);
+
 					const escapeHtml = (value) =>
 						String(value)
 							.replace(/&/g, '&amp;')

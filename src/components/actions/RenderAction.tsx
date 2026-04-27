@@ -1,14 +1,23 @@
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { cn } from '~/lib/utils';
 
 import { ErrorBoundary } from 'react-error-boundary';
+import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { RenderActionControls } from '~/components/actions/RenderActionControls';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
+import { useFullscreenAction } from '~/hooks/useFullscreenAction';
 import { useIframeRenderer } from '~/hooks/useIframeRenderer';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+
+const renderActionArgsSchema = z.object({
+	code: z.string(),
+});
+
+const renderDoubleTapMessageSchema = z.object({
+	type: z.literal('meseeks:render-double-tap'),
+});
 
 export function RenderAction(props: ActionComponentProps) {
 	//
@@ -61,37 +70,43 @@ export function RenderAction(props: ActionComponentProps) {
 function RenderActionContent(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, className } = props;
-	const [isFullscreen, setIsFullscreen] = useState(false);
+	const fullscreen = useFullscreenAction();
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 
 	// Get pre-transpiled code from action result
 	const transpiledCode = action.result?.text || '';
-	const originalCode = action.args['code'];
+	const parsedArgs = renderActionArgsSchema.safeParse(action.args);
+	const originalCode = parsedArgs.success ? parsedArgs.data.code : '';
 
 	// Use iframe renderer hook with pre-transpiled code
 	const { iframeHtml } = useIframeRenderer({ code: transpiledCode });
+	const toggleFullscreen = fullscreen.toggle;
 
-	const toggleFullscreen = (e?: React.MouseEvent) => {
-		e?.stopPropagation();
-		setIsFullscreen(!isFullscreen);
-	};
+	useEffect(() => {
+		//
+		const handleMessage = (event: MessageEvent<unknown>) => {
+			//
+			if (event.source !== iframeRef.current?.contentWindow) return;
 
-	// ESC key to close fullscreen
-	// TODO: make ESC from iFrame bubble out to parent
-	useKeyboardShortcut({
-		combo: { key: 'Escape' },
-		callback: () => {
-			if (isFullscreen) {
-				setIsFullscreen(false);
-			}
-		},
-		global: true,
-	});
+			const parsedMessage = renderDoubleTapMessageSchema.safeParse(event.data);
+			if (!parsedMessage.success) return;
+
+			toggleFullscreen();
+		};
+
+		window.addEventListener('message', handleMessage);
+		return () => window.removeEventListener('message', handleMessage);
+	}, [toggleFullscreen]);
 
 	return (
 		<>
 			{/* Container for relative positioning context - never hidden */}
-			<div className={cn('relative group', className, isFullscreen ? 'pointer-events-none' : '')}>
+			<div
+				ref={fullscreen.containerRef}
+				style={fullscreen.placeholderStyle}
+				className={cn('relative group', className, fullscreen.isFullscreen ? 'pointer-events-none' : '')}
+				onTouchEnd={fullscreen.isFullscreen ? undefined : fullscreen.handleOpenDoubleTap}
+			>
 				{/* Single persistent iframe that changes position only */}
 				{iframeHtml && (
 					<iframe
@@ -100,12 +115,12 @@ function RenderActionContent(props: ActionComponentProps) {
 						title="Rendered Composition"
 						className={cn(
 							'border-none pointer-events-auto',
-							isFullscreen
-								? 'fixed inset-0 z-50 w-full h-full'
+							fullscreen.isFullscreen
+								? 'fixed inset-0 z-50 w-full h-full overscroll-contain'
 								: 'w-full min-h-96 overflow-auto rounded-3xl',
 							{
-								'bg-primary text-primary-foreground': isAuthorCurrentUser && !isFullscreen,
-								'bg-secondary text-secondary-foreground': !isAuthorCurrentUser && !isFullscreen,
+								'bg-primary text-primary-foreground': isAuthorCurrentUser && !fullscreen.isFullscreen,
+								'bg-secondary text-secondary-foreground': !isAuthorCurrentUser && !fullscreen.isFullscreen,
 							},
 						)}
 					/>
@@ -115,11 +130,11 @@ function RenderActionContent(props: ActionComponentProps) {
 				<RenderActionControls
 					action={action}
 					code={originalCode}
-					isFullscreen={isFullscreen}
-					onToggleFullscreen={toggleFullscreen}
+					isFullscreen={fullscreen.isFullscreen}
+					onToggleFullscreen={fullscreen.toggle}
 					className={cn(
 						'flex gap-1 transition-opacity pointer-events-auto',
-						isFullscreen
+						fullscreen.isFullscreen
 							? 'fixed top-4 right-4 opacity-70 hover:opacity-100 z-[60]'
 							: 'absolute top-2 right-2 opacity-0 group-hover:opacity-50 hover:!opacity-100 z-10',
 					)}

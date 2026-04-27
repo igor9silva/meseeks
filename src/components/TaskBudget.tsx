@@ -10,42 +10,48 @@ export function TaskBudget({
 	precision = 3,
 	showColors = true,
 	showSpent = false,
+	showTooltip = true,
 }: {
 	task: Doc<'tasks'>;
 	className?: string;
 	precision?: number;
 	showColors?: boolean;
 	showSpent?: boolean;
+	showTooltip?: boolean;
 }) {
 	//
 	const available = task.energyBudget.available;
 	const total = task.energyBudget.total;
 	const spent = total - available;
 	const percentSpent = total > 0n ? Number((spent * 100n) / total) : 0;
+	const trigger = (
+		<div
+			className={cn(
+				'flex flex-col items-end text-right whitespace-nowrap text-sm',
+				showTooltip && 'cursor-help',
+				className,
+			)}
+		>
+			{task.isActive ? (
+				<TriggerActive
+					available={available}
+					total={total}
+					percentSpent={percentSpent}
+					precision={precision}
+					showColors={showColors}
+				/>
+			) : (
+				<TriggerClosed spent={spent} precision={precision} showSpent={showSpent} />
+			)}
+		</div>
+	);
+
+	if (!showTooltip) return trigger;
 
 	return (
 		<TooltipProvider>
 			<Tooltip renderAsDrawerOnMobile={true}>
-				<TooltipTrigger asChild>
-					<div
-						className={cn(
-							'flex flex-col items-end text-right whitespace-nowrap text-sm cursor-help',
-							className,
-						)}
-					>
-						{task.isActive ? (
-							<TriggerActive
-								available={available}
-								total={total}
-								percentSpent={percentSpent}
-								precision={precision}
-								showColors={showColors}
-							/>
-						) : (
-							<TriggerClosed spent={spent} precision={precision} showSpent={showSpent} />
-						)}
-					</div>
-				</TooltipTrigger>
+				<TooltipTrigger asChild>{trigger}</TooltipTrigger>
 				<TooltipContent side="bottom" align="end">
 					{task.isActive ? (
 						<TooltipActive total={total} available={available} spent={spent} percentSpent={percentSpent} />

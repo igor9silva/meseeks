@@ -20,8 +20,7 @@ TooltipProvider.displayName = TooltipPrimitive.Provider.displayName;
 
 // context for mobile drawer state
 const MobileTooltipContext = React.createContext<{
-	isOpen: boolean;
-	setIsOpen: (open: boolean) => void;
+	isMobileDrawer: boolean;
 } | null>(null);
 
 /**
@@ -38,13 +37,11 @@ const Tooltip = ({
 	//
 	const { isMobile, isMounted } = useIsMobileWithMounted();
 	const [drawerOpen, setDrawerOpen] = React.useState(false);
+	const isMobileDrawer = isMounted && isMobile && renderAsDrawerOnMobile;
 
-	// don't render anything until mounted
-	if (!isMounted) return null;
-
-	if (isMobile && renderAsDrawerOnMobile) {
+	if (isMobileDrawer) {
 		return (
-			<MobileTooltipContext.Provider value={{ isOpen: drawerOpen, setIsOpen: setDrawerOpen }}>
+			<MobileTooltipContext.Provider value={{ isMobileDrawer: true }}>
 				<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
 					{children}
 				</Drawer>
@@ -52,7 +49,11 @@ const Tooltip = ({
 		);
 	}
 
-	return <TooltipPrimitive.Root {...props}>{children}</TooltipPrimitive.Root>;
+	return (
+		<MobileTooltipContext.Provider value={{ isMobileDrawer: false }}>
+			<TooltipPrimitive.Root {...props}>{children}</TooltipPrimitive.Root>
+		</MobileTooltipContext.Provider>
+	);
 };
 
 const TooltipTrigger = React.forwardRef<
@@ -60,13 +61,9 @@ const TooltipTrigger = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
 >((props, ref) => {
 	//
-	const { isMobile, isMounted } = useIsMobileWithMounted();
 	const mobileContext = React.useContext(MobileTooltipContext);
 
-	// don't render until mounted
-	if (!isMounted) return null;
-
-	if (isMobile && mobileContext) {
+	if (mobileContext?.isMobileDrawer) {
 		return <DrawerTrigger ref={ref} {...props} />;
 	}
 
@@ -79,13 +76,9 @@ const TooltipContent = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(({ className, sideOffset = 4, children, ...props }, ref) => {
 	//
-	const { isMobile, isMounted } = useIsMobileWithMounted();
 	const mobileContext = React.useContext(MobileTooltipContext);
 
-	// don't render until mounted
-	if (!isMounted) return null;
-
-	if (isMobile && mobileContext) {
+	if (mobileContext?.isMobileDrawer) {
 		return (
 			<DrawerContent>
 				<div className="p-4">

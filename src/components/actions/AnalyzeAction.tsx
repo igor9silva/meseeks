@@ -1,5 +1,7 @@
 import { ChevronDown, CodeXml, Expand, Minimize2 } from 'lucide-react';
 import { useState } from 'react';
+import type { MouseEvent, TouchEvent } from 'react';
+import { z } from 'zod/v3';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
@@ -9,8 +11,13 @@ import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { FailedMessage, Message, SimpleMessage } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useFullscreenAction } from '~/hooks/useFullscreenAction';
 import { cn } from '~/lib/utils';
+
+const analyzeActionArgsSchema = z.object({
+	code: z.string(),
+	language: z.string().optional(),
+});
 
 export function AnalyzeAction(props: ActionComponentProps) {
 	//
@@ -50,92 +57,92 @@ function Success(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, className } = props;
 	const [isOpen, setIsOpen] = useState(false);
-	const [isFullscreen, setIsFullscreen] = useState(false);
+	const fullscreen = useFullscreenAction();
 
-	const code = action.args['code'] as string;
-	const language = action.args['language'] as string | undefined;
+	const parsedArgs = analyzeActionArgsSchema.safeParse(action.args);
+	const code = parsedArgs.success ? parsedArgs.data.code : '';
+	const language = parsedArgs.success ? parsedArgs.data.language : undefined;
 	const output = action.result?.text ?? '';
 
-	const toggleFullscreen = (e?: React.MouseEvent) => {
-		e?.stopPropagation();
-		setIsFullscreen(!isFullscreen);
-	};
-
-	if (isFullscreen) {
-		return (
-			<FullscreenAnalyzeAction
-				code={code}
-				language={language}
-				output={output}
-				isAuthorCurrentUser={isAuthorCurrentUser}
-				onClose={toggleFullscreen}
-			/>
-		);
-	}
-
 	return (
-		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={cn(className, 'relative group')}>
-			<div
-				className={cn('rounded-xl p-2 text-foreground w-full md:w-[95%]', {
-					'bg-primary text-primary-foreground': isAuthorCurrentUser,
-					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
-				})}
+		<>
+			<Message
+				isAuthorCurrentUser={isAuthorCurrentUser}
+				className={cn(className, 'relative group')}
+				onTouchEnd={fullscreen.handleOpenDoubleTap}
 			>
-				<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-					<CollapsibleTrigger className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground">
-						<CodeXml className="size-4" />
-						<span>Run code</span>
-						<div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-							<ChevronDown className="size-4" />
-						</div>
-					</CollapsibleTrigger>
-
-					{/* Output - always shown */}
-					<div className="mt-2 space-y-2">
-						{isOpen && <div className="text-sm font-medium text-foreground">Output</div>}
-						<div
-							className={cn(
-								'border border-border bg-background rounded-md p-3 overflow-auto relative group/output',
-								{
-									'max-h-64': isOpen,
-									'max-h-32': !isOpen,
-								},
-							)}
-						>
-							<CopyButton
-								textToCopy={output}
-								className="absolute top-2 right-2 opacity-0 group-hover/output:opacity-50 hover:!opacity-100 transition-opacity z-10"
-							/>
-							<pre className="whitespace-pre text-sm font-mono text-foreground">
-								{output || '(no output)'}
-							</pre>
-						</div>
-					</div>
-
-					<CollapsibleContent className="mt-2 space-y-3">
-						{/* Code - shown only when expanded */}
-						<div className="text-sm font-medium text-foreground">Code</div>
-						<div className="max-h-80 overflow-auto relative group/code">
-							<div className="absolute top-2 right-2 z-10">
-								<CopyButton
-									textToCopy={code}
-									className="opacity-0 group-hover/code:opacity-50 hover:!opacity-100 transition-opacity"
-								/>
+				<div
+					className={cn('rounded-xl p-2 text-foreground w-full md:w-[95%]', {
+						'bg-primary text-primary-foreground': isAuthorCurrentUser,
+						'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
+					})}
+				>
+					<Collapsible open={isOpen} onOpenChange={setIsOpen}>
+						<CollapsibleTrigger className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground">
+							<CodeXml className="size-4" />
+							<span>Run code</span>
+							<div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+								<ChevronDown className="size-4" />
 							</div>
-							<CodeBlock>
-								<CodeBlockCode code={code} language={language ?? 'python'} />
-							</CodeBlock>
+						</CollapsibleTrigger>
+
+						{/* Output - always shown */}
+						<div className="mt-2 space-y-2">
+							{isOpen && <div className="text-sm font-medium text-foreground">Output</div>}
+							<div
+								className={cn(
+									'border border-border bg-background rounded-md p-3 overflow-auto relative group/output',
+									{
+										'max-h-64': isOpen,
+										'max-h-32': !isOpen,
+									},
+								)}
+							>
+								<CopyButton
+									textToCopy={output}
+									className="absolute top-2 right-2 opacity-0 group-hover/output:opacity-50 hover:!opacity-100 transition-opacity z-10"
+								/>
+								<pre className="whitespace-pre text-sm font-mono text-foreground">
+									{output || '(no output)'}
+								</pre>
+							</div>
 						</div>
-					</CollapsibleContent>
-				</Collapsible>
-			</div>
-			<div className="absolute top-1 right-1">
-				<ExpandButton
-					onClick={toggleFullscreen}
-					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+
+						<CollapsibleContent className="mt-2 space-y-3">
+							{/* Code - shown only when expanded */}
+							<div className="text-sm font-medium text-foreground">Code</div>
+							<div className="max-h-80 overflow-auto relative group/code">
+								<div className="absolute top-2 right-2 z-10">
+									<CopyButton
+										textToCopy={code}
+										className="opacity-0 group-hover/code:opacity-50 hover:!opacity-100 transition-opacity"
+									/>
+								</div>
+								<CodeBlock>
+									<CodeBlockCode code={code} language={language ?? 'python'} />
+								</CodeBlock>
+							</div>
+						</CollapsibleContent>
+					</Collapsible>
+				</div>
+				<div className="absolute top-1 right-1" onTouchEnd={(event) => event.stopPropagation()}>
+					<ExpandButton
+						onClick={fullscreen.toggle}
+						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+					/>
+				</div>
+			</Message>
+			{fullscreen.isFullscreen && (
+				<FullscreenAnalyzeAction
+					code={code}
+					language={language}
+					output={output}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+					onClose={fullscreen.close}
+					onDoubleTap={fullscreen.handleCloseDoubleTap}
 				/>
-			</div>
-		</Message>
+			)}
+		</>
 	);
 }
 
@@ -145,30 +152,25 @@ function FullscreenAnalyzeAction({
 	output,
 	isAuthorCurrentUser,
 	onClose,
+	onDoubleTap,
 }: {
 	code: string;
 	language: string | undefined;
 	output: string;
 	isAuthorCurrentUser: boolean;
 	onClose: () => void;
+	onDoubleTap: (event: TouchEvent) => void;
 }) {
 	//
-	// ESC key to close fullscreen
-	useKeyboardShortcut({
-		combo: { key: 'Escape' },
-		callback: onClose,
-		global: true,
-	});
-
 	return (
-		<div className="fixed inset-0 z-50">
+		<div className="fixed inset-0 z-50 overflow-auto overscroll-contain" onTouchEnd={onDoubleTap}>
 			{/* Close button - floating in top right */}
-			<div className="absolute top-4 right-4 z-10">
+			<div className="fixed top-4 right-4 z-10" onTouchEnd={(event) => event.stopPropagation()}>
 				<MinimizeButton onClick={onClose} className="opacity-70 hover:opacity-100 transition-opacity" />
 			</div>
 
 			<div
-				className={cn('h-full w-full p-4 overflow-auto', {
+				className={cn('min-h-full w-full p-4', {
 					'bg-primary text-primary-foreground': isAuthorCurrentUser,
 					'bg-secondary text-secondary-foreground': !isAuthorCurrentUser,
 				})}
@@ -209,7 +211,7 @@ function FullscreenAnalyzeAction({
 	);
 }
 
-function ExpandButton({ onClick, className }: { onClick: (e?: React.MouseEvent) => void; className?: string }) {
+function ExpandButton({ onClick, className }: { onClick: (e?: MouseEvent) => void; className?: string }) {
 	return (
 		<TooltipProvider>
 			<Tooltip>

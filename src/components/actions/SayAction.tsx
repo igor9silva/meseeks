@@ -9,8 +9,7 @@ import { CopyButton } from '~/components/CopyButton';
 import { Button } from '~/components/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useDoubleTap } from '~/hooks/useDoubleTap';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useFullscreenAction } from '~/hooks/useFullscreenAction';
 import { useSay } from '~/hooks/useTaskMutations';
 
 export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {
@@ -23,35 +22,9 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		shouldRenderComponents = false,
 		contentKey = 'message',
 	} = props;
-	const [isFullscreen, setIsFullscreen] = useState(false);
-
-	const toggleFullscreen = (e?: MouseEvent) => {
-		e?.stopPropagation();
-		setIsFullscreen((current) => !current);
-	};
-
-	const openFullscreen = (e: TouchEvent) => {
-		//
-		e.preventDefault();
-		e.stopPropagation();
-		setIsFullscreen(true);
-	};
-
-	const handleDoubleTap = useDoubleTap((event) => openFullscreen(event));
+	const fullscreen = useFullscreenAction();
 
 	const { say, isSaying } = useSay();
-
-	if (isFullscreen) {
-		return (
-			<FullscreenMessage
-				message={action.args[contentKey]}
-				isAuthorCurrentUser={isAuthorCurrentUser}
-				onClose={() => setIsFullscreen(false)}
-				action={action}
-				shouldRenderComponents={shouldRenderComponents}
-			/>
-		);
-	}
 
 	const onClickFix = (e: MouseEvent, error: Error) => {
 		e.stopPropagation();
@@ -63,36 +36,48 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	};
 
 	return (
-		<Message
-			isAuthorCurrentUser={isAuthorCurrentUser}
-			className={cn(className, 'relative group')}
-			onTouchEnd={handleDoubleTap}
-		>
-			<MessageContent
-				isMDX={true}
-				shouldRenderComponents={shouldRenderComponents}
-				onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
-				text={action.args[contentKey]}
-				className={cn({
-					'bg-primary text-primary-foreground p-3': isAuthorCurrentUser,
-					'px-0': !isAuthorCurrentUser,
-				})}
-			/>
-			<div className="absolute top-1 right-1 flex gap-1">
-				<DebugButton
+		<>
+			<Message
+				isAuthorCurrentUser={isAuthorCurrentUser}
+				className={cn(className, 'relative group')}
+				onTouchEnd={fullscreen.handleOpenDoubleTap}
+			>
+				<MessageContent
+					isMDX={true}
+					shouldRenderComponents={shouldRenderComponents}
+					onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
+					text={action.args[contentKey]}
+					className={cn({
+						'bg-primary text-primary-foreground p-3': isAuthorCurrentUser,
+						'px-0': !isAuthorCurrentUser,
+					})}
+				/>
+				<div className="absolute top-1 right-1 flex gap-1" onTouchEnd={(event) => event.stopPropagation()}>
+					<DebugButton
+						action={action}
+						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+					/>
+					<ExpandButton
+						onClick={fullscreen.toggle}
+						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+					/>
+					<CopyButton
+						textToCopy={action.args[contentKey]}
+						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+					/>
+				</div>
+			</Message>
+			{fullscreen.isFullscreen && (
+				<FullscreenMessage
+					message={action.args[contentKey]}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+					onClose={fullscreen.close}
+					onDoubleTap={fullscreen.handleCloseDoubleTap}
 					action={action}
-					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
+					shouldRenderComponents={shouldRenderComponents}
 				/>
-				<ExpandButton
-					onClick={toggleFullscreen}
-					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
-				/>
-				<CopyButton
-					textToCopy={action.args[contentKey]}
-					className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
-				/>
-			</div>
-		</Message>
+			)}
+		</>
 	);
 }
 
@@ -100,36 +85,24 @@ function FullscreenMessage({
 	message,
 	isAuthorCurrentUser,
 	onClose,
+	onDoubleTap,
 	action,
 	shouldRenderComponents,
 }: {
 	message: string;
 	isAuthorCurrentUser: boolean;
 	onClose: () => void;
+	onDoubleTap: (event: TouchEvent) => void;
 	action: ActionComponentProps['action'];
 	shouldRenderComponents: boolean;
 }) {
 	//
 	const [isReaderMode, setIsReaderMode] = useState(true);
 
-	const handleDoubleTap = useDoubleTap((event) => {
-		//
-		event.preventDefault();
-		event.stopPropagation();
-		onClose();
-	});
-
-	// ESC key to close fullscreen
-	useKeyboardShortcut({
-		combo: { key: 'Escape' },
-		callback: onClose,
-		global: true,
-	});
-
 	return (
 		<div
-			className="fixed inset-0 z-50 overflow-auto bg-background text-foreground"
-			onTouchEnd={handleDoubleTap}
+			className="fixed inset-0 z-50 overflow-auto overscroll-contain bg-background text-foreground"
+			onTouchEnd={onDoubleTap}
 		>
 			{/* floating controls */}
 			<div
