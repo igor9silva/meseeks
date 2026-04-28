@@ -290,6 +290,10 @@ One file per hook in `src/hooks/`.
 
 ## Making Changes
 
+- Git index is user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
+- If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
+  - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
+  - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
 - For local browser verification in this repo, use `http://localhost:3000`. Do not silently swap to `127.0.0.1` or `[::1]` unless the user explicitly asks for that.
 - The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
