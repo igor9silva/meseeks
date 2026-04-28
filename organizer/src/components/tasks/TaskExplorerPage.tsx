@@ -135,6 +135,18 @@ function parseTagDraft(value: string): string[] {
 	);
 }
 
+function createTaskFilename(value: string): string {
+	//
+	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, '');
+
+	return withoutKnownExtension
+		.toLowerCase()
+		.replace(/'/g, '')
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}
+
 function getMutationErrorMessage(error: unknown, fallback: string): string {
 	//
 	return error instanceof Error ? error.message : fallback;
@@ -594,6 +606,7 @@ function CreateTaskView({
 	const prioritySelectId = useId();
 	const tagsInputId = useId();
 	const bodyTextareaId = useId();
+	const filenameInputId = useId();
 	const queryClient = useQueryClient();
 	const createTaskServer = useServerFn(createTask);
 	const [title, setTitle] = useState('');
@@ -603,6 +616,8 @@ function CreateTaskView({
 	const [priority, setPriority] = useState<CreateTaskInput['priority']>('medium');
 	const [tagDraft, setTagDraft] = useState('');
 	const [body, setBody] = useState('');
+	const [filename, setFilename] = useState('');
+	const [hasEditedFilename, setHasEditedFilename] = useState(false);
 	const filteredStatusOptions = useMemo(() => {
 		const normalizedStatus = status.trim().toLowerCase();
 		if (normalizedStatus.length === 0) return statusOptions;
@@ -611,6 +626,7 @@ function CreateTaskView({
 			statusOption.toLowerCase().includes(normalizedStatus),
 		);
 	}, [status, statusOptions]);
+	const normalizedFilename = useMemo(() => createTaskFilename(filename), [filename]);
 	const createTaskMutation = useMutation({
 		mutationFn: (input: CreateTaskInput) => createTaskServer({ data: input }),
 		onSuccess: async (result) => {
@@ -633,6 +649,11 @@ function CreateTaskView({
 		setIsStatusMenuOpen(false);
 	}, [defaults.status, defaults.taskSource]);
 
+	useEffect(() => {
+		if (hasEditedFilename) return;
+		setFilename(createTaskFilename(title));
+	}, [hasEditedFilename, title]);
+
 	const handleSourceChange = (value: string) => {
 		const parsedSource = parseTaskSource(value);
 		if (parsedSource === null) return;
@@ -654,14 +675,25 @@ function CreateTaskView({
 		setIsStatusMenuOpen(false);
 	};
 
+	const handleFilenameChange = (value: string) => {
+		setHasEditedFilename(true);
+		setFilename(value);
+	};
+
+	const handleFilenameBlur = () => {
+		setFilename(createTaskFilename(filename));
+	};
+
 	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		const trimmedTitle = title.trim();
 		if (trimmedTitle.length === 0) return;
+		if (normalizedFilename.length === 0) return;
 
 		createTaskMutation.mutate({
 			body,
+			filename: normalizedFilename,
 			priority,
 			status,
 			tags: parseTagDraft(tagDraft),
@@ -839,6 +871,23 @@ function CreateTaskView({
 					/>
 				</div>
 
+				<div className="space-y-2">
+					<label className="text-sm font-medium" htmlFor={filenameInputId}>
+						Filename
+					</label>
+					<div className="flex items-center gap-2">
+						<Input
+							id={filenameInputId}
+							value={filename}
+							onChange={(event) => handleFilenameChange(event.currentTarget.value)}
+							onBlur={handleFilenameBlur}
+							placeholder="task-filename"
+							disabled={createTaskMutation.isPending}
+						/>
+						<span className="text-sm text-muted-foreground">.mdx</span>
+					</div>
+				</div>
+
 				{createTaskMutation.error ? (
 					<div className="text-sm text-destructive">
 						{getMutationErrorMessage(createTaskMutation.error, 'failed to create task')}
@@ -856,7 +905,11 @@ function CreateTaskView({
 					</Button>
 					<Button
 						type="submit"
-						disabled={createTaskMutation.isPending || title.trim().length === 0}
+						disabled={
+							createTaskMutation.isPending ||
+							title.trim().length === 0 ||
+							normalizedFilename.length === 0
+						}
 					>
 						<Plus className="size-4" />
 						{createTaskMutation.isPending ? 'Creating...' : 'Create'}

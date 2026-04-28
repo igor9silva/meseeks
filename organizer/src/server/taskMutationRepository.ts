@@ -86,6 +86,7 @@ interface FrontmatterSection {
 
 export interface CreateTaskInput {
 	body: string;
+	filename: string;
 	priority: TaskPriority;
 	status: string;
 	tags: string[];
@@ -169,9 +170,9 @@ function normalizeTaskTitle(title: string): string {
 	return normalizedTitle;
 }
 
-function slugifyTaskTitle(title: string): string {
+function slugifyTaskFilename(value: string): string {
 	//
-	const slug = title
+	const slug = value
 		.toLowerCase()
 		.replace(/'/g, "")
 		.replace(/[^a-z0-9]+/g, "-")
@@ -179,10 +180,23 @@ function slugifyTaskTitle(title: string): string {
 		.replace(/^-+|-+$/g, "");
 
 	if (slug.length === 0) {
-		throw new Error("title must include at least one letter or number for the filename");
+		throw new Error("filename must include at least one letter or number");
 	}
 
 	return slug;
+}
+
+function stripKnownTaskFileExtension(filename: string): string {
+	//
+	return filename.trim().replace(/\.(?:mdx|md|txt)$/i, "");
+}
+
+function normalizeTaskFilename(filename: string, fallbackTitle: string): string {
+	//
+	const rawFilename = filename.trim().length > 0 ? filename : fallbackTitle;
+	const withoutExtension = stripKnownTaskFileExtension(rawFilename);
+
+	return slugifyTaskFilename(withoutExtension);
 }
 
 function doesTaskKeyPathExist(taskRoot: string, relativePathBase: string): boolean {
@@ -408,9 +422,9 @@ export function createTask(input: CreateTaskInput): CreateTaskResult {
 	const title = normalizeTaskTitle(input.title);
 	const status = normalizeTaskStatus(input.status);
 	const tags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
-	const slug = slugifyTaskTitle(title);
+	const filename = normalizeTaskFilename(input.filename, title);
 	const taskRoot = getTaskRoot(input.taskSource);
-	const newRelativePath = createUniqueTaskRelativePath(taskRoot, status, slug);
+	const newRelativePath = createUniqueTaskRelativePath(taskRoot, status, filename);
 	const absolutePath = join(taskRoot, ...newRelativePath.split("/"));
 	const fileContent = renderCreatedTaskFile({
 		body: input.body,

@@ -44,6 +44,7 @@ const tagMutationSchema = z.object({
 
 const createTaskInputSchema = z.object({
 	body: z.string().max(50000).optional().default(""),
+	filename: z.string().trim().max(180).optional().default(""),
 	priority: taskPrioritySchema.optional().default("medium"),
 	status: z.string().trim().min(1).max(64).optional().default("backlog"),
 	tags: z.array(z.string().trim().min(1).max(64)).optional().default([]),
