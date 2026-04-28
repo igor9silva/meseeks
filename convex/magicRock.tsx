@@ -2,30 +2,16 @@
 // We moved away from AI SDK's transcribe() after finding out it was forcing
 // file type to audio/wav, breaking transcription. We spent too many hours on that already.
 
-import { generateText } from 'ai';
 import { z } from 'zod/v3';
 import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
-import { languageModelFrom } from './magicRock.private';
 
 const dictionary = [
 	'Meseeks', //
 ].join(',');
 
-const cleanupPrompt = `
-format this raw transcript into readable text.
-
-return only the formatted transcript.
-no title, no intro, no markdown, no explanations.
-
-rules:
-- preserve the original words and meaning
-- do not translate
-- do not add or remove information
-- add punctuation and paragraph breaks only
-- lightly fix obvious spelling mistakes when the intent is clear
-- if unsure, keep the original wording
-`.trim();
+const baseUrl = 'https://api.mistral.ai/v1';
+const model = 'voxtral-mini-latest';
 
 const audioArrayBufferSchema = z.unknown().transform((value, ctx) => {
 	//
@@ -39,24 +25,33 @@ const audioArrayBufferSchema = z.unknown().transform((value, ctx) => {
 	return z.NEVER;
 });
 
+const audioContentTypeSchema = z
+	.string()
+	.trim()
+	.max(100)
+	.regex(/^audio\/[a-z0-9.+-]+(?:;.*)?$/i)
+	.optional();
+
 export const transcribe = action({
 	args: {
 		audio: audioArrayBufferSchema,
+		contentType: audioContentTypeSchema,
 	},
-	handler: async (ctx, { audio }) => {
+	handler: async (ctx, { audio, contentType }) => {
 		//
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) throw new Error('Unauthorized');
 
-		const audioBlob = new Blob([audio]);
-		const file = new File([audioBlob], 'recording.webm');
+		const audioBlob = new Blob([audio], { type: contentType ?? 'audio/webm' });
+		const file = new File([audioBlob], 'recording.webm', { type: audioBlob.type });
 
 		const formData = new FormData();
 		formData.append('file', file);
-		formData.append('model', 'voxtral-mini-latest');
+		formData.append('model', model);
 		formData.append('context_bias', dictionary);
+		formData.append('temperature', '0');
 
-		const response = await fetch('https://api.mistral.ai/v1/audio/transcriptions', {
+		const response = await fetch(`${baseUrl}/audio/transcriptions`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${env.MISTRAL_API_KEY}`,
@@ -74,42 +69,14 @@ export const transcribe = action({
 		const result = z.object({ text: z.string() }).parse(json);
 		const transcription = result.text.trim();
 
-		console.info('Mistral transcription result', {
+		console.debug('Transcription result', {
+			model,
+			baseUrl,
 			characterCount: transcription.length,
 			contextBias: dictionary,
 			text: transcription,
 		});
 
-		if (!transcription) return transcription;
-
-		try {
-			const cleanupResult = await generateText({
-				model: languageModelFrom('openai/gpt-oss-20b'),
-				temperature: 0,
-				system: cleanupPrompt,
-				prompt: `format this transcript:\n\n${transcription}`,
-			});
-
-			const cleanedTranscription = cleanupResult.text.trim();
-
-			console.info('Transcription cleanup result', {
-				model: 'openai/gpt-oss-20b',
-				characterCount: cleanedTranscription.length,
-				text: cleanedTranscription,
-				finishReason: cleanupResult.finishReason,
-				usage: cleanupResult.usage,
-				warnings: cleanupResult.warnings,
-			});
-
-			if (!cleanedTranscription) {
-				console.warn('Transcription cleanup returned empty text, falling back to raw transcription.');
-				return transcription;
-			}
-
-			return cleanedTranscription;
-		} catch (error) {
-			console.warn('Transcription cleanup failed, falling back to raw transcription.', error);
-			return transcription;
-		}
+		return transcription;
 	},
 });

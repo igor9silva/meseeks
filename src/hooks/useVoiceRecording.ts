@@ -44,14 +44,16 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 
 			mediaRecorder.onstop = async () => {
 				//
-				const audio = new Blob(chunks);
+				const audio = new Blob(chunks, { type: mediaRecorder.mimeType });
 
 				if (currentStatusRef.current === 'recording') {
 					//
 					updateStatus('transcribing');
 
 					try {
-						const text = await transcribeAction({ audio: await audio.arrayBuffer() });
+						const audioBuffer = await audio.arrayBuffer();
+						const transcriptionArgs = audio.type ? { audio: audioBuffer, contentType: audio.type } : { audio: audioBuffer };
+						const text = await transcribeAction(transcriptionArgs);
 						onTranscriptionComplete(text);
 					} catch (error) {
 						console.error('Error transcribing audio:', error);
