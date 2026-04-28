@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, Lock, X } from 'lucide-react';
+import { Check, ChevronDown, Lock, Plus, X } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
+import { Textarea } from '~/components/ui/textarea';
 import {
 	type ExplorerQueryInput,
 	type ExplorerRouteSearch,
@@ -17,6 +18,8 @@ import {
 } from '~/lib/explorerSearchParams';
 import { cn } from '~/lib/utils';
 import {
+	type CreateTaskInput,
+	createTask,
 	getExplorerSnapshot,
 	getTaskDetail,
 	markTaskDone,
@@ -28,7 +31,8 @@ function formatSourceLabel(source: TaskSource): string {
 	return source === 'private' ? 'Private' : 'Public';
 }
 
-type TaskDetailTask = NonNullable<NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>['task']>;
+type TaskDetailResult = NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
+type TaskDetailTask = NonNullable<TaskDetailResult['task']>;
 
 function buildTaskPrompt(task: TaskDetailTask): string {
 	//
@@ -61,8 +65,80 @@ function toCodexTaskHref(task: TaskDetailTask): string {
 	return url.toString();
 }
 
+type CreateTaskDefaults = Pick<CreateTaskInput, 'status' | 'taskSource'>;
+
 const taskSourceOptions: TaskSource[] = ['public', 'private'];
+const taskPriorityOptions: Array<CreateTaskInput['priority']> = ['critical', 'high', 'medium', 'low'];
+const defaultStatusOptions = ['active', 'backlog', 'inbox'];
 const SEARCH_DEBOUNCE_MS = 150;
+
+function dedupeStrings(values: string[]): string[] {
+	//
+	const seen = new Set<string>();
+	const output: string[] = [];
+
+	for (const value of values) {
+		const trimmedValue = value.trim();
+		if (trimmedValue.length === 0) continue;
+		if (seen.has(trimmedValue)) continue;
+		seen.add(trimmedValue);
+		output.push(trimmedValue);
+	}
+
+	return output;
+}
+
+function getCreateTaskDefaults(queryInput: ExplorerQueryInput): CreateTaskDefaults {
+	//
+	let taskSource: TaskSource = 'public';
+	let status = 'backlog';
+
+	if (queryInput.sources.length === 1) {
+		const onlySource = queryInput.sources[0];
+		if (onlySource) taskSource = onlySource;
+	}
+
+	if (queryInput.statuses.length === 1) {
+		const onlyStatus = queryInput.statuses[0];
+		if (onlyStatus) status = onlyStatus;
+	}
+
+	return {
+		status,
+		taskSource,
+	};
+}
+
+function parseTaskSource(value: string): TaskSource | null {
+	//
+	if (value === 'public') return value;
+	if (value === 'private') return value;
+	return null;
+}
+
+function parseTaskPriority(value: string): CreateTaskInput['priority'] | null {
+	//
+	if (value === 'critical') return value;
+	if (value === 'high') return value;
+	if (value === 'medium') return value;
+	if (value === 'low') return value;
+	return null;
+}
+
+function parseTagDraft(value: string): string[] {
+	//
+	return dedupeStrings(
+		value
+			.split(',')
+			.map((tag) => tag.trim())
+			.filter((tag) => tag.length > 0),
+	);
+}
+
+function getMutationErrorMessage(error: unknown, fallback: string): string {
+	//
+	return error instanceof Error ? error.message : fallback;
+}
 
 export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	//
@@ -71,9 +147,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	const queryInput = useMemo(() => parseExplorerQuery(search), [search]);
 	const selectedTaskKey = search.taskKey ?? null;
 	const [searchDraft, setSearchDraft] = useState(queryInput.q);
+	const [createTaskDefaults, setCreateTaskDefaults] = useState<CreateTaskDefaults | null>(null);
 	const lastCommittedSearchRef = useRef(queryInput.q);
 	const getExplorerSnapshotServer = useServerFn(getExplorerSnapshot);
 	const getTaskDetailServer = useServerFn(getTaskDetail);
+	const isCreatingTask = createTaskDefaults !== null;
 
 	const explorerQuery = useQuery({
 		queryKey: ['tasks-explorer', queryInput],
@@ -84,7 +162,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 
 	const taskDetailQuery = useQuery({
 		queryKey: ['task-detail', selectedTaskKey],
-		enabled: Boolean(selectedTaskKey),
+		enabled: Boolean(selectedTaskKey) && !isCreatingTask,
 		queryFn: () => {
 			if (!selectedTaskKey) throw new Error('missing task key');
 			return getTaskDetailServer({ data: { taskKey: selectedTaskKey } });
@@ -143,6 +221,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	useEffect(() => {
 		const appTitle = 'Organizer';
 
+		if (isCreatingTask) {
+			document.title = 'New task';
+			return;
+		}
+
 		if (!selectedTaskKey) {
 			document.title = appTitle;
 			return;
@@ -155,12 +238,21 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		}
 
 		document.title = `${selectedTitle}`;
-	}, [selectedTaskKey, taskDetailQuery.data?.task?.title]);
+	}, [isCreatingTask, selectedTaskKey, taskDetailQuery.data?.task?.title]);
+
+	useEffect(() => {
+		if (selectedTaskKey === null) return;
+		setCreateTaskDefaults(null);
+	}, [selectedTaskKey]);
 
 	const health = explorerQuery.data?.health;
 	const shouldShowIndexUnavailable = explorerQuery.isFetched && health !== undefined && !health.isReady;
 	const visibleTasks = explorerQuery.data?.tasks ?? [];
 	const facets = explorerQuery.data?.facets;
+	const statusOptions = useMemo(() => {
+		const facetStatuses = (facets?.statuses ?? []).map((entry) => entry.value);
+		return dedupeStrings(defaultStatusOptions.concat(queryInput.statuses, facetStatuses));
+	}, [facets?.statuses, queryInput.statuses]);
 
 	const toggleSource = (source: TaskSource) => {
 		const hasSource = queryInput.sources.includes(source);
@@ -194,6 +286,31 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		});
 	};
 
+	const handleCreateTaskOpen = () => {
+		setCreateTaskDefaults(getCreateTaskDefaults(queryInput));
+		updateSearch({ taskKey: undefined });
+	};
+
+	const handleTaskCreated = (result: {
+		status: string;
+		taskKey: string;
+		taskSource: TaskSource;
+	}) => {
+		const nextSources = queryInput.sources.includes(result.taskSource)
+			? queryInput.sources
+			: queryInput.sources.concat(result.taskSource);
+		const nextStatuses = queryInput.statuses.includes(result.status)
+			? queryInput.statuses
+			: queryInput.statuses.concat(result.status);
+
+		setCreateTaskDefaults(null);
+		updateSearch({
+			sources: serializeCsv(nextSources),
+			statuses: serializeCsv(nextStatuses),
+			taskKey: result.taskKey,
+		});
+	};
+
 	return (
 		<div
 			className="h-screen bg-background p-3 text-foreground"
@@ -202,7 +319,13 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			<div className="grid h-full gap-3 lg:grid-cols-[minmax(360px,460px)_1fr]">
 				<section className="border border-border rounded-lg overflow-hidden flex flex-col bg-card">
 					<header className="border-b border-border p-3 space-y-3">
-						<h1 className="text-lg font-semibold">Organizer</h1>
+						<div className="flex items-center justify-between gap-2">
+							<h1 className="text-lg font-semibold">Organizer</h1>
+							<Button type="button" size="sm" variant="secondary" onClick={handleCreateTaskOpen}>
+								<Plus className="size-4" />
+								New
+							</Button>
+						</div>
 
 						{shouldShowIndexUnavailable && (
 							<div className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-sm">
@@ -363,6 +486,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 								key={task.key}
 								from="/"
 								to="/"
+								onClick={() => setCreateTaskDefaults(null)}
 								search={(previous) => ({
 									...previous,
 									taskKey: task.key,
@@ -407,21 +531,30 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 				</section>
 
 				<section className="border border-border rounded-lg overflow-hidden flex flex-col bg-card">
-					{selectedTaskKey === null && (
+					{createTaskDefaults !== null && (
+						<CreateTaskView
+							defaults={createTaskDefaults}
+							statusOptions={statusOptions}
+							onCancel={() => setCreateTaskDefaults(null)}
+							onTaskCreated={handleTaskCreated}
+						/>
+					)}
+
+					{!isCreatingTask && selectedTaskKey === null && (
 						<div className="p-4 text-sm text-muted-foreground">
 							Select a task from the left list to inspect details.
 						</div>
 					)}
 
-					{selectedTaskKey !== null && taskDetailQuery.isPending && (
+					{!isCreatingTask && selectedTaskKey !== null && taskDetailQuery.isPending && (
 						<div className="p-4 text-sm text-muted-foreground">Loading task detail...</div>
 					)}
 
-					{selectedTaskKey !== null && !taskDetailQuery.isPending && taskDetailQuery.data?.task === null && (
+					{!isCreatingTask && selectedTaskKey !== null && !taskDetailQuery.isPending && taskDetailQuery.data?.task === null && (
 						<div className="p-4 text-sm text-muted-foreground">Task not found in generated indexes.</div>
 					)}
 
-					{taskDetailQuery.data?.task && (
+					{!isCreatingTask && taskDetailQuery.data?.task && (
 						<TaskDetailView
 							detail={taskDetailQuery.data}
 							onNavigateTask={(taskKey) => updateSearch({ taskKey })}
@@ -438,30 +571,350 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	);
 }
 
+function CreateTaskView({
+	defaults,
+	statusOptions,
+	onCancel,
+	onTaskCreated,
+}: {
+	defaults: CreateTaskDefaults;
+	statusOptions: string[];
+	onCancel: () => void;
+	onTaskCreated: (result: {
+		status: string;
+		taskKey: string;
+		taskSource: TaskSource;
+	}) => void;
+}) {
+	//
+	const titleInputId = useId();
+	const sourceSelectId = useId();
+	const statusInputId = useId();
+	const statusOptionsListId = useId();
+	const prioritySelectId = useId();
+	const tagsInputId = useId();
+	const bodyTextareaId = useId();
+	const queryClient = useQueryClient();
+	const createTaskServer = useServerFn(createTask);
+	const [title, setTitle] = useState('');
+	const [taskSource, setTaskSource] = useState<TaskSource>(defaults.taskSource);
+	const [status, setStatus] = useState(defaults.status);
+	const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+	const [priority, setPriority] = useState<CreateTaskInput['priority']>('medium');
+	const [tagDraft, setTagDraft] = useState('');
+	const [body, setBody] = useState('');
+	const filteredStatusOptions = useMemo(() => {
+		const normalizedStatus = status.trim().toLowerCase();
+		if (normalizedStatus.length === 0) return statusOptions;
+
+		return statusOptions.filter((statusOption) =>
+			statusOption.toLowerCase().includes(normalizedStatus),
+		);
+	}, [status, statusOptions]);
+	const createTaskMutation = useMutation({
+		mutationFn: (input: CreateTaskInput) => createTaskServer({ data: input }),
+		onSuccess: async (result) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
+			]);
+
+			onTaskCreated({
+				status: result.status,
+				taskKey: result.newTaskKey,
+				taskSource: result.taskSource,
+			});
+		},
+	});
+
+	useEffect(() => {
+		setTaskSource(defaults.taskSource);
+		setStatus(defaults.status);
+		setIsStatusMenuOpen(false);
+	}, [defaults.status, defaults.taskSource]);
+
+	const handleSourceChange = (value: string) => {
+		const parsedSource = parseTaskSource(value);
+		if (parsedSource === null) return;
+		setTaskSource(parsedSource);
+	};
+
+	const handlePriorityChange = (value: string) => {
+		const parsedPriority = parseTaskPriority(value);
+		if (parsedPriority === null) return;
+		setPriority(parsedPriority);
+	};
+
+	const handleStatusBlur = () => {
+		window.setTimeout(() => setIsStatusMenuOpen(false), 120);
+	};
+
+	const handleStatusOptionSelect = (statusOption: string) => {
+		setStatus(statusOption);
+		setIsStatusMenuOpen(false);
+	};
+
+	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		const trimmedTitle = title.trim();
+		if (trimmedTitle.length === 0) return;
+
+		createTaskMutation.mutate({
+			body,
+			priority,
+			status,
+			tags: parseTagDraft(tagDraft),
+			taskSource,
+			title: trimmedTitle,
+		});
+	};
+
+	return (
+		<div className="h-full overflow-auto">
+			<header className="border-b border-border p-4">
+				<div className="flex items-start justify-between gap-3">
+					<div>
+						<h2 className="text-xl font-semibold">New task</h2>
+						<div className="mt-1 text-xs text-muted-foreground">
+							{taskSource}:{status || 'backlog'}
+						</div>
+					</div>
+					<Button
+						type="button"
+						size="sm"
+						variant="ghost"
+						onClick={onCancel}
+						disabled={createTaskMutation.isPending}
+					>
+						<X className="size-4" />
+						Cancel
+					</Button>
+				</div>
+			</header>
+
+			<form className="p-4 space-y-4" onSubmit={handleSubmit}>
+				<div className="space-y-2">
+					<label className="text-sm font-medium" htmlFor={titleInputId}>
+						Title
+					</label>
+					<Input
+						id={titleInputId}
+						value={title}
+						onChange={(event) => setTitle(event.currentTarget.value)}
+						disabled={createTaskMutation.isPending}
+						autoFocus
+					/>
+				</div>
+
+				<div className="grid gap-3 md:grid-cols-3">
+					<div className="space-y-2">
+						<label className="text-sm font-medium" htmlFor={sourceSelectId}>
+							Source
+						</label>
+						<select
+							id={sourceSelectId}
+							value={taskSource}
+							onChange={(event) => handleSourceChange(event.currentTarget.value)}
+							disabled={createTaskMutation.isPending}
+							className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+						>
+							{taskSourceOptions.map((source) => (
+								<option key={source} value={source}>
+									{formatSourceLabel(source)}
+								</option>
+							))}
+						</select>
+					</div>
+
+					<div className="space-y-2">
+						<label className="text-sm font-medium" htmlFor={statusInputId}>
+							Status
+						</label>
+						<div className="relative">
+							<Input
+								id={statusInputId}
+								value={status}
+								onChange={(event) => {
+									setStatus(event.currentTarget.value);
+									setIsStatusMenuOpen(true);
+								}}
+								onFocus={() => setIsStatusMenuOpen(true)}
+								onBlur={handleStatusBlur}
+								disabled={createTaskMutation.isPending}
+								autoComplete="off"
+								role="combobox"
+								aria-expanded={isStatusMenuOpen}
+								aria-controls={statusOptionsListId}
+								className="pr-9"
+							/>
+							<Button
+								type="button"
+								size="icon-xs"
+								variant="ghost"
+								aria-label="Show statuses"
+								disabled={createTaskMutation.isPending}
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+								className="absolute right-1 top-1/2 -translate-y-1/2"
+							>
+								<ChevronDown className="size-3" />
+							</Button>
+							{isStatusMenuOpen ? (
+								<div
+									id={statusOptionsListId}
+									role="listbox"
+									className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-popover p-1 text-sm shadow-md"
+								>
+									{filteredStatusOptions.map((statusOption) => (
+										<button
+											key={statusOption}
+											type="button"
+											role="option"
+											aria-selected={statusOption === status}
+											onMouseDown={(event) => event.preventDefault()}
+											onClick={() => handleStatusOptionSelect(statusOption)}
+											className={cn(
+												'block w-full rounded-sm px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground',
+												statusOption === status && 'bg-accent text-accent-foreground',
+											)}
+										>
+											{statusOption}
+										</button>
+									))}
+									{filteredStatusOptions.length === 0 ? (
+										<div className="px-2 py-1.5 text-muted-foreground">
+											Type a new status
+										</div>
+									) : null}
+								</div>
+							) : null}
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<label className="text-sm font-medium" htmlFor={prioritySelectId}>
+							Priority
+						</label>
+						<select
+							id={prioritySelectId}
+							value={priority}
+							onChange={(event) => handlePriorityChange(event.currentTarget.value)}
+							disabled={createTaskMutation.isPending}
+							className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+						>
+							{taskPriorityOptions.map((priorityOption) => (
+								<option key={priorityOption} value={priorityOption}>
+									{priorityOption}
+								</option>
+							))}
+						</select>
+					</div>
+				</div>
+
+				<div className="space-y-2">
+					<label className="text-sm font-medium" htmlFor={tagsInputId}>
+						Tags
+					</label>
+					<Input
+						id={tagsInputId}
+						value={tagDraft}
+						onChange={(event) => setTagDraft(event.currentTarget.value)}
+						placeholder="debt, ux"
+						disabled={createTaskMutation.isPending}
+					/>
+				</div>
+
+				<div className="space-y-2">
+					<label className="text-sm font-medium" htmlFor={bodyTextareaId}>
+						Body
+					</label>
+					<Textarea
+						id={bodyTextareaId}
+						value={body}
+						onChange={(event) => setBody(event.currentTarget.value)}
+						placeholder="Context, objective, subtasks, notes..."
+						disabled={createTaskMutation.isPending}
+						className="min-h-64 resize-y"
+					/>
+				</div>
+
+				{createTaskMutation.error ? (
+					<div className="text-sm text-destructive">
+						{getMutationErrorMessage(createTaskMutation.error, 'failed to create task')}
+					</div>
+				) : null}
+
+				<div className="flex justify-end gap-2">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onCancel}
+						disabled={createTaskMutation.isPending}
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						disabled={createTaskMutation.isPending || title.trim().length === 0}
+					>
+						<Plus className="size-4" />
+						{createTaskMutation.isPending ? 'Creating...' : 'Create'}
+					</Button>
+				</div>
+			</form>
+		</div>
+	);
+}
+
 function TaskDetailView({
 	detail,
 	onNavigateTask,
 	onTaskCompleted,
 }: {
-	detail: NonNullable<Awaited<ReturnType<typeof getTaskDetail>>>;
+	detail: TaskDetailResult;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 }) {
 	//
 	if (!detail.task) return null;
 
+	return (
+		<TaskDetailContent
+			key={detail.task.key}
+			detail={detail}
+			task={detail.task}
+			onNavigateTask={onNavigateTask}
+			onTaskCompleted={onTaskCompleted}
+		/>
+	);
+}
+
+function TaskDetailContent({
+	detail,
+	task,
+	onNavigateTask,
+	onTaskCompleted,
+}: {
+	detail: TaskDetailResult;
+	task: TaskDetailTask;
+	onNavigateTask: (taskKey: string) => void;
+	onTaskCompleted: (taskKey: string) => void;
+}) {
+	//
 	const tagInputId = useId();
 	const queryClient = useQueryClient();
 	const markTaskDoneServer = useServerFn(markTaskDone);
 	const updateTaskTagsServer = useServerFn(updateTaskTags);
-	const relatedTaskByKey = new Map(detail.relatedTasks.map((task) => [task.key, task]));
-	const cursorFileHref = toCursorFileHref(detail.task.absolutePath);
-	const cursorTaskHref = toCursorTaskHref(detail.task);
-	const codexTaskHref = toCodexTaskHref(detail.task);
-	const canMarkDone = detail.task.status !== 'completed';
+	const relatedTasks = detail.relatedTasks ?? [];
+	const relatedTaskByKey = new Map(relatedTasks.map((relatedTask) => [relatedTask.key, relatedTask]));
+	const cursorFileHref = toCursorFileHref(task.absolutePath);
+	const cursorTaskHref = toCursorTaskHref(task);
+	const codexTaskHref = toCodexTaskHref(task);
+	const canMarkDone = task.status !== 'completed';
 	const [tagDraft, setTagDraft] = useState('');
 	const markTaskDoneMutation = useMutation({
-		mutationFn: () => markTaskDoneServer({ data: { taskKey: detail.task.key } }),
+		mutationFn: () => markTaskDoneServer({ data: { taskKey: task.key } }),
 		onSuccess: async (result) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
@@ -478,7 +931,7 @@ function TaskDetailView({
 		}: {
 			action: 'add' | 'remove';
 			tag: string;
-		}) => updateTaskTagsServer({ data: { taskKey: detail.task.key, action, tag } }),
+		}) => updateTaskTagsServer({ data: { taskKey: task.key, action, tag } }),
 		onSuccess: async (_, variables) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
@@ -490,10 +943,6 @@ function TaskDetailView({
 			}
 		},
 	});
-
-	useEffect(() => {
-		setTagDraft('');
-	}, [detail.task.key]);
 
 	const handleTagSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -547,8 +996,8 @@ function TaskDetailView({
 				<div className="flex items-start justify-between gap-3">
 					<div className="min-w-0">
 						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-							<h2 className="text-xl font-semibold">{detail.task.title}</h2>
-							<span className="text-sm text-muted-foreground break-all">{detail.task.id}</span>
+							<h2 className="text-xl font-semibold">{task.title}</h2>
+							<span className="text-sm text-muted-foreground break-all">{task.id}</span>
 						</div>
 					</div>
 
@@ -573,10 +1022,10 @@ function TaskDetailView({
 							rel="noopener noreferrer"
 							className="cursor-pointer underline underline-offset-4 hover:text-foreground"
 						>
-							{detail.task.relativePath}
+							{task.relativePath}
 						</a>
 					) : (
-						<span>{detail.task.relativePath}</span>
+						<span>{task.relativePath}</span>
 					)}
 					<a
 						href={cursorTaskHref}
@@ -599,7 +1048,7 @@ function TaskDetailView({
 				<div className="mt-3 space-y-2">
 					<div className="text-xs uppercase tracking-wide text-muted-foreground">Tags</div>
 					<div className="flex flex-wrap gap-1">
-						{detail.task.tags.map((tag) => (
+						{task.tags.map((tag) => (
 							<Button
 								key={tag}
 								type="button"
@@ -613,7 +1062,7 @@ function TaskDetailView({
 								<X className="size-3" />
 							</Button>
 						))}
-						{detail.task.tags.length === 0 && (
+						{task.tags.length === 0 && (
 							<div className="text-xs text-muted-foreground">No tags yet.</div>
 						)}
 					</div>
@@ -640,10 +1089,10 @@ function TaskDetailView({
 				</div>
 
 				<div className="flex flex-wrap gap-2 text-xs mt-2">
-					<span className="px-2 py-1 rounded-md border border-border">{detail.task.taskSource}</span>
-					<span className="px-2 py-1 rounded-md border border-border">{detail.task.status}</span>
-					{detail.task.priority && (
-						<span className="px-2 py-1 rounded-md border border-border">{detail.task.priority}</span>
+					<span className="px-2 py-1 rounded-md border border-border">{task.taskSource}</span>
+					<span className="px-2 py-1 rounded-md border border-border">{task.status}</span>
+					{task.priority && (
+						<span className="px-2 py-1 rounded-md border border-border">{task.priority}</span>
 					)}
 				</div>
 
@@ -669,15 +1118,15 @@ function TaskDetailView({
 					{renderRelation('Children', detail.relations.children)}
 				</div>
 
-				<Mdx text={detail.task.body} className="text-sm" />
+				<Mdx text={task.body} className="text-sm" />
 
-				{detail.task.warnings.length > 0 && (
+				{task.warnings.length > 0 && (
 					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
 						<summary className="cursor-pointer font-medium">
-							Warnings ({detail.task.warnings.length})
+							Warnings ({task.warnings.length})
 						</summary>
 						<ul className="mt-2 list-disc pl-5 space-y-1">
-							{detail.task.warnings.map((warning) => (
+							{task.warnings.map((warning) => (
 								<li key={warning}>{warning}</li>
 							))}
 						</ul>

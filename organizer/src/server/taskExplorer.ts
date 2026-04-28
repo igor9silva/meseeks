@@ -1,13 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { readTaskIndexSnapshot } from "~/server/taskIndexRepository";
+import type { TaskSummary } from "~/server/taskIndexSchemas";
 import {
+	createTask as createTaskInFilesystem,
 	markTaskDone as markTaskDoneInFilesystem,
 	updateTaskTags as updateTaskTagsInFilesystem,
 } from "~/server/taskMutationRepository";
-import type { TaskSummary } from "~/server/taskIndexSchemas";
 
 const taskSourceSchema = z.enum(["public", "private"]);
+const taskPrioritySchema = z.enum(["critical", "high", "medium", "low"]);
 const explorerSortSchema = z.enum([
 	"priority_then_recency",
 	"recency",
@@ -40,7 +42,17 @@ const tagMutationSchema = z.object({
 	tag: z.string().trim().min(1).max(64),
 });
 
+const createTaskInputSchema = z.object({
+	body: z.string().max(50000).optional().default(""),
+	priority: taskPrioritySchema.optional().default("medium"),
+	status: z.string().trim().min(1).max(64).optional().default("backlog"),
+	tags: z.array(z.string().trim().min(1).max(64)).optional().default([]),
+	taskSource: taskSourceSchema.optional().default("public"),
+	title: z.string().trim().min(1).max(180),
+});
+
 type ExplorerQuery = z.infer<typeof explorerQuerySchema>;
+export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;
 type FacetEntry = {
 	value: string;
 	count: number;
@@ -459,6 +471,20 @@ export const getTaskDetail = createServerFn({ method: "GET" })
 				children: childKeys,
 			},
 			relatedTasks,
+		};
+	});
+
+export const createTask = createServerFn({ method: "POST" })
+	.inputValidator((input: unknown) => createTaskInputSchema.parse(input))
+	.handler(({ data }) => {
+		const result = createTaskInFilesystem(data);
+
+		return {
+			absolutePath: result.absolutePath,
+			newRelativePath: result.newRelativePath,
+			newTaskKey: result.newTaskKey,
+			status: result.status,
+			taskSource: result.taskSource,
 		};
 	});
 

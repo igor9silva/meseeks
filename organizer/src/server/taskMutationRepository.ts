@@ -1,12 +1,13 @@
+import { spawnSync } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
 	renameSync,
+	unlinkSync,
 	writeFileSync,
 } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
-import { spawnSync } from "node:child_process";
 import type { TaskSummary } from "~/server/taskIndexSchemas";
 
 function getProjectRoot(): string {
@@ -75,11 +76,29 @@ export interface MarkTaskDoneResult {
 	newTaskKey: string;
 }
 
+type TaskPriority = "critical" | "high" | "medium" | "low";
 type TagMutationAction = "add" | "remove";
 
 interface FrontmatterSection {
 	rawFrontmatter: string;
 	body: string;
+}
+
+export interface CreateTaskInput {
+	body: string;
+	priority: TaskPriority;
+	status: string;
+	tags: string[];
+	taskSource: TaskSummary["taskSource"];
+	title: string;
+}
+
+export interface CreateTaskResult {
+	absolutePath: string;
+	newRelativePath: string;
+	newTaskKey: string;
+	status: string;
+	taskSource: TaskSummary["taskSource"];
 }
 
 export interface UpdateTaskTagsInput {
@@ -121,6 +140,156 @@ function normalizeTaskTag(tag: string): string {
 	}
 
 	return normalizedTag;
+}
+
+function normalizeTaskStatus(status: string): string {
+	//
+	const normalizedStatus = status
+		.trim()
+		.toLowerCase()
+		.replace(/[\s_]+/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedStatus)) {
+		throw new Error("status must use letters, numbers, or hyphens");
+	}
+
+	return normalizedStatus;
+}
+
+function normalizeTaskTitle(title: string): string {
+	//
+	const normalizedTitle = title.trim().replace(/\s+/g, " ");
+
+	if (normalizedTitle.length === 0) {
+		throw new Error("title is required");
+	}
+
+	return normalizedTitle;
+}
+
+function slugifyTaskTitle(title: string): string {
+	//
+	const slug = title
+		.toLowerCase()
+		.replace(/'/g, "")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-+|-+$/g, "");
+
+	if (slug.length === 0) {
+		throw new Error("title must include at least one letter or number for the filename");
+	}
+
+	return slug;
+}
+
+function doesTaskKeyPathExist(taskRoot: string, relativePathBase: string): boolean {
+	//
+	const absolutePathBase = join(taskRoot, ...relativePathBase.split("/"));
+	const taskFileCandidates = [
+		`${absolutePathBase}.mdx`,
+		`${absolutePathBase}.md`,
+		`${absolutePathBase}.txt`,
+		absolutePathBase,
+	];
+	const indexFileCandidates = [
+		join(absolutePathBase, "_index.mdx"),
+		join(absolutePathBase, "_index.md"),
+		join(absolutePathBase, "_index.txt"),
+		join(absolutePathBase, "_index"),
+	];
+
+	return taskFileCandidates
+		.concat(indexFileCandidates)
+		.some((candidatePath) => existsSync(candidatePath));
+}
+
+function createUniqueTaskRelativePath(
+	taskRoot: string,
+	status: string,
+	slug: string,
+): string {
+	//
+	for (let attempt = 1; attempt <= 1000; attempt += 1) {
+		const candidateSlug = attempt === 1 ? slug : `${slug}-${attempt}`;
+		const relativePathBase = posix.join(status, candidateSlug);
+
+		if (!doesTaskKeyPathExist(taskRoot, relativePathBase)) {
+			return `${relativePathBase}.mdx`;
+		}
+	}
+
+	throw new Error("could not find an available task filename");
+}
+
+function renderFrontmatterString(value: string): string {
+	//
+	return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+function renderTaskFrontmatter(
+	title: string,
+	priority: TaskPriority,
+	tags: string[],
+): string {
+	//
+	return [
+		"---",
+		`title: ${renderFrontmatterString(title)}`,
+		`priority: ${priority}`,
+		renderTagsFrontmatterLine(tags),
+		"---",
+	].join("\n");
+}
+
+function renderCreatedTaskBody(title: string, body: string): string {
+	//
+	const trimmedBody = body.replace(/\r\n/g, "\n").trim();
+
+	if (trimmedBody.length > 0) {
+		const hasHeading = trimmedBody
+			.split("\n")
+			.some((line) => /^#\s+/.test(line.trim()));
+
+		if (hasHeading) return `${trimmedBody}\n`;
+		return `# ${title}\n\n${trimmedBody}\n`;
+	}
+
+	const today = new Date().toISOString().slice(0, 10);
+
+	return [
+		`# ${title}`,
+		"",
+		"## Context",
+		"",
+		"## Objective",
+		"",
+		"## Subtasks",
+		"- [ ] Define first step",
+		"",
+		"## Progress Log",
+		`### ${today}`,
+		"- Task created",
+		"",
+		"## Notes",
+		"",
+	].join("\n");
+}
+
+function renderCreatedTaskFile(input: {
+	body: string;
+	priority: TaskPriority;
+	tags: string[];
+	title: string;
+}): string {
+	//
+	return [
+		renderTaskFrontmatter(input.title, input.priority, input.tags),
+		"",
+		renderCreatedTaskBody(input.title, input.body),
+	].join("\n");
 }
 
 function extractFrontmatterSection(fileContent: string): FrontmatterSection | null {
@@ -231,6 +400,41 @@ export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	return {
 		newRelativePath,
 		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
+	};
+}
+
+export function createTask(input: CreateTaskInput): CreateTaskResult {
+	//
+	const title = normalizeTaskTitle(input.title);
+	const status = normalizeTaskStatus(input.status);
+	const tags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
+	const slug = slugifyTaskTitle(title);
+	const taskRoot = getTaskRoot(input.taskSource);
+	const newRelativePath = createUniqueTaskRelativePath(taskRoot, status, slug);
+	const absolutePath = join(taskRoot, ...newRelativePath.split("/"));
+	const fileContent = renderCreatedTaskFile({
+		body: input.body,
+		priority: input.priority,
+		tags,
+		title,
+	});
+
+	mkdirSync(dirname(absolutePath), { recursive: true });
+	writeFileSync(absolutePath, fileContent, { encoding: "utf-8", flag: "wx" });
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		unlinkSync(absolutePath);
+		throw error;
+	}
+
+	return {
+		absolutePath,
+		newRelativePath,
+		newTaskKey: createTaskKey(newRelativePath, input.taskSource),
+		status,
+		taskSource: input.taskSource,
 	};
 }
 
