@@ -30,7 +30,7 @@ type ComposerContextValue = {
 
 	// mutations (enqueue returns false if queue is full)
 	enqueue: (skill: SkillToEnqueue, options?: { clearMessage?: boolean }) => boolean;
-	setEnergyIncrease: (dollars: number) => boolean;
+	addEnergyIncrease: (dollars: number) => boolean;
 	dequeue: (id: string) => void;
 	setMessage: (message: string) => void;
 	clear: () => void;
@@ -177,20 +177,21 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		[queueItems, message, pendingServerDraft, draftSync],
 	);
 
-	const setEnergyIncrease = useCallback(
+	const addEnergyIncrease = useCallback(
 		(dollars: number): boolean => {
 			//
-			const hasExistingIncreaseAction = queueItems.some((item) => item.skillKey === 'increaseBudget');
+			const existingIncrease = queueItems.find((item) => item.skillKey === 'increaseBudget');
 
-			if (!hasExistingIncreaseAction && queueItems.length >= MAX_QUEUE_SIZE) {
+			if (!existingIncrease && queueItems.length >= MAX_QUEUE_SIZE) {
 				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
 				return false;
 			}
 
 			userHasTypedRef.current = true;
+			const existingDollars = getDollarsArg(existingIncrease?.args) ?? 0;
 			const nextQueue = queueItems
 				.filter((item) => item.skillKey !== 'increaseBudget')
-				.concat({ skillKey: 'increaseBudget', args: { dollars } });
+				.concat({ skillKey: 'increaseBudget', args: { dollars: addDollars(existingDollars, dollars) } });
 
 			setQueueItems(nextQueue);
 
@@ -293,7 +294,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		restoreServerDraft,
 		dismissServerDraft,
 		enqueue,
-		setEnergyIncrease,
+		addEnergyIncrease,
 		dequeue,
 		setMessage,
 		clear,
@@ -380,10 +381,17 @@ function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
 	};
 }
 
-function getDollarsArg(args: Record<string, unknown>) {
+function getDollarsArg(args: Record<string, unknown> | undefined) {
 	//
+	if (!args) return undefined;
+
 	const dollars = args['dollars'];
 	return typeof dollars === 'number' ? dollars : undefined;
+}
+
+function addDollars(left: number, right: number) {
+	//
+	return Number((left + right).toFixed(10));
 }
 
 function areDraftsEqual(queueItems: QueueItem[], message: string, draft: ServerDraft): boolean {

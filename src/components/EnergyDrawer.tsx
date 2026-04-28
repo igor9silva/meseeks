@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BudgetSelector } from '~/components/BudgetSelector';
 import { Button } from '~/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '~/components/ui/drawer';
@@ -16,34 +16,36 @@ type EnergyDrawerProps = {
 
 export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 	//
-	const { queue, setEnergyIncrease } = useComposer();
+	const { addEnergyIncrease } = useComposer();
 	const [selectedEnergy, setSelectedEnergy] = useState(DEFAULT_ENERGY_AMOUNT);
+	const [hasChangedSelectedEnergy, setHasChangedSelectedEnergy] = useState(false);
 	const { task } = useCurrentTask();
-
-	const queuedIncreaseBudget = useMemo(() => {
-		return queue.find((skill) => skill.skillKey === 'increaseBudget');
-	}, [queue]);
-
-	const queuedEnergy = getQueuedEnergyDollars(queuedIncreaseBudget?.args) ?? DEFAULT_ENERGY_AMOUNT;
 
 	useEffect(() => {
 		if (!open) return;
-		setSelectedEnergy(queuedEnergy);
-	}, [open, queuedEnergy]);
+		setSelectedEnergy(DEFAULT_ENERGY_AMOUNT);
+		setHasChangedSelectedEnergy(false);
+	}, [open]);
 
 	const handleConfirm = () => {
 		//
-		if (!setEnergyIncrease(selectedEnergy)) return;
+		if (!addEnergyIncrease(selectedEnergy)) return;
 		onOpenChange(false);
 	};
 
 	const handleQuickEnergyAdd = (dollars: number) => {
 		//
-		const nextEnergy = selectedEnergy + dollars;
+		const nextEnergy = hasChangedSelectedEnergy ? selectedEnergy + dollars : dollars;
 		setSelectedEnergy(nextEnergy);
 
-		if (!setEnergyIncrease(nextEnergy)) return;
+		if (!addEnergyIncrease(nextEnergy)) return;
 		onOpenChange(false);
+	};
+
+	const handleSelectedEnergyChange = (dollars: number) => {
+		//
+		setSelectedEnergy(dollars);
+		setHasChangedSelectedEnergy(true);
 	};
 
 	return (
@@ -75,7 +77,7 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 					</div>
 					<BudgetSelector
 						value={selectedEnergy}
-						onChange={setSelectedEnergy}
+						onChange={handleSelectedEnergyChange}
 						label="Add energy"
 						className="w-full"
 					/>
@@ -98,12 +100,4 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 function formatQuickEnergyOption(amount: number) {
 	//
 	return Number.isInteger(amount) ? amount.toString() : amount.toFixed(2);
-}
-
-function getQueuedEnergyDollars(args: Record<string, unknown> | undefined) {
-	//
-	if (!args) return undefined;
-
-	const dollars = args['dollars'];
-	return typeof dollars === 'number' ? dollars : undefined;
 }

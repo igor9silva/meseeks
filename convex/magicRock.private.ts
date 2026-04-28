@@ -412,6 +412,9 @@ function renderAction(
 	isUser: boolean,
 ): ModelMessage | Array<ModelMessage> | undefined {
 	//
+	// temporary until tasks/backlog/jsx-for-ai.mdx replaces this with per-skill ai history components.
+	if ((action.skillKey === 'iterate' || action.skillKey === 'instruct') && !action.result?.text) return;
+
 	return {
 		role: isUser ? 'user' : 'assistant',
 		content: [

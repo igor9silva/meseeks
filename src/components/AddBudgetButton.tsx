@@ -1,10 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { asBigInt } from 'lib/money';
 import { Button, type ButtonProps } from '~/components/ui/button';
-import { LoadingButton } from '~/components/ui/loading-button';
-import { useSplatParams } from '~/hooks/useSplatParams';
-import { useIncreaseBudget } from '~/hooks/useTaskMutations';
+import { useComposer } from '~/hooks/useComposer';
 
 export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string; content?: ReactNode }) {
 	//
@@ -22,41 +19,22 @@ export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant'];
 	);
 }
 
-export function AddBudgetButton(props: {
-	variant?: ButtonProps['variant'];
-	amount?: number;
-	shouldIterate?: boolean;
-	text?: string;
-}) {
+export function AddBudgetButton(props: { variant?: ButtonProps['variant']; amount?: number; text?: string }) {
 	//
-	const { amount, shouldIterate, variant, text } = props;
-	const { taskId } = useSplatParams();
-	const { increaseBudget, isIncreasingBudget } = useIncreaseBudget();
+	const { amount, variant, text } = props;
+	const { addEnergyIncrease } = useComposer();
 
-	if (!taskId) throw new Error('Must be used within a task');
 	if (amount === undefined) return <AddCustomBudgetButton variant={variant} text={text} />;
 
 	const handleAddBudget = () => {
 		//
-		if (isIncreasingBudget) return;
-		increaseBudget({
-			taskId,
-			amount: asBigInt({ dollars: amount }),
-			shouldIterate: shouldIterate ?? true,
-		});
+		addEnergyIncrease(amount);
 	};
 
 	return (
-		<LoadingButton
-			size="sm"
-			variant={variant ?? 'outline'}
-			onClick={handleAddBudget}
-			loading={isIncreasingBudget}
-			loadingText="Adding..."
-			icon={<span className="mr-2">⚡</span>}
-			className="flex items-center"
-		>
+		<Button size="sm" variant={variant ?? 'outline'} onClick={handleAddBudget} className="flex items-center">
+			<span>⚡</span>
 			{text ?? `Add ${amount.toFixed(2)}`}
-		</LoadingButton>
+		</Button>
 	);
 }

@@ -26,7 +26,7 @@ export function ReopenButton(props: { variant?: ButtonProps['variant']; text?: s
 			onClick={handleReopen}
 			loading={isReopening}
 			loadingText="Reopening..."
-			icon={<RotateCcw className="mr-2 h-4 w-4" />}
+			icon={<RotateCcw />}
 			className="flex items-center"
 		>
 			{content ?? text ?? 'Reopen'}

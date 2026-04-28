@@ -94,7 +94,8 @@ export function TaskConversationActions({
 				) : (
 					<>
 						<ReopenButton />
-						<AddBudgetButton amount={0.2} text="Reopen with $0.20" />
+						<AddBudgetButton amount={0.2} text="Add 0.20" />
+						<AddBudgetButton amount={1} text="Add 1.00" />
 					</>
 				)}
 			</div>
