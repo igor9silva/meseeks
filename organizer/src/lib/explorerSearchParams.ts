@@ -33,7 +33,7 @@ export interface ExplorerQueryInput {
 
 function parseBooleanFlag(value: string | undefined): boolean {
 	//
-	return value === 'true';
+	return value === "true";
 }
 
 export function splitCsv(value: string | undefined): string[] {

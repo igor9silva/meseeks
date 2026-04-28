@@ -1,231 +1,64 @@
-Welcome to Organizer.
+# Organizer
 
-# Getting Started
+Task explorer for generated Meseeks task indexes.
 
-To run this application:
+This app is intentionally separate from the main Meseeks app. It reads generated task index files from the repo root and keeps its own TanStack Start/Vite setup under `organizer/`.
 
-```bash
-bun install
-bun --bun run dev
-```
+## Maintenance Model
 
-# Building For Production
+Organizer is fully vibecoded and expected to stay that way. Codex is the sole maintainer, so the code should be optimized for future Codex passes: clear file names, small modules, boring boundaries, and enough tracked local notes that the next run does not need to rediscover the same context.
 
-To build this application for production:
+There is no tracked `AGENTS.md` for this app. If one exists locally, it is intentionally gitignored; keep durable Organizer-specific maintenance lore here instead.
 
-```bash
-bun --bun run build
-```
+## Commands
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+Run from `organizer/`:
 
 ```bash
-bun --bun run test
+bun run dev
+bun run check
+bun run typecheck
+bun run build
 ```
 
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
+Run from the repo root:
 
 ```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
+bun run organizer
 ```
 
+## Data
 
-## Shadcn
+Organizer reads these generated files:
 
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpm dlx shadcn@latest add button
+```text
+../private/tasks/.generated/tasks.meta.json
+../private/tasks/.generated/tasks.lookup.json
+../private/tasks/.generated/tasks.graph.json
+../private/tasks/.generated/tasks.content.json
 ```
 
+The app does not own index freshness. The root config watcher/index generator owns that, and Organizer should surface missing or stale index diagnostics instead of silently rebuilding as part of normal read flows.
 
-## T3Env
+## Shape
 
-- You can use T3Env to add type safety to your environment variables.
-- Add Environment variables to the `src/env.mjs` file.
-- Use the environment variables in your code.
+```text
+src/components/tasks/
+  TaskExplorerPage.tsx       route-level state and query wiring
+  TaskExplorerSidebar.tsx    filters, facets, task list
+  TaskDetailView.tsx         selected task detail and task actions
+  CreateTaskView.tsx         task creation form
+  taskExplorerTypes.ts       shared component-facing types
+  taskExplorerUtils.ts       small UI helpers and constants
 
-### Usage
-
-```ts
-import { env } from "#/env";
-
-console.log(env.VITE_APP_TITLE);
+src/server/
+  taskExplorer.ts            TanStack Start server functions
+  taskExplorerSchemas.ts     server-function input schemas
+  taskExplorerReadModel.ts   filtering, scoring, facets, detail projection
+  taskIndexRepository.ts     generated index loading/cache
+  taskMutationRepository.ts  filesystem mutations and index rebuild rollback
 ```
 
+## Notes
 
-
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+The Vite devtools event bus is pinned to `42070` in `vite.config.ts`. TanStack's default `42069` commonly collides with the root app when both are open.

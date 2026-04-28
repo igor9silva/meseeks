@@ -34,7 +34,10 @@ function stripExtension(relativePath: string): string {
 	return relativePath.slice(0, relativePath.length - extension.length);
 }
 
-function createTaskKey(relativePath: string, taskSource: TaskSummary["taskSource"]): string {
+function createTaskKey(
+	relativePath: string,
+	taskSource: TaskSummary["taskSource"],
+): string {
 	//
 	const withoutExtension = stripExtension(relativePath);
 	const baseName = posix.basename(withoutExtension);
@@ -54,10 +57,14 @@ function createTaskKey(relativePath: string, taskSource: TaskSummary["taskSource
 function runTaskIndexBuild(): void {
 	//
 	// organizer runs from its own subdirectory, but the task indexer lives at repo root
-	const buildResult = spawnSync("bun", ["run", ".config/generate-task-index.ts"], {
-		cwd: getProjectRoot(),
-		encoding: "utf-8",
-	});
+	const buildResult = spawnSync(
+		"bun",
+		["run", ".config/generate-task-index.ts"],
+		{
+			cwd: getProjectRoot(),
+			encoding: "utf-8",
+		},
+	);
 
 	if (buildResult.status === 0) return;
 
@@ -67,7 +74,9 @@ function runTaskIndexBuild(): void {
 		.trim();
 
 	throw new Error(
-		errorOutput.length > 0 ? `failed to rebuild task indexes\n${errorOutput}` : "failed to rebuild task indexes",
+		errorOutput.length > 0
+			? `failed to rebuild task indexes\n${errorOutput}`
+			: "failed to rebuild task indexes",
 	);
 }
 
@@ -191,7 +200,10 @@ function stripKnownTaskFileExtension(filename: string): string {
 	return filename.trim().replace(/\.(?:mdx|md|txt)$/i, "");
 }
 
-function normalizeTaskFilename(filename: string, fallbackTitle: string): string {
+function normalizeTaskFilename(
+	filename: string,
+	fallbackTitle: string,
+): string {
 	//
 	const rawFilename = filename.trim().length > 0 ? filename : fallbackTitle;
 	const withoutExtension = stripKnownTaskFileExtension(rawFilename);
@@ -199,7 +211,10 @@ function normalizeTaskFilename(filename: string, fallbackTitle: string): string 
 	return slugifyTaskFilename(withoutExtension);
 }
 
-function doesTaskKeyPathExist(taskRoot: string, relativePathBase: string): boolean {
+function doesTaskKeyPathExist(
+	taskRoot: string,
+	relativePathBase: string,
+): boolean {
 	//
 	const absolutePathBase = join(taskRoot, ...relativePathBase.split("/"));
 	const taskFileCandidates = [
@@ -306,7 +321,9 @@ function renderCreatedTaskFile(input: {
 	].join("\n");
 }
 
-function extractFrontmatterSection(fileContent: string): FrontmatterSection | null {
+function extractFrontmatterSection(
+	fileContent: string,
+): FrontmatterSection | null {
 	//
 	const withoutBom = fileContent.replace(/^\uFEFF/, "");
 
@@ -366,7 +383,10 @@ function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
 	return `${rawFrontmatter}\n${tagsLine}`;
 }
 
-function renderFileContentWithTags(fileContent: string, tags: string[]): string {
+function renderFileContentWithTags(
+	fileContent: string,
+	tags: string[],
+): string {
 	//
 	const frontmatterSection = extractFrontmatterSection(fileContent);
 
@@ -384,7 +404,10 @@ function renderFileContentWithTags(fileContent: string, tags: string[]): string 
 
 export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	//
-	if (task.status === "completed" || task.relativePath.startsWith("completed/")) {
+	if (
+		task.status === "completed" ||
+		task.relativePath.startsWith("completed/")
+	) {
 		throw new Error("task is already completed");
 	}
 
@@ -398,7 +421,9 @@ export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	}
 
 	if (existsSync(destinationAbsolutePath)) {
-		throw new Error(`completed task already exists at ${destinationAbsolutePath}`);
+		throw new Error(
+			`completed task already exists at ${destinationAbsolutePath}`,
+		);
 	}
 
 	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
@@ -424,7 +449,11 @@ export function createTask(input: CreateTaskInput): CreateTaskResult {
 	const tags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
 	const filename = normalizeTaskFilename(input.filename, title);
 	const taskRoot = getTaskRoot(input.taskSource);
-	const newRelativePath = createUniqueTaskRelativePath(taskRoot, status, filename);
+	const newRelativePath = createUniqueTaskRelativePath(
+		taskRoot,
+		status,
+		filename,
+	);
 	const absolutePath = join(taskRoot, ...newRelativePath.split("/"));
 	const fileContent = renderCreatedTaskFile({
 		body: input.body,
@@ -472,7 +501,9 @@ export function updateTaskTags(
 			: currentTags.filter((tag) => tag !== normalizedTag);
 
 	if (nextTags.length === currentTags.length) {
-		const hasSameTags = nextTags.every((tag, index) => tag === currentTags[index]);
+		const hasSameTags = nextTags.every(
+			(tag, index) => tag === currentTags[index],
+		);
 		if (hasSameTags) return { tags: currentTags };
 	}
 
