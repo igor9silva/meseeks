@@ -113,6 +113,7 @@ export function GenericAction(props: ActionComponentProps) {
 								status={action.status}
 								skillKey={action.skillKey}
 								args={action.args}
+								reactions={action.result.reactions}
 								costs={action.costs}
 								// reactions={action.reactions ?? []}
 								className={cn({
@@ -137,6 +138,7 @@ function Result({
 	isAuthorCurrentUser, //
 	skillKey,
 	args,
+	reactions,
 	className,
 	costs,
 	status,
@@ -145,7 +147,8 @@ function Result({
 	result: string;
 	isAuthorCurrentUser: boolean;
 	skillKey: string;
-	args: Record<string, any>;
+	args: Record<string, unknown>;
+	reactions: Array<{ skillKey: string }>;
 	costs: Array<{
 		symbol: string;
 		amount: bigint;
@@ -155,6 +158,10 @@ function Result({
 	status: 'failed' | 'succeeded' | 'skipped';
 	actionId: string;
 }) {
+	// if the action failed because and we have a budget request,
+	// do not render the action; let the following budget request action do it
+	if (status === 'failed' && hasRequestBudgetReaction(reactions)) return null;
+
 	if (status === 'failed') {
 		return (
 			<FailedMessage text={`Failed to ${skillKey}()`} error={result} isAuthorCurrentUser={isAuthorCurrentUser} />
@@ -180,6 +187,11 @@ function Result({
 			</CollapsibleContent>
 		</Collapsible>
 	);
+}
+
+function hasRequestBudgetReaction(reactions: Array<{ skillKey: string }>) {
+	//
+	return reactions.some((reaction) => reaction.skillKey === 'requestBudget');
 }
 
 function InspectButton({ actionId }: { actionId: string }) {
@@ -217,7 +229,7 @@ function InspectButton({ actionId }: { actionId: string }) {
 }
 
 // Recursive component to display structured data
-function StructuredValue({ value, depth = 0 }: { value: any; depth?: number }) {
+function StructuredValue({ value, depth = 0 }: { value: unknown; depth?: number }) {
 	//
 	if (value === null) return <span className="text-muted-foreground">null</span>;
 	if (value === undefined) return <span className="text-muted-foreground">undefined</span>;
@@ -267,7 +279,7 @@ function StructuredValue({ value, depth = 0 }: { value: any; depth?: number }) {
 	return <span className="text-muted-foreground">{String(value)}</span>;
 }
 
-function formatArgs(args: Record<string, any>): string {
+function formatArgs(args: Record<string, unknown>): string {
 	//
 	if (Object.keys(args).length === 0) return '';
 
