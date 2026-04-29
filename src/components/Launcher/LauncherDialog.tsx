@@ -48,7 +48,7 @@ export function LauncherDialog() {
 
 	const { pathname, searchStr } = useLocation();
 	const navigate = useNavigate();
-	const defaultSearch = pathname + searchStr;
+	const defaultSearch = getDefaultLauncherSearch({ pathname, searchStr });
 
 	const feedbackDialog = useFeedbackDialog();
 	const [hasRequestedMobileList, setHasRequestedMobileList] = useState(false);
@@ -286,4 +286,11 @@ export function LauncherDialog() {
 			</CommandList>
 		</CommandDialog>
 	);
+}
+
+function getDefaultLauncherSearch({ pathname, searchStr }: { pathname: string; searchStr: string }) {
+	//
+	if (pathname === '/' && !searchStr) return '';
+
+	return pathname + searchStr;
 }

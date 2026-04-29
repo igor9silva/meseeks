@@ -23,6 +23,7 @@ type ThemeSelection = {
 
 type ThemeProviderContextType = {
 	theme: ThemeMode;
+	themeId: AppThemeId;
 	persistedThemeId: AppThemeId | null;
 	systemThemeId: AppThemeId;
 	hasCustomTheme: boolean;
@@ -135,6 +136,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 	const value = useMemo(
 		() => ({
 			theme: displayedTheme.mode,
+			themeId: displayedTheme.id,
 			persistedThemeId: customThemeId,
 			systemThemeId,
 			hasCustomTheme: customThemeId !== null,
@@ -146,6 +148,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 		[
 			clearThemePreview,
 			customThemeId,
+			displayedTheme.id,
 			displayedTheme.mode,
 			previewThemeById,
 			resetTheme,

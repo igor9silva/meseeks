@@ -23,7 +23,9 @@ export function generateThemeStyles(themeVariables: ThemeVariables): string {
 
 	return `
 		:root {
-			${(Object.entries(themeVariables) as [string, string][]).map(([k, v]) => `${k}: ${v};`).join('\n\t\t\t')}
+			${Object.entries(themeVariables)
+				.map(([k, v]) => `${k}: ${v};`)
+				.join('\n\t\t\t')}
 		}
 
 		/* SVG text should use CSS color */

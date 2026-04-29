@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
-import { ArrowLeft, Inbox, Loader2, SquarePen } from 'lucide-react';
-import { useTransition } from 'react';
+import { ArrowLeft, Inbox, Loader2, Search, SquarePen } from 'lucide-react';
+import { Suspense, useTransition } from 'react';
 import { cn } from '~/lib/utils';
 
 import { api } from 'convex/_generated/api';
@@ -23,10 +23,12 @@ export function MainHeader({ className }: { className?: string }) {
 	const currentTask = useQuery(api.tasks.findOne, taskId ? { taskId } : 'skip');
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
-	const currentTaskTitle = currentTask?.title;
-	const launcherTriggerLabel = currentTaskTitle || pathname + searchStr;
+
+	const taskTitle = currentTask?.title;
+	const fallbackTitle = pathname + searchStr || 'Untitled task';
 
 	const goBack = () => history.back();
+
 	const goUp = () => {
 		startTransition(() => {
 			navigate({ to: '/$', params: { _splat: `` } });
@@ -40,9 +42,7 @@ export function MainHeader({ className }: { className?: string }) {
 
 	return (
 		<TooltipProvider>
-			<header
-				className={cn('flex h-14 items-center justify-between border-t md:border-b px-0 px-2 gap-1', className)}
-			>
+			<header className={cn('flex h-14 items-center justify-between gap-1 border-t px-2 md:border-b', className)}>
 				<div className="flex items-center gap-1">
 					{/* TODO: dynamically enable/disable
 					https://github.com/TanStack/router/discussions/181#discussioncomment-11726923 */}
@@ -68,50 +68,7 @@ export function MainHeader({ className }: { className?: string }) {
 				</div>
 
 				<div className="w-1/2 flex gap-1">
-					<Button
-						variant="outline"
-						onClick={openLauncher}
-						className={cn(
-							'w-full bg-muted/40 p-2 text-muted-foreground hover:bg-accent',
-							currentTaskTitle
-								? 'relative flex items-center justify-center'
-								: 'flex justify-between gap-2 truncate',
-						)}
-					>
-						<span
-							className={cn(
-								'text-xs md:text-sm',
-								currentTaskTitle ? 'max-w-full truncate text-center' : 'truncate',
-							)}
-						>
-							{launcherTriggerLabel}
-						</span>
-						<kbd
-							className={cn(
-								'h-5 items-center gap-0.5 rounded border bg-muted px-1 pt-0.5 font-mono text-xs font-medium text-muted-foreground md:inline-flex',
-								currentTaskTitle ? 'absolute right-2 hidden' : 'hidden',
-							)}
-						>
-							<span className="text-base">⌘</span>K
-						</kbd>
-					</Button>
-					{/* <TooltipButton className="p-2" variant="ghost" onClick={share} tooltipContent="Share this task">
-						<Share />
-					</TooltipButton> */}
-					{/* {search.selectedSubtaskId && (
-						<TooltipButton
-							variant="ghost"
-							size="icon"
-							className="[&_svg]:size-5"
-							onClick={(e) => {
-								e.preventDefault();
-								navigate({ to: '/$', params: { _splat: `task/${search.selectedSubtaskId}` } });
-							}}
-							tooltipContent="Chat with selected task"
-						>
-							<ArrowRight />
-						</TooltipButton>
-					)} */}
+					<LauncherTrigger fallbackTitle={fallbackTitle} taskTitle={taskTitle} onClick={openLauncher} />
 				</div>
 
 				<div className="flex gap-1">
@@ -136,6 +93,53 @@ export function MainHeader({ className }: { className?: string }) {
 				</div>
 			</header>
 		</TooltipProvider>
+	);
+}
+
+function LauncherTrigger({
+	fallbackTitle, //
+	taskTitle,
+	onClick,
+}: {
+	fallbackTitle: string;
+	taskTitle?: string;
+	onClick: () => void;
+}) {
+	//
+	return (
+		<Button
+			variant="outline"
+			onClick={onClick}
+			className="w-full relative flex items-center justify-start gap-2 truncate bg-muted/40 py-2 pr-3 pl-9 text-muted-foreground hover:bg-accent"
+		>
+			<Search className="absolute left-3 size-4 shrink-0" aria-hidden="true" />
+			<HeaderTitle fallbackTitle={fallbackTitle} taskTitle={taskTitle} />
+			<kbd
+				className={cn(
+					'hidden md:inline-flex absolute right-2 h-5 items-center gap-0.5 rounded-md border border-border/70 bg-background/80 px-1.5 font-mono text-xs font-medium leading-none text-muted-foreground/80 shadow-sm',
+				)}
+			>
+				<span className="text-sm leading-none">⌘</span>K
+			</kbd>
+		</Button>
+	);
+}
+
+function HeaderTitle({
+	taskTitle, //
+	fallbackTitle,
+}: {
+	taskTitle?: string;
+	fallbackTitle: string;
+}) {
+	//
+	if (!taskTitle) return <span className="truncate text-xs md:text-sm">{fallbackTitle}</span>;
+
+	return (
+		<span className="inline-flex min-w-0 flex-1 justify-center gap-1 text-xs md:pr-12 md:text-sm">
+			<span className="shrink-0 text-muted-foreground/60">Task:</span>
+			<span className="truncate">{taskTitle}</span>
+		</span>
 	);
 }
 
