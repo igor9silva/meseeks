@@ -1,18 +1,6 @@
 import { internalMutation, query } from 'lib/convex';
 import { findActiveTasks } from './tasks.private';
-import {
-	addUser,
-	getCurrentUser,
-	isProSubscriber,
-	markUserAsReady,
-	updateUser,
-} from './users.private';
-
-// scheduled from users.private.seedUserIfNeeded to flip isReady after the onboarding seed finishes
-export const _markAreReady = internalMutation({
-	args: markUserAsReady.args.shape,
-	handler: markUserAsReady,
-});
+import { addUser, getCurrentUser, isProSubscriber, updateUser } from './users.private';
 
 // called by the better auth user.onCreate trigger to add the app user row or
 // link the auth user to an existing one.

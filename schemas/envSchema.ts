@@ -49,12 +49,6 @@ export const env = createEnv({
 		AUTH_GOOGLE_ID: z.string().min(1).describe('Google OAuth client ID.'),
 		AUTH_GOOGLE_SECRET: z.string().min(1).describe('Google OAuth client secret.'),
 
-		REF_USER_ID: z
-			.string()
-			.min(1)
-			.optional()
-			.describe('Reference user ID. Will be used to seed new users (their components will be cloned).'),
-
 		ALLOWED_DOMAINS: z
 			.string()
 			.min(1)

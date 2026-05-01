@@ -3,13 +3,12 @@ import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound, Unauthorized } from 'lib/errors';
 import { asBigInt } from 'lib/money';
-import { env } from 'schemas/envSchema';
 import { tokenSchema } from 'schemas/topUpSchema';
 import { findActiveSubscriptions } from './subscriptions.private';
 import { addTaskWithActions } from './tasks.private';
 import { addFreeCredits } from './transactions.private';
 import { setUserPreference } from './users/preferences.private';
-import { components, internal } from './_generated/api';
+import { components } from './_generated/api';
 
 const addInitialTask = defineMutation({
 	args: z.object({
@@ -90,29 +89,6 @@ const setDefaultPreferences = defineMutation({
 	},
 });
 
-// const _seedComponentsFromRef = async (
-// 	ctx: MutationCtx, //
-// 	refUserId: Id<'users'>,
-// 	newUserId: Id<'users'>,
-// 	inboxTaskId: Id<'tasks'>,
-// ) => {
-// 	//
-// 	// get all reference components
-// 	const refComponents = await _findAll(ctx, { userId: refUserId });
-
-// 	// add each one to the seeded user
-// 	await Promise.all(
-// 		refComponents.map((refComponent) =>
-// 			_addComponent(ctx, {
-// 				owner: newUserId,
-// 				body: refComponent.body,
-// 				defaultTaskId: refComponent.defaultTaskId ? inboxTaskId : undefined,
-// 				slug: refComponent.slug,
-// 			}),
-// 		),
-// 	);
-// };
-
 export const seedUserIfNeeded = defineMutation({
 	args: z.object({
 		userId: zid('users'),
@@ -135,40 +111,10 @@ export const seedUserIfNeeded = defineMutation({
 			description: 'Welcome credits',
 		});
 
+		// TODO: users should be able to spawn their own Convex instance for full isolation and control
+
 		await addInitialTask(ctx, { userId });
-
-		const queueMarkUserAsReady = () => {
-			//
-			const delay = 4000; // ms, fake delay for fun
-			ctx.scheduler.runAfter(delay, internal.users._markAreReady, { userId });
-			// TODO: at somepoint, we'd like users to spawn their own Convex instance for full isolation and control
-		};
-
-		// Set default user preferences including enabled skills
 		await setDefaultPreferences(ctx, { userId });
-
-		if (!env.REF_USER_ID) {
-			console.debug('No ref user ID defined. Skipping seeding components.');
-			queueMarkUserAsReady();
-			return;
-		}
-
-		// const refUser = await findOne(ctx, { userId: env.REF_USER_ID as Id<'users'> });
-		// if (!refUser) throw new Error('Ref user not found'); // FATAL (will stop seeding user forever), TODO: notify fatal
-
-		// await _seedComponentsFromRef(ctx, refUser._id, userId, inboxTaskId);
-		queueMarkUserAsReady();
-	},
-});
-
-export const markUserAsReady = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		const user = await findUser(ctx, { userId });
-		if (!user) throw NotFound();
 
 		await ctx.db.patch(userId, { isReady: true });
 	},
