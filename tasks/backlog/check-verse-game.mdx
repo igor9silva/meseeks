@@ -1,14 +1,14 @@
 ---
-title: Crossover Strategy Arena Game
+title: CheckVerse Game
 priority: medium
 tags: [side-project]
 ---
 
 ## Context
 
-We are prototyping a fast strategy game with chess DNA, not just “chess with funny pieces”.
+We are prototyping CheckVerse: a fast strategy game with chess DNA, not just “chess with funny pieces”.
 
-The original pitch was a smaller, faster “superchess”: same pawn row, variable backline pieces, power-ups, and enough randomness that every game is not identical. The corrected pace target is blitz chess energy: about `3+2`, not a 10-minute match.
+The original pitch was a smaller, faster chess variant: same pawn row, variable backline pieces, power-ups, and enough randomness that every game is not identical. The corrected pace target is blitz chess energy: about `3+2`, not a 10-minute match.
 
 The theme should be open crossover arena, closer to Fortnite than medieval fantasy or obvious war. Any character can exist in the game: rapper, anime hero, robot, wizard, athlete, meme skin. The gameplay stays readable because rules are attached to roles, not skins.
 
@@ -16,7 +16,7 @@ Classical chess role names should remain classical. If a character moves like a 
 
 ## Current Prototype
 
-There is already a `superchess/` MVP using Vite, TypeScript, and Three.js.
+There is already a `check-verse/` MVP using Vite, TypeScript, and Three.js.
 
 Current implemented direction:
 
@@ -62,7 +62,7 @@ Do not prioritize modes yet. The immediate goal is making the core vision feel c
 
 ## Naming Notes
 
-`Superchess` is not the final name because the namespace already exists.
+`CheckVerse` is the current working name. It has a namespace collision with `checkverse.com`, but we are accepting that risk for now because it fits the chess-readable crossover arena direction better than the cleaner alternatives.
 
 Rejected or weak:
 
@@ -75,7 +75,7 @@ Rejected or weak:
 - `Moveverse`: already used by motion/browser games.
 - `Rolemate`: already used by AI companion/job-search apps and has the wrong vibe.
 
-Current ranked shortlist from the 2026-05-01 namespace pass:
+Previous ranked shortlist from the 2026-05-01 namespace pass:
 
 1. `Checkstars` — best fit for crossover characters, celebrity skins, and chess-readable “check”; `.com` has DNS and there are unrelated uses, but it is not strongly owned by a game.
 2. `MateBolt` — cleanest namespace and fast-game energy; less expressive of the crossover/lore angle.
@@ -83,18 +83,18 @@ Current ranked shortlist from the 2026-05-01 namespace pass:
 4. `CheckRush` — understandable speed/chess name, but `.com` is a premium domain for sale and it feels more utility than arena.
 5. `Boardstars` — decent crossover vibe, but weaker chess signal and occupied by unrelated brands.
 6. `Movefight` — mostly available, but it sounds clunky and has unrelated fitness/company noise.
-7. `CheckVerse` — good meaning but occupied by `checkverse.com` and too generic.
+7. `CheckVerse` — good meaning but occupied by `checkverse.com` and previously ranked lower for namespace cleanliness.
 8. `BoardRoyale` — avoid; already a game.
 9. `Turnfight` — avoid; already a game.
 10. `Moveverse` — avoid; already a motion-games product.
 11. `Rolemate` — avoid; wrong category associations.
 12. `Checkout` — avoid; payment namespace dominates.
 
-Working recommendation: use `Checkstars` if the project wants the Fortnite/crossover vibe first. Use `MateBolt` if domain cleanliness matters more than personality.
+Working decision: use `CheckVerse` for now.
 
 ## Subtasks
 
-- [ ] Pick the working title and update `superchess/` copy.
+- [x] Pick the working title and update `check-verse/` copy.
 - [ ] Replace prototype language with the `Character + Role` model.
 - [ ] Keep classical roles named `King`, `Queen`, `Rook`, `Bishop`, `Knight`, and `Pawn`.
 - [ ] Define a compact role taxonomy for classic and custom roles.
@@ -102,7 +102,7 @@ Working recommendation: use `Checkstars` if the project wants the Fortnite/cross
 - [ ] Add a lightweight lineup/draft concept without building full matchmaking.
 - [ ] Keep all skin/cosmetic ideas mechanically inert.
 - [ ] Document first-pass custom roles and power-ups.
-- [ ] Decide whether `Checkstars` or `MateBolt` becomes the public working name.
+- [x] Use `CheckVerse` as the working name for now.
 - [ ] Verify changes with `bun run typecheck`, `bun run build`, and browser checks.
 
 ## Acceptance Criteria
@@ -118,8 +118,9 @@ Working recommendation: use `Checkstars` if the project wants the Fortnite/cross
 
 ### 2026-05-01
 
-- Created the `superchess/` MVP.
+- Created the `check-verse/` MVP.
 - Adjusted game pace toward `3+2`.
-- Reframed theme from “superchess” into an open crossover strategy arena.
+- Reframed theme from a chess variant into an open crossover strategy arena.
 - Locked the language rule: characters can be anything, but roles stay readable.
 - Ran a namespace pass for the latest name shortlist.
+- Set `CheckVerse` as the working name and updated app/task copy.
