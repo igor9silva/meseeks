@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="icon"
+			href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23101215'/%3E%3Cpath d='M16 48h32l-4-25-8 7-4-16-4 16-8-7-4 25z' fill='%23e0c17f'/%3E%3C/svg%3E"
+		/>
+		<title>CheckVerse</title>
+	</head>
+	<body>
+		<div id="app">
+			<header class="topbar">
+				<div>
+					<p class="eyebrow">checkverse mvp</p>
+					<h1>CheckVerse</h1>
+				</div>
+				<div class="top-actions">
+					<label class="control">
+						<span>Clock</span>
+						<select id="time-control-select">
+							<option value="3+0">3+0</option>
+							<option value="3+1">3+1</option>
+							<option value="3+2" selected>3+2</option>
+							<option value="3+3">3+3</option>
+						</select>
+					</label>
+					<button id="reroll-button" type="button">Reroll draft</button>
+					<button id="start-button" type="button">Start</button>
+				</div>
+			</header>
+
+			<main class="game-shell">
+				<section class="stage" aria-label="CheckVerse board">
+					<canvas id="game-canvas"></canvas>
+				</section>
+
+				<aside class="side-panel" aria-label="Game controls and status">
+					<section class="clock-row">
+						<div id="black-clock" class="clock clock-black">
+							<span>Black</span>
+							<strong id="black-time">3:00</strong>
+							<small id="black-power">Power</small>
+						</div>
+						<div id="white-clock" class="clock clock-white">
+							<span>White</span>
+							<strong id="white-time">3:00</strong>
+							<small id="white-power">Power</small>
+						</div>
+					</section>
+
+					<section class="status-band">
+						<p id="turn-label">Draft ready</p>
+						<strong id="status-label">Reroll or start the match.</strong>
+					</section>
+
+					<section>
+						<div class="section-heading">
+							<h2>Move shape</h2>
+						</div>
+						<div id="selected-guide" class="selected-guide"></div>
+					</section>
+
+					<section>
+						<div class="section-heading">
+							<h2>Armies</h2>
+						</div>
+						<div id="army-list" class="army-list"></div>
+					</section>
+
+					<section>
+						<div class="section-heading">
+							<h2>Pieces</h2>
+						</div>
+						<div id="piece-legend" class="piece-legend"></div>
+					</section>
+
+					<section>
+						<div class="section-heading">
+							<h2>Moves</h2>
+						</div>
+						<ol id="move-log" class="move-log"></ol>
+					</section>
+				</aside>
+			</main>
+		</div>
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>
