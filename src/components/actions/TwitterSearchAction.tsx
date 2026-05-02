@@ -1,8 +1,9 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
-import { TweetCard } from '~/components/TweetCard';
+import { TweetCard, TweetCardSchema } from '~/components/TweetCard';
 import { Button } from '~/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
@@ -47,19 +48,25 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 	);
 }
 
+const TwitterSearchResultSchema = z.preprocess(
+	(value) => (Array.isArray(value) ? { results: value } : value),
+	z.object({
+		results: z.preprocess((value) => (Array.isArray(value) ? value : []), z.array(TweetCardSchema)),
+	}),
+);
+
 function Success(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, className } = props;
+	const [isOpen, setIsOpen] = useState(false);
 	//
-	let data;
-	try {
-		data = JSON.parse(action.result?.text ?? '{}');
-	} catch {
+	const response = parseTwitterSearchResult(action.result?.text);
+	if (!response.success) {
 		console.warn('Invalid (or no) result found succeeded action', action._id);
 		return <Error {...props} />;
 	}
 
-	const results = data.results || [];
+	const { results } = response.data;
 
 	if (!results.length) {
 		return (
@@ -69,8 +76,6 @@ function Success(props: ActionComponentProps) {
 			/>
 		);
 	}
-
-	const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser} className={className}>
@@ -92,7 +97,7 @@ function Success(props: ActionComponentProps) {
 				<CollapsibleContent className="">
 					<div className="mt-2 overflow-x-auto overflow-y-hidden">
 						<div className="flex gap-3 pb-4">
-							{results.map((tweet: any) => (
+							{results.map((tweet) => (
 								<TweetCard key={tweet.tweet_id} tweet={tweet} />
 							))}
 						</div>
@@ -101,4 +106,13 @@ function Success(props: ActionComponentProps) {
 			</Collapsible>
 		</Message>
 	);
+}
+
+function parseTwitterSearchResult(resultText: string | undefined) {
+	//
+	try {
+		return TwitterSearchResultSchema.safeParse(JSON.parse(resultText ?? '{}'));
+	} catch {
+		return TwitterSearchResultSchema.safeParse(null);
+	}
 }

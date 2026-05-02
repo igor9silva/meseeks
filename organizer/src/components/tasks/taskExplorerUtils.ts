@@ -99,6 +99,22 @@ export function createTaskFilename(value: string): string {
 		.replace(/^-+|-+$/g, "");
 }
 
+export function createTaskRenameFilename(value: string): string {
+	//
+	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, "");
+
+	if (withoutKnownExtension === "_index") return withoutKnownExtension;
+	return createTaskFilename(value);
+}
+
+export function getTaskFileBasename(relativePath: string): string {
+	//
+	const pathSegments = relativePath.split("/");
+	const filename = pathSegments[pathSegments.length - 1] ?? relativePath;
+
+	return filename.replace(/\.(?:mdx|md|txt)$/i, "");
+}
+
 export function getMutationErrorMessage(
 	error: unknown,
 	fallback: string,

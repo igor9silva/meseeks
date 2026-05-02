@@ -13,6 +13,7 @@ export const explorerRouteSearchSchema = z.object({
 	sources: z.string().optional(),
 	statuses: z.string().optional(),
 	tags: z.string().optional(),
+	excludedTags: z.string().optional(),
 	rootsOnly: z.string().optional(),
 	sort: explorerSortSchema.optional(),
 	taskKey: z.string().optional(),
@@ -27,6 +28,7 @@ export interface ExplorerQueryInput {
 	sources: TaskSource[];
 	statuses: string[];
 	tags: string[];
+	excludedTags: string[];
 	rootsOnly: boolean;
 	sort: ExplorerSort;
 }
@@ -103,6 +105,7 @@ export function parseExplorerQuery(
 		sources: parseSources(search.sources),
 		statuses: parseStatuses(search.statuses),
 		tags: parseTags(search.tags),
+		excludedTags: parseTags(search.excludedTags),
 		rootsOnly: parseBooleanFlag(search.rootsOnly),
 		sort: search.sort ?? "priority_then_recency",
 	};

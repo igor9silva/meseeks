@@ -8,7 +8,8 @@
  *   bun run .config/watch-config.ts
  */
 
-import { watch, existsSync } from 'node:fs';
+import { watch, existsSync, readdirSync } from 'node:fs';
+import type { Dirent, FSWatcher } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 
@@ -24,7 +25,6 @@ const TASK_ROOTS = [
 	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
 ];
 
-const TASK_BUCKETS = ['active', 'backlog', 'completed'];
 const TASK_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '']);
 
 // ── regeneration runners ────────────────────────────────────────────
@@ -108,21 +108,92 @@ function isTaskFile(fileName: string): boolean {
 	return !baseName.includes('.');
 }
 
-let watchedBuckets = 0;
+const taskWatchersByDirectory = new Map<string, FSWatcher>();
 
-for (const source of TASK_ROOTS) {
-	for (const bucket of TASK_BUCKETS) {
-		const dir = join(source.root, bucket);
-		if (!existsSync(dir)) continue;
+function isVisiblePath(fileName: string): boolean {
+	//
+	const segments = fileName.split(/[\\/]/);
 
-		watchedBuckets++;
-
-		watch(dir, { recursive: true }, (_eventType, fileName) => {
-			if (typeof fileName !== 'string') return;
-			if (!isTaskFile(fileName)) return;
-			regenerateTasks();
-		});
-	}
+	return segments.every((segment) => !segment.startsWith('.'));
 }
 
-console.info(`watching configs, skills, and ${watchedBuckets} task buckets`);
+function handleTaskWatchEvent(root: string, fileName: string | null): void {
+	//
+	if (typeof fileName === 'string') {
+		if (!isVisiblePath(fileName)) return;
+		if (!isTaskFile(fileName)) return;
+	}
+
+	watchExistingTaskDirectories(root);
+	regenerateTasks();
+}
+
+function watchTaskDirectory(root: string, directoryPath: string): boolean {
+	//
+	if (taskWatchersByDirectory.has(directoryPath)) return false;
+
+	function trackWatcher(watcher: FSWatcher): void {
+		//
+		taskWatchersByDirectory.set(directoryPath, watcher);
+		watcher.on('close', () => {
+			taskWatchersByDirectory.delete(directoryPath);
+		});
+		watcher.on('error', () => {
+			taskWatchersByDirectory.delete(directoryPath);
+		});
+	}
+
+	try {
+		const watcher = watch(directoryPath, (_eventType, fileName) => {
+			handleTaskWatchEvent(root, fileName);
+		});
+		trackWatcher(watcher);
+	} catch {
+		taskWatchersByDirectory.delete(directoryPath);
+		return false;
+	}
+
+	return true;
+}
+
+function watchExistingTaskDirectories(root: string): number {
+	//
+	let watchedCount = 0;
+	const pendingDirectories = [root];
+
+	for (let index = 0; index < pendingDirectories.length; index += 1) {
+		const directoryPath = pendingDirectories[index];
+
+		if (watchTaskDirectory(root, directoryPath)) watchedCount++;
+
+		let entries: Dirent[];
+
+		try {
+			entries = readdirSync(directoryPath, { withFileTypes: true });
+		} catch {
+			continue;
+		}
+
+		for (const entry of entries) {
+			if (entry.name.startsWith('.')) continue;
+			if (!entry.isDirectory()) continue;
+			pendingDirectories.push(join(directoryPath, entry.name));
+		}
+	}
+
+	return watchedCount;
+}
+
+let watchedTaskRoots = 0;
+let watchedInitialTaskDirectories = 0;
+
+for (const source of TASK_ROOTS) {
+	if (!existsSync(source.root)) continue;
+
+	watchedTaskRoots++;
+	watchedInitialTaskDirectories += watchExistingTaskDirectories(source.root);
+}
+
+console.info(
+	`watching configs, skills, ${watchedTaskRoots} task roots, and ${watchedInitialTaskDirectories} task directories`,
+);

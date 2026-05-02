@@ -83,6 +83,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 				sources: serializeCsv(nextQuery.sources),
 				statuses: serializeCsv(nextQuery.statuses),
 				tags: serializeCsv(nextQuery.tags),
+				excludedTags: serializeCsv(nextQuery.excludedTags),
 				rootsOnly: nextQuery.rootsOnly ? "true" : undefined,
 				sort: nextQuery.sort,
 			});
@@ -100,16 +101,15 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		const debounceHandle = setTimeout(() => {
 			if (searchDraft === queryInput.q) return;
 			lastCommittedSearchRef.current = searchDraft;
-			updateQueryInput({
-				...queryInput,
-				q: searchDraft,
+			updateSearch({
+				q: searchDraft.length > 0 ? searchDraft : undefined,
 			});
 		}, SEARCH_DEBOUNCE_MS);
 
 		return () => {
 			clearTimeout(debounceHandle);
 		};
-	}, [searchDraft, queryInput, updateQueryInput]);
+	}, [searchDraft, queryInput.q, updateSearch]);
 
 	useEffect(() => {
 		const appTitle = "Organizer";
@@ -144,11 +144,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	const visibleTasks = explorerQuery.data?.tasks ?? [];
 	const facets = explorerQuery.data?.facets;
 	const statusOptions = useMemo(() => {
-		const facetStatuses = (facets?.statuses ?? []).map((entry) => entry.value);
+		const indexedStatuses = explorerQuery.data?.statusOptions ?? [];
 		return dedupeStrings(
-			defaultStatusOptions.concat(queryInput.statuses, facetStatuses),
+			defaultStatusOptions.concat(queryInput.statuses, indexedStatuses),
 		);
-	}, [facets?.statuses, queryInput.statuses]);
+	}, [explorerQuery.data?.statusOptions, queryInput.statuses]);
 	const shouldShowTaskNotFound =
 		!isCreatingTask &&
 		selectedTaskKey !== null &&
@@ -178,8 +178,31 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		const nextTags = hasTag
 			? queryInput.tags.filter((entry) => entry !== tag)
 			: queryInput.tags.concat(tag);
+		const nextExcludedTags = hasTag
+			? queryInput.excludedTags
+			: queryInput.excludedTags.filter((entry) => entry !== tag);
 
-		updateQueryInput({ ...queryInput, tags: nextTags });
+		updateQueryInput({
+			...queryInput,
+			tags: nextTags,
+			excludedTags: nextExcludedTags,
+		});
+	};
+
+	const toggleExcludedTag = (tag: string) => {
+		const hasExcludedTag = queryInput.excludedTags.includes(tag);
+		const nextExcludedTags = hasExcludedTag
+			? queryInput.excludedTags.filter((entry) => entry !== tag)
+			: queryInput.excludedTags.concat(tag);
+		const nextTags = hasExcludedTag
+			? queryInput.tags
+			: queryInput.tags.filter((entry) => entry !== tag);
+
+		updateQueryInput({
+			...queryInput,
+			tags: nextTags,
+			excludedTags: nextExcludedTags,
+		});
 	};
 
 	const toggleRootsOnly = () => {
@@ -239,6 +262,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 					onSourceToggle={toggleSource}
 					onStatusToggle={toggleStatus}
 					onTagToggle={toggleTag}
+					onExcludedTagToggle={toggleExcludedTag}
 					onRootsOnlyToggle={toggleRootsOnly}
 					onSortChange={updateSort}
 					onTaskSelect={() => setCreateTaskDefaults(null)}
@@ -277,7 +301,18 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 					{!isCreatingTask && taskDetailQuery.data?.task && (
 						<TaskDetailView
 							detail={taskDetailQuery.data}
+							statusOptions={statusOptions}
 							onNavigateTask={(taskKey) => updateSearch({ taskKey })}
+							onTaskMoved={(newTaskKey, status) => {
+								updateSearch({
+									taskKey: queryInput.statuses.includes(status)
+										? newTaskKey
+										: undefined,
+								});
+							}}
+							onTaskRenamed={(newTaskKey) =>
+								updateSearch({ taskKey: newTaskKey })
+							}
 							onTaskCompleted={(newTaskKey) => {
 								updateSearch({
 									taskKey: queryInput.statuses.includes("completed")

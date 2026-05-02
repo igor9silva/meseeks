@@ -32,6 +32,7 @@ export function TaskExplorerSidebar({
 	onSourceToggle,
 	onStatusToggle,
 	onTagToggle,
+	onExcludedTagToggle,
 	onRootsOnlyToggle,
 	onSortChange,
 	onTaskSelect,
@@ -51,11 +52,17 @@ export function TaskExplorerSidebar({
 	onSourceToggle: (source: TaskSource) => void;
 	onStatusToggle: (status: string) => void;
 	onTagToggle: (tag: string) => void;
+	onExcludedTagToggle: (tag: string) => void;
 	onRootsOnlyToggle: () => void;
 	onSortChange: (sort: ExplorerSort) => void;
 	onTaskSelect: () => void;
 }) {
 	//
+	const tagEntries = buildTagEntries(
+		facets?.tags ?? [],
+		queryInput.tags.concat(queryInput.excludedTags),
+	);
+
 	return (
 		<section className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
 			<header className="space-y-3 border-b border-border p-3">
@@ -195,7 +202,7 @@ export function TaskExplorerSidebar({
 				<div className="space-y-2">
 					<div className="text-sm font-medium">Tags</div>
 					<div className="flex max-h-24 flex-wrap gap-2 overflow-auto">
-						{(facets?.tags ?? []).map((tagEntry) => {
+						{tagEntries.map((tagEntry) => {
 							const isSelected = queryInput.tags.includes(tagEntry.value);
 
 							return (
@@ -207,6 +214,33 @@ export function TaskExplorerSidebar({
 										"cursor-pointer rounded-md border px-2 py-1 text-xs",
 										isSelected
 											? "border-secondary bg-secondary text-secondary-foreground"
+											: "border-border bg-background text-foreground",
+									)}
+								>
+									{tagEntry.value} ({tagEntry.count})
+								</button>
+							);
+						})}
+					</div>
+				</div>
+
+				<div className="space-y-2">
+					<div className="text-sm font-medium">Exclude tags</div>
+					<div className="flex max-h-24 flex-wrap gap-2 overflow-auto">
+						{tagEntries.map((tagEntry) => {
+							const isSelected = queryInput.excludedTags.includes(
+								tagEntry.value,
+							);
+
+							return (
+								<button
+									key={tagEntry.value}
+									type="button"
+									onClick={() => onExcludedTagToggle(tagEntry.value)}
+									className={cn(
+										"cursor-pointer rounded-md border px-2 py-1 text-xs",
+										isSelected
+											? "border-destructive bg-destructive text-destructive-foreground"
 											: "border-border bg-background text-foreground",
 									)}
 								>
@@ -291,4 +325,26 @@ export function TaskExplorerSidebar({
 			</div>
 		</section>
 	);
+}
+
+function buildTagEntries(
+	facetEntries: ExplorerFacets["tags"],
+	pinnedTags: string[],
+): ExplorerFacets["tags"] {
+	//
+	const entryByValue = new Map<string, ExplorerFacets["tags"][number]>();
+
+	for (const entry of facetEntries) {
+		entryByValue.set(entry.value, entry);
+	}
+
+	for (const tag of pinnedTags) {
+		if (entryByValue.has(tag)) continue;
+		entryByValue.set(tag, { value: tag, count: 0 });
+	}
+
+	return Array.from(entryByValue.values()).sort((left, right) => {
+		if (left.count !== right.count) return right.count - left.count;
+		return left.value.localeCompare(right.value);
+	});
 }

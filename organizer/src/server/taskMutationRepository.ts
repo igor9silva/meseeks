@@ -2,8 +2,10 @@ import { spawnSync } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	renameSync,
+	statSync,
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
@@ -39,19 +41,22 @@ function createTaskKey(
 	taskSource: TaskSummary["taskSource"],
 ): string {
 	//
+	const pathKey = createTaskPathKey(relativePath);
+
+	return `${taskSource}:${pathKey}`;
+}
+
+function createTaskPathKey(relativePath: string): string {
+	//
 	const withoutExtension = stripExtension(relativePath);
 	const baseName = posix.basename(withoutExtension);
 
-	let pathKey: string;
-
 	if (baseName !== "_index") {
-		pathKey = withoutExtension;
+		return withoutExtension;
 	} else {
 		const directoryName = posix.dirname(withoutExtension);
-		pathKey = directoryName === "." ? "_index" : directoryName;
+		return directoryName === "." ? "_index" : directoryName;
 	}
-
-	return `${taskSource}:${pathKey}`;
 }
 
 function runTaskIndexBuild(): void {
@@ -81,6 +86,25 @@ function runTaskIndexBuild(): void {
 }
 
 export interface MarkTaskDoneResult {
+	newRelativePath: string;
+	newTaskKey: string;
+}
+
+export interface MoveTaskInput {
+	status: string;
+}
+
+export interface MoveTaskResult {
+	newRelativePath: string;
+	newTaskKey: string;
+	status: string;
+}
+
+export interface RenameTaskInput {
+	filename: string;
+}
+
+export interface RenameTaskResult {
 	newRelativePath: string;
 	newTaskKey: string;
 }
@@ -118,6 +142,35 @@ export interface UpdateTaskTagsInput {
 
 export interface UpdateTaskTagsResult {
 	tags: string[];
+}
+
+export interface UpdateTaskTitleInput {
+	title: string;
+}
+
+export interface UpdateTaskTitleResult {
+	title: string;
+}
+
+export function listTaskStatuses(): string[] {
+	//
+	const taskSources: Array<TaskSummary["taskSource"]> = ["public", "private"];
+	const statuses = new Set<string>();
+
+	for (const taskSource of taskSources) {
+		const taskRoot = getTaskRoot(taskSource);
+		if (!existsSync(taskRoot)) continue;
+
+		const entries = readdirSync(taskRoot, { withFileTypes: true });
+
+		for (const entry of entries) {
+			if (entry.name.startsWith(".")) continue;
+			if (!entry.isDirectory()) continue;
+			statuses.add(entry.name);
+		}
+	}
+
+	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
 }
 
 function dedupeStrings(values: string[]): string[] {
@@ -211,6 +264,15 @@ function normalizeTaskFilename(
 	return slugifyTaskFilename(withoutExtension);
 }
 
+function normalizeRenameTaskFilename(filename: string): string {
+	//
+	const withoutExtension = stripKnownTaskFileExtension(filename);
+	const trimmedFilename = withoutExtension.trim();
+
+	if (trimmedFilename === "_index") return trimmedFilename;
+	return slugifyTaskFilename(withoutExtension);
+}
+
 function doesTaskKeyPathExist(
 	taskRoot: string,
 	relativePathBase: string,
@@ -235,6 +297,29 @@ function doesTaskKeyPathExist(
 		.some((candidatePath) => existsSync(candidatePath));
 }
 
+function doesTaskKeyPathFileExist(
+	taskRoot: string,
+	relativePathBase: string,
+): boolean {
+	//
+	const absolutePathBase = join(taskRoot, ...relativePathBase.split("/"));
+	const candidates = [
+		`${absolutePathBase}.mdx`,
+		`${absolutePathBase}.md`,
+		`${absolutePathBase}.txt`,
+		absolutePathBase,
+		join(absolutePathBase, "_index.mdx"),
+		join(absolutePathBase, "_index.md"),
+		join(absolutePathBase, "_index.txt"),
+		join(absolutePathBase, "_index"),
+	];
+
+	return candidates.some((candidatePath) => {
+		if (!existsSync(candidatePath)) return false;
+		return statSync(candidatePath).isFile();
+	});
+}
+
 function createUniqueTaskRelativePath(
 	taskRoot: string,
 	status: string,
@@ -251,6 +336,33 @@ function createUniqueTaskRelativePath(
 	}
 
 	throw new Error("could not find an available task filename");
+}
+
+function replaceTaskStatusSegment(
+	relativePath: string,
+	status: string,
+): string {
+	//
+	const segments = relativePath.split("/");
+	const nestedPath =
+		segments.length > 1
+			? segments.slice(1).join("/")
+			: posix.basename(relativePath);
+
+	return posix.join(status, nestedPath);
+}
+
+function replaceTaskFilenameSegment(
+	relativePath: string,
+	filename: string,
+): string {
+	//
+	const directoryName = posix.dirname(relativePath);
+	const extension = posix.extname(relativePath);
+	const nextFilename = `${filename}${extension}`;
+
+	if (directoryName === ".") return nextFilename;
+	return posix.join(directoryName, nextFilename);
 }
 
 function renderFrontmatterString(value: string): string {
@@ -354,14 +466,17 @@ function renderTagsFrontmatterLine(tags: string[]): string {
 	return `tags: [${tags.join(", ")}]`;
 }
 
-function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
+function upsertFrontmatterLine(
+	rawFrontmatter: string,
+	key: string,
+	nextLine: string,
+): string {
 	//
-	const tagsLine = renderTagsFrontmatterLine(tags);
 	const lines = rawFrontmatter.split("\n");
 
 	for (let index = 0; index < lines.length; index += 1) {
 		const pairMatch = lines[index].match(/^([A-Za-z0-9_.-]+)\s*:\s*(.*)$/);
-		if (!pairMatch || pairMatch[1].trim() !== "tags") continue;
+		if (!pairMatch || pairMatch[1].trim() !== key) continue;
 
 		const rawValue = pairMatch[2].trim();
 		let endIndex = index + 1;
@@ -375,12 +490,26 @@ function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
 
 		return lines
 			.slice(0, index)
-			.concat(tagsLine, lines.slice(endIndex))
+			.concat(nextLine, lines.slice(endIndex))
 			.join("\n");
 	}
 
-	if (rawFrontmatter.length === 0) return tagsLine;
-	return `${rawFrontmatter}\n${tagsLine}`;
+	if (rawFrontmatter.length === 0) return nextLine;
+	return `${rawFrontmatter}\n${nextLine}`;
+}
+
+function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
+	//
+	const tagsLine = renderTagsFrontmatterLine(tags);
+
+	return upsertFrontmatterLine(rawFrontmatter, "tags", tagsLine);
+}
+
+function upsertTitleFrontmatter(rawFrontmatter: string, title: string): string {
+	//
+	const titleLine = `title: ${renderFrontmatterString(title)}`;
+
+	return upsertFrontmatterLine(rawFrontmatter, "title", titleLine);
 }
 
 function renderFileContentWithTags(
@@ -397,6 +526,25 @@ function renderFileContentWithTags(
 	const nextRawFrontmatter = upsertTagsFrontmatter(
 		frontmatterSection.rawFrontmatter,
 		tags,
+	);
+
+	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
+}
+
+function renderFileContentWithTitle(
+	fileContent: string,
+	title: string,
+): string {
+	//
+	const frontmatterSection = extractFrontmatterSection(fileContent);
+
+	if (frontmatterSection === null) {
+		return `---\ntitle: ${renderFrontmatterString(title)}\n---\n\n${fileContent.replace(/^\uFEFF/, "")}`;
+	}
+
+	const nextRawFrontmatter = upsertTitleFrontmatter(
+		frontmatterSection.rawFrontmatter,
+		title,
 	);
 
 	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
@@ -424,6 +572,98 @@ export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 		throw new Error(
 			`completed task already exists at ${destinationAbsolutePath}`,
 		);
+	}
+
+	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
+	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		throw error;
+	}
+
+	return {
+		newRelativePath,
+		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
+	};
+}
+
+export function moveTask(
+	task: TaskSummary,
+	input: MoveTaskInput,
+): MoveTaskResult {
+	//
+	const status = normalizeTaskStatus(input.status);
+
+	if (status === task.status) {
+		throw new Error("task is already in that status");
+	}
+
+	const taskRoot = getTaskRoot(task.taskSource);
+	const sourceAbsolutePath = join(taskRoot, task.relativePath);
+	const newRelativePath = replaceTaskStatusSegment(task.relativePath, status);
+	const destinationAbsolutePath = join(taskRoot, newRelativePath);
+
+	if (!existsSync(sourceAbsolutePath)) {
+		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	}
+
+	if (existsSync(destinationAbsolutePath)) {
+		throw new Error(`task already exists at ${destinationAbsolutePath}`);
+	}
+
+	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
+	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		throw error;
+	}
+
+	return {
+		newRelativePath,
+		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
+		status,
+	};
+}
+
+export function renameTask(
+	task: TaskSummary,
+	input: RenameTaskInput,
+): RenameTaskResult {
+	//
+	const filename = normalizeRenameTaskFilename(input.filename);
+	const taskRoot = getTaskRoot(task.taskSource);
+	const sourceAbsolutePath = join(taskRoot, task.relativePath);
+	const newRelativePath = replaceTaskFilenameSegment(
+		task.relativePath,
+		filename,
+	);
+	const destinationAbsolutePath = join(taskRoot, newRelativePath);
+	const sourcePathKey = createTaskPathKey(task.relativePath);
+	const destinationPathKey = createTaskPathKey(newRelativePath);
+
+	if (newRelativePath === task.relativePath) {
+		throw new Error("task file already has that name");
+	}
+
+	if (!existsSync(sourceAbsolutePath)) {
+		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	}
+
+	if (existsSync(destinationAbsolutePath)) {
+		throw new Error(`task file already exists at ${destinationAbsolutePath}`);
+	}
+
+	if (
+		destinationPathKey !== sourcePathKey &&
+		doesTaskKeyPathFileExist(taskRoot, destinationPathKey)
+	) {
+		throw new Error("task key already exists for that filename");
 	}
 
 	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
@@ -522,4 +762,36 @@ export function updateTaskTags(
 	return {
 		tags: nextTags,
 	};
+}
+
+export function updateTaskTitle(
+	task: TaskSummary,
+	input: UpdateTaskTitleInput,
+): UpdateTaskTitleResult {
+	//
+	const title = normalizeTaskTitle(input.title);
+	const taskRoot = getTaskRoot(task.taskSource);
+	const absolutePath = join(taskRoot, task.relativePath);
+
+	if (!existsSync(absolutePath)) {
+		throw new Error(`task file no longer exists at ${absolutePath}`);
+	}
+
+	if (title === task.title) {
+		return { title };
+	}
+
+	const originalContent = readFileSync(absolutePath, "utf-8");
+	const nextContent = renderFileContentWithTitle(originalContent, title);
+
+	writeFileSync(absolutePath, nextContent, "utf-8");
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		writeFileSync(absolutePath, originalContent, "utf-8");
+		throw error;
+	}
+
+	return { title };
 }

@@ -16,6 +16,7 @@ export const explorerQuerySchema = z.object({
 		.optional()
 		.default(["active", "backlog", "inbox"]),
 	tags: z.array(z.string().min(1)).optional().default([]),
+	excludedTags: z.array(z.string().min(1)).optional().default([]),
 	rootsOnly: z.boolean().optional().default(false),
 	sort: explorerSortSchema.optional().default("priority_then_recency"),
 });
@@ -28,6 +29,21 @@ export const tagMutationSchema = z.object({
 	taskKey: z.string().min(1),
 	action: z.enum(["add", "remove"]),
 	tag: z.string().trim().min(1).max(64),
+});
+
+export const titleMutationSchema = z.object({
+	taskKey: z.string().min(1),
+	title: z.string().trim().min(1).max(180),
+});
+
+export const moveTaskInputSchema = z.object({
+	taskKey: z.string().min(1),
+	status: z.string().trim().min(1).max(64),
+});
+
+export const renameTaskInputSchema = z.object({
+	taskKey: z.string().min(1),
+	filename: z.string().trim().min(1).max(180),
 });
 
 export const createTaskInputSchema = z.object({

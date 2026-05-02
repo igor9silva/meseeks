@@ -40,12 +40,14 @@ function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 			? dedupeStrings(input.statuses)
 			: ["active", "backlog", "inbox"];
 	const normalizedTags = dedupeStrings(input.tags);
+	const normalizedExcludedTags = dedupeStrings(input.excludedTags);
 
 	return {
 		q: input.q.trim(),
 		sources: normalizedSources,
 		statuses: normalizedStatuses,
 		tags: normalizedTags,
+		excludedTags: normalizedExcludedTags,
 		rootsOnly: input.rootsOnly,
 		sort: input.sort,
 	};
@@ -123,6 +125,7 @@ function matchesTaskFilters(
 		includeSources: boolean;
 		includeStatuses: boolean;
 		includeTags: boolean;
+		includeExcludedTags: boolean;
 		includeSearch: boolean;
 	},
 ): boolean {
@@ -142,6 +145,13 @@ function matchesTaskFilters(
 	if (options.includeTags && query.tags.length > 0) {
 		const hasMatchingTag = task.tags.some((tag) => query.tags.includes(tag));
 		if (!hasMatchingTag) return false;
+	}
+
+	if (options.includeExcludedTags && query.excludedTags.length > 0) {
+		const hasExcludedTag = task.tags.some((tag) =>
+			query.excludedTags.includes(tag),
+		);
+		if (hasExcludedTag) return false;
 	}
 
 	if (options.includeSearch && searchTokens.length > 0) {
@@ -188,6 +198,7 @@ function buildFacets(
 				includeSources: false,
 				includeStatuses: true,
 				includeTags: true,
+				includeExcludedTags: true,
 				includeSearch: true,
 			})
 		) {
@@ -202,6 +213,7 @@ function buildFacets(
 				includeSources: true,
 				includeStatuses: false,
 				includeTags: true,
+				includeExcludedTags: true,
 				includeSearch: true,
 			})
 		) {
@@ -213,6 +225,7 @@ function buildFacets(
 				includeSources: true,
 				includeStatuses: true,
 				includeTags: false,
+				includeExcludedTags: false,
 				includeSearch: true,
 			})
 		) {
@@ -227,6 +240,17 @@ function buildFacets(
 		statuses: mapCountEntries(statusCounts, "alpha"),
 		tags: mapCountEntries(tagCounts, "count_then_alpha"),
 	};
+}
+
+function buildStatusOptions(tasks: TaskSummary[]): string[] {
+	//
+	const statuses = new Set<string>();
+
+	for (const task of tasks) {
+		statuses.add(task.status);
+	}
+
+	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
 }
 
 export function createTaskLookup(
@@ -260,6 +284,7 @@ export function buildExplorerSnapshot(
 				all: 0,
 				visible: 0,
 			},
+			statusOptions: [],
 			query: normalizeQueryInput(input),
 		};
 	}
@@ -279,6 +304,7 @@ export function buildExplorerSnapshot(
 				includeSources: true,
 				includeStatuses: true,
 				includeTags: true,
+				includeExcludedTags: true,
 				includeSearch: false,
 			})
 		) {
@@ -326,6 +352,7 @@ export function buildExplorerSnapshot(
 			all: snapshotResult.snapshot.meta.tasks.length,
 			visible: tasks.length,
 		},
+		statusOptions: buildStatusOptions(snapshotResult.snapshot.meta.tasks),
 		query: normalizedQuery,
 	};
 }
