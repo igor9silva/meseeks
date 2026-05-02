@@ -117,15 +117,26 @@ function isVisiblePath(fileName: string): boolean {
 	return segments.every((segment) => !segment.startsWith('.'));
 }
 
-function handleTaskWatchEvent(root: string, fileName: string | null): void {
+function requestTaskRebuild(root: string): void {
 	//
-	if (typeof fileName === 'string') {
-		if (!isVisiblePath(fileName)) return;
-		if (!isTaskFile(fileName)) return;
-	}
-
 	watchExistingTaskDirectories(root);
 	regenerateTasks();
+}
+
+function handleTaskWatchEvent(
+	root: string,
+	eventType: string,
+	fileName: string | null,
+): void {
+	//
+	// rename events cover creates, deletes, and moves. deleted directories cannot
+	// be statted after the event, so any visible rename means the task tree changed.
+	if (typeof fileName === 'string') {
+		if (!isVisiblePath(fileName)) return;
+		if (eventType === 'change' && !isTaskFile(fileName)) return;
+	}
+
+	requestTaskRebuild(root);
 }
 
 function watchTaskDirectory(root: string, directoryPath: string): boolean {
@@ -137,15 +148,17 @@ function watchTaskDirectory(root: string, directoryPath: string): boolean {
 		taskWatchersByDirectory.set(directoryPath, watcher);
 		watcher.on('close', () => {
 			taskWatchersByDirectory.delete(directoryPath);
+			requestTaskRebuild(root);
 		});
 		watcher.on('error', () => {
 			taskWatchersByDirectory.delete(directoryPath);
+			requestTaskRebuild(root);
 		});
 	}
 
 	try {
 		const watcher = watch(directoryPath, (_eventType, fileName) => {
-			handleTaskWatchEvent(root, fileName);
+			handleTaskWatchEvent(root, _eventType, fileName);
 		});
 		trackWatcher(watcher);
 	} catch {
