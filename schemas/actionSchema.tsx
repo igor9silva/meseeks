@@ -23,6 +23,10 @@ const coreActionSchema = z.object({
 	args: z.record(z.any()),
 	// TODO: idea: inherit the argsSchema from the skill, so we can drill types
 	estimatedCost: z.bigint().optional(),
+	startedAt: z.number().optional(),
+	scheduledFunctionId: zid('_scheduled_functions')
+		.optional()
+		.describe('Internal Convex scheduler id for the action execution function.'),
 	approvedAt: z.number().optional(),
 	approvedBy: z
 		.union([

@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import { runNextActionIfNeeded } from './action/lifecycle.private';
+import { runNextActionIfNeeded } from './reactor.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { actionStatusSchema, pendingActionStatusSchema } from 'schemas/actionSchema';
@@ -140,6 +140,7 @@ export const authorizeAction = defineMutation({
 		// if already running, keep running - else enqueue
 		const approvedStatus = action.status === 'running' ? ('running' as const) : ('enqueued' as const);
 
+		// TODO: `running` here is confusing, but it really means `claimed`. We should likely have a new status for that.
 		console.debug(`${approver} ${hasApproved ? 'approved' : 'rejected'} ${action.skillKey} (${action._id})`);
 
 		const patch = hasApproved

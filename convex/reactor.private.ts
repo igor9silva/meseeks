@@ -1,14 +1,13 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import type { Doc, Id } from '../_generated/dataModel';
-import type { ActionCtx, MutationCtx } from '../_generated/server';
-import { internal } from '../_generated/api';
+import type { Doc, Id } from './_generated/dataModel';
+import type { ActionCtx, MutationCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import { executeTool } from '@ai-sdk/provider-utils';
-import { defineAction } from 'lib/convex';
 import { isError, NOT_ENOUGH_BUDGET_ERROR, messageFrom, NotEnoughBudget } from 'lib/errors';
 import { asDollars } from 'lib/money';
-import { prepareContext, type MagicRockContext } from '../magicRock.private';
-import { actionSchema, newActionSchema } from 'schemas/actionSchema';
+import { prepareContext, type MagicRockContext } from './magicRock.private';
+import { newActionSchema } from 'schemas/actionSchema';
 import type { AIToolResult } from 'schemas/toolSchema';
 import { env } from 'schemas/envSchema';
 import type { skillSchema } from 'schemas/skillSchema';
@@ -17,174 +16,123 @@ import { tokenSchema } from 'schemas/topUpSchema';
 import { estimateCostFor, extractSystemInstructions } from 'skills/createAITool';
 import { createReactions } from 'skills/createReactions';
 import { createTool } from 'skills/tools';
+import { ACTION_TIMEOUT_MS } from './reactor.constants';
 
-// Convex actions have a hardcoded 600-second timeout
-// We need to finish before that to ensure setResolved gets called
-export const ACTION_TIMEOUT_MS = 590 * 1000; // 590 seconds to have 10 seconds buffer
+export async function perform(
+	ctx: ActionCtx,
+	{
+		taskId,
+		actionId,
+	}: {
+		taskId: Id<'tasks'>;
+		actionId: Id<'actions'>;
+	},
+) {
+	//
+	console.debug(`Executing action ${actionId} for task ${taskId}`);
 
-export const perform = defineAction({
-	args: z.object({
-		taskId: zid('tasks'),
-		actionId: zid('actions'),
-	}),
-	handler: async (ctx, { taskId, actionId }) => {
+	const { task, action, skill } = await ctx.runQuery(internal.reactor._prepare, {
+		taskId,
+		actionId,
+	});
+
+	console.debug(
+		`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
+	);
+
+	// create a timeout promise that rejects before convex's hard timeout
+	let timeoutId: ReturnType<typeof setTimeout> | undefined;
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timeoutId = setTimeout(() => {
+			reject(
+				new Error(
+					`Action execution timed out after ${ACTION_TIMEOUT_MS / 1000} seconds to handle Convex timeout`,
+				),
+			);
+		}, ACTION_TIMEOUT_MS);
+	});
+
+	// wrap the entire try block execution with timeout
+	const executeWithTimeout = async () => {
 		//
-		console.debug(`Executing action ${actionId} for task ${taskId}`);
+		// prepare context if needed
+		const context = skill.kind === 'soft' ? await prepareContext(ctx, task, action, skill) : undefined;
 
-		const { task, action, skill } = await ctx.runQuery(internal.action.lifecycle._load, {
-			taskId,
-			actionId,
-		});
+		// persist initial action details with request context
+		await persistInitialActionDetails(ctx, action, skill, context);
 
-		console.debug(
-			`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
-		);
+		// check budget
+		const expectedCost = await ensureWithinBudget(ctx, task, action, skill, context);
 
-		// Create a timeout promise that rejects after ACTION_TIMEOUT_MS
-		const timeoutPromise = new Promise((_, reject) => {
-			setTimeout(() => {
-				reject(
-					new Error(
-						`Action execution timed out after ${ACTION_TIMEOUT_MS / 1000} seconds to handle Convex timeout`,
-					),
-				);
-			}, ACTION_TIMEOUT_MS);
-		});
+		console.debug(`Expected cost ${asDollars({ bigInt: expectedCost, precision: 6 })} energy.`);
 
-		// Wrap the entire try block execution with timeout
-		const executeWithTimeout = async () => {
+		// if the action is not yet authorized, try auto-approving it
+		if (!action.approvedAt) {
 			//
-			// prepare context if needed
-			const context = skill.kind === 'soft' ? await prepareContext(ctx, task, action, skill) : undefined;
+			const wasAutoApproved = await tryAutoApprove(ctx, task, action, skill, expectedCost);
 
-			// persist initial action details with request context
-			await persistInitialActionDetails(ctx, action, skill, context);
-
-			// check budget
-			const expectedCost = await ensureWithinBudget(ctx, task, action, skill, context);
-
-			console.debug(`Expected cost ${asDollars({ bigInt: expectedCost, precision: 6 })} energy.`);
-
-			// if the action is not yet authorized, try auto-approving it
-			if (!action.approvedAt) {
-				//
-				const wasAutoApproved = await tryAutoApprove(ctx, task, action, skill, expectedCost);
-
-				// if failed, request human approval
-				if (!wasAutoApproved) return await requestHumanApproval(ctx, { actionId, taskId });
-			}
-
-			const tool = createTool(ctx, task, action, skill, context);
-			const args = parseArgs(tool, action.args);
-			const execute = tool.execute;
-			if (!execute) throw new Error(`Tool execute is not available for action ${action._id}.`);
-
-			const execution = executeTool({
-				execute,
-				input: args,
-				options: {
-					toolCallId: String(action._id),
-					messages: [],
-				},
-			});
-
-			let toolResult: AIToolResult | undefined;
-			for await (const part of execution) {
-				if (part.type === 'final') {
-					toolResult = part.output;
-				}
-			}
-
-			if (!toolResult) throw new Error(`Tool execution returned no result for action ${action._id}.`);
-
-			const { result, costs } = toolResult;
-
-			await setResolved(ctx, {
-				actionId,
-				taskId,
-				result,
-				status: 'succeeded',
-				costs,
-				// TODO: also persist reactions
-			});
-		};
-
-		try {
-			//
-			// Race the entire execution against the timeout
-			await Promise.race([executeWithTimeout(), timeoutPromise]);
-			//
-		} catch (error) {
-			//
-			const result = await handleActionError({ actionId, action, error });
-
-			await setResolved(ctx, {
-				actionId,
-				taskId,
-				status: 'failed',
-				costs: [],
-				result: result ?? { text: 'Max auto-fix attempts reached.', reactions: [] },
-			});
-			//
-		} finally {
-			//
-			await runNextActionIfNeeded(ctx, { taskId });
+			// if failed, request human approval
+			if (!wasAutoApproved) return await requestHumanApproval(ctx, { actionId, taskId });
 		}
-	},
-});
 
-export const runAction = defineAction({
-	args: z.object({
-		taskId: zid('tasks'),
-		actionId: zid('actions'),
-		action: actionSchema,
-	}),
-	handler: async (ctx, { taskId, actionId, action }) => {
-		//
-		// ideally, status=`running` would be set in the action itself, but that'd lead into a race condition
-		await ctx.runMutation(internal.action.lifecycle._start, { actionId, taskId });
+		const tool = createTool(ctx, task, action, skill, context);
+		const args = parseArgs(tool, action.args);
+		const execute = tool.execute;
+		if (!execute) throw new Error(`Tool execute is not available for action ${action._id}.`);
 
-		return await ctx.scheduler.runAfter(0, internal.action.lifecycle._perform, {
-			taskId,
+		const execution = executeTool({
+			execute,
+			input: args,
+			options: {
+				toolCallId: String(action._id),
+				messages: [],
+			},
+		});
+
+		let toolResult: AIToolResult | undefined;
+		for await (const part of execution) {
+			if (part.type === 'final') {
+				toolResult = part.output;
+			}
+		}
+
+		if (!toolResult) throw new Error(`Tool execution returned no result for action ${action._id}.`);
+
+		const { result, costs } = toolResult;
+
+		await setFinished(ctx, {
 			actionId,
-		});
-	},
-});
-
-export const runNextActionIfNeeded = defineAction({
-	args: z.object({
-		taskId: zid('tasks'),
-	}),
-	handler: async (ctx, { taskId }) => {
-		//
-		const skip = (message: string) => console.info(message);
-
-		// skip if there are running actions
-		const runningAction = await ctx.runQuery(internal.action._findRunning, { taskId });
-		if (runningAction)
-			return skip(
-				`Skipping next action for task ${taskId} because there is a running action (${runningAction.skillKey}, ${runningAction._id}).`,
-			);
-
-		// skip if there is a pending authorization
-		const pendingAuthorization = await ctx.runQuery(internal.action._findPendingAuthorization, { taskId });
-		if (pendingAuthorization)
-			return skip(
-				`Skipping next action for task ${taskId} because there is a pending authorization action (${pendingAuthorization.skillKey}, ${pendingAuthorization._id}).`,
-			);
-
-		// grab next pending action, skip if there are none
-		const nextAction = await ctx.runQuery(internal.action._findNext, { taskId });
-		if (!nextAction)
-			return skip(`Skipping next action for task ${taskId} because there are no more pending actions.`);
-
-		return await runAction(ctx, {
 			taskId,
-			actionId: nextAction._id,
-			action: nextAction,
+			result,
+			status: 'succeeded',
+			costs,
+			// TODO: also persist reactions
 		});
-	},
-});
+	};
+
+	try {
+		//
+		// race the entire execution against the timeout
+		await Promise.race([executeWithTimeout(), timeoutPromise]);
+		//
+	} catch (error) {
+		//
+		const result = await handleActionError({ actionId, action, error });
+
+		await setFinished(ctx, {
+			actionId,
+			taskId,
+			status: 'failed',
+			costs: [],
+			result: result ?? { text: 'Max auto-fix attempts reached.', reactions: [] },
+		});
+		//
+	} finally {
+		//
+		if (timeoutId) clearTimeout(timeoutId);
+		await runNextActionIfNeeded(ctx, { taskId });
+	}
+}
 
 function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
 	//
@@ -203,8 +151,8 @@ function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
 	return parsedArgs.data;
 }
 
-async function _estimateAndPersistCost(
-	ctx: ActionCtx | MutationCtx,
+async function estimateAndPersistCost(
+	ctx: ActionCtx,
 	action: Doc<'actions'>,
 	task: Doc<'tasks'>,
 	skill: z.infer<typeof skillSchema>,
@@ -218,7 +166,7 @@ async function _estimateAndPersistCost(
 		`Setting estimated cost for ${action._id}: ${asDollars({ bigInt: estimatedCost, precision: 6 })} energy`,
 	);
 
-	await ctx.runMutation(internal.action.lifecycle._setEstimatedCost, {
+	await ctx.runMutation(internal.reactor._setEstimatedCost, {
 		actionId: action._id,
 		estimatedCost,
 	});
@@ -227,14 +175,14 @@ async function _estimateAndPersistCost(
 }
 
 async function ensureWithinBudget(
-	ctx: ActionCtx | MutationCtx,
+	ctx: ActionCtx,
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 	skill: z.infer<typeof skillSchema>,
 	context?: MagicRockContext,
 ) {
 	//
-	const estimatedCost = await _estimateAndPersistCost(ctx, action, task, skill, context);
+	const estimatedCost = await estimateAndPersistCost(ctx, action, task, skill, context);
 
 	if (estimatedCost > task.energyBudget.available) {
 		throw NotEnoughBudget(
@@ -249,7 +197,7 @@ async function ensureWithinBudget(
 }
 
 async function autoApprove(
-	ctx: ActionCtx | MutationCtx, //
+	ctx: ActionCtx, //
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 ) {
@@ -264,7 +212,7 @@ async function autoApprove(
 }
 
 async function tryAutoApprove(
-	ctx: ActionCtx | MutationCtx,
+	ctx: ActionCtx,
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 	skill: z.infer<typeof skillSchema>,
@@ -292,7 +240,7 @@ async function tryAutoApprove(
 
 // ¡¡¡do not remove — this prevents machines from taking over!!!
 async function hasReachedMaxConsecutiveCompanionActions(
-	ctx: ActionCtx | MutationCtx, //
+	ctx: ActionCtx, //
 	task: Doc<'tasks'>,
 ) {
 	//
@@ -305,7 +253,7 @@ async function hasReachedMaxConsecutiveCompanionActions(
 }
 
 async function requestHumanApproval(
-	ctx: ActionCtx | MutationCtx, //
+	ctx: ActionCtx, //
 	{
 		actionId,
 		taskId,
@@ -315,7 +263,7 @@ async function requestHumanApproval(
 	},
 ) {
 	//
-	await ctx.runMutation(internal.action.lifecycle._requestAuthorization, { actionId, taskId });
+	await ctx.runMutation(internal.reactor._requestAuthorization, { actionId, taskId });
 }
 
 async function handleActionError({
@@ -333,24 +281,26 @@ async function handleActionError({
 	//
 	console.info(`action ${actionId} execution failed: ${error}`);
 
-	const result = {
+	const result: {
+		text: string;
+		reactions: Array<z.infer<typeof newActionSchema>>;
+	} = {
 		text: messageFrom(error),
-		reactions: [] as Array<z.infer<typeof newActionSchema>>,
+		reactions: [],
 	};
 
 	// react with appropriate reactions
-	if (isError(NOT_ENOUGH_BUDGET_ERROR, error)) {
+	if (isNotEnoughBudgetError(error)) {
 		//
 		console.debug(`Lacking energy for action ${actionId}. Requesting more energy.`);
-		const typedError = error as ReturnType<typeof NotEnoughBudget>;
 
-		result.text = typedError.data.message;
-		result.reactions = createReactions(typedError.data.action, [
+		result.text = error.data.message;
+		result.reactions = createReactions(error.data.action, [
 			{
 				skillKey: 'requestBudget',
 				args: {
-					estimatedCost: typedError.data.estimatedCost,
-					previousActionKey: typedError.data.previousActionKey,
+					estimatedCost: error.data.estimatedCost,
+					previousActionKey: error.data.previousActionKey,
 				},
 			},
 		]);
@@ -369,8 +319,13 @@ async function handleActionError({
 	return result;
 }
 
-async function setResolved(
-	ctx: ActionCtx | MutationCtx,
+function isNotEnoughBudgetError(error: unknown): error is ReturnType<typeof NotEnoughBudget> {
+	//
+	return isError(NOT_ENOUGH_BUDGET_ERROR, error);
+}
+
+async function setFinished(
+	ctx: ActionCtx,
 	args: {
 		actionId: Id<'actions'>;
 		taskId: Id<'tasks'>;
@@ -386,11 +341,11 @@ async function setResolved(
 		}>;
 	},
 ) {
-	return await ctx.runMutation(internal.action.lifecycle._resolve, args);
+	return await ctx.runMutation(internal.reactor._finish, args);
 }
 
 async function persistInitialActionDetails(
-	ctx: ActionCtx | MutationCtx,
+	ctx: ActionCtx,
 	action: Doc<'actions'>,
 	skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>,
 	context?: MagicRockContext,
@@ -418,7 +373,7 @@ async function persistInitialActionDetails(
 			await ctx.runMutation(internal.action.details._persist, {
 				details: {
 					actionId: action._id,
-					skillKind: 'soft' as const,
+					skillKind: 'soft',
 					skillKey: skill.key,
 					skillDescription: skill.description,
 					llm: {
@@ -446,7 +401,7 @@ async function persistInitialActionDetails(
 			await ctx.runMutation(internal.action.details._persist, {
 				details: {
 					actionId: action._id,
-					skillKind: 'hard' as const,
+					skillKind: 'hard',
 					skillKey: skill.key,
 					skillDescription: skill.description,
 					http: {
@@ -460,4 +415,11 @@ async function persistInitialActionDetails(
 		// If persistence fails, log but don't fail the action
 		console.warn(`Failed to persist initial action details for ${action._id}:`, error);
 	}
+}
+
+export async function runNextActionIfNeeded(
+	ctx: ActionCtx | MutationCtx, //
+	{ taskId }: { taskId: Id<'tasks'> },
+) {
+	return await ctx.runMutation(internal.reactor._claimAndScheduleNext, { taskId });
 }

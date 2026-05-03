@@ -99,6 +99,20 @@ export const env = createEnv({
 			.describe('The maximum number of actions to load before token-based cropping.')
 			.default('40'),
 
+		MAX_CONTEXT_TOKENS: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number().int().min(1))
+			.describe('The maximum estimated tokens to keep in model context.')
+			.default('128000'),
+
+		ACTION_TIMEOUT_BUFFER_MS: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number().int().min(1_000).max(590_000))
+			.describe('How much earlier than Convex hard timeout actions should abort, in milliseconds.')
+			.default('120000'),
+
 		ACTIVE_TASKS_RENDER_LIMIT: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))

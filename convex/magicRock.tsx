@@ -8,6 +8,8 @@ import { env } from 'schemas/envSchema';
 
 const dictionary = [
 	'Meseeks', //
+	'DeepSeek',
+	'GPT',
 ].join(',');
 
 const baseUrl = 'https://api.mistral.ai/v1';

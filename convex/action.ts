@@ -9,13 +9,10 @@ import {
 	findActionsPaginated,
 	findRunningActions,
 	findLastActions,
-	findNextAction,
 	findAction,
-	findPendingAuthorizationAction,
-	findRunningAction,
 } from './action.private';
 
-// used by auto-approval in action/lifecycle.ts
+// used by reactor auto-approval
 export const _authorize = internalMutation({
 	args: {
 		taskId: zid('tasks'),
@@ -29,22 +26,6 @@ export const _authorize = internalMutation({
 	handler: authorizeAction,
 });
 
-// used by runNextActionIfNeeded in action/lifecycle.private.ts to avoid starting when approval is pending
-export const _findPendingAuthorization = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: findPendingAuthorizationAction,
-});
-
-// used by runNextActionIfNeeded in action/lifecycle.private.ts to pull the next enqueued action
-export const _findNext = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: findNextAction,
-});
-
 // used by magicRock history rendering and by lifecycle's consecutive-companion guard
 export const _findLastActions = internalQuery({
 	args: {
@@ -52,14 +33,6 @@ export const _findLastActions = internalQuery({
 		amount: z.number().min(1),
 	},
 	handler: findLastActions,
-});
-
-// used by runNextActionIfNeeded in action/lifecycle.private.ts to enforce one running action per task
-export const _findRunning = internalQuery({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: findRunningAction,
 });
 
 export const act = mutation({

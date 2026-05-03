@@ -19,7 +19,8 @@ import type { instructionVariableSchema, softSkillSchema } from 'schemas/skillSc
 import type { AITool } from 'schemas/toolSchema';
 import { modelFrom } from 'skills/createAITool';
 import { _toolsForMagicRock } from 'skills/tools';
-import { api, internal } from './_generated/api';
+import { internal } from './_generated/api';
+import { ACTION_TIMEOUT_MS } from './reactor.constants';
 
 // >be human
 // >dig shiny rocks from ground
@@ -49,8 +50,6 @@ const inception = createOpenAICompatible({
 	baseURL: 'https://api.inceptionlabs.ai/v1',
 });
 
-// hardcoded for now, TODO: make it dynamic per intelligence config
-const MAX_CONTEXT_TOKENS = 128_000;
 function estimateTokenCount(message: ModelMessage): number {
 	//
 	let content = '';
@@ -144,6 +143,7 @@ export async function prepareContext(
 		topP: skill.config.topP ?? undefined,
 		stopSequences: skill.config.stopSequences ?? undefined,
 		toolChoice: 'required',
+		timeout: { totalMs: ACTION_TIMEOUT_MS },
 		system: instructions,
 		messages: isAnthropic
 			? [
@@ -343,7 +343,7 @@ async function renderTools(
 	return tools;
 }
 
-function cropHistoryToTokenLimit(history: ModelMessage[], maxTokens: number = MAX_CONTEXT_TOKENS): ModelMessage[] {
+function cropHistoryToTokenLimit(history: ModelMessage[], maxTokens: number = env.MAX_CONTEXT_TOKENS): ModelMessage[] {
 	//
 	const totalTokens = history.reduce((sum, message) => sum + estimateTokenCount(message), 0);
 
@@ -401,7 +401,7 @@ async function renderHistory(
 	const finalTokens = history.reduce((sum, message) => sum + estimateTokenCount(message), 0);
 
 	console.debug(
-		`Rendered last ${history.length} actions as history (${finalTokens} tokens, max ${MAX_CONTEXT_TOKENS})`,
+		`Rendered last ${history.length} actions as history (${finalTokens} tokens, max ${env.MAX_CONTEXT_TOKENS})`,
 	);
 
 	return history;
@@ -570,7 +570,7 @@ async function replaceActiveTasksIfNeeded(
 				const title = task.title || 'Untitled';
 				const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
 				const createdAt = dateOrNever(task._creationTime);
-				return `- *${title}* (${totalBudget} energy, created: ${createdAt})`;
+				return `- *${title}* (id: ${task._id}, ${totalBudget} energy, created: ${createdAt})`;
 			})
 			.join('\n');
 

@@ -10,7 +10,6 @@
 
 import type * as action from "../action.js";
 import type * as action_details from "../action/details.js";
-import type * as action_lifecycle from "../action/lifecycle.js";
 import type * as babel from "../babel.js";
 import type * as betterAuthTriggers from "../betterAuthTriggers.js";
 import type * as components_ from "../components.js";
@@ -18,6 +17,7 @@ import type * as drafts from "../drafts.js";
 import type * as http from "../http.js";
 import type * as magicRock from "../magicRock.js";
 import type * as migrations from "../migrations.js";
+import type * as reactor from "../reactor.js";
 import type * as schedule_lifecycle from "../schedule/lifecycle.js";
 import type * as schedules from "../schedules.js";
 import type * as skills from "../skills.js";
@@ -39,7 +39,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   action: typeof action;
   "action/details": typeof action_details;
-  "action/lifecycle": typeof action_lifecycle;
   babel: typeof babel;
   betterAuthTriggers: typeof betterAuthTriggers;
   components: typeof components_;
@@ -47,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   magicRock: typeof magicRock;
   migrations: typeof migrations;
+  reactor: typeof reactor;
   "schedule/lifecycle": typeof schedule_lifecycle;
   schedules: typeof schedules;
   skills: typeof skills;
