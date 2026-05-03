@@ -8,7 +8,7 @@ import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
 	server: {
-		strictPort: true,
+		strictPort: false,
 	},
 	ssr: {
 		// don't externalize these packages during ssr; vite needs to transform the react-start entry instead of leaving node to resolve it raw.
