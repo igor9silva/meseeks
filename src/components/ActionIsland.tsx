@@ -176,11 +176,8 @@ function buildSummary(actions: Doc<'actions'>[]) {
 		return remainingActiveCount > 0 ? `${approvalsText}, ${remainingActiveCount} more active` : approvalsText;
 	}
 
-	if (runningCount > 0 && enqueuedCount > 0) {
-		return `${runningCount} running, ${enqueuedCount} queued`;
-	}
-
 	if (runningCount > 0) {
+		if (enqueuedCount > 0) return `${runningCount} running, ${enqueuedCount} queued`;
 		return runningCount === 1 ? '1 running' : `${runningCount} running`;
 	}
 

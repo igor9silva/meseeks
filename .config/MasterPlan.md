@@ -290,6 +290,7 @@ One file per hook in `src/hooks/`.
 
 ## Making Changes
 
+- Every line of code has a maintenance cost. Crush unnecessary complexity.
 - Git index is user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
