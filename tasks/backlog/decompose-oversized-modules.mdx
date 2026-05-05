@@ -25,7 +25,7 @@ Reduce cognitive load and merge conflict risk by decomposing high-churn oversize
 
 ## Subtasks
 - [ ] Phase 1: split `src/components/DebugAction.tsx` into a feature folder:
-  - move section components (`ApprovalSection`, `AuthorSection`, `ArgumentsSection`, `ResultSection`, `CostSection`, `LlmDetailsSection`, `HttpDetailsSection`) into dedicated files
+  - move section components (`AuthorizationSection`, `AuthorSection`, `ArgumentsSection`, `ResultSection`, `CostSection`, `LlmDetailsSection`, `HttpDetailsSection`) into dedicated files
   - keep `DebugAction` as orchestration-only container
   - target: main file 350 lines or fewer
 - [ ] Phase 2: split backend orchestrators by concern:

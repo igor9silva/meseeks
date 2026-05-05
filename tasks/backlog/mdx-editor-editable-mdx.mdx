@@ -1,0 +1,67 @@
+---
+title: Add MDXEditor to user-editable MDX fields
+priority: high
+tags: [ux]
+---
+
+# Add MDXEditor to user-editable MDX fields
+
+## Context
+Meseeks already treats task instructions as MDX: `schemas/taskSchema.tsx` describes `tasks.instructions` as an MDX description, `src/components/TaskDetail.tsx` renders it through `src/components/ui/mdx.tsx`, and the current edit path falls back to a plain multiline `Textarea` through `src/components/EditableContent.tsx`.
+
+The old backlog stub for this work only said: "Make task content editable within the Organizer. Preferably using Monaco Editor." That scope is stale. The current target is broader and more product-shaped: use MDXEditor for user-editable MDX surfaces instead of plain textareas, starting with task plan/instructions and the action composer. Do not carry forward the Monaco preference; project rules forbid Microsoft tooling, and MDXEditor already has its own source/diff editing path if source mode is needed.
+
+The design direction from the MDX editor discussion:
+
+- MDX stays the saved source of truth.
+- MDXEditor is the first editor to spike because it already handles Markdown/MDX import/export and WYSIWYG editing.
+- Known safe JSX components should render as the real app components in the editor when that is maintainable.
+- Unknown, dynamic, or unsafe MDX/JSX should stay editable as literal source/source-only content instead of becoming fake component cards.
+- MDXEditor default toolbar/tooling is not sacred; the shipped UI should use Meseeks controls and visual patterns.
+
+Initial known code surfaces:
+
+- task plan/instructions display and editing: `src/components/TaskDetail.tsx`
+- generic double-tap editor currently used by task title and instructions: `src/components/EditableContent.tsx`
+- task instruction mutations: `src/hooks/useTaskMutations.ts`
+- action composer message entry: `src/components/ActionComposer/ActionComposer.tsx`
+- MDX rendering/runtime component mapping: `src/components/ui/mdx.tsx`
+- MDX-related schemas and action display contracts: `schemas/taskSchema.tsx`, `src/components/actions/UpdateInstructionsAction.tsx`
+- possible user-editable long-form instruction surfaces to classify before changing: `src/components/skills/SoftSkillConfig.tsx`, `src/components/skills/SoftSkillForm.tsx`, `src/components/ScheduleIterationDialog.tsx`
+
+## Objective
+Replace plain textarea editing for user-editable MDX content with a reusable Meseeks MDXEditor integration, covering every surface that accepts or edits MDX while leaving plain text fields plain.
+
+Acceptance criteria:
+
+- task plan/instructions can be edited with MDXEditor and still save exactly as MDX through the existing task update path.
+- the action composer supports composing MDX content without losing existing submit, queue, voice transcription, shortcut, and draft/search-state behavior.
+- every user-editable MDX field found by repo-wide inventory is either migrated to the MDX editor or explicitly documented as out of scope with a reason.
+- non-MDX fields such as task titles still use the lightweight plain text editing path.
+- existing MDX rendering through `src/components/ui/mdx.tsx` remains compatible with saved editor output.
+- unknown or dynamic MDX/JSX is preserved as source text instead of being dropped, normalized into invalid MDX, or rendered through unsafe runtime evaluation.
+- verification includes `bun typecheck`, `bun run build:tasks`, and a browser check of task instructions plus composer editing.
+
+## Subtasks
+- [ ] Inventory user-editable MDX surfaces with targeted searches for schema descriptions, `MDX` render usage, `instructions`, `summary`, composer message fields, and multiline `Textarea` usage. Classify each as `mdx`, `plain text`, or `not user-editable`.
+- [ ] Add the MDXEditor dependency and a single app-owned wrapper component for editable MDX content. Keep the wrapper narrow; do not make `EditableContent` pull MDXEditor into task titles or other plain text uses.
+- [ ] Wire the wrapper into `src/components/TaskDetail.tsx` for task plan/instructions, preserving double-tap/edit entry behavior or replacing it with an equally compact local interaction.
+- [ ] Wire the editor into `src/components/ActionComposer/ActionComposer.tsx` without breaking local message state, URL/search-state sync from `useComposer`, voice transcription, queueing, `Cmd+Enter`, `Option+Enter`, `Cmd+I`, or stop behavior.
+- [ ] Define the first MDXEditor JSX/component policy for Meseeks components: render known safe components through app components where useful, and preserve unknown/dynamic JSX as literal source/source-only blocks.
+- [ ] Reuse or align with `src/components/ui/mdx.tsx` component mappings so preview/rendered output and editable output do not drift.
+- [ ] Decide whether skill instructions, schedule instructions, task summaries, Organizer task content, and update-instructions action views are MDX-editable in this scope. Migrate the MDX ones and write down any exclusions.
+- [ ] Replace MDXEditor toolbar defaults with minimal Meseeks-native controls needed for the target surfaces: headings, bold/italic, lists, links, code, source toggle if useful, and component/source fallback handling.
+- [ ] Verify keyboard and mobile behavior: no broken shortcut interception, no textarea-only assumptions in `useKeyboardShortcuts`, no layout overflow in the task detail panel or composer.
+- [ ] Run `bun typecheck`, `bun run build:tasks`, and a focused browser pass covering task plan edit/save, action composer edit/submit/queue, and unsupported MDX fallback preservation.
+
+## Progress Log
+### 2026-05-05
+- Replaced the old Organizer-only Monaco stub with a broader MDXEditor task for all user-editable MDX surfaces.
+- Captured the design decision from the editor discussion: MDX remains canonical, MDXEditor is the first implementation target, known components may render as actual app components, and unsupported JSX must remain editable as source text.
+
+## Notes
+- Source conversation used to create this task: `/Users/igor/Downloads/mdx-editor-conversation-for-codex.md`.
+- Do not use Monaco for this work. The old stub mentioned it, but the project-level no-Microsoft rule wins.
+- Do not store Lexical/MDXEditor internal state as the canonical document model. Save MDX strings and treat editor state as UI state.
+- Do not treat all long text fields as MDX. The first pass must classify fields from schema and rendering behavior, then migrate only the MDX surfaces.
+- If MDXEditor cannot deliver acceptable component editing UX after the spike, document the concrete blocker and compare against a TipTap custom editor fallback before switching approaches.
