@@ -18,7 +18,7 @@ Read the whole task before changing rules. The useful evidence is often split ac
 - Extract the task id from paths like `/task/<id>`.
 - If the user says `PROD`, target the production Convex deployment.
 - Do not mutate production data. Use read-only MCP tools such as `status`, `tables`, `functionSpec`, `data`, and `runOneoffQuery`.
-- If MCP access is unavailable, inspect `.config/mcp.config.ts` and `.config/convex-mcp-bridge.ts`, then use the project Convex MCP server. If that still fails, stop with concrete options instead of guessing.
+- If MCP access is unavailable, inspect `.config/mcp.config.ts` and `.codex/config.toml`, then use the direct project Convex MCP command. If that still fails, stop with concrete options instead of guessing.
 
 ### 2. Pull The Full Conversation
 

@@ -144,6 +144,7 @@ components/
 
 - Main component first in file, helper components after
 - Related components that are rarely used alone go in their own directory (e.g., `~/components/skills` for `/skills` route)
+- Before breaking down a messy component, inspect nearby well-factored components and copy their local style: file names, prop interfaces, helper placement, imports, whitespace, and abstraction level. The refactor should look native to the folder, not merely smaller.
 
 ## UI Implementation
 

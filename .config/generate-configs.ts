@@ -157,29 +157,6 @@ function toTomlKey(key: string): string {
 	return JSON.stringify(key);
 }
 
-function shouldUseConvexBridge(server: MCPServerConfig): boolean {
-	//
-	return server.command === 'bunx' && server.args.includes('convex@latest') && server.args.includes('mcp');
-}
-
-function getCodexServerConfig(key: string, server: MCPServerConfig): MCPServerConfig {
-	//
-	if (!shouldUseConvexBridge(server)) {
-		return server;
-	}
-
-	const args = ['run', '.config/convex-mcp-bridge.ts', '--', server.command].concat(server.args);
-
-	return {
-		name: server.name,
-		command: 'bun',
-		args,
-		env: server.env,
-		enabled: server.enabled,
-		description: server.description,
-	};
-}
-
 /**
  * Generate Codex MCP config (.codex/config.toml)
  */
@@ -214,21 +191,19 @@ persistence = "save-all"
 	}
 
 	for (const [key, server] of enabledServers) {
-		const codexServer = getCodexServerConfig(key, server);
-
 		tomlContent += `
 # ${server.description || key}
 [mcp_servers.${toTomlKey(key)}]
-command = ${toTomlString(codexServer.command)}
-args = ${toTomlArray(codexServer.args)}
+command = ${toTomlString(server.command)}
+args = ${toTomlArray(server.args)}
 `;
 
-		if (codexServer.env && Object.keys(codexServer.env).length > 0) {
+		if (server.env && Object.keys(server.env).length > 0) {
 			tomlContent += `
 [mcp_servers.${toTomlKey(key)}.env]
 `;
 
-			for (const [envKey, envValue] of Object.entries(codexServer.env)) {
+			for (const [envKey, envValue] of Object.entries(server.env)) {
 				tomlContent += `${toTomlKey(envKey)} = ${toTomlString(envValue)}\n`;
 			}
 		}
