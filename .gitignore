@@ -3,8 +3,6 @@
 # Inner repos
 private/
 private
-browser-poc/
-browser-poc
 
 # macOS shit
 .DS_Store
@@ -16,6 +14,7 @@ browser-poc
 .opencode/
 .codex/
 .playwright-mcp/
+AGENTS.md
 
 # Outputs
 .vercel
@@ -36,15 +35,3 @@ dist/
 ## Task indexes
 tasks/.generated/
 
-## MCP configs
-.cursor/mcp.json
-.opencode/opencode.jsonc
-.codex/config.toml
-
-## Rules (source: .config/MasterPlan.md)
-.cursorrules
-.cursor/rules/*
-AGENTS.md
-
-## Skills (source: .config/skills/)
-.agents/skills/

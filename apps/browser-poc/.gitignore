@@ -1,0 +1,37 @@
+.vercel
+.vinxi
+.nitro
+.tanstack
+.output
+app.config.timestamp_*.js
+node_modules
+package-lock.json
+
+.env.local
+
+.DS_Store
+**/.DS_Store
+
+TODO.md
+data/
+data
+temp/
+dist/
+out/
+# Sentry Config File
+.env.sentry-build-plugin
+
+# Generated 
+
+## MCP configs
+.cursor/mcp.json
+.opencode/opencode.jsonc
+.codex/config.toml
+
+## Rules (source: .config/MasterPlan.md)
+.cursorrules
+.cursor/rules/*
+AGENTS.md
+
+## Skills (source: .config/skills/)
+.agents/skills/
