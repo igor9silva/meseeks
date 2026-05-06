@@ -1,6 +1,6 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": ["node_modules", "private", "browser-poc", "organizer", "compiler-poc"],
+	"exclude": ["node_modules", "private", "browser-poc", "check-verse", "organizer", "compiler-poc", "macos-app"],
 	"compilerOptions": {
 		"types": ["vite/client", "node"],
 		"esModuleInterop": true,
