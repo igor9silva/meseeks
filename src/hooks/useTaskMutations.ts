@@ -260,7 +260,7 @@ export function useReopen() {
 	};
 }
 
-export function useApproveAction() {
+export function useAuthorizeAction() {
 	//
 	const authorize = useMutation(api.action.authorize);
 
@@ -276,14 +276,14 @@ export function useApproveAction() {
 			return await authorize({
 				taskId,
 				actionId,
-				hasApproved: true,
+				isAuthorized: true,
 			});
 		},
 	});
 
 	return {
-		approveAction: mutation.mutate,
-		isApprovingAction: mutation.isPending,
+		authorizeAction: mutation.mutate,
+		isAuthorizingAction: mutation.isPending,
 		...mutation,
 	};
 }
@@ -304,7 +304,7 @@ export function useRejectAction() {
 			return await authorize({
 				taskId,
 				actionId,
-				hasApproved: false,
+				isAuthorized: false,
 			});
 		},
 	});

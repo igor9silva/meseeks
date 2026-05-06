@@ -26,6 +26,8 @@ interface IdleStateProps {
 	canRequestIteration: boolean;
 	intelligenceSelectorRef: React.RefObject<HTMLButtonElement | null>;
 	handleStop: () => void;
+	isSilent: boolean;
+	setIsSilent: (isSilent: boolean) => void;
 }
 
 export function IdleState({
@@ -44,6 +46,8 @@ export function IdleState({
 	canRequestIteration,
 	intelligenceSelectorRef,
 	handleStop,
+	isSilent,
+	setIsSilent,
 }: IdleStateProps) {
 	//
 	const { setPreferredIntelligence, isSettingPreferredIntelligence } = useSetPreferredIntelligence();
@@ -72,6 +76,14 @@ export function IdleState({
 						ref={intelligenceSelectorRef}
 					/>
 					<SkillsLink />
+					<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+						<input
+							type="checkbox"
+							checked={isSilent}
+							onChange={(event) => setIsSilent(event.target.checked)}
+						/>
+						Silent
+					</label>
 				</div>
 
 				<div className="flex items-center gap-2">

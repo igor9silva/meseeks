@@ -57,7 +57,10 @@ export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 						key={transaction._id}
 						transaction={transaction}
 						taskId={
-							transaction.kind === 'fund task' || transaction.kind === 'refund from task'
+							transaction.kind === 'fund task' ||
+							transaction.kind === 'refund from task' ||
+							transaction.kind === 'reserve action' ||
+							transaction.kind === 'settle action'
 								? transaction.taskId
 								: undefined
 						}

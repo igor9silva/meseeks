@@ -3,7 +3,7 @@ import { usePaginatedQuery } from 'convex/react';
 import { ChevronDown, Clock3, Loader2, ShieldAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { api } from 'convex/_generated/api';
-import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
+import { useAuthorizeAction, useRejectAction } from '~/hooks/useTaskMutations';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 import { LoadingButton } from '~/components/ui/loading-button';
@@ -38,7 +38,7 @@ export function ActionIsland({
 	if (activeActions.length === 0) return null;
 
 	const summary = buildSummary(activeActions);
-	const hasApprovalBlocker = activeActions.some((action) => action.status === 'pending authorization');
+	const hasAuthorizationBlocker = activeActions.some((action) => action.status === 'blocked');
 
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -48,7 +48,7 @@ export function ActionIsland({
 					variant="secondary"
 					className={cn(
 						'h-10 max-w-64 gap-2 overflow-hidden px-3',
-						hasApprovalBlocker && 'ring-1 ring-amber-500/40',
+						hasAuthorizationBlocker && 'ring-1 ring-amber-500/40',
 						className,
 					)}
 					title={summary}
@@ -80,7 +80,7 @@ export function ActionIsland({
 
 function ActiveActionCard({ action, taskId }: { action: Doc<'actions'>; taskId: Id<'tasks'> }) {
 	//
-	const { approveAction, isApprovingAction } = useApproveAction();
+	const { authorizeAction, isAuthorizingAction } = useAuthorizeAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
 	const preview = buildActionPreview(action);
 
@@ -98,12 +98,12 @@ function ActiveActionCard({ action, taskId }: { action: Doc<'actions'>; taskId: 
 				</div>
 			</div>
 
-			{action.status === 'pending authorization' && (
+			{action.status === 'blocked' && (
 				<div className="mt-3 flex gap-2">
 					<LoadingButton
 						size="sm"
-						onClick={() => approveAction({ taskId, actionId: action._id })}
-						loading={isApprovingAction}
+						onClick={() => authorizeAction({ taskId, actionId: action._id })}
+						loading={isAuthorizingAction}
 						loadingText="Authorizing..."
 					>
 						Authorize
@@ -125,7 +125,7 @@ function ActiveActionCard({ action, taskId }: { action: Doc<'actions'>; taskId: 
 
 function SummaryIcon({ actions }: { actions: Doc<'actions'>[] }) {
 	//
-	if (actions.some((action) => action.status === 'pending authorization')) {
+	if (actions.some((action) => action.status === 'blocked')) {
 		return <ShieldAlert className="size-4 text-amber-500" />;
 	}
 
@@ -141,7 +141,7 @@ function StatusDot({ status }: { status: Doc<'actions'>['status'] }) {
 	return (
 		<span
 			className={cn('mt-1.5 size-2 shrink-0 rounded-full', {
-				'bg-amber-500': status === 'pending authorization',
+				'bg-amber-500': status === 'blocked',
 				'bg-blue-500 animate-pulse': status === 'running',
 				'bg-muted-foreground': status === 'enqueued',
 			})}
@@ -151,12 +151,12 @@ function StatusDot({ status }: { status: Doc<'actions'>['status'] }) {
 
 function isActiveAction(action: Doc<'actions'>) {
 	//
-	return action.status === 'pending authorization' || action.status === 'running' || action.status === 'enqueued';
+	return action.status === 'blocked' || action.status === 'running' || action.status === 'enqueued';
 }
 
 function getActionPriority(status: Doc<'actions'>['status']) {
 	//
-	if (status === 'pending authorization') return 0;
+	if (status === 'blocked') return 0;
 	if (status === 'running') return 1;
 	if (status === 'enqueued') return 2;
 	return 3;
@@ -164,16 +164,20 @@ function getActionPriority(status: Doc<'actions'>['status']) {
 
 function buildSummary(actions: Doc<'actions'>[]) {
 	//
-	const pendingAuthorizationCount = actions.filter((action) => action.status === 'pending authorization').length;
+	const blockedCount = actions.filter((action) => action.status === 'blocked').length;
 	const runningCount = actions.filter((action) => action.status === 'running').length;
 	const enqueuedCount = actions.filter((action) => action.status === 'enqueued').length;
 
-	if (pendingAuthorizationCount > 0) {
-		const approvalsText =
-			pendingAuthorizationCount === 1 ? '1 approval needed' : `${pendingAuthorizationCount} approvals needed`;
+	if (blockedCount > 0) {
+		const authorizationText =
+			blockedCount === 1
+				? '1 authorization needed'
+				: `${blockedCount} authorizations needed`;
 		const remainingActiveCount = runningCount + enqueuedCount;
 
-		return remainingActiveCount > 0 ? `${approvalsText}, ${remainingActiveCount} more active` : approvalsText;
+		return remainingActiveCount > 0
+			? `${authorizationText}, ${remainingActiveCount} more active`
+			: authorizationText;
 	}
 
 	if (runningCount > 0) {
@@ -186,7 +190,7 @@ function buildSummary(actions: Doc<'actions'>[]) {
 
 function getStatusLabel(status: Doc<'actions'>['status']) {
 	//
-	if (status === 'pending authorization') return 'waiting for your authorization';
+	if (status === 'blocked') return 'waiting for your authorization';
 	if (status === 'running') return 'running now';
 	if (status === 'enqueued') return 'queued';
 	return status;

@@ -50,7 +50,7 @@ export function SearchWebAction(props: ActionComponentProps) {
 		case 'skipped':
 			return null;
 
-		case 'pending authorization':
+		case 'blocked':
 			return <GenericAction {...props} />;
 
 		case 'failed':

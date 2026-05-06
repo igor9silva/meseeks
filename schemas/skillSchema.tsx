@@ -143,7 +143,7 @@ export const preApprovedCostSchema = z.union([
 		.min(asBigInt({ dollars: 0 }))
 		.max(asBigInt({ dollars: 1000 }))
 		.describe(
-			'If the expected cost is less than or equal to this amount (pre-approved cost), it will be automatically authorized to execute. If can be set to "none" to disable pre-approval at all, forcing a human-approval before execution.',
+			'If the expected cost is less than or equal to this amount, it will be automatically authorized to execute. It can be set to "none" to require human authorization before execution.',
 		),
 ]);
 

@@ -1,9 +1,10 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
-import { internalAction, internalMutation, internalQuery } from 'lib/convex';
-import { NotFound } from 'lib/errors';
+import { internalAction, internalMutation } from 'lib/convex';
+import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError, NotFound } from 'lib/errors';
 import { asDollars } from 'lib/money';
 import { newActionSchema, resolvedActionStatusSchema } from 'schemas/actionSchema';
 import { builtInSkillSchema } from 'schemas/skillSchema';
@@ -11,15 +12,20 @@ import { tokenSchema } from 'schemas/topUpSchema';
 import {
 	addActions,
 	findAction,
+	findBlockedAction,
+	findLastActions,
 	findNextAction,
-	findPendingAuthorizationAction,
 	findRunningAction,
 } from './action.private';
 import { findSkill } from './skills.private';
-import { findTask, setTaskStatus, useTaskFunds } from './tasks.private';
-import { perform } from './reactor.private';
+import { findTask, setTaskStatus, spendTaskEnergy } from './tasks.private';
+import { ACTION_TIMEOUT_MS, isInterrupted, isStarted, perform } from './reactor.private';
+import { canSpendEnergy, reserveEnergy, settleAction } from './reactor.accounting';
+import { findDetails, prepare } from './reactor.preflight';
+import { env } from 'schemas/envSchema';
+import { createReactions } from 'skills/createReactions';
 
-// scheduled by _claimAndScheduleNext to execute one claimed action end-to-end
+// scheduled by _claimNext to execute one reserved action end-to-end
 export const _perform = internalAction({
 	args: {
 		taskId: zid('tasks'),
@@ -30,37 +36,57 @@ export const _perform = internalAction({
 	handler: perform,
 });
 
-// called by reactor runtime to load the task, action, and resolved skill before execution
-export const _prepare = internalQuery({
+// called by reactor runtime to atomically mark a reserved action as started
+export const _start = internalMutation({
 	args: {
 		taskId: zid('tasks'),
 		actionId: zid('actions'),
 	},
-	handler: async (
-		ctx,
-		{ taskId, actionId },
-	): Promise<{
-		task: Doc<'tasks'>;
-		action: Doc<'actions'>;
-		skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>;
-	}> => {
+	handler: async (ctx, { taskId, actionId }) => {
 		//
-		const [task, action] = await Promise.all([
-			findTask(ctx, { taskId }), //
-			findAction(ctx, { actionId }),
-		]);
+		const action = await findAction(ctx, { actionId });
+
+		if (action.taskId !== taskId) {
+			console.warn(`Skipping stale reactor start for ${actionId}; task mismatch.`);
+			return null;
+		}
+
+		if (action.status !== 'running') {
+			console.info(`Skipping stale reactor start for ${actionId}; status is ${action.status}.`);
+			return null;
+		}
+
+		if (isStarted(action)) {
+			console.info(`Skipping stale reactor start for ${actionId}; current claim already started.`);
+			return null;
+		}
+
+		const startedAt = Date.now();
+
+		await ctx.db.patch(actionId, {
+			startedAt,
+		});
+
+		const task = await findTask(ctx, { taskId });
 
 		const skill = await findSkill(ctx, {
 			key: action.skillKey,
 			owner: task.owner,
 		});
+		const startedAction = { ...action, startedAt };
+		const actionDetails = await findDetails(ctx, { action: startedAction, skill });
 
-		return { task, action, skill };
+		return {
+			task,
+			action: startedAction,
+			skill,
+			actionDetails,
+		};
 	},
 });
 
 // called after action creation, authorization, or finish to atomically reserve the next execution slot
-export const _claimAndScheduleNext = internalMutation({
+export const _claimNext = internalMutation({
 	args: {
 		taskId: zid('tasks'),
 	},
@@ -72,66 +98,224 @@ export const _claimAndScheduleNext = internalMutation({
 		.nullable(),
 	handler: async (ctx, { taskId }) => {
 		//
-		const skip = (message: string) => {
-			//
-			console.info(message);
-			return null;
-		};
+		const action = await findActionToClaim(ctx, { taskId });
+		if (!action) return null;
 
-		const runningAction = await findRunningAction(ctx, { taskId });
-		if (runningAction)
-			return skip(
-				`Skipping next action for task ${taskId} because there is a running action (${runningAction.skillKey}, ${runningAction._id}).`,
-			);
+		const claim = await prepareClaim(ctx, { taskId, action });
+		const isReserved = await reserveClaim(ctx, claim);
+		if (!isReserved) return null;
 
-		const pendingAuthorization = await findPendingAuthorizationAction(ctx, { taskId });
-		if (pendingAuthorization)
-			return skip(
-				`Skipping next action for task ${taskId} because there is a pending authorization action (${pendingAuthorization.skillKey}, ${pendingAuthorization._id}).`,
-			);
+		const scheduledFunctionId = await schedulePerform(ctx, claim);
 
-		const nextAction = await findNextAction(ctx, { taskId });
-		if (!nextAction)
-			return skip(`Skipping next action for task ${taskId} because there are no more pending actions.`);
-
-		// generated function references form the reactor loop, so pin the scheduler result at the boundary
-		const scheduledFunctionId: Id<'_scheduled_functions'> = await ctx.scheduler.runAfter(
-			0,
-			internal.reactor._perform,
-			{
-				taskId,
-				actionId: nextAction._id,
-			},
-		);
-
-		console.debug(`${nextAction._id} starts as scheduled function ${scheduledFunctionId}`);
-
-		await ctx.db.patch(nextAction._id, {
-			status: 'running',
-			startedAt: Date.now(),
+		await markClaimRunning(ctx, {
+			claim,
 			scheduledFunctionId,
 		});
-		await setTaskStatus(ctx, { taskId, newStatus: 'acting' }); // if any running action, task is 'acting'
 
 		return {
-			actionId: nextAction._id,
+			actionId: action._id,
 			scheduledFunctionId,
 		};
 	},
 });
 
-// called by reactor runtime so estimated cost is stored once and reused
-export const _setEstimatedCost = internalMutation({
-	args: {
-		actionId: zid('actions'),
-		estimatedCost: z.bigint(),
+async function findActionToClaim(
+	ctx: MutationCtx,
+	{
+		taskId,
+	}: {
+		taskId: Id<'tasks'>;
 	},
-	handler: async (ctx, { actionId, estimatedCost }) => {
-		return await ctx.db.patch(actionId, { estimatedCost });
-	},
-});
+) {
+	//
+	const runningAction = await findRunningAction(ctx, { taskId });
+	if (runningAction) {
+		return skipClaim(
+			`Skipping next action for task ${taskId} because there is a running action (${runningAction.skillKey}, ${runningAction._id}).`,
+		);
+	}
 
-// called by reactor runtime when auto-approval fails and user input is required
+	const action = await findNextAction(ctx, { taskId });
+	const blockedAction = await findBlockedAction(ctx, { taskId });
+	if (blockedAction && (!action || blockedAction.depth <= action.depth)) {
+		return skipClaim(
+			`Skipping next action for task ${taskId} because there is a blocked action (${blockedAction.skillKey}, ${blockedAction._id}).`,
+		);
+	}
+
+	if (!action) {
+		return skipClaim(`Skipping next action for task ${taskId} because there are no more pending actions.`);
+	}
+
+	return action;
+}
+
+async function prepareClaim(
+	ctx: MutationCtx,
+	{
+		taskId,
+		action,
+	}: {
+		taskId: Id<'tasks'>;
+		action: Doc<'actions'>;
+	},
+) {
+	//
+	const task = await findTask(ctx, { taskId });
+	const skill = await findSkill(ctx, { key: action.skillKey, owner: task.owner });
+	const maxCost = await prepare(ctx, {
+		task,
+		action,
+		skill,
+		timeoutMs: ACTION_TIMEOUT_MS,
+	});
+
+	await ctx.db.patch(action._id, { maxCost });
+
+	return {
+		task,
+		action,
+		skill,
+		maxCost,
+	};
+}
+
+async function reserveClaim(
+	ctx: MutationCtx,
+	{
+		task,
+		action,
+		skill,
+		maxCost,
+	}: {
+		task: Doc<'tasks'>;
+		action: Doc<'actions'>;
+		skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>;
+		maxCost: bigint;
+	},
+) {
+	//
+	if (
+		!canSpendEnergy({
+			budget: task.energyBudget,
+			amount: maxCost,
+			bufferPercent: env.COST_PREDICTION_MARGIN,
+		})
+	) {
+		await fail(ctx, {
+			action,
+			reason: `${action.skillKey} needs ${asDollars({ bigInt: maxCost, precision: 6 })} energy, which exceeds this task's energy policy.`,
+			reactions: createReactions(action, [
+				{
+					skillKey: 'requestBudget',
+					args: {
+						estimatedCost: maxCost,
+						previousActionKey: action.skillKey,
+					},
+				},
+			]),
+		});
+		return false;
+	}
+
+	const isAuthorized = await canAuthorize(ctx, {
+		task,
+		action,
+		skill,
+		maxCost,
+	});
+
+	if (!isAuthorized) {
+		await requestAuthorization(ctx, { action });
+		return false;
+	}
+
+	try {
+		await reserveEnergy(ctx, {
+			task,
+			action,
+			maxCost,
+		});
+
+		return true;
+	} catch (error) {
+		if (!isError(INSUFFICIENT_ACCOUNT_FUNDS_ERROR, error)) throw error;
+
+		console.info(
+			`Failing ${action._id} because account balance cannot reserve ${asDollars({ bigInt: maxCost, precision: 6 })}.`,
+		);
+		await fail(ctx, {
+			action,
+			reason: `${action.skillKey} needs ${asDollars({ bigInt: maxCost, precision: 6 })} account energy before it can run.`,
+			reactions: createReactions(action, [
+				{
+					skillKey: 'requestFunds',
+					args: {
+						amount: maxCost,
+						previousActionKey: action.skillKey,
+					},
+				},
+			]),
+		});
+		return false;
+	}
+}
+
+async function schedulePerform(
+	ctx: MutationCtx,
+	{
+		task,
+		action,
+	}: {
+		task: Doc<'tasks'>;
+		action: Doc<'actions'>;
+	},
+) {
+	//
+	// generated function references form the reactor loop, so pin the scheduler result at the boundary
+	const scheduledFunctionId: Id<'_scheduled_functions'> = await ctx.scheduler.runAfter(0, internal.reactor._perform, {
+		taskId: task._id,
+		actionId: action._id,
+	});
+
+	console.debug(`${action._id} reserved as scheduled function ${scheduledFunctionId}`);
+
+	return scheduledFunctionId;
+}
+
+async function markClaimRunning(
+	ctx: MutationCtx,
+	{
+		claim,
+		scheduledFunctionId,
+	}: {
+		claim: {
+			task: Doc<'tasks'>;
+			action: Doc<'actions'>;
+		};
+		scheduledFunctionId: Id<'_scheduled_functions'>;
+	},
+) {
+	//
+	await ctx.db.patch(claim.action._id, {
+		status: 'running',
+		claimedAt: Date.now(),
+		scheduledFunctionId,
+		...(!claim.action.approvedAt && {
+			approvedBy: 'auto',
+			approvedAt: Date.now(),
+		}),
+	});
+	await setTaskStatus(ctx, { taskId: claim.task._id, newStatus: 'acting' }); // if any running action, task is 'acting'
+}
+
+function skipClaim(message: string) {
+	//
+	console.info(message);
+	return null;
+}
+
+// called when reactor claim needs explicit user authorization before execution
 export const _requestAuthorization = internalMutation({
 	args: {
 		actionId: zid('actions'),
@@ -141,8 +325,10 @@ export const _requestAuthorization = internalMutation({
 		//
 		console.debug(`requesting authorization for ${actionId}`);
 
-		await ctx.db.patch(actionId, { status: 'pending authorization' });
-		await setTaskStatus(ctx, { taskId, newStatus: 'blocked' }); // if any pending authorization action, task is 'blocked'
+		const action = await findAction(ctx, { actionId });
+		if (action.taskId !== taskId) throw NotFound();
+
+		await requestAuthorization(ctx, { action });
 	},
 });
 
@@ -155,7 +341,7 @@ export const _finish = internalMutation({
 			text: z.string().optional(),
 			reactions: z.array(newActionSchema),
 		}),
-		status: resolvedActionStatusSchema.exclude(['skipped']),
+		status: resolvedActionStatusSchema,
 		costs: z.array(
 			z.object({
 				symbol: tokenSchema,
@@ -164,64 +350,314 @@ export const _finish = internalMutation({
 			}),
 		),
 	},
-	handler: async (ctx, { actionId, taskId, result, status, costs }) => {
-		//
-		console.debug(`${actionId} finished with ${status}`);
+	handler: finish,
+});
 
-		const action = await ctx.db.get(actionId);
-		if (!action) throw NotFound();
+async function fail(
+	ctx: MutationCtx,
+	{
+		action,
+		reason,
+		reactions,
+	}: {
+		action: Doc<'actions'>;
+		reason: string;
+		reactions: Array<z.infer<typeof newActionSchema>>;
+	},
+) {
+	//
+	await finish(ctx, {
+		actionId: action._id,
+		taskId: action.taskId,
+		status: 'failed',
+		costs: [],
+		result: {
+			text: reason,
+			reactions,
+		},
+	});
+}
 
-		if (action.status === 'skipped') {
-			//
-			console.info(
-				'INTERRUPTION',
-				`_finish(${actionId}, ${status}) result was ignored because status === 'skipped'. This should only happen as a consequence of an user stop() action.`,
-				`skill key: ${action.skillKey}`,
-			);
+async function finish(
+	ctx: MutationCtx,
+	{
+		actionId,
+		taskId,
+		result,
+		status,
+		costs,
+	}: {
+		actionId: Id<'actions'>;
+		taskId: Id<'tasks'>;
+		result: {
+			text?: string | undefined;
+			reactions: Array<z.infer<typeof newActionSchema>>;
+		};
+		status: z.infer<typeof resolvedActionStatusSchema>;
+		costs: Array<{
+			symbol: z.infer<typeof tokenSchema>;
+			amount: bigint;
+			description: string;
+		}>;
+	},
+) {
+	//
+	console.debug(`${actionId} finished with ${status}`);
 
-			// TODO: keep track of interruption costs
+	const action = await findActionToFinish(ctx, { actionId, taskId, status });
+	if (!action) return;
 
-			return;
-		}
+	if (action.result) {
+		throw new Error(`Action result already set for ${actionId}. Trying to set to ${JSON.stringify(result)}`);
+	}
 
-		if (action.result) {
-			throw new Error(`Action result already set for ${actionId}. Trying to set to ${JSON.stringify(result)}`);
-		}
+	const finishedResult = addFailureContextIfNeeded({ action, result, status });
+	const actualCost = totalCostFrom(costs);
 
-		const resultToStore = addFailureContextIfNeeded({ action, result, status });
+	console.debug(
+		`Finished as ${status} with ${finishedResult.text?.length} characters. Total cost: ${asDollars({ bigInt: actualCost, precision: 6 })}`,
+	);
 
-		const totalCost = costs.reduce((acc, cost) => acc + cost.amount, 0n);
+	await settleAction(ctx, { action, costs });
+	await updateTaskEnergy(ctx, { action, actualCost });
+	await persistResult(ctx, { action, result: finishedResult, status, costs });
+	const task = await updateTaskStatus(ctx, { action, status });
+	await react(ctx, { task, action, result: finishedResult });
+}
 
+async function findActionToFinish(
+	ctx: MutationCtx,
+	{
+		actionId,
+		taskId,
+		status,
+	}: {
+		actionId: Id<'actions'>;
+		taskId: Id<'tasks'>;
+		status: z.infer<typeof resolvedActionStatusSchema>;
+	},
+) {
+	//
+	const action = await ctx.db.get(actionId);
+	if (!action) throw NotFound();
+	if (action.taskId !== taskId) throw NotFound();
+
+	if (action.status === 'skipped' || !canFinish(action, status)) {
+		logIgnoredFinish({ action, status });
+		return null;
+	}
+
+	return action;
+}
+
+async function updateTaskEnergy(
+	ctx: MutationCtx,
+	{
+		action,
+		actualCost,
+	}: {
+		action: Doc<'actions'>;
+		actualCost: bigint;
+	},
+) {
+	//
+	if (actualCost <= 0n) return;
+
+	await spendTaskEnergy(ctx, { taskId: action.taskId, amount: actualCost });
+}
+
+async function persistResult(
+	ctx: MutationCtx,
+	{
+		action,
+		result,
+		status,
+		costs,
+	}: {
+		action: Doc<'actions'>;
+		result: {
+			text?: string | undefined;
+			reactions: Array<z.infer<typeof newActionSchema>>;
+		};
+		status: z.infer<typeof resolvedActionStatusSchema>;
+		costs: Array<{
+			symbol: z.infer<typeof tokenSchema>;
+			amount: bigint;
+			description: string;
+		}>;
+	},
+) {
+	//
+	await ctx.db.patch(action._id, {
+		result,
+		status,
+		costs,
+		finishedAt: Date.now(),
+	});
+}
+
+async function updateTaskStatus(
+	ctx: MutationCtx,
+	{
+		action,
+		status,
+	}: {
+		action: Doc<'actions'>;
+		status: z.infer<typeof resolvedActionStatusSchema>;
+	},
+) {
+	//
+	if (status === 'skipped') return null;
+	if (isInterrupted(action)) return null;
+
+	const task = await ctx.db.get(action.taskId);
+	if (!task?.isActive) return null;
+
+	await setTaskStatus(ctx, { taskId: task._id, newStatus: 'unread' });
+
+	return task;
+}
+
+function logIgnoredFinish({
+	action,
+	status,
+}: {
+	action: Doc<'actions'>;
+	status: z.infer<typeof resolvedActionStatusSchema>;
+}) {
+	//
+	console.info(
+		'IGNORED_FINISH',
+		`_finish(${action._id}, ${status}) result was ignored because current status is ${action.status}.`,
+		`skill key: ${action.skillKey}`,
+	);
+
+	// TODO: keep track of interruption costs
+}
+
+function canFinish(action: Doc<'actions'>, status: z.infer<typeof resolvedActionStatusSchema>) {
+	//
+	if (status === 'succeeded') return action.status === 'running';
+
+	if (status === 'failed') {
+		return (
+			action.status === 'enqueued' || //
+			action.status === 'blocked' ||
+			action.status === 'running'
+		);
+	}
+
+	if (isStarted(action)) return false;
+	return (
+		action.status === 'enqueued' || //
+		action.status === 'blocked' ||
+		action.status === 'running'
+	);
+}
+
+function totalCostFrom(
+	costs: Array<{
+		amount: bigint;
+	}>,
+) {
+	//
+	return costs.reduce((total, cost) => total + cost.amount, 0n);
+}
+
+async function canAuthorize(
+	ctx: MutationCtx,
+	{
+		task,
+		action,
+		skill,
+		maxCost,
+	}: {
+		task: Doc<'tasks'>;
+		action: Doc<'actions'>;
+		skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>;
+		maxCost: bigint;
+	},
+) {
+	//
+	if (action.approvedAt) return true;
+	if (action.author === task.owner) return true;
+
+	if (skill.preApprovedCost === 'none') return false;
+	if (skill.preApprovedCost < maxCost) return false;
+
+	if (maxCost > 0n && (await hasReachedMaxConsecutiveCompanionActions(ctx, task))) {
 		console.debug(
-			`Finished as ${status} with ${resultToStore.text?.length} characters. Total cost: ${asDollars({ bigInt: totalCost, precision: 6 })}`,
+			`Requesting human authorization for task ${task._id} because the last ${env.MAX_CONSECUTIVE_COMPANION_ACTIONS} actions are from Meseeks.`,
 		);
 
-		if (status === 'succeeded' && totalCost > 0) {
-			await useTaskFunds(ctx, { taskId: action.taskId, amount: totalCost });
-		}
+		return false;
+	}
 
-		await ctx.db.patch(actionId, { result: resultToStore, status, costs });
+	return true;
+}
 
-		const task = await ctx.db.get(taskId);
+// ¡¡¡do not remove — this prevents machines from taking over!!!
+async function hasReachedMaxConsecutiveCompanionActions(ctx: MutationCtx, task: Doc<'tasks'>) {
+	//
+	const lastActions = await findLastActions(ctx, {
+		taskId: task._id,
+		amount: env.MAX_CONSECUTIVE_COMPANION_ACTIONS,
+	});
 
-		if (task?.isActive) {
-			//
-			await setTaskStatus(ctx, { taskId, newStatus: 'unread' });
+	return lastActions.every((action) => action.author !== task.owner);
+}
 
-			// schedule all reactions
-			await addActions(ctx, {
-				taskId,
-				owner: task.owner,
-				author: action._id,
-				depth: action.depth + 1,
-				skills: resultToStore.reactions.map((reaction) => ({
-					skillKey: reaction.skillKey,
-					args: reaction.args,
-				})),
-			});
-		}
+async function requestAuthorization(
+	ctx: MutationCtx,
+	{
+		action,
+	}: {
+		action: Doc<'actions'>;
 	},
-});
+) {
+	//
+	if (action.status === 'blocked') return;
+	if (action.status !== 'enqueued') {
+		console.info(`Ignoring authorization request for ${action._id}; status is ${action.status}.`);
+		return;
+	}
+
+	await ctx.db.patch(action._id, { status: 'blocked', authorizationRequestedAt: Date.now() });
+	await setTaskStatus(ctx, { taskId: action.taskId, newStatus: 'blocked' });
+}
+
+async function react(
+	ctx: MutationCtx,
+	{
+		task,
+		action,
+		result,
+	}: {
+		task: Doc<'tasks'> | null;
+		action: Doc<'actions'>;
+		result: {
+			text?: string | undefined;
+			reactions: Array<z.infer<typeof newActionSchema>>;
+		};
+	},
+) {
+	//
+	if (!task) return;
+	if (isInterrupted(action)) return;
+	if (action.reactionTrigger === 'none') return;
+	if (result.reactions.length === 0) return;
+
+	await addActions(ctx, {
+		taskId: task._id,
+		owner: task.owner,
+		author: action._id,
+		depth: action.depth + 1,
+		skills: result.reactions.map((reaction) => ({
+			skillKey: reaction.skillKey,
+			args: reaction.args,
+		})),
+	});
+}
 
 function addFailureContextIfNeeded({
 	action,
@@ -233,7 +669,7 @@ function addFailureContextIfNeeded({
 		text?: string | undefined;
 		reactions: Array<z.infer<typeof newActionSchema>>;
 	};
-	status: 'succeeded' | 'failed';
+	status: z.infer<typeof resolvedActionStatusSchema>;
 }) {
 	//
 	if (status !== 'failed') return result;

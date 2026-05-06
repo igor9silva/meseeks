@@ -282,7 +282,7 @@ Final serialization must produce `Array<ModelMessage>`.
 `IterateHistory`:
 
 - omit empty successful `iterate`
-- generic fallback for failures, skipped actions, pending authorization, and future text-bearing results
+- generic fallback for failures, skipped actions, blocked, and future text-bearing results
 
 `InstructHistory`:
 
@@ -414,7 +414,7 @@ This is model-context safety, not browser XSS, but malformed prompt structure st
   - Do not render args by default.
   - Ensure text is escaped so user-controlled content cannot break generated XML-ish tags.
 - [ ] Implement first custom skill history components.
-  - `IterateHistory`: omit empty successful `iterate`; fall back to generic rendering for failures, skipped actions, pending authorization, or text-bearing results.
+  - `IterateHistory`: omit empty successful `iterate`; fall back to generic rendering for failures, skipped actions, blocked, or text-bearing results.
   - `InstructHistory`: omit empty successful `instruct`; fall back to generic rendering otherwise.
   - `ComposeHistory`: omit empty successful `compose`; fall back to generic rendering otherwise.
   - `RenderHistory`: parse `args.code` with Zod, render the JSX/source payload as the canonical model-history content, include error text on failure, and avoid rendering transpiled `result.text` as the primary payload.

@@ -1,5 +1,4 @@
 import { internalMutation, query } from 'lib/convex';
-import { findActiveTasks } from './tasks.private';
 import { addUser, getCurrentUser, isProSubscriber, updateUser } from './users.private';
 
 // called by the better auth user.onCreate trigger to add the app user row or
@@ -41,9 +40,8 @@ export const findLockedBalance = query({
 	args: {},
 	handler: async (ctx) => {
 		//
-		const currentUser = await getCurrentUser(ctx, {});
-		const activeTasks = await findActiveTasks(ctx, { owner: currentUser._id });
+		await getCurrentUser(ctx, {});
 
-		return activeTasks.reduce((acc, task) => acc + task.energyBudget.available, 0n);
+		return 0n;
 	},
 });

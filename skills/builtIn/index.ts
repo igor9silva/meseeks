@@ -12,6 +12,7 @@ import { reason } from './reason';
 import { render } from './render';
 import { reopen } from './reopen';
 import { requestBudget } from './requestBudget';
+import { requestFunds } from './requestFunds';
 import { requestIteration } from './requestIteration';
 import { resolve } from './resolve';
 import { say } from './say';
@@ -46,6 +47,7 @@ export const _builtInSkills = {
 	decreaseBudget,
 	resolve,
 	requestBudget,
+	requestFunds,
 	discard,
 	requestIteration,
 	lookAtMe,

@@ -23,26 +23,6 @@ export const addTopUpTransaction = defineMutation({
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'top up', ...args }),
 });
 
-export const addTaskFundingTransaction = defineMutation({
-	args: z.object({
-		value: valueSchema,
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		description: z.string().optional(),
-	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'fund task', ...args }),
-});
-
-export const addTaskRefundTransaction = defineMutation({
-	args: z.object({
-		value: valueSchema,
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		description: z.string().optional(),
-	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'refund from task', ...args }),
-});
-
 export const addSubscriptionCreditsTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,

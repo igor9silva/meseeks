@@ -57,7 +57,7 @@ function RouteComponent() {
 				<div className="flex flex-col gap-0">
 					<h1 className="text-2xl font-bold">Balance</h1>
 					<span>
-						Your current non-locked balance is{' '}
+						Your current balance is{' '}
 						<EnergyTooltip>
 							<span className="font-bold">
 								{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })}⚡
@@ -65,17 +65,6 @@ function RouteComponent() {
 						</EnergyTooltip>
 						.
 					</span>
-					{lockedBalance > 0 && (
-						<span>
-							Other{' '}
-							<EnergyTooltip>
-								<span className="font-bold">
-									{asDollars({ bigInt: lockedBalance, precision: 6 })}⚡
-								</span>
-							</EnergyTooltip>{' '}
-							in active tasks.
-						</span>
-					)}
 				</div>
 			</Link>
 
@@ -85,7 +74,7 @@ function RouteComponent() {
 			<Tabs value={currentTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
-					<TabsTrigger value="active-tasks">Tasks locking energy</TabsTrigger>
+					<TabsTrigger value="active-tasks">Task energy</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="transactions" className="flex-1 mt-4">

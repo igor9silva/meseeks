@@ -2,11 +2,10 @@ import { Doc, Id } from 'convex/_generated/dataModel';
 import { cn } from '~/lib/utils';
 
 import { simplifiedSkillSchema } from 'schemas/skillSchema';
-import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { LoadingButton } from '~/components/ui/loading-button';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
-import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
+import { useAuthorizeAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function SkillAction(props: ActionComponentProps) {
 	//
@@ -20,8 +19,8 @@ export function SkillAction(props: ActionComponentProps) {
 		case 'skipped':
 			return null;
 
-		case 'pending authorization':
-			return <PendingAuthorization action={action} taskId={taskId} initialRenderDate={initialRenderDate} />;
+		case 'blocked':
+			return <AuthorizationRequest action={action} taskId={taskId} initialRenderDate={initialRenderDate} />;
 
 		case 'failed':
 			return (
@@ -51,7 +50,7 @@ export function SkillAction(props: ActionComponentProps) {
 	}
 }
 
-function PendingAuthorization({
+function AuthorizationRequest({
 	action,
 	taskId,
 	initialRenderDate,
@@ -60,16 +59,16 @@ function PendingAuthorization({
 	taskId: Id<'tasks'>;
 	initialRenderDate: Date;
 }) {
-	const { approveAction, isApprovingAction } = useApproveAction();
+	const { authorizeAction, isAuthorizingAction } = useAuthorizeAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
 	// const isNew = useMemo(() => {
 	// 	return new Date(action._creationTime) > initialRenderDate;
 	// }, [action, initialRenderDate]);
 	const isNew = true;
 
-	const handleApprove = () => {
-		if (isApprovingAction) return;
-		approveAction({ taskId, actionId: action._id });
+	const handleAuthorize = () => {
+		if (isAuthorizingAction) return;
+		authorizeAction({ taskId, actionId: action._id });
 	};
 
 	const handleReject = () => {
@@ -77,9 +76,18 @@ function PendingAuthorization({
 		rejectAction({ taskId, actionId: action._id });
 	};
 
-	// Extract skill details from arguments
-	const skill = action.args?.['skill'] as z.infer<typeof simplifiedSkillSchema>;
+	const parsedSkill = simplifiedSkillSchema.safeParse(action.args?.['skill']);
+	if (!parsedSkill.success) {
+		return (
+			<FailedMessage
+				text="Invalid skill authorization request"
+				error={parsedSkill.error.message}
+				isAuthorCurrentUser={false}
+			/>
+		);
+	}
 
+	const skill = parsedSkill.data;
 	const isCreation = action.skillKey === 'createSkill';
 	const title = isCreation ? 'Learn skill' : 'Update skill';
 	const isHardSkill = skill.kind === 'hard';
@@ -154,8 +162,8 @@ function PendingAuthorization({
 			<div className="flex gap-2 pt-2">
 				<LoadingButton
 					size="sm"
-					onClick={handleApprove}
-					loading={isApprovingAction}
+					onClick={handleAuthorize}
+					loading={isAuthorizingAction}
 					loadingText="Authorizing..."
 				>
 					Authorize

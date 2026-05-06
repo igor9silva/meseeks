@@ -86,6 +86,12 @@ function getTransactionBgColor(transaction: Doc<'transactions'>): string {
 			return 'bg-gray-100 dark:bg-gray-950/30';
 		case 'refund from task':
 			return 'bg-emerald-100 dark:bg-teal-950/30';
+		case 'reserve action':
+			return 'bg-gray-100 dark:bg-gray-950/30';
+		case 'settle action':
+			return transaction.value.amount >= 0
+				? 'bg-emerald-100 dark:bg-teal-950/30'
+				: 'bg-gray-100 dark:bg-gray-950/30';
 		default:
 			return 'bg-muted';
 	}
@@ -102,6 +108,14 @@ function TransactionIcon({ transaction }: { transaction: Doc<'transactions'> }) 
 			return <ArrowDown className="size-5 text-gray-500" />;
 		case 'refund from task':
 			return <RefreshCw className="size-5 text-emerald-500" />;
+		case 'reserve action':
+			return <ArrowDown className="size-5 text-gray-500" />;
+		case 'settle action':
+			return transaction.value.amount >= 0 ? (
+				<RefreshCw className="size-5 text-emerald-500" />
+			) : (
+				<ArrowDown className="size-5 text-gray-500" />
+			);
 		default:
 			return <Clock className="size-5 text-gray-500" />;
 	}
@@ -119,9 +133,13 @@ function TransactionKind({ transaction }: { transaction: Doc<'transactions'> }) 
 		case 'top up':
 			return <h3 className="font-medium">Added funds to account</h3>;
 		case 'fund task':
-			return <h3 className="font-medium">Added energy to task</h3>;
+			return <h3 className="font-medium">Raised task energy</h3>;
 		case 'refund from task':
-			return <h3 className="font-medium">Refunded unused funds from task</h3>;
+			return <h3 className="font-medium">Lowered task energy</h3>;
+		case 'reserve action':
+			return <h3 className="font-medium">Reserved action energy</h3>;
+		case 'settle action':
+			return <h3 className="font-medium">Settled action energy</h3>;
 		default:
 			return <h3 className="font-medium">Unknown</h3>;
 	}

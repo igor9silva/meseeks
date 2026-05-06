@@ -1,13 +1,15 @@
-import { Doc, Id } from 'convex/_generated/dataModel';
+import { Doc } from 'convex/_generated/dataModel';
+import type { z } from 'zod/v3';
+import type { newActionSchema } from 'schemas/actionSchema';
 
 export function createReactions(
 	action: Doc<'actions'>,
 	reactions?: Array<{
 		skillKey: string;
-		args: Record<string, any>;
+		args: Record<string, unknown>;
 		condition?: 'owner' | 'companion' | 'any';
 	}>,
-) {
+): Array<z.infer<typeof newActionSchema>> {
 	return (reactions ?? [])
 		.filter((reaction) => {
 			// prettier-ignore
@@ -23,6 +25,6 @@ export function createReactions(
 			taskId: action.taskId,
 			owner: action.owner,
 			depth: action.depth + 1,
-			author: action._id as Id<'actions'> | Id<'users'>, // I have no idea why I need that cast, as it expects a union of Id<'actions'> or Id<'users'>
+			author: action._id,
 		}));
 }

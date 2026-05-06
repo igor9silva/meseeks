@@ -5,9 +5,9 @@ import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
 
 export const increaseBudget = defineSkill({
 	preApprovedCost: 'none',
-	description: 'Increase the energy budget of the task.',
+	description: 'Increase the task energy policy.',
 	parameters: z.object({
-		amount: z.bigint().min(0n).describe('The amount of funds to add, in energy.'),
+		amount: z.bigint().min(0n).describe('The amount of task energy policy to add.'),
 		shouldIterate: z.boolean().optional().default(true).describe('Whether to react with iterate() or not.'),
 	}),
 	knownReactions: [],
@@ -28,13 +28,13 @@ export const increaseBudget = defineSkill({
 				});
 
 				return {
-					text: `energy budget increased by ${asDollars({ bigInt: args.amount })}`,
+					text: `task energy increased by ${asDollars({ bigInt: args.amount })}`,
 					reactions: args.shouldIterate ? [instruct] : [],
 				};
 				//
 			} catch (error) {
 				// perform() will resolve as failed with that message
-				throw new Error('Insufficient account funds to increase task energy.');
+				throw new Error('Failed to increase task energy.');
 			}
 		},
 });

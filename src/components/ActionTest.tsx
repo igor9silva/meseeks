@@ -133,7 +133,7 @@ export function ActionTest({ className }: { className?: string }) {
 								<h4 className="font-medium">Quick Status Changes:</h4>
 								<div className="flex gap-2 flex-wrap">
 									{[
-										'pending authorization' as const,
+										'blocked' as const,
 										'running' as const,
 										'succeeded' as const,
 										'failed' as const,

@@ -75,11 +75,13 @@ export default defineSchema({
 		zodToConvex(actionSchema),
 	).index(
 		'by_task', ['taskId'],
-	).index(
-		'by_task_status', ['taskId', 'status'],
-	).index(
-		'by_task_author_status', ['taskId', 'author', 'status'],
-	).index(
+		).index(
+			'by_task_status', ['taskId', 'status'],
+		).index(
+			'by_task_status_depth', ['taskId', 'status', 'depth'],
+		).index(
+			'by_task_author_status', ['taskId', 'author', 'status'],
+		).index(
 		'by_status', ['status'],
 	),
 

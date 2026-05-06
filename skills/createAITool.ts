@@ -5,6 +5,7 @@ import type { Doc, Id } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { newActionSchema } from 'schemas/actionSchema';
 import type { skillSchema, softSkillSchema } from 'schemas/skillSchema';
+import { NotImplemented } from 'lib/errors';
 import { asDollars } from 'lib/money';
 import { stringToZod } from 'lib/zodToString';
 import { askMagicRock, type MagicRockContext } from 'convex/magicRock.private';
@@ -52,7 +53,7 @@ export function createAITool(
 
 			console.debug('Provider metadata', providerMetadata);
 
-			const reactions = [] as Array<z.infer<typeof newActionSchema>>;
+			const reactions: Array<z.infer<typeof newActionSchema>> = [];
 
 			// prettier-ignore
 			const say = (text: string) => reactions.push({
@@ -170,19 +171,20 @@ export function createAITool(
 	});
 }
 
-export function estimateCostFor(
+export function computeMaxCost(
 	skill: z.infer<typeof skillSchema>, //
 	task: Doc<'tasks'>,
 	actionId: Id<'actions'>,
 	context?: MagicRockContext,
 ) {
 	//
-	if (skill.cost !== 'dynamic') return skill.cost;
-	if (!context) throw new Error('Context is required for dynamic cost estimation');
+	if (skill.kind === 'built-in') return 0n;
+	if (skill.kind === 'hard') return skill.cost + env.ACTION_COST_USD;
+	if (!context) throw NotImplemented('Context is required to compute max cost for dynamic soft skills.');
 
 	const instructionsLength = extractSystemInstructions(context.system).length;
 	const toolsLength = computeToolsLength(context.tools);
-	const historyLength = computeHistoryLength(context.messages as Array<ModelMessage>);
+	const historyLength = Array.isArray(context.messages) ? computeHistoryLength(context.messages) : 0;
 
 	const inputLength = instructionsLength + toolsLength + historyLength;
 
@@ -199,18 +201,13 @@ export function estimateCostFor(
 	const actionCost = env.ACTION_COST_USD;
 	const totalCost = providerCost + actionCost;
 
-	// add a fixed margin to account for unpredictable costs and bad math
-	const marginPercent = env.COST_PREDICTION_MARGIN / 100;
-	const marginFactor = 100n + BigInt(Math.round(marginPercent * 100));
-	const totalCostWithMargin = (totalCost * marginFactor) / 100n;
-
 	console.debug(
-		`Estimated cost for ${skill.key} (${actionId}): ${asDollars({ bigInt: totalCostWithMargin, precision: 6 })} USD`,
+		`Computed max cost for ${skill.key} (${actionId}): ${asDollars({ bigInt: totalCost, precision: 6 })} USD`,
 	);
 	console.debug(`Input tokens: ${inputTokens}`);
 	console.debug(`Output tokens: ${outputTokens}`);
 
-	return totalCostWithMargin;
+	return totalCost;
 }
 
 export function calculateProviderCost({
@@ -266,8 +263,19 @@ function computeToolsLength(toolSet?: ToolSet) {
 	return length;
 }
 
-function computeHistoryLength(messages: Array<ModelMessage>) {
-	return messages.reduce((acc, message) => acc + message.content.length, 0);
+function computeHistoryLength(messages: ReadonlyArray<ModelMessage>) {
+	return messages.reduce((acc, message) => acc + messageContentLength(message), 0);
+}
+
+function messageContentLength(message: ModelMessage) {
+	//
+	if (typeof message.content === 'string') return message.content.length;
+
+	try {
+		return JSON.stringify(message.content).length;
+	} catch {
+		return 0;
+	}
 }
 
 export function modelFrom(

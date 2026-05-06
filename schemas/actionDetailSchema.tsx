@@ -1,5 +1,6 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
+import { intelligenceKeys } from './intelligenceSchema';
 import { skillKindSchema } from './skillSchema';
 
 const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
@@ -78,10 +79,16 @@ const llmActionDetailSchema = baseActionDetailSchema
 		llm: z
 			.object({
 				// model configuration
+				intelligenceKey: intelligenceKeys.optional().describe('Full intelligence key used to rebuild the runtime model'),
 				model: z.string().describe('Specific model that was used for this execution'),
 				provider: z.string().describe('AI provider (extracted from model)'),
 				temperature: temperatureSchema.describe('Temperature setting used for this call'),
 				maxTokens: z.number().min(1).optional().describe('Maximum tokens limit set for generation'),
+				maxRetries: z.number().optional().describe('Maximum AI SDK retries set for generation'),
+				seed: z.number().optional().describe('Generation seed, when configured'),
+				topK: z.number().optional().describe('Top-K generation setting, when configured'),
+				topP: z.number().optional().describe('Top-P generation setting, when configured'),
+				stopSequences: z.array(z.string()).optional().describe('Stop sequences set for generation'),
 
 				// context information
 				systemInstructions: z.string().describe('System prompt that was provided to the model'),
@@ -134,6 +141,7 @@ export const actionDetailSchema = z
 	.describe('Complete action execution details for debugging and transparency');
 
 const llmUpdateFields = z.object({
+	intelligenceKey: intelligenceKeys.optional(),
 	finishReason: z.string().optional(),
 	text: z.string().optional(),
 	toolCalls: z.array(toolCallSchema).optional(),

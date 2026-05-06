@@ -20,7 +20,7 @@ import type { AITool } from 'schemas/toolSchema';
 import { modelFrom } from 'skills/createAITool';
 import { _toolsForMagicRock } from 'skills/tools';
 import { internal } from './_generated/api';
-import { ACTION_TIMEOUT_MS } from './reactor.constants';
+import { energyStateFor } from './reactor.accounting';
 
 // >be human
 // >dig shiny rocks from ground
@@ -76,6 +76,7 @@ export async function prepareContext(
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
 	skill: z.infer<typeof softSkillSchema>,
+	timeoutMs: number,
 ): Promise<MagicRockContext> {
 	//
 	const intelligenceKey = modelFrom(skill.config.model, task.preferredIntelligence);
@@ -143,7 +144,7 @@ export async function prepareContext(
 		topP: skill.config.topP ?? undefined,
 		stopSequences: skill.config.stopSequences ?? undefined,
 		toolChoice: 'required',
-		timeout: { totalMs: ACTION_TIMEOUT_MS },
+		timeout: { totalMs: timeoutMs },
 		system: instructions,
 		messages: isAnthropic
 			? [
@@ -380,7 +381,7 @@ async function renderHistory(
 		actions
 			// remove unfinished or skipped actions
 			.filter((action: Doc<'actions'>) =>
-				['succeeded', 'failed', 'pending authorization'].includes(action.status),
+				['succeeded', 'failed', 'blocked'].includes(action.status),
 			)
 			// remove the current action
 			.filter((a: Doc<'actions'>) => a._id !== action._id)
@@ -412,6 +413,8 @@ function renderAction(
 	isUser: boolean,
 ): ModelMessage | Array<ModelMessage> | undefined {
 	//
+	if (action.interruptedAt) return;
+
 	// temporary until tasks/backlog/jsx-for-ai.mdx replaces this with per-skill ai history components.
 	if ((action.skillKey === 'iterate' || action.skillKey === 'instruct') && !action.result?.text) return;
 
@@ -626,12 +629,15 @@ function valueForVariable(
 		case 'task.parent':
 			return task.parentId ?? '<system>no parent</system>';
 
-		case 'task.energyBudget':
+		case 'task.energyBudget': {
+			const budget = energyStateFor(task.energyBudget);
 			return [
 				`<total alt="Total energy user has budgeted for this task">{{task.energyBudget.total}}</total>`,
 				`<spent alt="Amount already spent from the budget">{{task.energyBudget.spent}}</spent>`,
 				`<available alt="Remaining energy available to resolve this task">{{task.energyBudget.available}}</available>`,
+				`<pressure alt="How strongly the remaining task budget should constrain future work">${budget.pressure}</pressure>`,
 			].join('');
+		}
 
 		case 'task.energyBudget.total':
 			return asDollars({ bigInt: task.energyBudget.total, precision: 10 });

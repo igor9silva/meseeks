@@ -38,6 +38,24 @@ export const refundTaskTransactionSchema = z.object({
 	description: z.string().optional(),
 });
 
+export const actionReservationTransactionSchema = z.object({
+	kind: z.literal('reserve action'),
+	value: valueSchema,
+	actionId: zid('actions'),
+	taskId: zid('tasks'),
+	owner: zid('users'),
+	description: z.string().optional(),
+});
+
+export const actionSettlementTransactionSchema = z.object({
+	kind: z.literal('settle action'),
+	value: valueSchema,
+	actionId: zid('actions'),
+	taskId: zid('tasks'),
+	owner: zid('users'),
+	description: z.string().optional(),
+});
+
 export const subscriptionTransactionSchema = z.object({
 	kind: z.literal('subscription'),
 	value: valueSchema,
@@ -52,6 +70,8 @@ export const transactionSchema = z
 		topUpTransactionSchema,
 		taskCostTransactionSchema,
 		refundTaskTransactionSchema,
+		actionReservationTransactionSchema,
+		actionSettlementTransactionSchema,
 		subscriptionTransactionSchema,
 	])
 	.describe(

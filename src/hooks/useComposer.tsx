@@ -37,7 +37,7 @@ type ComposerContextValue = {
 	clearQueue: () => void;
 
 	// actions
-	submit: (task: Doc<'tasks'>) => Promise<void>;
+	submit: (task: Doc<'tasks'>, options?: { isSilent?: boolean }) => Promise<void>;
 	isSubmitting: boolean;
 };
 
@@ -255,7 +255,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	}, [message, pendingServerDraft, draftSync]);
 
 	const submit = useCallback(
-		async (task: Doc<'tasks'>) => {
+		async (task: Doc<'tasks'>, options?: { isSilent?: boolean }) => {
 			//
 			const skills = buildFinalSkills(queue, message, task);
 			if (skills.length === 0) return;
@@ -277,7 +277,12 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 			clear();
 
 			// run mutation in background (don't await - allows rapid submissions)
-			act({ taskId, skills, shouldReopen: true }).finally(() => {
+			act({
+				taskId,
+				skills,
+				shouldReopen: true,
+				loop: options?.isSilent ? 'silent' : 'seek',
+			}).finally(() => {
 				// remove this batch's items when mutation completes
 				setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
 			});

@@ -43,6 +43,7 @@ export default {
 	compose: ComposeAction,
 	justSay: SayAction,
 	requestBudget: RequestBudgetAction,
+	requestFunds: RequestBudgetAction,
 	increaseBudget: IncreaseBudgetAction,
 	done: DoneAction,
 	resolve: ResolveAction,

@@ -12,7 +12,7 @@ export function GetSkillDetailsAction(props: ActionComponentProps) {
 		case 'skipped':
 			return null;
 
-		case 'pending authorization':
+		case 'blocked':
 		case 'failed':
 			return <GenericAction {...props} />;
 

@@ -114,17 +114,17 @@ flowchart TD
     R2 --> R3[action.lifecycle._perform]
 ```
 
-## Approve / Reject pending authorization
+## Authorize / Reject blocked
 
 Key files:
-- `src/hooks/useTaskMutations.ts` (useApproveAction, useRejectAction)
+- `src/hooks/useTaskMutations.ts` (useAuthorizeAction, useRejectAction)
 - `convex/action/public.ts` (authorize)
 - `convex/action/private.ts` (_authorize)
 - `convex/action/lifecycle/private.ts` (_runNextActionIfNeeded)
 
 ```mermaid
 flowchart TD
-    UI[approve/reject] --> AU[action.public.authorize]
+    UI[authorize/reject] --> AU[action.public.authorize]
     AU --> PR[action.private._authorize]
     PR --> RN[action.lifecycle._runNextActionIfNeeded]
 ```
@@ -140,7 +140,7 @@ Key files:
 
 ```mermaid
 flowchart TD
-    START[_runNextActionIfNeeded] -->|no running/pending auth| RUN[_runAction]
+    START[_runNextActionIfNeeded] -->|no running/blocked action| RUN[_runAction]
     RUN --> ST[_start: action running, task acting]
     ST --> PERF[_perform]
     PERF --> CT[createTool]
@@ -171,4 +171,3 @@ sequenceDiagram
     CT-->>P: result.reactions (first toolCall only)
     P->>RS: persist + enqueue reactions
 ```
-

@@ -8,7 +8,7 @@ export function DiscardAction(props: ActionComponentProps) {
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 	const { action, isAuthorCurrentUser, initialRenderDate, taskId } = props;
 
-	if (action.status === 'pending authorization') {
+	if (action.status === 'blocked') {
 		return (
 			<GenericAction
 				action={action}

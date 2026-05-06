@@ -5,6 +5,7 @@ export const NOT_FOUND_ERROR = 'Not Found';
 export const UNAUTHORIZED_ERROR = 'Unauthorized';
 export const INSUFFICIENT_ACCOUNT_FUNDS_ERROR = 'Insufficient Account Balance';
 export const NOT_ENOUGH_BUDGET_ERROR = 'Not Enough Task Budget';
+export const NOT_IMPLEMENTED_ERROR = 'Not Implemented';
 
 const createError = (code: string) => (message?: string) =>
 	new ConvexError({
@@ -15,6 +16,7 @@ const createError = (code: string) => (message?: string) =>
 export const NotFound = createError(NOT_FOUND_ERROR);
 export const Unauthorized = createError(UNAUTHORIZED_ERROR);
 export const InsufficientAccountFunds = createError(INSUFFICIENT_ACCOUNT_FUNDS_ERROR);
+export const NotImplemented = createError(NOT_IMPLEMENTED_ERROR);
 export const NotEnoughBudget = (
 	message: string,
 	action: Doc<'actions'>,

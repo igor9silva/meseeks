@@ -1,5 +1,5 @@
 import type { Doc } from 'convex/_generated/dataModel';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TooltipProvider } from '~/components/ui/tooltip';
 import { useComposer } from '~/hooks/useComposer';
 import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
@@ -30,6 +30,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	} = useComposer();
 
 	const { stop, isStopping } = useStop();
+	const [isSilent, setIsSilent] = useState(false);
 
 	const {
 		textareaRef,
@@ -79,7 +80,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 
 	const handleAct = async () => {
 		//
-		await submit(task);
+		await submit(task, { isSilent });
 
 		if (!isLocalEmpty) {
 			onSubmit?.(localMessage);
@@ -207,6 +208,8 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 						canRequestIteration={canRequestIteration}
 						intelligenceSelectorRef={intelligenceSelectorRef}
 						handleStop={handleStop}
+						isSilent={isSilent}
+						setIsSilent={setIsSilent}
 					/>
 				)}
 			</div>

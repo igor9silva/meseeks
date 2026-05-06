@@ -34,7 +34,7 @@ export function ActiveTasksTab({ scrollContainerRef }: ActiveTasksTabProps) {
 					<ActiveTaskItem key={task._id} task={task} />
 				))}
 				{activeTasks.length === 0 && status !== 'LoadingFirstPage' && (
-					<div className="text-muted-foreground text-center py-8">No active tasks.</div>
+					<div className="text-muted-foreground text-center py-8">No task energy policies.</div>
 				)}
 				{status === 'LoadingFirstPage' && <Loading className="mt-4" />}
 				{status === 'LoadingMore' && (

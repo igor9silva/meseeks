@@ -123,14 +123,14 @@ function TooltipActive(props: {
 	return (
 		<div className="text-base space-y-1">
 			<p>
-				Available <strong>{asDollars({ bigInt: available, precision: 6 })} ⚡</strong>
+				Remaining <strong>{asDollars({ bigInt: available, precision: 6 })} ⚡</strong>
 			</p>
 			<p>
 				Spent <strong>{asDollars({ bigInt: spent, precision: 6 })} ⚡</strong> ({percentSpent.toFixed(1)}
 				%)
 			</p>
 			<p>
-				Total added <strong>{asDollars({ bigInt: total, precision: 6 })} ⚡</strong>
+				Policy total <strong>{asDollars({ bigInt: total, precision: 6 })} ⚡</strong>
 			</p>
 		</div>
 	);

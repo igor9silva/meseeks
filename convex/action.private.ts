@@ -1,12 +1,12 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import { runNextActionIfNeeded } from './reactor.private';
+import { interrupt, isStarted, runNextActionIfNeeded, skip } from './reactor.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { actionStatusSchema, pendingActionStatusSchema } from 'schemas/actionSchema';
+import { actionStatusSchema, pendingActionStatusSchema, reactionTriggerSchema } from 'schemas/actionSchema';
 import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
-import { setTaskStatus } from './tasks.private';
+import { findTask, setTaskStatus } from './tasks.private';
 import { MutationCtx, QueryCtx } from 'convex/_generated/server';
 import { Id } from 'convex/_generated/dataModel';
 
@@ -64,64 +64,54 @@ export const stopRunningAction = defineMutation({
 		const action = await findRunningAction(ctx, { taskId });
 		if (!action) return;
 
-		await ctx.db.patch(action._id, {
-			status: 'skipped' as const,
-			costs: [
-				// unlimited interruption costs are covered under the Pro subscription
-			],
-			result: {
-				text: `stopped by ${authorIsOwner ? 'human' : author}`,
-				reactions: [],
-			},
+		if (isStarted(action)) {
+			await interrupt(ctx, { action, author });
+			return;
+		}
+
+		await skip(ctx, {
+			action,
+			reason: `stopped by ${authorIsOwner ? 'human' : author}`,
 		});
 	},
 });
 
-// this will skip all pending companion (author !== owner) actions
-// running actions won't be stopped
-export const skipAllPendingReactions = defineMutation({
+// cancels companion work when a new seek trigger takes over the task
+export const cancelPendingCompanionActions = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		owner: zid('users'),
-		shouldSkipRunning: z.boolean(),
 	}),
-	handler: async (ctx, { taskId, owner, shouldSkipRunning }) => {
+	handler: async (ctx, { taskId, owner }) => {
 		//
-		console.debug('skipping all pending reactions taskId', taskId, 'owner', owner);
+		console.debug('cancel pending companion actions taskId', taskId, 'owner', owner);
 
 		const pendingReactions = await Promise.all([
 			findReactions(ctx, { taskId, owner, status: 'enqueued' }),
-			findReactions(ctx, { taskId, owner, status: 'pending authorization' }),
+			findReactions(ctx, { taskId, owner, status: 'blocked' }),
 		]).then(([A, B]) => A.concat(B));
 
-		console.debug('pending reactions', pendingReactions);
+		console.debug('pending companion actions', pendingReactions);
 
-		// TODO: maybe this also must call resolve
+		// skip routes through reactor finish so all terminal writes stay unified
 		await Promise.all(
 			pendingReactions.map((action) =>
-				ctx.db.patch(action._id, {
-					status: 'skipped',
-					costs: [],
-					result: {
-						text: 'new human actions happened before this one could run',
-						reactions: [],
-					},
+				skip(ctx, {
+					action,
+					reason: 'new human actions happened before this one could run',
 				}),
 			),
 		);
 
-		if (shouldSkipRunning) {
-			await stopRunningAction(ctx, { taskId, author: owner, authorIsOwner: true });
-		}
+		await stopRunningAction(ctx, {
+			taskId,
+			author: owner,
+			authorIsOwner: true,
+		});
 	},
 });
 
-// TODO: I think this should be splitted/abstracted
-// one logic for auto-approval (i.e. from within action.perform())
-// another one for explicit human approval/rejection (i.e. from the UI)
-// e.g. update the task status from here feels wrong
-// instintic: if reject, should call resolve
-//	also maybe rename 'resolve' to something else because of task's
+// explicit human authorization/rejection for an action already blocked by reactor claim
 export const authorizeAction = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
@@ -130,40 +120,39 @@ export const authorizeAction = defineMutation({
 			zid('users'), //
 			z.literal('auto'),
 		]),
-		hasApproved: z.boolean(),
+		isAuthorized: z.boolean(),
 	}),
-	handler: async (ctx, { taskId, actionId, approver, hasApproved }) => {
+	handler: async (ctx, { taskId, actionId, approver, isAuthorized }) => {
 		//
 		const action = await findAction(ctx, { actionId });
-		if (action.approvedAt) return;
 
-		// if already running, keep running - else enqueue
-		const approvedStatus = action.status === 'running' ? ('running' as const) : ('enqueued' as const);
-
-		// TODO: `running` here is confusing, but it really means `claimed`. We should likely have a new status for that.
-		console.debug(`${approver} ${hasApproved ? 'approved' : 'rejected'} ${action.skillKey} (${action._id})`);
-
-		const patch = hasApproved
-			? {
-					status: approvedStatus,
-					approvedBy: approver,
-					approvedAt: Date.now(),
-				}
-			: {
-					status: 'skipped' as const,
-					costs: [],
-					result: {
-						text: 'rejected by ' + approver,
-						reactions: [],
-					},
-				};
-
-		// if rejected by user, go back to 'idle' (not 'unread' because it's an explicit user action)
-		if (!hasApproved) {
-			await setTaskStatus(ctx, { taskId, newStatus: 'idle' });
+		if (action.taskId !== taskId) throw NotFound();
+		if (action.status !== 'blocked') {
+			console.info(`Ignoring stale authorization for ${action._id}; status is ${action.status}.`);
+			return;
 		}
 
-		await ctx.db.patch(actionId, patch);
+		console.debug(`${approver} ${isAuthorized ? 'authorized' : 'rejected'} ${action.skillKey} (${action._id})`);
+
+		if (isAuthorized) {
+			//
+			await ctx.db.patch(actionId, {
+				status: 'enqueued',
+				approvedBy: action.approvedBy ?? approver,
+				approvedAt: action.approvedAt ?? Date.now(),
+			});
+
+			await runNextActionIfNeeded(ctx, { taskId });
+			return;
+		}
+
+		// if rejected by user, go back to 'idle' (not 'unread' because it's an explicit user action)
+		await setTaskStatus(ctx, { taskId, newStatus: 'idle' });
+
+		await skip(ctx, {
+			action,
+			reason: 'rejected by ' + approver,
+		});
 		await runNextActionIfNeeded(ctx, { taskId });
 	},
 });
@@ -180,17 +169,12 @@ export const addActions = defineMutation({
 			}),
 		),
 		depth: z.number(),
+		reactionTrigger: reactionTriggerSchema.optional().default('finish'),
 		shouldReopen: z.boolean().optional().default(false),
 	}),
-	handler: async (ctx, { taskId, owner, author, skills, depth, shouldReopen }) => {
+	handler: async (ctx, { taskId, owner, author, skills, depth, reactionTrigger, shouldReopen }) => {
 		//
-		const task = await ctx.db.get(taskId);
-		if (!task) throw NotFound();
-
-		// skip all pending reactions if adding human actions
-		if (author === owner) {
-			await skipAllPendingReactions(ctx, { taskId, owner, shouldSkipRunning: true });
-		}
+		const task = await findTask(ctx, { taskId });
 
 		// reopen if needed and requested
 		const skillsToSchedule = (() => {
@@ -215,6 +199,7 @@ export const addActions = defineMutation({
 					result: null,
 					skillKey: skill.skillKey,
 					args: skill.args,
+					reactionTrigger,
 				}),
 			),
 		);
@@ -233,15 +218,17 @@ export const addAction = defineMutation({
 		skillKey: z.string(),
 		args: z.record(z.unknown()),
 		depth: z.number(),
+		reactionTrigger: reactionTriggerSchema.optional().default('finish'),
 		shouldReopen: z.boolean().optional().default(false),
 	}),
-	handler: async (ctx, { taskId, owner, author, skillKey, args, depth, shouldReopen }) => {
+	handler: async (ctx, { taskId, owner, author, skillKey, args, depth, reactionTrigger, shouldReopen }) => {
 		//
 		const actionIds = await addActions(ctx, {
 			taskId,
 			author,
 			owner,
 			depth,
+			reactionTrigger,
 			shouldReopen,
 			skills: [{ skillKey, args }],
 		});
@@ -283,27 +270,17 @@ export const findActionsPaginated = defineQuery({
 	},
 });
 
-export const findRunningActions = defineQuery({
+export const findBlockedAction = defineQuery({
 	args: z.object({
 		taskId: zid('tasks'),
 	}),
 	handler: async (ctx, { taskId }) => {
 		//
-		return await findByStatus(ctx, { taskId, status: 'running' }).collect();
+		return await findByStatusDepth(ctx, { taskId, status: 'blocked' }).first();
 	},
 });
 
-export const findPendingAuthorizationAction = defineQuery({
-	args: z.object({
-		taskId: zid('tasks'),
-	}),
-	handler: async (ctx, { taskId }) => {
-		//
-		return await findByStatus(ctx, { taskId, status: 'pending authorization' }).first();
-	},
-});
-
-export const skipPendingAuthorizationByTaskAuthor = defineMutation({
+export const skipBlockedByTaskAuthor = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		author: authorSchema,
@@ -311,26 +288,22 @@ export const skipPendingAuthorizationByTaskAuthor = defineMutation({
 	}),
 	handler: async (ctx, { taskId, author, reasonText }) => {
 		//
-		const pendingActions = await ctx.db
+		const blockedActions = await ctx.db
 			.query('actions')
 			.withIndex('by_task_author_status', (q) =>
 				q
 					.eq('taskId', taskId) //
 					.eq('author', author)
-					.eq('status', 'pending authorization'),
+					.eq('status', 'blocked'),
 			)
 			.order('asc')
 			.collect();
 
 		return await Promise.all(
-			pendingActions.map((action) =>
-				ctx.db.patch(action._id, {
-					status: 'skipped' as const,
-					costs: [],
-					result: {
-						text: reasonText,
-						reactions: [],
-					},
+			blockedActions.map((action) =>
+				skip(ctx, {
+					action,
+					reason: reasonText,
 				}),
 			),
 		);
@@ -343,7 +316,7 @@ export const findNextAction = defineQuery({
 	}),
 	handler: async (ctx, { taskId }) => {
 		//
-		return findByStatus(ctx, { taskId, status: 'enqueued' }).first();
+		return findByStatusDepth(ctx, { taskId, status: 'enqueued' }).first();
 	},
 });
 
@@ -370,6 +343,20 @@ const findByStatus = (
 	return ctx.db
 		.query('actions')
 		.withIndex('by_task_status', (q) =>
+			q
+				.eq('taskId', taskId) //
+				.eq('status', status),
+		)
+		.order('asc');
+	};
+
+const findByStatusDepth = (
+	ctx: QueryCtx | MutationCtx,
+	{ taskId, status }: { taskId: Id<'tasks'>; status: z.infer<typeof actionStatusSchema> },
+) => {
+	return ctx.db
+		.query('actions')
+		.withIndex('by_task_status_depth', (q) =>
 			q
 				.eq('taskId', taskId) //
 				.eq('status', status),

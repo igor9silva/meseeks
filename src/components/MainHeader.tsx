@@ -17,7 +17,7 @@ import { useSplatParams } from '~/hooks/useSplatParams';
 export function MainHeader({ className }: { className?: string }) {
 	//
 	const { history } = useRouter();
-	const { pathname, searchStr, search } = useLocation();
+	const { pathname, searchStr } = useLocation();
 	const { open: openLauncher } = useLauncher();
 	const { taskId } = useSplatParams();
 	const currentTask = useQuery(api.tasks.findOne, taskId ? { taskId } : 'skip');
@@ -25,7 +25,7 @@ export function MainHeader({ className }: { className?: string }) {
 	const [isNavigating, startTransition] = useTransition();
 
 	const taskTitle = currentTask?.title;
-	const fallbackTitle = pathname + searchStr || 'Untitled task';
+	const fallbackTitle = pathname === '/' && !searchStr ? 'Inbox' : pathname + searchStr || 'Untitled task';
 
 	const goBack = () => history.back();
 
@@ -133,7 +133,9 @@ function HeaderTitle({
 	fallbackTitle: string;
 }) {
 	//
-	if (!taskTitle) return <span className="truncate text-xs md:text-sm">{fallbackTitle}</span>;
+	if (!taskTitle) {
+		return <span className="inline-flex min-w-0 flex-1 justify-center truncate text-xs md:pr-12 md:text-sm">{fallbackTitle}</span>;
+	}
 
 	return (
 		<span className="inline-flex min-w-0 flex-1 justify-center gap-1 text-xs md:pr-12 md:text-sm">

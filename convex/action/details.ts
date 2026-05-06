@@ -4,7 +4,7 @@ import { NotFound } from 'lib/errors';
 import { findActionDetails, persistActionDetails, updateActionDetails } from './details.private';
 import { getCurrentUser } from '../users.private';
 
-// used by reactor runtime to persist initial execution details before a skill runs
+// used by reactor claim to persist durable preflight details before an action is authorized
 export const _persist = internalMutation({
 	args: persistActionDetails.args.shape,
 	handler: persistActionDetails,

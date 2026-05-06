@@ -15,7 +15,7 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 	const totalBudget = task.energyBudget.total;
 	const spentBudget = totalBudget - availableBudget;
 
-	if (availableBudget < 1n) return null;
+	if (totalBudget < 1n && spentBudget < 1n) return null;
 
 	return (
 		<Link
@@ -49,19 +49,19 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 							<TooltipContent>
 								<div className="text-sm">
 									<div>
-										Available:{' '}
+										Policy remaining:{' '}
 										<span className="font-semibold">
 											{asDollars({ bigInt: availableBudget, precision: 6 })}
 										</span>
 									</div>
 									<div>
-										Total:{' '}
+										Policy total:{' '}
 										<span className="font-semibold">
 											{asDollars({ bigInt: totalBudget, precision: 6 })}
 										</span>
 									</div>
 									<div>
-										Spent:{' '}
+										Policy spent:{' '}
 										<span className="font-semibold">
 											{asDollars({ bigInt: spentBudget, precision: 6 })}
 										</span>

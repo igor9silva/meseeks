@@ -106,7 +106,7 @@ function AuthorizationField({
 			name="preApprovedCost"
 			render={({ field }) => (
 				<FormItem>
-					<LabelWithTooltip tooltip="Controls when this skill requires human approval. You can allow it to be executed by Meseeks with no human approval (up to a certain cost), but it'll still be subject to other limits, such as maximum amount of consecutive actions.">
+					<LabelWithTooltip tooltip="Controls when this skill requires human authorization. You can allow it to be executed by Meseeks without human authorization up to a certain cost, but it'll still be subject to other limits, such as maximum amount of consecutive actions.">
 						Authorization
 					</LabelWithTooltip>
 					<div className="flex flex-row items-center gap-3 w-full">

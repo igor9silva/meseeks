@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
-import { addAction, skipPendingAuthorizationByTaskAuthor } from '../action.private';
+import { addAction, skipBlockedByTaskAuthor } from '../action.private';
 import { internal } from '../_generated/api';
 import { defineMutation } from 'lib/convex';
 import { computeNextRun } from 'lib/cron';
@@ -48,7 +48,7 @@ export const executeRecurring = defineMutation({
 	}),
 	handler: async (ctx, { scheduleId, taskId, owner, author, skillKey, args, depth, cronExpression, timeZone }) => {
 		//
-		await skipPendingAuthorizationByTaskAuthor(ctx, {
+		await skipBlockedByTaskAuthor(ctx, {
 			taskId,
 			author,
 			reasonText: 'superseded by a newer scheduled run',

@@ -14,7 +14,7 @@ export function ScrapeTweetAction(props: ActionComponentProps) {
 		case 'skipped':
 			return null;
 
-		case 'pending authorization':
+		case 'blocked':
 			return <GenericAction {...props} />;
 
 		case 'failed':

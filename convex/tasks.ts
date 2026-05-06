@@ -14,7 +14,7 @@ import {
 	increaseTaskBudget,
 	markTaskAsRead,
 	moveTask,
-	removeTaskFunds,
+	decreaseTaskBudget,
 	setTaskPreferredIntelligence,
 	setTaskStatus,
 	updateTaskInstructions,
@@ -45,16 +45,16 @@ export const _setStatus = internalMutation({
 	handler: setTaskStatus,
 });
 
-// called by skills/builtIn/increaseBudget.ts so the ai can fund a task from account balance
+// called by skills/builtIn/increaseBudget.ts so the ai can raise a task's energy policy
 export const _increaseBudget = internalMutation({
 	args: increaseTaskBudget.args.shape,
 	handler: increaseTaskBudget,
 });
 
-// called by skills/builtIn/decreaseBudget.ts to refund unused task budget back to account balance
-export const _removeFunds = internalMutation({
-	args: removeTaskFunds.args.shape,
-	handler: removeTaskFunds,
+// called by skills/builtIn/decreaseBudget.ts to lower a task's energy policy
+export const _decreaseBudget = internalMutation({
+	args: decreaseTaskBudget.args.shape,
+	handler: decreaseTaskBudget,
 });
 
 // called by skills/builtIn/moveTask.ts so the ai can move a task to another parent or inbox

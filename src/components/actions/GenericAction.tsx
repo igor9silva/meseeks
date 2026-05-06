@@ -13,13 +13,14 @@ import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
 import { TextShimmer } from '~/components/ui/text-shimmer';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
+import { useAuthorizeAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className } = props;
-	const { approveAction, isApprovingAction } = useApproveAction();
+	const { authorizeAction, isAuthorizingAction } = useAuthorizeAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
+	const maxCost = action.maxCost ?? action.estimatedCost;
 	const isNew = useMemo(() => {
 		return new Date(action._creationTime) > initialRenderDate;
 	}, [action, initialRenderDate]);
@@ -28,9 +29,9 @@ export function GenericAction(props: ActionComponentProps) {
 		return null;
 	}
 
-	const handleApprove = () => {
-		if (isApprovingAction) return;
-		approveAction({ taskId, actionId: action._id });
+	const handleAuthorize = () => {
+		if (isAuthorizingAction) return;
+		authorizeAction({ taskId, actionId: action._id });
 	};
 
 	const handleReject = () => {
@@ -43,10 +44,10 @@ export function GenericAction(props: ActionComponentProps) {
 		global: true,
 		combo: { withAlt: true, key: 'Enter' },
 		callback: () => {
-			if (action.status === 'pending authorization' && !isApprovingAction) {
-				handleApprove();
-			}
-		},
+				if (action.status === 'blocked' && !isAuthorizingAction) {
+					handleAuthorize();
+				}
+			},
 	});
 
 	return (
@@ -60,13 +61,13 @@ export function GenericAction(props: ActionComponentProps) {
 			})}
 		>
 			<div className="max-w-full">
-				{action.status === 'pending authorization' ? (
+				{action.status === 'blocked' ? (
 					<div className="flex flex-col gap-2 p-2 rounded-3xl bg-muted">
 						<div className="flex flex-col">
 							<div className="text-md font-medium">{action.skillKey}()</div>
-							{typeof action.estimatedCost === 'bigint' && (
+							{typeof maxCost === 'bigint' && (
 								<div className="text-sm text-muted-foreground">
-									Expected cost: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })} ⚡
+									Max cost: ${asDollars({ bigInt: maxCost, precision: 6 })} ⚡
 								</div>
 							)}
 						</div>
@@ -87,8 +88,8 @@ export function GenericAction(props: ActionComponentProps) {
 							<LoadingButton
 								size="sm"
 								variant="default"
-								onClick={handleApprove}
-								loading={isApprovingAction}
+									onClick={handleAuthorize}
+								loading={isAuthorizingAction}
 								loadingText="Authorizing..."
 							>
 								Authorize
@@ -160,7 +161,7 @@ function Result({
 }) {
 	// if the action failed because and we have a budget request,
 	// do not render the action; let the following budget request action do it
-	if (status === 'failed' && hasRequestBudgetReaction(reactions)) return null;
+	if (status === 'failed' && hasRecoveryReaction(reactions)) return null;
 
 	if (status === 'failed') {
 		return (
@@ -189,9 +190,9 @@ function Result({
 	);
 }
 
-function hasRequestBudgetReaction(reactions: Array<{ skillKey: string }>) {
+function hasRecoveryReaction(reactions: Array<{ skillKey: string }>) {
 	//
-	return reactions.some((reaction) => reaction.skillKey === 'requestBudget');
+	return reactions.some((reaction) => reaction.skillKey === 'requestBudget' || reaction.skillKey === 'requestFunds');
 }
 
 function InspectButton({ actionId }: { actionId: string }) {

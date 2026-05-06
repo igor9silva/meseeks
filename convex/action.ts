@@ -6,13 +6,13 @@ import { ensureTaskOwner } from './tasks.private';
 import {
 	addActions,
 	authorizeAction,
-	findActionsPaginated,
-	findRunningActions,
-	findLastActions,
+	cancelPendingCompanionActions,
 	findAction,
+	findActionsPaginated,
+	findLastActions,
 } from './action.private';
 
-// used by reactor auto-approval
+// used by explicit UI authorization; reactor claim authorizes inline to avoid recursion
 export const _authorize = internalMutation({
 	args: {
 		taskId: zid('tasks'),
@@ -21,12 +21,12 @@ export const _authorize = internalMutation({
 			zid('users'), //
 			z.literal('auto'),
 		]),
-		hasApproved: z.boolean(),
+		isAuthorized: z.boolean(),
 	},
 	handler: authorizeAction,
 });
 
-// used by magicRock history rendering and by lifecycle's consecutive-companion guard
+// used by magicRock history rendering and by reactor's consecutive-companion guard
 export const _findLastActions = internalQuery({
 	args: {
 		taskId: zid('tasks'),
@@ -38,21 +38,22 @@ export const _findLastActions = internalQuery({
 export const act = mutation({
 	args: {
 		taskId: zid('tasks'),
-		skills: z
-			.array(
-				z.object({
-					skillKey: z.string(),
-					args: z.record(z.unknown()),
-				}),
-			)
-			.min(1),
+		skills: z.array(z.object({ skillKey: z.string(), args: z.record(z.unknown()) })).min(1),
 		shouldReopen: z.boolean().optional().default(true),
+		loop: z.enum(['seek', 'silent']).optional().default('seek'),
 	},
-	handler: async (ctx, { taskId, skills, shouldReopen }) => {
+	handler: async (ctx, { taskId, skills, shouldReopen, loop }) => {
 		//
 		console.debug(`using ${skills.map((s) => s.skillKey).join(', ')} on task '${taskId}'`);
 
 		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
+
+		if (loop === 'seek') {
+			await cancelPendingCompanionActions(ctx, {
+				taskId,
+				owner: currentUser._id,
+			});
+		}
 
 		return await addActions(ctx, {
 			skills,
@@ -60,6 +61,7 @@ export const act = mutation({
 			depth: 0,
 			author: currentUser._id,
 			owner: currentUser._id,
+			reactionTrigger: loop === 'silent' ? 'none' : 'finish',
 			shouldReopen,
 		});
 	},
@@ -69,9 +71,9 @@ export const authorize = mutation({
 	args: {
 		taskId: zid('tasks'),
 		actionId: zid('actions'),
-		hasApproved: z.boolean(),
+		isAuthorized: z.boolean(),
 	},
-	handler: async (ctx, { taskId, actionId, hasApproved }) => {
+	handler: async (ctx, { taskId, actionId, isAuthorized }) => {
 		//
 		const { currentUser } = await ensureTaskOwner(ctx, { taskId });
 
@@ -79,7 +81,7 @@ export const authorize = mutation({
 			taskId,
 			actionId,
 			approver: currentUser._id,
-			hasApproved,
+			isAuthorized,
 		});
 	},
 });
@@ -94,18 +96,6 @@ export const findAllPaginated = query({
 		await ensureTaskOwner(ctx, { taskId });
 
 		return await findActionsPaginated(ctx, { taskId, paginationOpts });
-	},
-});
-
-export const findAllRunning = query({
-	args: {
-		taskId: zid('tasks'),
-	},
-	handler: async (ctx, { taskId }) => {
-		//
-		await ensureTaskOwner(ctx, { taskId });
-
-		return await findRunningActions(ctx, { taskId });
 	},
 });
 

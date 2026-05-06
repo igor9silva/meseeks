@@ -15,7 +15,7 @@ This document describes the current, shipping execution model exactly as impleme
 
 Key fields (simplified):
 - `taskId`, `owner`, `author`, `skillKey`, `args`, `depth`
-- `status`: `enqueued`, `running`, `pending authorization`, `succeeded`, `failed`, `skipped`
+- `status`: `enqueued`, `running`, `blocked`, `succeeded`, `failed`, `skipped`
 - `result`: `{ text?, reactions: newActionSchema[] }` for resolved actions
 - `costs`: array of `{ symbol, amount, description }` for resolved actions
 - `estimatedCost`, `approvedAt`, `approvedBy`
@@ -52,10 +52,10 @@ Stored in `action_details` table for soft/hard skills only:
 
 ## Entry Points (Public APIs)
 
-### `convex/action/public.ts`
+### `convex/action.ts`
 - `act`: creates one or more actions for a task (depth 0, author=owner).
-- `authorize`: human approval/rejection for pending authorization actions.
-- `findAllPaginated`, `findAllRunning`, `findOne`: query utilities.
+- `authorize`: human approval/rejection for blocked actions.
+- `findAllPaginated`: public query for task action history.
 
 ### `convex/tasks/private.ts`
 - `_add`: creates a new task and immediately enqueues actions (default includes `say` and optional `increaseBudget`).
@@ -67,16 +67,17 @@ Stored in `action_details` table for soft/hard skills only:
 
 Steps:
 1) Load task (`_findOneTask`).
-2) If `author === owner` (human), call `_skipAllPendingReactions` to skip companion actions and stop running ones.
+2) If `act(loop: "seek")`, call `cancelPendingCompanionActions` to skip pending companion actions and interrupt started companion work.
 3) If task is inactive and `shouldReopen`, insert a `reopen` skill at the front.
 4) Insert each action with:
    - `status: 'enqueued'`
    - `result: null`
+   - `reactionTrigger: 'finish'` for seek, `'none'` for silent
 5) Call `_runNextActionIfNeeded` to start execution.
 
 Related helpers:
 - `_add`: thin wrapper for adding a single action.
-- `_skipAllPendingReactions`: marks pending companion actions as `skipped`; optionally calls `_stop` to cancel a running action.
+- `cancelPendingCompanionActions`: skips pending companion actions and marks started running actions as interrupted so they finish financially but do not react.
 
 ## Queue Runner (Single-Action Execution)
 
@@ -84,7 +85,7 @@ Related helpers:
 
 Execution gate:
 1) If any action is `running`, return.
-2) If any action is `pending authorization`, return.
+2) If any action is `blocked`, return.
 3) Otherwise, take the next `enqueued` action and call `_runAction`.
 
 ### `_runAction`
@@ -130,7 +131,7 @@ Rules:
 
 ### Human approval
 
-- `_requestAuthorization`: sets action status to `pending authorization`, task to `blocked`.
+- `_requestAuthorization`: sets action status to `blocked`, task to `blocked`.
 - `authorize` mutation calls `_authorize`:
   - Approved → status remains `running` or becomes `enqueued`.
   - Rejected → status `skipped`, result `{ text: "rejected by ...", reactions: [] }`.
@@ -200,7 +201,7 @@ Important runtime settings:
 - History is cropped to `MAX_CONTEXT_TOKENS`.
 
 History rendering:
-- Includes only actions with status `succeeded`, `failed`, or `pending authorization`.
+- Includes only actions with status `succeeded`, `failed`, or `blocked`.
 - Skips the current action.
 - Uses `action.result?.text` for history content.
 
@@ -235,7 +236,7 @@ History rendering:
 ## Concurrency and Scheduling
 
 - Only one action per task can run at a time (`_runNextActionIfNeeded` checks for running actions).
-- If any action is `pending authorization`, no new actions start.
+- If any action is `blocked`, no new actions start.
 - Reactions are enqueued immediately as separate actions and run sequentially.
 
 ## Mermaid Diagrams
@@ -247,11 +248,11 @@ flowchart TD
     A["action.public.act()"] --> B["action.private._addMany()"]
     B --> C["insert actions status enqueued"]
     C --> D["action.lifecycle._runNextActionIfNeeded()"]
-    D -->|no running and no pending auth| E["action.lifecycle._runAction()"]
+    D -->|no running and no blocked action| E["action.lifecycle._runAction()"]
     E --> F["action.lifecycle._start() action running task acting"]
     F --> G["action.lifecycle._perform()"]
     G --> H{"auto approved"}
-    H -- no --> I["action.lifecycle._requestAuthorization() status pending task blocked"]
+    H -- no --> I["action.lifecycle._requestAuthorization() status blocked task blocked"]
     H -- yes --> J["skills.createTool().execute()"]
     J --> K["action.lifecycle._resolve() patch action result"]
     K --> L["task unread if active"]
@@ -264,14 +265,14 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> enqueued
-    enqueued --> running: action.lifecycle._start()
-    enqueued --> pending_authorization: action.lifecycle._requestAuthorization()
+    enqueued --> running: reactor._claimNext()
+    enqueued --> pending_authorization: reactor.requestAuthorization()
     pending_authorization --> enqueued: action.private._authorize() approved
     pending_authorization --> skipped: action.private._authorize() rejected
-    enqueued --> skipped: action.private._skipAllPendingReactions()
-    running --> succeeded: action.lifecycle._resolve()
-    running --> failed: action.lifecycle._resolve()
-    running --> skipped: action.private._stop()
+    enqueued --> skipped: action.private.cancelPendingCompanionActions()
+    running --> succeeded: reactor._finish()
+    running --> failed: reactor._finish()
+    running --> running: action.private.stopRunningAction() marks interruptedAt
 ```
 
 ### Soft Skill Execution (LLM)

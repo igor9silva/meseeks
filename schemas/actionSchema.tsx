@@ -14,6 +14,8 @@ export const newActionSchema = z.object({
 	result: z.string().optional(),
 });
 
+export const reactionTriggerSchema = z.enum(['finish', 'none']);
+
 const coreActionSchema = z.object({
 	taskId: zid('tasks'),
 	owner: zid('users'),
@@ -23,7 +25,19 @@ const coreActionSchema = z.object({
 	args: z.record(z.any()),
 	// TODO: idea: inherit the argsSchema from the skill, so we can drill types
 	estimatedCost: z.bigint().optional(),
+	maxCost: z.bigint().optional().describe('Worst-case cost for this action, before any task policy buffer.'),
+	reservedEnergy: z.bigint().optional().describe('Account energy reserved for this action before execution.'),
+	claimedAt: z.number().optional().describe('When the reactor reserved this action execution slot.'),
 	startedAt: z.number().optional(),
+	finishedAt: z.number().optional().describe('When this action reached a final status.'),
+	reservedAt: z.number().optional().describe('When account energy was reserved for this action.'),
+	settledAt: z.number().optional().describe('When this action reservation was settled.'),
+	interruptedAt: z.number().optional().describe('When this running action was interrupted by a newer action.'),
+	interruptedBy: authorSchema.optional().describe('Who interrupted this running action.'),
+	reactionTrigger: reactionTriggerSchema
+		.optional()
+		.describe('Whether finishing this action can trigger reactions. Missing means finish for legacy actions.'),
+	authorizationRequestedAt: z.number().optional().describe('When this action started waiting for authorization.'),
 	scheduledFunctionId: zid('_scheduled_functions')
 		.optional()
 		.describe('Internal Convex scheduler id for the action execution function.'),
@@ -37,7 +51,7 @@ const coreActionSchema = z.object({
 });
 
 export const pendingActionStatusSchema = z.enum([
-	'pending authorization', //
+	'blocked', //
 	'enqueued',
 	'running',
 ]);

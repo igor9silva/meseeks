@@ -3,15 +3,15 @@ import { z } from 'zod/v3';
 import type { Doc, Id } from './_generated/dataModel';
 import { addActions } from './action.private';
 import { defineMutation, defineQuery } from 'lib/convex';
-import { InsufficientAccountFunds, NotFound } from 'lib/errors';
+import { NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
+import { spendEnergy } from './reactor.accounting';
 import { cancelTaskSchedules } from './schedules.private';
 import { authorSchema } from 'schemas/authorSchema';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { findEnabledSkillsWithDetails } from './skills.private';
-import { addTaskFundingTransaction, addTaskRefundTransaction } from './transactions.private';
-import { findUser, getCurrentUser } from './users.private';
+import { getCurrentUser } from './users.private';
 
 type EnabledSkillDetail = {
 	key: string;
@@ -208,10 +208,10 @@ export const addTaskWithActions = defineMutation({
 		parentId: zid('tasks').optional(),
 		preferredIntelligence: intelligenceKeys.optional(),
 		skills: z.array(
-			z.object({
-				skillKey: z.string().describe('The key of the skill to use'),
-				args: z.record(z.any()),
-			}),
+				z.object({
+					skillKey: z.string().describe('The key of the skill to use'),
+					args: z.record(z.unknown()),
+				}),
 		),
 	}),
 	handler: async (ctx, { author, owner, title, instructions, parentId, preferredIntelligence, skills }) => {
@@ -428,17 +428,6 @@ export const setTaskStatus = defineMutation({
 		//
 		if (newStatus === 'done' || newStatus === 'discarded') {
 			//
-			const task = await findTask(ctx, { taskId });
-			if (!task) throw NotFound();
-
-			// remove funds from the task
-			if (task.energyBudget.available > 0n) {
-				await removeTaskFunds(ctx, {
-					taskId,
-					amount: task.energyBudget.available,
-				});
-			}
-
 			// cancel all active schedules for this task
 			const cancelledCount = await cancelTaskSchedules(ctx, { taskId });
 			if (cancelledCount > 0) {
@@ -482,7 +471,7 @@ export const setTaskStatus = defineMutation({
 // 	},
 // });
 
-export const useTaskFunds = defineMutation({
+export const spendTaskEnergy = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),
@@ -492,31 +481,10 @@ export const useTaskFunds = defineMutation({
 		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
-		console.debug(`using ${asDollars({ bigInt: amount })} from task ${taskId}`);
+		console.debug(`spending ${asDollars({ bigInt: amount })} task energy on ${taskId}`);
 
-		if (task.energyBudget.available < amount) {
-			//
-			console.warn(
-				'Insufficient funds on task',
-				taskId,
-				'cost',
-				asDollars({ bigInt: amount }),
-				'available',
-				asDollars({ bigInt: task.energyBudget.available }),
-				'missing',
-				asDollars({ bigInt: amount - task.energyBudget.available }),
-				'Will use all available funds',
-			);
-
-			amount = task.energyBudget.available;
-		}
-
-		// update the task balance
 		await ctx.db.patch(taskId, {
-			energyBudget: {
-				total: task.energyBudget.total,
-				available: task.energyBudget.available - amount,
-			},
+			energyBudget: spendEnergy(task.energyBudget, amount),
 		});
 	},
 });
@@ -531,33 +499,8 @@ export const increaseTaskBudget = defineMutation({
 		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
-		const user = await findUser(ctx, { userId: task.owner });
-		if (!user) throw NotFound();
+		console.debug('increasing energy policy for task', taskId, asDollars({ bigInt: amount }));
 
-		const currentBalance = user.balanceUSD ?? 0n;
-
-		console.debug(
-			'increasing budget to task',
-			taskId,
-			asDollars({ bigInt: amount }),
-			'current balance',
-			asDollars({ bigInt: currentBalance }),
-		);
-
-		if (currentBalance < amount) throw InsufficientAccountFunds();
-
-		// TODO: shouldn't this be an action?
-		// create the transaction
-		await addTaskFundingTransaction(ctx, {
-			taskId,
-			owner: task.owner,
-			value: {
-				symbol: 'USD',
-				amount: -amount,
-			},
-		});
-
-		// update the task balance
 		await ctx.db.patch(taskId, {
 			energyBudget: {
 				total: task.energyBudget.total + amount,
@@ -567,7 +510,7 @@ export const increaseTaskBudget = defineMutation({
 	},
 });
 
-export const removeTaskFunds = defineMutation({
+export const decreaseTaskBudget = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),
@@ -577,15 +520,8 @@ export const removeTaskFunds = defineMutation({
 		const task = await findTask(ctx, { taskId });
 		if (!task) throw NotFound();
 
-		// create the transaction
-		await addTaskRefundTransaction(ctx, {
-			taskId,
-			owner: task.owner,
-			value: { symbol: 'USD', amount },
-			description: 'Refund of unused funds',
-		});
+		console.debug('decreasing energy policy for task', taskId, asDollars({ bigInt: amount }));
 
-		// update the task balance
 		await ctx.db.patch(taskId, {
 			energyBudget: {
 				total: task.energyBudget.total - amount,
