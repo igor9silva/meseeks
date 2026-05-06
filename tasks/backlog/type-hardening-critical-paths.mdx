@@ -18,7 +18,7 @@ Critical-path hotspots include:
 - `skills/tools.ts` `@ts-ignore` around tool `execute`
 - `src/router.tsx` `(import.meta as any).env`
 - `convex/tasks.private.ts` `z.record(z.any())` in action args
-- `organizer/src/components/tasks/TaskExplorerPage.tsx` implicit any-heavy callbacks
+- `apps/organizer/src/components/tasks/TaskExplorerPage.tsx` implicit any-heavy callbacks
 
 ## Objective
 Eliminate unsafe type escapes in core execution/scheduling flows and make those paths strict enough to refactor safely.
@@ -37,7 +37,7 @@ Eliminate unsafe type escapes in core execution/scheduling flows and make those 
   - remove `z.record(z.any())` in `convex/tasks.private.ts`
   - use schema-backed `unknown` + narrowing/validation at usage boundaries
 - [ ] Stabilize organizer explorer typing:
-  - remove implicit `any` callbacks in `organizer/src/components/tasks/TaskExplorerPage.tsx`
+  - remove implicit `any` callbacks in `apps/organizer/src/components/tasks/TaskExplorerPage.tsx`
   - fix broad `{}` access patterns (for example `task.title` access on untyped values)
 - [ ] Add regression checks for this task scope:
   - grep-based check in CI for `@ts-ignore`/`@ts-expect-error` in touched files

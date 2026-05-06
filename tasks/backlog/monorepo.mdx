@@ -12,7 +12,7 @@ consider Vite+, see: https://x.com/branchseer/status/2032464454747893976?s=20
 
 The CI/tooling drift is a repository-structure problem, not just a script problem. Root-level commands currently traverse mixed projects with different constraints (main app, organizer, proof-of-concepts), which forces brittle exclusions and creates noisy failures.
 
-The durable fix is to make workspace boundaries explicit through a proper monorepo layout with a `packages/` directory.
+The durable fix is to make workspace boundaries explicit through a proper monorepo layout with `apps/` for runnable apps and `packages/` for libraries, experiments, and placeholders.
 
 Bun is the preferred workspace/package manager for this migration. Use pnpm only if we hit a documented blocking issue.
 
@@ -20,19 +20,18 @@ Note: we have a private/ dir which is a completely separate repo (because it sho
 
 ## Objective
 
-Reorganize this repository into a Bun-first monorepo where each package has explicit ownership, scripts, and CI gates, so default quality checks run only on intended packages without ad-hoc directory exclusions.
+Reorganize this repository into a Bun-first monorepo where each package has explicit ownership and scripts. The main Meseeks app remains the only deployment gate through Vercel's Git integration; no GitHub Actions are introduced.
 
 ## Subtasks
 
--   [ ] Define and approve target monorepo layout with `packages/` as the source of truth.
--   [ ] Move current projects into package boundaries (main app, organizer, browser POC, compiler POC, and shared libraries where needed).
--   [ ] Introduce Bun workspace configuration and per-package scripts for `typecheck`, `lint`, and `format:check`.
--   [ ] Replace root "scan everything" commands with orchestrated per-package workspace commands.
--   [ ] Ensure proof-of-concept packages are opt-in in CI by default (manual or dedicated workflow), not implicitly part of core gates.
+-   [x] Define and approve target monorepo layout with `apps/` for runnable apps and `packages/` for libraries/prototypes.
+-   [x] Move current projects into package boundaries (main app, organizer, check-verse, macOS shell, compiler POC, and reactor placeholder).
+-   [x] Introduce Bun workspace configuration and per-package scripts for package-local checks.
+-   [x] Replace root "scan everything" commands with orchestrated Bun workspace commands.
+-   [x] Keep non-core packages out of the Vercel deployment gate by using `apps/meseeks` as the Vercel project root.
 -   [ ] Normalize TypeScript config strategy across packages (`tsconfig.base.json` plus package-local extensions).
 -   [ ] Normalize ESLint and Prettier strategy across packages with shared config and package-specific overrides only when required.
--   [ ] Update CI pipeline to run package-scoped gates independently and report failures per package.
--   [ ] Document local developer workflows for workspace commands using Bun.
+-   [x] Document local developer workflows for workspace commands using Bun.
 -   [ ] Add migration checklist and rollback plan for path/import/script changes.
 
 ## Progress Log
@@ -43,19 +42,31 @@ Reorganize this repository into a Bun-first monorepo where each package has expl
 -   Rewritten with command evidence and concrete CI stabilization plan
 -   Re-scoped to monorepo migration as the primary fix
 
+### 2026-05-03
+
+-   Migrated repo to Bun workspaces with root `apps/*` and `packages/*` globs.
+-   Moved the main app and Convex runtime into `apps/meseeks`, with Vercel config colocated there.
+-   Moved Organizer, Check Verse, and the macOS shell into `apps/`.
+-   Moved compiler POC into `packages/safe-mdx-compiler`.
+-   Restored the missing Reactor gitlink as `packages/reactor` placeholder with the original commit hash documented.
+-   Collapsed nested lockfiles into the root `bun.lockb`.
+-   Verified `workspace:typecheck`, `workspace:test`, app build, Organizer build, Check Verse build, and macOS shell verify.
+-   `workspace:lint` still exposes existing app ESLint debt; Prettier and Organizer lint pass.
+
 ## Notes
 
-Proposed baseline package map (to validate before moving files):
+Implemented package map:
 
--   `packages/app` for the main Meseeks web app and Convex runtime code
--   `packages/organizer` for the organizer app
--   `packages/browser-poc` for browser proof-of-concept
--   `packages/compiler-poc` for compiler proof-of-concept
--   `packages/shared/*` for reusable cross-package code where extraction is justified
+-   `apps/meseeks` for the main Meseeks web app and Convex runtime code
+-   `apps/organizer` for the organizer app
+-   `apps/check-verse` for Check Verse
+-   `apps/macos-app` for the macOS Electrobun shell
+-   `packages/safe-mdx-compiler` for the compiler proof-of-concept
+-   `packages/reactor` as a placeholder for the missing historical Reactor subproject
 
 Acceptance criteria:
 
--   Root CI commands target workspace packages explicitly, not raw repo globs.
--   Core CI passes without relying on default exclusion lists for POC directories.
--   POC packages keep their own checks and can run independently.
+-   Root commands target workspace packages explicitly, not raw repo globs.
+-   Vercel deploys only `apps/meseeks`.
+-   Non-core packages keep their own checks and can run independently.
 -   Bun remains the primary workspace toolchain unless a blocker is documented with reason and fallback decision.

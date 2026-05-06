@@ -14,7 +14,7 @@ Top oversized modules (non-generated, non-POC) currently include:
 - `convex/tasks.private.ts` (621)
 - `src/components/ui/sidebar.tsx` (620)
 - `src/components/Launcher.tsx` (531)
-- `organizer/src/components/tasks/TaskExplorerPage.tsx` (519)
+- `apps/organizer/src/components/tasks/TaskExplorerPage.tsx` (519)
 - `src/hooks/useTaskMutations.ts` (514)
 - `src/components/skills/HardSkillConfig.tsx` (503)
 
@@ -37,7 +37,7 @@ Reduce cognitive load and merge conflict risk by decomposing high-churn oversize
   - `src/hooks/useTaskMutations.ts`: one hook per file in `src/hooks/` (align with repo rule)
   - `src/components/skills/HardSkillConfig.tsx`: split form sections and helpers
 - [ ] Phase 4: isolate organizer explorer concerns:
-  - `organizer/src/components/tasks/TaskExplorerPage.tsx` into data-loading hook + filter UI + detail panel
+  - `apps/organizer/src/components/tasks/TaskExplorerPage.tsx` into data-loading hook + filter UI + detail panel
   - preserve current UX behavior while reducing component surface
 - [ ] For each phase: add or update tests/smoke checks before and after split to guarantee no behavior regressions.
 

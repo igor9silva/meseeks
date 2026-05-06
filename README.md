@@ -1,7 +1,7 @@
 <div align="center">
   <br />
   <br />
-  <img src="public/github/logo.png" alt="Meseeks Logo">
+  <img src="apps/meseeks/public/github/logo.png" alt="Meseeks Logo">
   <br />
   <br />
 </div>
@@ -55,7 +55,7 @@ The building blocks of Meseeks — they define what it can do.
 When a skill is used, we call it an **action**. This can be performed directly by the user, or by Meseeks (via a soft skill re-action).
 
 <div align="center">
-  <img src="public/github/innate-skills.png" />
+  <img src="apps/meseeks/public/github/innate-skills.png" />
 </div>
 
 ### 🧪 Reactor
@@ -66,7 +66,7 @@ Every time an action is performed, it may trigger a re-action, that may trigger 
 - **Learn new skills** during task execution.
 
 <div align="center">
-  <img src="public/github/skills.png" />
+  <img src="apps/meseeks/public/github/skills.png" />
 </div>
 
 ### 🎨 Compositions
@@ -107,7 +107,7 @@ Tasks have an **[autonomy slider](https://youtu.be/LCEmiRjPEtQ?t=1269)**, which 
 Transparency is a foundational principle of Meseeks, so you can always hit the `Dev Mode` button to see *everything* that's going on. Every token, every word, every byte, every cost, everything.
 
 <div align="center">
-  <img src="public/github/dev-mode.png" />
+  <img src="apps/meseeks/public/github/dev-mode.png" />
 </div>
 
 ## 🚀 Running locally

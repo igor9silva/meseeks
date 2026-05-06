@@ -2,6 +2,12 @@
 **/build
 **/public
 **/data
+**/.output
+**/.nitro
+**/.tanstack
+**/.vinxi
+**/dist
 pnpm-lock.yaml
-routeTree.gen.ts
-convex/_generated/*
+**/routeTree.gen.ts
+**/convex/_generated/*
+**/_generated/*

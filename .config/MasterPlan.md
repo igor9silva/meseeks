@@ -351,8 +351,9 @@ CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, di
 
 Some directories are intentionally outside the main app scope:
 
-- `compiler-poc/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
-- `browser-poc/`: isolated browser-focused PoC workspace (when present in the local workspace).
-- `organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
+- `packages/safe-mdx-compiler/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
+- `apps/check-verse/`: standalone game prototype.
+- `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
+- `apps/macos-app/`: standalone Electrobun macOS app shell.
 
 Scope rule: treat these as separate from the main codebase. Do not include them in broad typechecking, refactors, or migrations unless the user explicitly asks.
