@@ -2,7 +2,7 @@ import { Webhook, WebhookVerificationError } from 'standardwebhooks';
 import { internal } from 'convex/_generated/api';
 import { ActionCtx, httpAction } from 'convex/_generated/server';
 import { env } from 'schemas/envSchema';
-import { orderPaidSchema, subscriptionRevokedSchema, webhookEventSchema } from 'schemas/polarEventSchema';
+import { orderPaidSchema, webhookEventSchema } from 'schemas/polarEventSchema';
 import { asBigInt } from './money';
 
 export const handlePolarWebhook = httpAction(async (ctx, request) => {
@@ -14,13 +14,18 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 		request.headers.forEach((value, key) => (headers[key] = value));
 
 		validateEvent(body, headers, env.POLAR_WEBHOOK_SECRET);
+
+		// TODO: Avoid logging the raw webhook body; log event metadata instead to reduce customer data exposure.
 		console.debug('Polar webhook received', body);
 
+		// TODO: Return 400 for malformed JSON instead of letting JSON.parse fall through as a generic 500.
 		const json = JSON.parse(body);
 		if (typeof json.type !== 'string') {
 			console.error('Invalid webhook payload', json);
-			return new Response(null, { status: 400 });
+			throw new PayloadParseError('Invalid webhook payload');
 		}
+
+		// TODO: Make webhook persistence and side effects idempotent before relying on Polar retries.
 
 		// persist all events
 		await ctx.runMutation(internal.topUps._persistPolarEvent, { polarEvent: json });
@@ -53,22 +58,25 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 					subscriptionId: paidPayload.data.subscription_id,
 				});
 
+				// TODO: Use product-specific schemas so subscription products require subscription_id and top-ups do not.
 				switch (paidPayload.data.product_id) {
 					//
 					case env.POLAR_TOP_UP_ID:
-						await finishTopUp(
-							ctx, //
-							paidPayload.data.checkout_id,
-							paidPayload.data.net_amount / 100, // cents to dollars
-						);
+						await finishTopUp({
+							ctx,
+							checkoutId: paidPayload.data.checkout_id,
+							amount: paidPayload.data.net_amount / 100, // cents to dollars
+						});
 						break;
 
 					case env.POLAR_SUBSCRIPTION_ID:
 						await activateSubscription({
 							ctx,
+							// TODO: For renewal events, look up the existing subscription by subscription_id instead of checkout_id.
 							checkoutId: paidPayload.data.checkout_id,
 							amount: paidPayload.data.net_amount / 100, // cents to dollars
-							durationMonths: 1, // TODO: use `data.current_period_end` instead of computing
+							// TODO: Use Polar current_period_end instead of local 30-day month math.
+							durationMonths: 1,
 							isFounder: false,
 							isRenewal,
 							polarSubscriptionId: paidPayload.data.subscription_id,
@@ -78,8 +86,10 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 					case env.POLAR_FOUNDER_PACK_ID:
 						await activateSubscription({
 							ctx,
+							// TODO: For renewal events, look up the existing subscription by subscription_id instead of checkout_id.
 							checkoutId: paidPayload.data.checkout_id,
-							amount: paidPayload.data.net_amount / 100, // Convert cents to dollars
+							amount: paidPayload.data.net_amount / 100, // cents to dollars
+							// TODO: Use Polar current_period_end instead of local 30-day month math.
 							durationMonths: 24,
 							isFounder: true,
 							isRenewal,
@@ -94,7 +104,7 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 
 			case 'order.refunded':
 				// TODO: implement automatic refund handling
-				console.error('Not implemented: order.refunded', json);
+				console.error('Not implemented: order.refunded', event);
 				break;
 
 			// case 'subscription.canceled':
@@ -103,12 +113,9 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 			// TODO: schedule a mutation to set 'canceled'
 
 			case 'subscription.revoked':
-				const revokedPayload = subscriptionRevokedSchema.parse(json);
 				await handleImmediateRevocation({
 					ctx,
-					polarSubscriptionId: revokedPayload.data.id,
-					customerId: revokedPayload.data.customer.external_id,
-					productId: revokedPayload.data.product_id,
+					polarSubscriptionId: event.data.id,
 				});
 				break;
 		}
@@ -132,11 +139,15 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 	}
 });
 
-async function finishTopUp(
-	ctx: ActionCtx, //
-	checkoutId: string,
-	amount: number,
-) {
+async function finishTopUp({
+	ctx, //
+	checkoutId,
+	amount,
+}: {
+	ctx: ActionCtx;
+	checkoutId: string;
+	amount: number;
+}) {
 	return await ctx.runMutation(internal.topUps._finish, {
 		checkoutId,
 		amount: asBigInt({ dollars: amount }),
@@ -173,14 +184,13 @@ async function activateSubscription(params: {
 	});
 }
 
-async function handleImmediateRevocation(params: {
+async function handleImmediateRevocation({
+	ctx, //
+	polarSubscriptionId,
+}: {
 	ctx: ActionCtx;
 	polarSubscriptionId: string;
-	customerId: string;
-	productId: string;
 }) {
-	const { ctx, polarSubscriptionId } = params;
-
 	console.debug('Processing subscription revocation', { polarSubscriptionId });
 
 	return await ctx.runMutation(internal.subscriptions._handleRevocation, {

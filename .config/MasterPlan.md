@@ -71,6 +71,13 @@ If you cannot implement a type-safe solution, stop and ask for help rather than 
 - Forms: TanStack Form with Zod validation
 - Toasts: Sonner
 
+## Project Vocabulary
+
+- `workspace` means the top-level VS Code working area for this codebase, including the private sibling repo when present.
+- `apps` are runnable projects.
+- `packages` are library projects or projects that intentionally participate in the Bun dependency graph.
+- `projects` can mean either apps or packages.
+
 ## No Microsoft Rule
 
 We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABLE rule.
@@ -91,7 +98,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 
 ### Naming
 - Booleans: `isSomething`, `hasSomething`, `shouldDoSomething` (yes/no question format)
-- Component files: PascalCase (`TaskDetail.tsx`), except `~/components/ui` primitives
+- Component files: PascalCase (`TaskDetail.tsx`), except `@reactor/ui` primitives in `packages/ui/src`
 - Event handlers: `handleSubmit`, `handleTaskUpdate`, `handleDialogClose`
 
 ### Ternaries
@@ -351,9 +358,14 @@ CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, di
 
 Some directories are intentionally outside the main app scope:
 
-- `packages/safe-mdx-compiler/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
-- `apps/check-verse/`: standalone game prototype.
 - `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
-- `apps/macos-app/`: standalone Electrobun macOS app shell.
+- `prototypes/browser-poc/`: Electron browser experiment.
+- `prototypes/mecode-mvp/`: Electrobun macOS app shell prototype.
+- `prototypes/check-verse/`: standalone game prototype.
+- `prototypes/safe-mdx-compiler/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
 
 Scope rule: treat these as separate from the main codebase. Do not include them in broad typechecking, refactors, or migrations unless the user explicitly asks.
+
+Unrelated prototypes live under `prototypes/<name>/`. They are intentionally outside `apps/` and `packages/`, so they do not participate in workspace installs, package scripts, shared dependency resolution, or broad workspace checks. Promote a prototype into `apps/` or `packages/` only when it becomes an active app or shared library.
+
+Shared UI primitives live in `packages/ui/src` and use package name `@reactor/ui`. The shadcn CLI config for shared primitives lives in `packages/ui/components.json`; app shadcn config imports shared primitives by package name instead of relative filesystem paths. App-coupled wrappers, such as MDX rendering and themed toasts, stay in `apps/meseeks/src/components/ui`. Local workspace dependencies see current package source immediately; opt-in version bumps require a release boundary such as a published package or git tag.
