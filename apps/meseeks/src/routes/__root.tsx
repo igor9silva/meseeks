@@ -117,8 +117,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	//
 	const { pathname } = useLocation();
 	const isShareRoute = pathname.startsWith('/share/');
+	const isMumTranslatorRoute = pathname === '/mums-guinea-pig-teacup-742q';
 
-	if (isShareRoute) {
+	if (isShareRoute || isMumTranslatorRoute) {
 		return <div className="h-dvh w-full">{children}</div>;
 	}
 
