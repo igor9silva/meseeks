@@ -1,9 +1,9 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import type { Id } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
+import { isString } from 'lib/guards';
 import { zodToString } from 'lib/zodToString';
 import {
 	builtInSkillSchema,
@@ -98,8 +98,6 @@ export const findEnabledSkillKeys = defineQuery({
 			key: 'enabledSkills',
 			userId,
 		});
-
-		const isString = (value: unknown): value is string => typeof value === 'string';
 
 		return Array.isArray(enabledSkills?.value) ? enabledSkills.value.filter(isString) : [];
 	},
@@ -227,7 +225,6 @@ export const enableSkill = defineMutation({
 			key: 'enabledSkills',
 		});
 
-		const isString = (value: unknown): value is string => typeof value === 'string';
 		const currentSkills = Array.isArray(enabledSkills?.value) ? enabledSkills.value.filter(isString) : [];
 		if (currentSkills.includes(skillKey)) return;
 

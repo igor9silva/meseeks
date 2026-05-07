@@ -485,7 +485,7 @@ export const setTaskStatus = defineMutation({
 // 	},
 // });
 
-export const useTaskFunds = defineMutation({
+export const spendTaskFunds = defineMutation({
 	args: z.object({
 		taskId: zid('tasks'),
 		amount: z.bigint().min(0n),

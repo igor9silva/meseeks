@@ -2,37 +2,37 @@ import { useEffect, useState } from 'react';
 import { TextShimmer } from '@reactor/ui/text-shimmer';
 import { cn } from '@reactor/ui/lib/utils';
 
+const LOADING_MESSAGES = [
+	'Teaching silicon to be conscious...',
+	'Convincing our rocks to think...',
+	"Existence is pain! But we're working on it...",
+	"Look at me, I'm setting up your account!",
+	'Calculating the meaning of life, universe, and everything...',
+	'Turning solar radiation into intelligence...',
+	'Making these rocks really, really smart...',
+	'Ooo-wee, preparing your AI playground!',
+	'Creating artificial general awesomeness...',
+	'Wubba lubba dub dub! Almost ready...',
+	'Teaching computers to pass the butter...',
+	'Achieving singularity in 3... 2...',
+];
+
 export function RotatingLoadingMessage({ className }: { className?: string }) {
 	//
-	const loadingMessages = [
-		'Teaching silicon to be conscious...',
-		'Convincing our rocks to think...',
-		"Existence is pain! But we're working on it...",
-		"Look at me, I'm setting up your account!",
-		'Calculating the meaning of life, universe, and everything...',
-		'Turning solar radiation into intelligence...',
-		'Making these rocks really, really smart...',
-		'Ooo-wee, preparing your AI playground!',
-		'Creating artificial general awesomeness...',
-		'Wubba lubba dub dub! Almost ready...',
-		'Teaching computers to pass the butter...',
-		'Achieving singularity in 3... 2...',
-	];
-
-	const [currentMessage, setCurrentMessage] = useState(loadingMessages[0]);
+	const [currentMessage, setCurrentMessage] = useState(LOADING_MESSAGES[0]);
 
 	useEffect(() => {
 		//
 		const interval = setInterval(() => {
 			setCurrentMessage((prev) => {
-				const availableMessages = loadingMessages.filter((msg) => msg !== prev);
+				const availableMessages = LOADING_MESSAGES.filter((msg) => msg !== prev);
 				const randomIndex = Math.floor(Math.random() * availableMessages.length);
 				return availableMessages[randomIndex];
 			});
 		}, 1000);
 
 		return () => clearInterval(interval);
-	}, [loadingMessages]);
+	}, []);
 
 	return (
 		<div className={cn('flex flex-col items-center justify-center h-screen w-full gap-4', className)}>

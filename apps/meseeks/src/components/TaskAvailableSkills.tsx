@@ -5,7 +5,7 @@ import { Badge } from '@reactor/ui/badge';
 import { Button } from '@reactor/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
 import { Skeleton } from '@reactor/ui/skeleton';
-import { usePreferences } from '~/hooks/usePreferences';
+import { useEnabledSkillsPreference } from '~/hooks/preferences';
 
 interface TaskAvailableSkillsProps {
 	availableSkills: string[];
@@ -19,11 +19,10 @@ function TaskAvailableSkillsContent({
 	isPending = false,
 }: TaskAvailableSkillsProps) {
 	//
-	const { getEnabledSkills } = usePreferences();
+	const { enabledSkills } = useEnabledSkillsPreference();
 	const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
 	// Get enabled skills list
-	const enabledSkills = getEnabledSkills();
 
 	const handleAddSkill = (skillKey: string) => {
 		//

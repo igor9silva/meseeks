@@ -536,7 +536,7 @@ const testExamples: TestExample[] = [
     className: "w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
   }), /*#__PURE__*/React.createElement("p", {
     className: "text-xs text-muted-foreground mt-1"
-  }, "Value: \", inputValue, "\")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+  }, 'Value: ", inputValue, "')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
     className: "block text-sm font-medium mb-1"
   }, "Counter"), /*#__PURE__*/React.createElement("div", {
     className: "flex items-center space-x-2"

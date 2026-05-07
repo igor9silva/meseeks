@@ -12,7 +12,7 @@ import { Message, SimpleMessage } from '~/components/ui/message';
 
 export function ScrapeLinkAction(props: ActionComponentProps) {
 	//
-	const { action, initialRenderDate, isAuthorCurrentUser, taskId } = props;
+	const { action, isAuthorCurrentUser } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
 	switch (action.status) {
@@ -111,6 +111,7 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 function Success(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser } = props;
+	const [isOpen, setIsOpen] = useState(false);
 	//
 	const response = ScrapeResultSchema.safeParse(JSON.parse(action.result?.text ?? '{}'));
 
@@ -120,7 +121,6 @@ function Success(props: ActionComponentProps) {
 	}
 
 	const { data } = response.data;
-	const [isOpen, setIsOpen] = useState(false);
 	const url = action.args['url'] as string;
 
 	return (

@@ -1,5 +1,4 @@
 import type { Doc } from 'convex/_generated/dataModel';
-import { asDollars } from 'lib/money';
 import { AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { TaskBudget } from '~/components/TaskBudget';
 

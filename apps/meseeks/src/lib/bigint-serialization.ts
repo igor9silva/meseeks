@@ -8,6 +8,7 @@ import { asDollars } from 'lib/money';
 // Extend the BigInt prototype
 if (typeof BigInt !== 'undefined') {
 	// @ts-ignore - Adding toJSON method to BigInt prototype
+	// eslint-disable-next-line no-extend-native
 	BigInt.prototype.toJSON = function () {
 		//
 		return asDollars({ bigInt: this.valueOf() });

@@ -25,7 +25,7 @@ export function SubscribePage({ route }: { route: typeof Route }) {
 		track('tap_subscribe', { product });
 		try {
 			const { paymentUrl } = await startSubscription({ product });
-			location.href = paymentUrl;
+			window.location.href = paymentUrl;
 		} catch (error) {
 			console.error(error);
 			toast.error('Failed to start subscription.');

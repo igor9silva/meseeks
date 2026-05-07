@@ -21,6 +21,8 @@ Read every message in the conversation. Look for signals that the model made a m
 
 If the thread was compacted, read the compaction summary first and look for a `Learn hints` section. Treat those hints as preserved evidence, not optional flavor text.
 
+If the Codex app does not expose this skill, do not assume learning is blocked. Check the repo-local source at `.config/skills/learn/SKILL.md` and follow it manually.
+
 Treat each user message as potentially meaningful. When compaction drops verbatim text, recover at least:
 
 - what the user was trying to get done

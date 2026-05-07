@@ -3,7 +3,7 @@ import { Loader2, Sparkles } from 'lucide-react';
 import { Suspense, useTransition } from 'react';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { usePreferences } from '~/hooks/usePreferences';
+import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { cn } from '@reactor/ui/lib/utils';
 
 interface SkillsLinkProps {
@@ -27,10 +27,9 @@ function SkillsLinkSkeleton({ className }: { className?: string }) {
 
 function SkillsLinkContent({ className }: { className?: string }) {
 	//
-	const { getEnabledSkills } = usePreferences();
+	const { enabledSkills } = useEnabledSkillsPreference();
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
-	const enabledSkills = getEnabledSkills();
 
 	const handleClick = () => {
 		if (isNavigating) return;

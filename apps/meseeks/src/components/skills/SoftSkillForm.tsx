@@ -1,6 +1,6 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Doc } from 'convex/_generated/dataModel';
-import { intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
+import type { IntelligenceKey } from 'schemas/intelligenceSchema';
 import { useForm } from 'react-hook-form';
 import SoftSkillConfig from '~/components/skills/SoftSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';

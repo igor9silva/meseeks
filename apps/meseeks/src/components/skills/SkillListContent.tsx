@@ -2,41 +2,68 @@ import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
 import { useCallback } from 'react';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
-import { usePreferences } from '~/hooks/usePreferences';
+import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { SkillCard } from './SkillCard';
+
+type SkillListContentProps = {
+	filter: 'personal' | 'public';
+	searchTerm: string;
+	onShareSkill?: (skill: Doc<'skills'>) => void;
+};
 
 /**
  * Fetches and displays the filtered list of skills
  * Should be wrapped in Suspense
  */
-export function SkillListContent({
-	filter, //
+export function SkillListContent(props: SkillListContentProps) {
+	//
+	if (props.filter === 'personal') {
+		return <PersonalSkillListContent {...props} />;
+	} else {
+		return <PublicSkillListContent {...props} />;
+	}
+}
+
+function PersonalSkillListContent(props: SkillListContentProps) {
+	//
+	const { skills } = usePersonalSkills();
+
+	return <SkillList {...props} skills={skills} />;
+}
+
+function PublicSkillListContent(props: SkillListContentProps) {
+	//
+	const { skills } = usePublicSkills();
+
+	return <SkillList {...props} skills={skills} />;
+}
+
+function SkillList({
+	skills,
 	searchTerm,
 	onShareSkill,
-}: {
-	filter: 'personal' | 'public';
-	searchTerm: string;
-	onShareSkill?: (skill: Doc<'skills'>) => void;
+}: SkillListContentProps & {
+	skills: Doc<'skills'>[];
 }) {
 	//
-	const useSkills = useCallback(filter === 'personal' ? usePersonalSkills : usePublicSkills, [filter]);
-	const { skills } = useSkills();
+	const { enabledSkills, setEnabledSkills } = useEnabledSkillsPreference();
 
-	const { getEnabledSkills, setEnabledSkills } = usePreferences();
-
-	const enabledSkills = getEnabledSkills();
 	const onToggle = useCallback(
 		(skillKey: string, isEnabled: boolean) => {
 			//
+			let nextEnabledSkills = enabledSkills;
+
 			if (isEnabled && !enabledSkills.includes(skillKey)) {
-				enabledSkills.push(skillKey);
-			} else if (!isEnabled && enabledSkills.includes(skillKey)) {
-				enabledSkills.splice(enabledSkills.indexOf(skillKey), 1);
+				nextEnabledSkills = enabledSkills.concat(skillKey);
 			}
 
-			setEnabledSkills(enabledSkills);
+			if (!isEnabled && enabledSkills.includes(skillKey)) {
+				nextEnabledSkills = enabledSkills.filter((enabledSkill) => enabledSkill !== skillKey);
+			}
+
+			setEnabledSkills(nextEnabledSkills);
 		},
-		[setEnabledSkills],
+		[enabledSkills, setEnabledSkills],
 	);
 
 	// Filter skills based on search term

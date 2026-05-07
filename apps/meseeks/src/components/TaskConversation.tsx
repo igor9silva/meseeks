@@ -51,7 +51,7 @@ function TaskConversationContent({
 	const { task } = useCurrentTask();
 
 	return (
-		<ComposerProvider taskId={task._id}>
+		<ComposerProvider key={task._id} taskId={task._id}>
 			<TaskConversationInner
 				task={task}
 				className={className}
@@ -222,8 +222,12 @@ function StickToBottomContent({
 			if (isNearTop && status === 'CanLoadMore') loadMore(PAGE_SIZE);
 		};
 
-		ref.current?.addEventListener('scroll', handleScroll);
-		return () => ref.current?.removeEventListener('scroll', handleScroll);
+		const scrollContainer = ref.current;
+		scrollContainer?.addEventListener('scroll', handleScroll);
+
+		return () => scrollContainer?.removeEventListener('scroll', handleScroll);
+		// Keep ref.current in this dependency list intentionally: the listener is bound to the current
+		// scroll container, not the stable callback ref wrapper from useStickToBottomContext.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loadMore, status, ref.current]);
 

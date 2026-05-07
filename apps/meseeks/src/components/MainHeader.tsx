@@ -1,23 +1,20 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { ArrowLeft, Inbox, Loader2, Search, SquarePen } from 'lucide-react';
-import { Suspense, useTransition } from 'react';
+import { useTransition } from 'react';
 import { cn } from '@reactor/ui/lib/utils';
 
 import { api } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
 import { Balance } from '~/components/Balance';
 import { useLauncher } from '~/components/Launcher';
-import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
 import { Button } from '@reactor/ui/button';
 import { TooltipButton, TooltipProvider } from '@reactor/ui/tooltip';
-import { useTask } from '~/hooks/query/useTask';
 import { useSplatParams } from '~/hooks/useSplatParams';
 
 export function MainHeader({ className }: { className?: string }) {
 	//
 	const { history } = useRouter();
-	const { pathname, searchStr, search } = useLocation();
+	const { pathname, searchStr } = useLocation();
 	const { open: openLauncher } = useLauncher();
 	const { taskId } = useSplatParams();
 	const currentTask = useQuery(api.tasks.findOne, taskId ? { taskId } : 'skip');
@@ -143,13 +140,13 @@ function HeaderTitle({
 	);
 }
 
-function TaskStatusIndicatorProvider({
-	taskId, //
-}: {
-	taskId: Id<'tasks'>;
-}) {
-	//
-	const { task } = useTask(taskId);
+// function TaskStatusIndicatorProvider({
+// 	taskId, //
+// }: {
+// 	taskId: Id<'tasks'>;
+// }) {
+// 	//
+// 	const { task } = useTask(taskId);
 
-	return <TaskStatusIndicator className="" task={task} />;
-}
+// 	return <TaskStatusIndicator className="" task={task} />;
+// }

@@ -15,6 +15,7 @@ export function createReactions(
 				case 'owner': return action.owner === action.author;
 				case 'companion': return action.owner !== action.author;
 				case 'any': return true;
+				default: return false;
 			}
 		})
 		.map((reaction) => ({

@@ -1,5 +1,5 @@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@reactor/ui/command';
-import { usePreferences } from '~/hooks/usePreferences';
+import { useEnabledSkillsPreference } from '~/hooks/preferences';
 
 interface SkillCommandListProps {
 	//
@@ -14,8 +14,7 @@ export function SkillCommandList({
 	placeholder = 'Search skills...',
 }: SkillCommandListProps) {
 	//
-	const { getEnabledSkills } = usePreferences();
-	const enabledSkills = getEnabledSkills();
+	const { enabledSkills } = useEnabledSkillsPreference();
 	const availableSkills = enabledSkills.filter((skillKey) => !excludeSkills.includes(skillKey));
 
 	return (

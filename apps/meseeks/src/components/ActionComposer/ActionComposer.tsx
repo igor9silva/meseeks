@@ -46,7 +46,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		if (message !== localMessage) {
 			setLocalMessage(message);
 		}
-	}, [message]);
+	}, [message, localMessage, setLocalMessage]);
 
 	// handle message change - update both local and URL state
 	const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

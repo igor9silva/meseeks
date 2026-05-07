@@ -1,5 +1,5 @@
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
-import { usePreferences } from '~/hooks/usePreferences';
+import { useTaskDetailWidthPercentDesktopPreference } from '~/hooks/preferences';
 import { useResizablePanelGroup } from '@reactor/ui/hooks/useResizablePanelGroup';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -17,12 +17,14 @@ export function TaskDetailAndConversation({
 	onToggleTaskDetail?: () => void;
 }) {
 	//
-	const { getTaskDetailWidthPercentDesktop: getWidthDesktop, setTaskDetailWidthPercentDesktop: setWidthDesktop } =
-		usePreferences({ defaultValue: defaultListSize });
+	const {
+		getTaskDetailWidthPercentDesktop, //
+		setTaskDetailWidthPercentDesktop,
+	} = useTaskDetailWidthPercentDesktopPreference({ defaultValue: defaultListSize });
 
 	const { getPanelSize, handleDragging, handleLayout } = useResizablePanelGroup({
-		getValue: getWidthDesktop,
-		setValue: setWidthDesktop,
+		getValue: getTaskDetailWidthPercentDesktop,
+		setValue: setTaskDetailWidthPercentDesktop,
 	});
 
 	const panelSize = getPanelSize() ?? defaultListSize;

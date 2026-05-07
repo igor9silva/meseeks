@@ -16,7 +16,7 @@ import {
 	findRunningAction,
 } from './action.private';
 import { findSkill } from './skills.private';
-import { findTask, setTaskStatus, useTaskFunds } from './tasks.private';
+import { findTask, setTaskStatus, spendTaskFunds } from './tasks.private';
 import { perform } from './reactor.private';
 
 // scheduled by _claimAndScheduleNext to execute one claimed action end-to-end
@@ -197,7 +197,7 @@ export const _finish = internalMutation({
 		);
 
 		if (status === 'succeeded' && totalCost > 0) {
-			await useTaskFunds(ctx, { taskId: action.taskId, amount: totalCost });
+			await spendTaskFunds(ctx, { taskId: action.taskId, amount: totalCost });
 		}
 
 		await ctx.db.patch(actionId, { result: resultToStore, status, costs });

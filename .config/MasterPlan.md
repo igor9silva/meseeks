@@ -94,6 +94,9 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Add brief in-place comments for non-obvious framework, runtime, SSR, auth, or tooling constraints. Do not leave future readers guessing why a weird config or code path exists.
   - bad: `noExternal: ['@convex-dev/better-auth']`
   - good: comment that vite must bundle and transform the package during ssr instead of externalizing it
+- Every linter suppression must include a nearby explainer comment with the real reason the rule is being skipped.
+  - bad: `// eslint-disable-next-line react-hooks/exhaustive-deps`
+  - good: explain that `ref.current` is intentionally the dependency because the listener follows the current DOM node, then disable the rule
 - One-liner guards: `if (!element) return;` - use braces only when it doesn't fit on one line
 
 ### Naming
@@ -102,8 +105,11 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Event handlers: `handleSubmit`, `handleTaskUpdate`, `handleDialogClose`
 
 ### Ternaries
-- Only use when it fits on a single line
-- For complex conditions, extract to variables or early returns
+- Only use when it fits on a single line.
+- Do not use ternaries for non-trivial state transforms or branching. Use explicit `if` blocks so the change is easy to review.
+  - bad: `const next = isEnabled ? Array.from(new Set([...items, item])) : items.filter((x) => x !== item)`
+  - good: set `next` in clear `if (isEnabled)` / `if (!isEnabled)` branches
+- For complex conditions, extract to variables or early returns.
 
 ### Imports
 - Add imports AFTER first usage (prevents prettier from removing unused imports)
@@ -112,6 +118,9 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Never use namespace imports (`import * as ...`) unless the user explicitly asks for it.
   - bad: `import * as subscriptionsPrivate from './subscriptions.private'`
   - good: `import { add, activate, findActive } from './subscriptions.private'`
+- Do not add barrel `index.ts` files by default. Direct file imports are preferred for one-off modules, but a small `index.ts` is fine when a folder is a real local public API and callers often import multiple exports from it.
+  - bad: create a barrel for one helper used by one file
+  - good: keep `hooks/preferences/index.ts` when components import several preference hooks and direct paths make call sites noisy
 
 ### Return Types
 - Prefer inferred return types for local/private helpers.
@@ -158,6 +167,7 @@ components/
 - For existing domain actions, search current UI before choosing icons, labels, colors, and verbs. Existing product vocabulary wins over plausible generic choices.
   - bad: choose `Trash2` or `CircleX` for a "discard" action because it sounds reasonable
   - good: search for `discard` and reuse the app's established `Archive` convention when that is what nearby UI already uses
+- Preserve referrer behavior intentionally for external links. Do not replace `rel="noopener"` with `noreferrer` just to satisfy a linter; ask if unsure.
 
 ## React Patterns
 
@@ -185,10 +195,19 @@ return <Content />;
   - bad: `<DropdownMenuItem onClick={async () => { await signOutAndReload(); }} />`
   - good: `<DropdownMenuItem onClick={signOutAndReload} />`
 
+### Memoization
+- React Compiler is enabled for the app. Do not add `useMemo` or `useCallback` solely for routine referential stability or cheap calculations.
+- Add manual memoization only when there is a real contract or measured performance reason, and leave a short comment when the reason is non-obvious.
+  - bad: wrap `mutation.withOptimisticUpdate(...)` in `useMemo` just in case
+  - good: rely on the compiler unless a child API requires stable identity or profiling proves churn matters
+
 ### Queries
 - Suspense queries (preferred) suspend to nearest `<Suspense>` and throw to nearest `<ErrorBoundary>`
 - Regular queries handle their own pending and error states
 - Use Convex with TanStack Query: `convexQuery`, `useSuspenseQuery`
+- Do not fix hook lint warnings by broadening data loading. If only one branch should query, split components so only the active branch's hook runs.
+  - bad: call both `usePersonalSkills()` and `usePublicSkills()`, then choose one result
+  - good: render `<PersonalSkillList />` or `<PublicSkillList />`, each with its own query hook
 
 ### Validation
 Always use Zod for any kind of validation.
@@ -295,6 +314,7 @@ One file per hook in `src/hooks/`.
 - `.config/MasterPlan.md` is the source of truth for AI assistant rules
 - `AGENTS.md` is auto-generated from `MasterPlan.md`; never edit it directly
 - `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
+- If a named skill is not loaded in the Codex app, check repo-local `.config/skills/<name>/SKILL.md` before claiming it cannot be used. Use the on-disk source manually when present.
 
 ## Making Changes
 
@@ -306,6 +326,8 @@ One file per hook in `src/hooks/`.
 - The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
+- Lines of code are a liability, not an asset. Do not create one-use type files, wrappers, barrels, or helpers unless they reduce real complexity.
+- Linter-driven fixes must preserve behavior. If satisfying a rule would change lifecycle, data loading, security, referrer behavior, or user interaction, stop and choose an explicit code structure or lint config instead.
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
 - Shared ignore patterns belong in the workspace `.gitignore`; app/package-local `.gitignore` files should contain only context-specific generated or local files.
   - bad: create `apps/meseeks/.gitignore` just to ignore `.env.local`

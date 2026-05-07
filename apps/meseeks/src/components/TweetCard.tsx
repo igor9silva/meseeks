@@ -1,6 +1,7 @@
 import { Calendar, Heart, MessageCircle, Play, Repeat2, User, Verified } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { z } from 'zod/v3';
+import { isString } from 'lib/guards';
 import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -91,7 +92,7 @@ const TweetMediaItemSchema = z
 
 const TweetMediaSchema = z.preprocess(
 	(value) => (Array.isArray(value) ? value : typeof value === 'string' ? [value] : []),
-	z.array(TweetMediaItemSchema).transform((urls) => urls.filter(isString)),
+	z.array(TweetMediaItemSchema).transform((urls) => urls.filter(isString).filter((url) => url.length > 0)),
 );
 
 const QuotedTweetSchema = z
@@ -307,11 +308,6 @@ function renderTweetText(text: string): ReactNode {
 function isRecord(value: unknown): value is Record<string, unknown> {
 	//
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isString(value: string | undefined): value is string {
-	//
-	return Boolean(value);
 }
 
 function hasVideoUrl(video: { url?: string }): video is { url: string } {

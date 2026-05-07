@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 import { TaskScheduleCompactItem } from '~/components/schedules/ScheduleItem';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
-import { Skeleton } from '@reactor/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useTaskSchedules } from '~/hooks/query/useSchedules';
 import { cn } from '@reactor/ui/lib/utils';

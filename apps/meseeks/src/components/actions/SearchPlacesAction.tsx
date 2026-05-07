@@ -10,7 +10,7 @@ import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/compone
 
 export function SearchPlacesAction(props: ActionComponentProps) {
 	//
-	const { action, initialRenderDate, isAuthorCurrentUser, taskId } = props;
+	const { action, isAuthorCurrentUser } = props;
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
 
 	switch (action.status) {
@@ -67,6 +67,7 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 function Success(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser } = props;
+	const [isOpen, setIsOpen] = useState(false);
 
 	const response = SearchResultSchema.safeParse(JSON.parse(action.result?.text ?? '[]'));
 
@@ -76,7 +77,6 @@ function Success(props: ActionComponentProps) {
 	}
 
 	const { places } = response.data;
-	const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<Message isAuthorCurrentUser={isAuthorCurrentUser}>

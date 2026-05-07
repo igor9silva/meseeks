@@ -4,7 +4,7 @@ export const usePayment = (record: { paymentUrl: string }) => {
 	//
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: async () => {
-			location.href = record.paymentUrl;
+			window.location.href = record.paymentUrl;
 		},
 	});
 

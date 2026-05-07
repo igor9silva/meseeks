@@ -24,10 +24,6 @@ export function GenericAction(props: ActionComponentProps) {
 		return new Date(action._creationTime) > initialRenderDate;
 	}, [action, initialRenderDate]);
 
-	if (action.skillKey === 'react' && (action.status === 'succeeded' || action.status === 'skipped')) {
-		return null;
-	}
-
 	const handleApprove = () => {
 		if (isApprovingAction) return;
 		approveAction({ taskId, actionId: action._id });
@@ -48,6 +44,10 @@ export function GenericAction(props: ActionComponentProps) {
 			}
 		},
 	});
+
+	if (action.skillKey === 'react' && (action.status === 'succeeded' || action.status === 'skipped')) {
+		return null;
+	}
 
 	return (
 		<div
@@ -169,8 +169,7 @@ function Result({
 	}
 
 	const mdx = () => <MDX text={result} errorFallback={<pre className="whitespace-pre-wrap">{result}</pre>} />;
-
-	const argsString = useMemo(() => formatArgs(args), [args]);
+	const argsString = formatArgs(args);
 
 	return (
 		<Collapsible className={cn('text-sm', className)}>

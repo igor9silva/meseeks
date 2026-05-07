@@ -14,7 +14,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
 import { asDollars } from 'lib/money';
 import { env } from 'schemas/envSchema';
-import { IntelligenceKey, intelligenceKeys } from 'schemas/intelligenceSchema';
+import type { IntelligenceKey } from 'schemas/intelligenceSchema';
 import type { instructionVariableSchema, softSkillSchema } from 'schemas/skillSchema';
 import type { AITool } from 'schemas/toolSchema';
 import { modelFrom } from 'skills/createAITool';

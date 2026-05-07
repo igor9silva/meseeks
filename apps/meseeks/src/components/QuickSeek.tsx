@@ -1,7 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod/v3';
 import { cn } from '@reactor/ui/lib/utils';
 
 import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'lib/errors';

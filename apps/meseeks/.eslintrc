@@ -1,4 +1,19 @@
 {
 	"root": true,
-	"extends": ["react-app"],
+	"extends": [
+		"react-app"
+	],
+	"parser": "@typescript-eslint/parser",
+	"plugins": [
+		"react-hooks"
+	],
+	"rules": {
+		"import/no-anonymous-default-export": "off",
+		"react/jsx-no-target-blank": [
+			"warn",
+			{
+				"allowReferrer": true
+			}
+		]
+	}
 }

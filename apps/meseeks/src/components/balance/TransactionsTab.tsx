@@ -1,6 +1,6 @@
 import { useDebouncedValue } from '@tanstack/react-pacer';
 import { usePaginatedQuery } from 'convex/react';
-import { RefObject, useState } from 'react';
+import { RefObject } from 'react';
 import { Loading } from '~/components/Loading';
 import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
 import { TransactionItem } from './TransactionItem';
@@ -14,8 +14,7 @@ interface TransactionsTabProps {
 
 export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 	//
-	const [searchTerm, setSearchTerm] = useState('');
-	const [debouncedSearchTerm] = useDebouncedValue(searchTerm, { wait: 300 });
+	const [debouncedSearchTerm] = useDebouncedValue('', { wait: 300 });
 
 	const {
 		results: transactions,

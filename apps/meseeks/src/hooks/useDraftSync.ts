@@ -116,7 +116,7 @@ export function useDraftSync({
 			queue: serverDraft.queue,
 			message: serverDraft.message,
 		});
-	}, [serverDraft]);
+	}, [serverDraft, taskId, queueSave]);
 
 	// save on unmount
 	useEffect(() => {

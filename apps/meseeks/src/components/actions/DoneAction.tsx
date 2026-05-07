@@ -1,23 +1,14 @@
-import { useMemo } from 'react';
-
 import { ActionComponentProps } from '~/components/actions';
 import { SimpleMessage } from '~/components/ui/message';
 
 export function DoneAction(props: ActionComponentProps) {
 	//
 	// const isNew = useIsNew(action._creationTime, initialRenderDate);
-	const { action, isAuthorCurrentUser, initialRenderDate, taskId } = props;
+	const { action, isAuthorCurrentUser } = props;
 
 	if (action.status !== 'succeeded') return null;
 
-	const message = useMemo(() => {
-		//
-		if (typeof action.args['message'] === 'string') {
-			return action.args['message'];
-		}
-
-		return 'done';
-	}, [action.args['message']]);
+	const message = typeof action.args['message'] === 'string' ? action.args['message'] : 'done';
 
 	return (
 		<SimpleMessage

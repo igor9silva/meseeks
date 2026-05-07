@@ -188,9 +188,9 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 
 function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 	//
-	if (!args || Object.keys(args).length === 0) return null;
-
 	const [isOpen, setIsOpen] = useState(false);
+
+	if (!args || Object.keys(args).length === 0) return null;
 
 	return (
 		<div>
@@ -263,9 +263,9 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 
 function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 	//
-	if (!result) return null;
-
 	const [isOpen, setIsOpen] = useState(false);
+
+	if (!result) return null;
 	const hasText = Boolean(result.text);
 	const hasReactions = Boolean(result.reactions && result.reactions.length > 0);
 
@@ -342,12 +342,11 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 
 function CostSection({ action }: { action: Doc<'actions'> }) {
 	//
+	const [isOpen, setIsOpen] = useState(false);
 	const hasEstimatedCost = typeof action.estimatedCost === 'bigint';
 	const hasActualCosts = 'costs' in action && action.costs && action.costs.length > 0;
 
 	if (!hasEstimatedCost && !hasActualCosts) return null;
-
-	const [isOpen, setIsOpen] = useState(false);
 	const estimatedAmount = hasEstimatedCost ? action.estimatedCost! : 0n;
 	const actualTotal = hasActualCosts ? action.costs.reduce((total, cost) => total + cost.amount, 0n) : 0n;
 
@@ -508,6 +507,8 @@ function MessageHistorySection({
 }: {
 	messages: Array<{ role: string; content: string }>;
 }) {
+	const [isOpen, setIsOpen] = useState(false);
+
 	if (!messages || messages.length === 0) {
 		return (
 			<div>
@@ -516,8 +517,6 @@ function MessageHistorySection({
 			</div>
 		);
 	}
-
-	const [isOpen, setIsOpen] = useState(false);
 
 	return (
 		<div>
@@ -646,12 +645,13 @@ function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
 // HTTP details section
 function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 	//
-	if (!actionDetails.http) return null;
-
-	const http = actionDetails.http;
 	const [searchParamsOpen, setSearchParamsOpen] = useState(false);
 	const [responseBodyOpen, setResponseBodyOpen] = useState(false);
 	const [responseHeadersOpen, setResponseHeadersOpen] = useState(false);
+
+	if (!actionDetails.http) return null;
+
+	const http = actionDetails.http;
 
 	// Parse URL to extract search params
 	let searchParams: Record<string, string> = {};

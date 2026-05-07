@@ -7,7 +7,11 @@ import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
 import { useCurrentTaskId } from '~/hooks/useCurrentTask';
-import { usePreferences } from '~/hooks/usePreferences';
+import {
+	useInboxWidthPercentPreference,
+	useTaskDetailVisiblePreference,
+	useTaskListVisiblePreference,
+} from '~/hooks/preferences';
 import { useResizablePanelGroup } from '@reactor/ui/hooks/useResizablePanelGroup';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -28,13 +32,19 @@ export function Task(props: TaskProps) {
 function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 	//
 	const {
-		getInboxWidthPercent,
+		getInboxWidthPercent, //
 		setInboxWidthPercent,
-		getIsTaskListVisible,
+	} = useInboxWidthPercentPreference({ defaultValue: 25 });
+
+	const {
+		isTaskListVisible, //
 		setIsTaskListVisible,
-		getIsTaskDetailVisible,
+	} = useTaskListVisiblePreference();
+
+	const {
+		isTaskDetailVisible, //
 		setIsTaskDetailVisible,
-	} = usePreferences({ defaultValue: 25 });
+	} = useTaskDetailVisiblePreference();
 
 	const { getPanelSize, handleDragging, handleLayout } = useResizablePanelGroup({
 		getValue: getInboxWidthPercent,
@@ -42,26 +52,14 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 	});
 
 	const preferredWidthPercent = getPanelSize();
-	const isTaskListPreferredVisible = getIsTaskListVisible();
-	const isTaskDetailPreferredVisible = getIsTaskDetailVisible();
-
-	const handleToggleList = () => {
-		//
-		setIsTaskListVisible(!isTaskListPreferredVisible);
-	};
-
-	const handleToggleTaskDetail = () => {
-		//
-		setIsTaskDetailVisible(!isTaskDetailPreferredVisible);
-	};
 
 	return (
 		<ResizablePanelGroup
 			direction="horizontal"
-			onLayout={isTaskListPreferredVisible ? handleLayout : undefined}
+			onLayout={isTaskListVisible ? handleLayout : undefined}
 			className={cn('overflow-hidden', className)}
 		>
-			{isTaskListPreferredVisible && (
+			{isTaskListVisible && (
 				<ResizablePanel
 					key="task-list-panel"
 					id="list"
@@ -75,23 +73,27 @@ function TaskContent({ parentTaskId = 'inbox', className }: TaskProps) {
 					</Suspense>
 				</ResizablePanel>
 			)}
-			{isTaskListPreferredVisible && (
-				<ResizableHandle className="hidden md:flex" onClick={handleToggleList} onDragging={handleDragging} />
+			{isTaskListVisible && (
+				<ResizableHandle
+					className="hidden md:flex"
+					onClick={() => setIsTaskListVisible(!isTaskListVisible)}
+					onDragging={handleDragging}
+				/>
 			)}
 			<ResizablePanel
 				key="task-content-panel"
 				id="detail"
 				order={1}
-				defaultSize={isTaskListPreferredVisible ? 100 - preferredWidthPercent : 100}
+				defaultSize={isTaskListVisible ? 100 - preferredWidthPercent : 100}
 				minSize={15}
 				className="max-md:!flex-1"
 			>
 				<Suspense fallback={<Loading />}>
 					<TaskDetailWithConditionalRendering
-						onToggleList={handleToggleList}
-						onToggleTaskDetail={handleToggleTaskDetail}
-						isTaskListVisible={isTaskListPreferredVisible}
-						isTaskDetailVisible={isTaskDetailPreferredVisible}
+						onToggleList={() => setIsTaskListVisible(!isTaskListVisible)}
+						onToggleTaskDetail={() => setIsTaskDetailVisible(!isTaskDetailVisible)}
+						isTaskListVisible={isTaskListVisible}
+						isTaskDetailVisible={isTaskDetailVisible}
 					/>
 				</Suspense>
 			</ResizablePanel>
