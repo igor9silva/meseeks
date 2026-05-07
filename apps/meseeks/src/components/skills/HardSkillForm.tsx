@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
-import { Form } from '~/components/ui/form';
+import { Form } from '@reactor/ui/form';
 import { useSkillFormSubmit } from '~/hooks/useSkillFormSubmit';
 import {
 	buildHardSkillFromForm,

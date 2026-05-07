@@ -6,11 +6,11 @@ import { toast } from 'sonner';
 import { CopyButton } from '~/components/CopyButton';
 import { Loading } from '~/components/Loading';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Badge } from '@reactor/ui/badge';
+import { Button } from '@reactor/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useActionDetails } from '~/hooks/query/useActionDetails';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 // Copy to clipboard helper
 const copyToClipboard = (text: string) => {

@@ -1,5 +1,5 @@
 import { CalendarClock } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import { useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { useLauncher } from '../LauncherProvider';
 import type { CurrentTask } from '../types';

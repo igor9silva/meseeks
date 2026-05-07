@@ -1,12 +1,12 @@
 import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
 import { forwardRef, Suspense, useCallback, useEffect, useState } from 'react';
-import { Button } from '~/components/ui/button';
-import { Command } from '~/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Button } from '@reactor/ui/button';
+import { Command } from '@reactor/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
+import { Skeleton } from '@reactor/ui/skeleton';
 import { useIntelligences } from '~/hooks/query/useIntelligences';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { IntelligenceDetailsPanel } from './IntelligenceDetailsPanel';
 import { IntelligenceList, IntelligenceSelectorProps } from './IntelligenceList';
 

@@ -1,5 +1,5 @@
 import { Circle, CircleCheckBig } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import type { LauncherTask } from '../types';
 
 export function TaskResultItem({ task, onSelect }: { task: LauncherTask; onSelect: (value: string) => void }) {

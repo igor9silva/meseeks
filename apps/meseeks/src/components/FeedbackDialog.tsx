@@ -4,21 +4,14 @@ import { userRequestSchema } from 'schemas/userSchema';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v3';
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 import { api } from 'convex/_generated/api';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '~/components/ui/dialog';
-import { Textarea } from '~/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@reactor/ui/dialog';
+import { Textarea } from '@reactor/ui/textarea';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { useHandleSubmit } from '~/hooks/useHandleSubmit';
+import { useHandleSubmit } from '@reactor/ui/hooks/useHandleSubmit';
 import { useSplatParams } from '~/hooks/useSplatParams';
-import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
+import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 

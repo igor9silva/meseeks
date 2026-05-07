@@ -1,4 +1,4 @@
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function BasicError({
 	text, //

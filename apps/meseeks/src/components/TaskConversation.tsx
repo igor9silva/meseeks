@@ -8,17 +8,17 @@ import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
 import { DebugAction } from '~/components/DebugAction';
 import { EnergyDrawer } from '~/components/EnergyDrawer';
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 import { TaskConversationActions } from '~/components/TaskConversationActions';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { ComposerProvider } from '~/hooks/useComposer';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { api } from 'convex/_generated/api';
 
 import { Loading } from '~/components/Loading';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
 
 const PAGE_SIZE = 35;
 const NEAR_TOP_THRESHOLD = 200; // px

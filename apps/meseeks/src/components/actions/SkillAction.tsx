@@ -1,10 +1,10 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 import { simplifiedSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
-import { LoadingButton } from '~/components/ui/loading-button';
+import { LoadingButton } from '@reactor/ui/loading-button';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 

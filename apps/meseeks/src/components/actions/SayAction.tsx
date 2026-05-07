@@ -2,14 +2,14 @@ import { useNavigate } from '@tanstack/react-router';
 import { AlignJustify, Bug, Expand, Minimize2, TextQuote } from 'lucide-react';
 import { useState } from 'react';
 import type { MouseEvent, TouchEvent } from 'react';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 import { ActionComponentProps } from '~/components/actions';
 import { CopyButton } from '~/components/CopyButton';
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useFullscreenAction } from '~/hooks/useFullscreenAction';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { useFullscreenAction } from '@reactor/ui/hooks/useFullscreenAction';
 import { useSay } from '~/hooks/useTaskMutations';
 
 export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {

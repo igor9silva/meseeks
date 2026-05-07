@@ -2,17 +2,17 @@ import { useNavigate } from '@tanstack/react-router';
 import { Bug } from 'lucide-react';
 import { useMemo } from 'react';
 import { ActionComponentProps } from '~/components/actions';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
-import { cn } from '~/lib/utils';
+import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
+import { cn } from '@reactor/ui/lib/utils';
 
 import { asDollars } from 'lib/money';
-import { Button } from '~/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import { LoadingButton } from '~/components/ui/loading-button';
+import { Button } from '@reactor/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
+import { LoadingButton } from '@reactor/ui/loading-button';
 import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
-import { TextShimmer } from '~/components/ui/text-shimmer';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {

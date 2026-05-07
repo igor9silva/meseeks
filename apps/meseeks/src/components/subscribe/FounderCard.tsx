@@ -1,6 +1,6 @@
 import { BadgeCheck, Crown, DollarSign, Heart, Star, Zap } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
 import { FeatureItem } from './FeatureItem';
 
 export function FounderCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'founder') => Promise<void> }) {

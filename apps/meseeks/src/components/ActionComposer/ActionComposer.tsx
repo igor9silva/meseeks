@@ -1,12 +1,12 @@
 import type { Doc } from 'convex/_generated/dataModel';
 import { useEffect, useMemo, useRef } from 'react';
-import { TooltipProvider } from '~/components/ui/tooltip';
+import { TooltipProvider } from '@reactor/ui/tooltip';
 import { useComposer } from '~/hooks/useComposer';
-import { useExpandingTextarea } from '~/hooks/useExpandingTextarea';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useExpandingTextarea } from '@reactor/ui/hooks/useExpandingTextarea';
+import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
 import { useStop } from '~/hooks/useTaskMutations';
 import { useVoiceRecording } from '~/hooks/useVoiceRecording';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { IdleState } from './IdleState';
 import { RecordingState } from './RecordingState';
 import { TranscribingState } from './TranscribingState';

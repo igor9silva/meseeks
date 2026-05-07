@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { TextShimmer } from '~/components/ui/text-shimmer';
-import { cn } from '~/lib/utils';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function RotatingLoadingMessage({ className }: { className?: string }) {
 	//

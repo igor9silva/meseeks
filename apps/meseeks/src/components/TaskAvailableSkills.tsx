@@ -1,10 +1,10 @@
 import { Loader2, Plus, X } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { SkillCommandList } from '~/components/skills/shared/SkillCommandList';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Badge } from '@reactor/ui/badge';
+import { Button } from '@reactor/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
+import { Skeleton } from '@reactor/ui/skeleton';
 import { usePreferences } from '~/hooks/usePreferences';
 
 interface TaskAvailableSkillsProps {

@@ -1,9 +1,9 @@
+import { useState, type MouseEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useMDX } from '~/hooks/useMDX';
 
-import React from 'react';
+import { ErrorBoundary } from '@reactor/ui/error-boundary';
 
-import { ErrorBoundary } from 'react-error-boundary';
 import { ActionTest } from '~/components/ActionTest';
 import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
 import { Balance } from '~/components/Balance';
@@ -14,10 +14,10 @@ import { Loading } from '~/components/Loading';
 import { QuickSeek } from '~/components/QuickSeek';
 import { RenderActionTestSuite } from '~/components/RenderActionTestSuite';
 import { TopUpCard } from '~/components/TopUpCard';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '~/components/ui/accordion';
-import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { Badge } from '~/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@reactor/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@reactor/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
+import { Badge } from '@reactor/ui/badge';
 import {
 	Breadcrumb,
 	BreadcrumbEllipsis,
@@ -26,13 +26,13 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '~/components/ui/breadcrumb';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
-import { Checkbox } from '~/components/ui/checkbox';
-import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import { Combobox } from '~/components/ui/combobox';
+} from '@reactor/ui/breadcrumb';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
+import { Checkbox } from '@reactor/ui/checkbox';
+import { CodeBlock, CodeBlockCode } from '@reactor/ui/code-block';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
+import { Combobox } from '@reactor/ui/combobox';
 import {
 	Command,
 	CommandDialog,
@@ -43,7 +43,7 @@ import {
 	CommandList,
 	CommandSeparator,
 	CommandShortcut,
-} from '~/components/ui/command';
+} from '@reactor/ui/command';
 import {
 	Dialog,
 	DialogContent,
@@ -52,7 +52,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '~/components/ui/dialog';
+} from '@reactor/ui/dialog';
 import {
 	Drawer,
 	DrawerClose,
@@ -62,7 +62,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 	DrawerTrigger,
-} from '~/components/ui/drawer';
+} from '@reactor/ui/drawer';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -79,16 +79,16 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
-import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { Separator } from '~/components/ui/separator';
+} from '@reactor/ui/dropdown-menu';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@reactor/ui/form';
+import { Input } from '@reactor/ui/input';
+import { Label } from '@reactor/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@reactor/ui/radio-group';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
+import { ScrollArea, ScrollBar } from '@reactor/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
+import { Separator } from '@reactor/ui/separator';
 import {
 	Sheet,
 	SheetClose,
@@ -98,16 +98,21 @@ import {
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from '~/components/ui/sheet';
-import { Skeleton } from '~/components/ui/skeleton';
-import { Slider } from '~/components/ui/slider';
-import { Switch } from '~/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { Textarea } from '~/components/ui/textarea';
-import { Toggle } from '~/components/ui/toggle';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+} from '@reactor/ui/sheet';
+import { Skeleton } from '@reactor/ui/skeleton';
+import { Slider } from '@reactor/ui/slider';
+import { Switch } from '@reactor/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
+import { Textarea } from '@reactor/ui/textarea';
+import { Toggle } from '@reactor/ui/toggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useSetupWindowGlobals } from '~/hooks/useSetupWindowGlobals';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
+
+function toError(value: unknown): Error {
+	if (value instanceof Error) return value;
+	return new Error(String(value));
+}
 
 const components = {
 	AddBudgetButton,
@@ -251,8 +256,8 @@ export default function MDX({
 	shouldRenderComponents = true,
 }: {
 	text: string;
-	onClickFix?: (e: React.MouseEvent, error: Error) => void;
-	errorFallback?: React.ReactNode;
+	onClickFix?: (e: MouseEvent, error: Error) => void;
+	errorFallback?: ReactNode;
 	className?: string;
 	shouldRenderComponents?: boolean;
 }) {
@@ -274,7 +279,7 @@ export default function MDX({
 			)}
 		>
 			<ErrorBoundary
-				fallbackRender={({ error }) => <MDXError text={text} error={error} onClickFix={onClickFix} />}
+				fallbackRender={({ error }) => <MDXError text={text} error={toError(error)} onClickFix={onClickFix} />}
 			>
 				<Component
 					components={{
@@ -365,18 +370,18 @@ function MDXError({
 }: {
 	text: string;
 	error: Error;
-	onClickFix?: (e: React.MouseEvent, error: Error) => void;
+	onClickFix?: (e: MouseEvent, error: Error) => void;
 }) {
 	//
-	const [shouldShowRaw, setShouldShowRaw] = React.useState(false);
+	const [shouldShowRaw, setShouldShowRaw] = useState(false);
 
-	const handleErrorClick = (e: React.MouseEvent<HTMLPreElement>) => {
+	const handleErrorClick = (e: MouseEvent<HTMLPreElement>) => {
 		e.stopPropagation();
 		navigator.clipboard.writeText(error.message);
 		toast('Error copied to clipboard.');
 	};
 
-	const handleFixClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+	const handleFixClick = (e: MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
 		if (onClickFix) return onClickFix(e, error);
 		toast.error('Coming soon.');

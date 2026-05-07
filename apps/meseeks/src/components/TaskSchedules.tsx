@@ -3,11 +3,11 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import { TaskScheduleCompactItem } from '~/components/schedules/ScheduleItem';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
-import { Skeleton } from '~/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
+import { Skeleton } from '@reactor/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useTaskSchedules } from '~/hooks/query/useSchedules';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function TaskSchedules({ taskId }: { taskId: Id<'tasks'> }) {
 	//

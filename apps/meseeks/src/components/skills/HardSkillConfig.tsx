@@ -1,14 +1,14 @@
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
 import { SkillSelector } from '~/components/skills/shared/SkillSelector';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent } from '~/components/ui/card';
-import { LabelWithTooltip } from '~/components/ui/form-tooltip';
-import { Input } from '~/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table';
-import { Textarea } from '~/components/ui/textarea';
+import { Badge } from '@reactor/ui/badge';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent } from '@reactor/ui/card';
+import { LabelWithTooltip } from '@reactor/ui/form-tooltip';
+import { Input } from '@reactor/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@reactor/ui/table';
+import { Textarea } from '@reactor/ui/textarea';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 export type ParameterType = 'search' | 'header' | 'path' | 'body' | 'bodyPath';

@@ -1,4 +1,4 @@
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 
 interface SkillFormActionsProps {
 	isSubmitting: boolean;

@@ -4,17 +4,10 @@ import { Trash } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod/v3';
 
-import { Button } from '~/components/ui/button';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '~/components/ui/dialog';
+import { Button } from '@reactor/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@reactor/ui/dialog';
 import { useCancelSchedule } from '~/hooks/useCancelSchedule';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export type Schedule = Doc<'schedules'>;
 

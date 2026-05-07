@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, startTransition, useContext, useMemo, useState } from 'react';
-import { useKeyboardShortcut } from '~/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
 
 interface LauncherContextType {
 	isOpen: boolean;

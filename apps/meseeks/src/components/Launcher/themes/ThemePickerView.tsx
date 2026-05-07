@@ -1,6 +1,6 @@
 import { useCommandState } from 'cmdk';
 import { useEffect, useMemo } from 'react';
-import { CommandGroup, CommandSeparator } from '~/components/ui/command';
+import { CommandGroup, CommandSeparator } from '@reactor/ui/command';
 import { APP_THEMES, type AppThemeId } from '~/lib/themes/catalog';
 import { isThemeId } from '~/lib/themes/resolve';
 import { matchesThemeSearch } from '../themeSearch';

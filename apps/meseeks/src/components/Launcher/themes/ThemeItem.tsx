@@ -1,5 +1,5 @@
 import type { AppThemeId } from '~/lib/themes/catalog';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import type { AppTheme } from '../types';
 import { ThemeIcon } from './ThemeIcon';
 

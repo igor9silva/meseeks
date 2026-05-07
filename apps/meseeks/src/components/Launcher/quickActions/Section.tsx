@@ -1,5 +1,5 @@
 import type { Id } from 'convex/_generated/dataModel';
-import { CommandGroup } from '~/components/ui/command';
+import { CommandGroup } from '@reactor/ui/command';
 import { CurrentTaskActions } from '../currentTask/Actions';
 import { FeedbackItem } from './FeedbackItem';
 import { RefreshItem } from './RefreshItem';

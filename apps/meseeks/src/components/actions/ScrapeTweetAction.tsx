@@ -2,7 +2,7 @@ import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { TweetCard } from '~/components/TweetCard';
 import { FailedMessage, Message, SimpleMessage } from '~/components/ui/message';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function ScrapeTweetAction(props: ActionComponentProps) {
 	//

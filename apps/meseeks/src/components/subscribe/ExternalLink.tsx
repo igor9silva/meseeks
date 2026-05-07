@@ -1,4 +1,4 @@
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function ExternalLink({ href, text, className }: { href: string; text: string; className?: string }) {
 	//

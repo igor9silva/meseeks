@@ -1,6 +1,6 @@
 import { asBigInt } from 'lib/money';
 import { AlertTriangle } from 'lucide-react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardContent } from '@reactor/ui/card';
 
 interface LowBalanceWarningProps {
 	balance: bigint;

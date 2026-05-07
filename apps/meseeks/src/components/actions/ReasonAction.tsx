@@ -2,7 +2,7 @@ import { ActionComponentProps } from '~/components/actions';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
 
 import { Message, MessageContent } from '~/components/ui/message';
-import { Reasoning, ReasoningContent, ReasoningTrigger } from '~/components/ui/reasoning';
+import { Reasoning, ReasoningContent, ReasoningTrigger } from '@reactor/ui/reasoning';
 
 export function ReasonAction(props: ActionComponentProps) {
 	//

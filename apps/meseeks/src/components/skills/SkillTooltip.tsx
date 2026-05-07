@@ -1,6 +1,6 @@
 import { InfoIcon } from 'lucide-react';
-import { Badge } from '~/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Badge } from '@reactor/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 
 type SkillTooltipProps = {
 	//

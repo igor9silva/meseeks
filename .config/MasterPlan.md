@@ -293,7 +293,7 @@ One file per hook in `src/hooks/`.
 ## Generated Files
 
 - `.config/MasterPlan.md` is the source of truth for AI assistant rules
-- `AGENTS.md` is auto-generated from `MasterPlan.md` on file change — never edit it directly, never run the generator manually
+- `AGENTS.md` is auto-generated from `MasterPlan.md`; never edit it directly
 - `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
 
 ## Making Changes
@@ -307,6 +307,9 @@ One file per hook in `src/hooks/`.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
+- Shared ignore patterns belong in the workspace `.gitignore`; app/package-local `.gitignore` files should contain only context-specific generated or local files.
+  - bad: create `apps/meseeks/.gitignore` just to ignore `.env.local`
+  - good: put `.env.local` once in the workspace `.gitignore` so every app/package inherits it
 - When the same config value or path is used across multiple layers, define one shared source of truth instead of repeating the literal in each file.
   - bad: repeat `'/api/auth'` in app client setup, server proxy setup, and Convex auth setup
   - good: define `authBasePath` once and import it everywhere that needs it

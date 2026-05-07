@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ActionComponentProps } from '~/components/actions';
 
 import { GenericAction } from '~/components/actions/GenericAction';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
 import { FailedMessage, Message, SimpleMessage } from '~/components/ui/message';
 
 export function SetUserInfoAction(props: ActionComponentProps) {

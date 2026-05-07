@@ -1,0 +1,53 @@
+{
+	"name": "browser-poc",
+	"version": "1.0.0",
+	"description": "",
+	"main": "out/main/index.js",
+	"engines": {
+		"bun": ">=1.1.0"
+	},
+	"scripts": {
+		"dev": "bun run dev:app",
+		"dev:app": "electron-vite dev",
+		"build": "bun run build:app",
+		"build:app": "electron-vite build",
+		"preview": "bun run preview:app",
+		"preview:app": "electron-vite preview",
+		"typecheck": "tsc --noEmit",
+		"lint": "bun run typecheck && bun run lint:lockfiles",
+		"lint:lockfiles": "test ! -f package-lock.json || (echo 'package-lock.json is not allowed. use bun.lockb only.' && exit 1)",
+		"format": "echo 'formatting is intentionally deferred while parent standards evolve.'"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"private": true,
+	"dependencies": {
+		"@radix-ui/react-tabs": "^1.1.13",
+		"@tanstack/react-query": "^5.90.21",
+		"@tanstack/react-router": "^1.159.5",
+		"@tanstack/start": "^1.120.20",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"electron": "^40.4.0",
+		"lucide-react": "^0.563.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tailwind-merge": "^3.4.0",
+		"zod": "^3.25.76"
+	},
+	"devDependencies": {
+		"@swc/core": "^1.15.11",
+		"@types/node": "^25.2.3",
+		"@types/react": "^18.3.28",
+		"@types/react-dom": "^18.3.7",
+		"@vitejs/plugin-react": "^5.1.4",
+		"autoprefixer": "^10.4.24",
+		"electron-vite": "^5.0.0",
+		"postcss": "^8.5.6",
+		"tailwindcss": "^3.4.17",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
+	}
+}

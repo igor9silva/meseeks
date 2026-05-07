@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { asDollars } from 'lib/money';
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function Balance({ className }: { className?: string }) {
 	//

@@ -1,8 +1,8 @@
 import { Calendar, Heart, MessageCircle, Play, Repeat2, User, Verified } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { z } from 'zod/v3';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { cn } from '~/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
+import { cn } from '@reactor/ui/lib/utils';
 
 const optionalStringSchema = z
 	.preprocess(

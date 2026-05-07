@@ -6,13 +6,13 @@ import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { CopyButton } from '~/components/CopyButton';
-import { Button } from '~/components/ui/button';
-import { CodeBlock, CodeBlockCode } from '~/components/ui/code-block';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Button } from '@reactor/ui/button';
+import { CodeBlock, CodeBlockCode } from '@reactor/ui/code-block';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
 import { FailedMessage, Message, SimpleMessage } from '~/components/ui/message';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { useFullscreenAction } from '~/hooks/useFullscreenAction';
-import { cn } from '~/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { useFullscreenAction } from '@reactor/ui/hooks/useFullscreenAction';
+import { cn } from '@reactor/ui/lib/utils';
 
 const analyzeActionArgsSchema = z.object({
 	code: z.string(),

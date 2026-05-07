@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { Loading } from '~/components/Loading';
 import { TaskItem } from '~/components/TaskItem';
 import { useSubtasks } from '~/hooks/query/useSubtasks';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function SubtaskList({
 	taskId, //

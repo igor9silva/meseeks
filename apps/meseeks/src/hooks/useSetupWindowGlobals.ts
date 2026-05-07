@@ -9,11 +9,11 @@ import { useSubtasks } from '~/hooks/query/useSubtasks';
 import { useTask } from '~/hooks/query/useTask';
 import { useTopUp, useTopUpHistory, useWaitingTopUps } from '~/hooks/query/useTopUps';
 import { useLockedBalance } from '~/hooks/query/useTransactions';
-import { useContainerBreakpoint } from '~/hooks/useContainerBreakpoint';
+import { useContainerBreakpoint } from '@reactor/ui/hooks/useContainerBreakpoint';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useOptimisticTaskUpdate } from '~/hooks/useOptimisticTaskUpdate';
 import { useSkillMutations } from '~/hooks/useSkillMutations';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 // declare global window interface for runtime globals
 declare global {

@@ -14,7 +14,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
-} from '~/components/ui/sidebar';
+} from '@reactor/ui/sidebar';
 
 const menuItems = [
 	{
@@ -31,7 +31,7 @@ function MenuItem(item: (typeof menuItems)[number]) {
 	return (
 		<SidebarMenuItem>
 			<Link tabIndex={-1} to={item.url}>
-				{({ isActive }) => {
+				{({ isActive }: { isActive: boolean }) => {
 					return (
 						<SidebarMenuButton
 							tooltip={{

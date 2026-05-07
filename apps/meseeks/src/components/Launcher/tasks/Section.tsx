@@ -1,5 +1,5 @@
 import { Loading } from '~/components/Loading';
-import { CommandGroup } from '~/components/ui/command';
+import { CommandGroup } from '@reactor/ui/command';
 import type { LauncherTask } from '../types';
 import { TaskResultItem } from './TaskResultItem';
 

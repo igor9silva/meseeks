@@ -1,9 +1,9 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
 import MDX from '~/components/ui/mdx';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function CollapsibleSummary({ summary }: { summary: string }) {
 	//

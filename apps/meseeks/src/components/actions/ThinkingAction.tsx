@@ -1,6 +1,6 @@
 import { ActionComponentProps } from '~/components/actions';
 import { Message } from '~/components/ui/message';
-import { TextShimmer } from '~/components/ui/text-shimmer';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
 
 import { GenericAction } from './GenericAction';
 

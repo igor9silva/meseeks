@@ -1,9 +1,9 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@radix-ui/react-collapsible';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import MDX from '~/components/ui/mdx';
-import { TextShimmer } from '~/components/ui/text-shimmer';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
+import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
+import MDX from './mdx';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { cn } from '@reactor/ui/lib/utils';
 
 export type MessageProps = {
 	children: React.ReactNode;

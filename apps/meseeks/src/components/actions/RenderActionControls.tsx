@@ -2,8 +2,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
 import { Bug, Expand, ExternalLink, Loader2, Minimize2, Share } from 'lucide-react';
 import { CopyButton } from '~/components/CopyButton';
-import { Button } from '~/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Button } from '@reactor/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useComponentShare } from '~/hooks/useComponentShare';
 
 interface RenderActionControlsProps {

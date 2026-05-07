@@ -1,0 +1,21 @@
+{
+	"name": "safe-mdx-compiler",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"test": "bun test.js"
+	},
+	"devDependencies": {
+		"bun-types": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@babel/core": "^7.26.0",
+		"@babel/generator": "^7.26.5",
+		"@babel/parser": "^7.26.5",
+		"@babel/traverse": "^7.26.5",
+		"@babel/types": "^7.26.5"
+	}
+}

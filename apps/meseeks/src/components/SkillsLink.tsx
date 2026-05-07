@@ -1,10 +1,10 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Loader2, Sparkles } from 'lucide-react';
 import { Suspense, useTransition } from 'react';
-import { Skeleton } from '~/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Skeleton } from '@reactor/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { usePreferences } from '~/hooks/usePreferences';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 interface SkillsLinkProps {
 	//

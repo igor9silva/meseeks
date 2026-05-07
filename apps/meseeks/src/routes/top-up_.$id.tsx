@@ -3,15 +3,15 @@ import { track } from '@vercel/analytics/react';
 import { Id } from 'convex/_generated/dataModel';
 import { useMutation } from 'convex/react';
 import { usePayment } from '~/hooks/usePayment';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { api } from 'convex/_generated/api';
 
 import { asDollars } from 'lib/money';
 import { BasicError } from '~/components/BasicError';
 import { topUpStatusColors } from '~/components/TopUpItem';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardFooter } from '~/components/ui/card';
+import { Badge } from '@reactor/ui/badge';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent, CardFooter } from '@reactor/ui/card';
 import { useTopUp } from '~/hooks/query/useTopUps';
 
 export const Route = createFileRoute('/top-up_/$id')({

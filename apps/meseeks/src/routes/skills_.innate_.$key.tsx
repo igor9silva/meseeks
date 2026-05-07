@@ -2,9 +2,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { BasicError } from '~/components/BasicError';
 import { InnateSkillDetail } from '~/components/skills/InnateSkillDetail';
-import { Badge } from '~/components/ui/badge';
-import { CardDescription, CardTitle } from '~/components/ui/card';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Badge } from '@reactor/ui/badge';
+import { CardDescription, CardTitle } from '@reactor/ui/card';
+import { Skeleton } from '@reactor/ui/skeleton';
 import { useInnateSkill } from '~/hooks/query/useSkills';
 
 export const Route = createFileRoute('/skills_/innate_/$key')({

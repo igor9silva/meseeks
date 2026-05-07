@@ -1,12 +1,12 @@
 {
-  "name": "@meseeks/organizer",
+  "name": "@reactor/organizer",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3101",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"
@@ -19,12 +19,12 @@
     "@tanstack/react-form": "^1.0.0",
     "@tanstack/react-query": "^5.66.5",
     "@tanstack/react-query-devtools": "^5.84.2",
-    "@tanstack/react-router": "^1.132.0",
-    "@tanstack/react-router-devtools": "^1.132.0",
-    "@tanstack/react-router-ssr-query": "^1.131.7",
-    "@tanstack/react-start": "^1.132.0",
+    "@tanstack/react-router": "1.141.6",
+    "@tanstack/react-router-devtools": "1.141.6",
+    "@tanstack/react-router-ssr-query": "1.141.6",
+    "@tanstack/react-start": "1.141.7",
     "@tanstack/nitro-v2-vite-plugin": "1.141.0",
-    "@tanstack/router-plugin": "^1.132.0",
+    "@tanstack/router-plugin": "1.141.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.561.0",
@@ -53,6 +53,7 @@
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "@typescript/native-preview": "^7.0.0-dev.20260211.1"
   }
 }

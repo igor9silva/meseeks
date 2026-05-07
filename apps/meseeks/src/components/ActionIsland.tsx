@@ -4,10 +4,10 @@ import { ChevronDown, Clock3, Loader2, ShieldAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { api } from 'convex/_generated/api';
 import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
-import { cn } from '~/lib/utils';
-import { Button } from '~/components/ui/button';
-import { LoadingButton } from '~/components/ui/loading-button';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
+import { cn } from '@reactor/ui/lib/utils';
+import { Button } from '@reactor/ui/button';
+import { LoadingButton } from '@reactor/ui/loading-button';
+import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
 
 const INITIAL_ACTION_COUNT = 20;
 

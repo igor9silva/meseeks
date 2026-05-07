@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Info } from 'lucide-react';
-import { Card, CardContent } from '~/components/ui/card';
+import { Card, CardContent } from '@reactor/ui/card';
 
 export function SkillLearningInfoBox({ query }: { query: string }) {
 	//

@@ -1,8 +1,8 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { useMemo } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function TaskBudget({
 	task, //

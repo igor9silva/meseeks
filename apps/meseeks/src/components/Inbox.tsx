@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Loading } from '~/components/Loading';
 import { TaskItem } from '~/components/TaskItem';
-import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
+import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
 import { usePaginatedSubtasks } from '~/hooks/useSuspensePaginatedQuery';
 
 const PAGE_SIZE = 50;

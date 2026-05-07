@@ -1,11 +1,11 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt, asDollars, asNumber, MONEY_PRECISION } from 'lib/money';
 import { UseFormReturn } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '~/components/ui/form';
-import { LabelWithTooltip } from '~/components/ui/form-tooltip';
-import { Input } from '~/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { Textarea } from '~/components/ui/textarea';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@reactor/ui/form';
+import { LabelWithTooltip } from '@reactor/ui/form-tooltip';
+import { Input } from '@reactor/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
+import { Textarea } from '@reactor/ui/textarea';
 import { InputSchemaDisplay } from './InputSchemaDisplay';
 
 interface BasicSkillFieldsProps {

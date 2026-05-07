@@ -11,9 +11,9 @@ import {
 } from 'lucide-react';
 import { AddBudgetButton } from '~/components/AddBudgetButton';
 import { ReopenButton } from '~/components/ReopenButton';
-import { Button } from '~/components/ui/button';
-import { LoadingButton } from '~/components/ui/loading-button';
-import { Toggle } from '~/components/ui/toggle';
+import { Button } from '@reactor/ui/button';
+import { LoadingButton } from '@reactor/ui/loading-button';
+import { Toggle } from '@reactor/ui/toggle';
 
 interface TaskConversationActionsProps {
 	task: Doc<'tasks'>;

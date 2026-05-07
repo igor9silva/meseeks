@@ -2,8 +2,8 @@ import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
 import { PlusCircle } from 'lucide-react';
 import { Suspense, useState } from 'react';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
+import { Button } from '@reactor/ui/button';
+import { Input } from '@reactor/ui/input';
 import { SkillCardSkeleton } from './SkillCardSkeleton';
 import { SkillListContent } from './SkillListContent';
 

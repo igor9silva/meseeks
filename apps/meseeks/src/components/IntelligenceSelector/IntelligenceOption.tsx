@@ -1,5 +1,5 @@
-import { CommandItem } from '~/components/ui/command';
-import { cn } from '~/lib/utils';
+import { CommandItem } from '@reactor/ui/command';
+import { cn } from '@reactor/ui/lib/utils';
 import { type IntelligenceKey, type Intelligence } from 'schemas/intelligenceSchema';
 import { formatPricing, formatWordCount } from '~/lib/intelligence-utils';
 

@@ -1,6 +1,6 @@
 import { LogOut } from 'lucide-react';
 import { signOutAndReload } from 'lib/auth-client';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 
 export function SignOutItem() {
 	//

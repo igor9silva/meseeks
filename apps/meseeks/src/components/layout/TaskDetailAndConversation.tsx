@@ -1,7 +1,7 @@
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
 import { usePreferences } from '~/hooks/usePreferences';
-import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
-import { cn } from '~/lib/utils';
+import { useResizablePanelGroup } from '@reactor/ui/hooks/useResizablePanelGroup';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function TaskDetailAndConversation({
 	list,

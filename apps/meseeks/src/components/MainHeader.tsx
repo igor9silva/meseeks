@@ -2,15 +2,15 @@ import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery } from 'convex/react';
 import { ArrowLeft, Inbox, Loader2, Search, SquarePen } from 'lucide-react';
 import { Suspense, useTransition } from 'react';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
 import { Balance } from '~/components/Balance';
 import { useLauncher } from '~/components/Launcher';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
-import { Button } from '~/components/ui/button';
-import { TooltipButton, TooltipProvider } from '~/components/ui/tooltip';
+import { Button } from '@reactor/ui/button';
+import { TooltipButton, TooltipProvider } from '@reactor/ui/tooltip';
 import { useTask } from '~/hooks/query/useTask';
 import { useSplatParams } from '~/hooks/useSplatParams';
 

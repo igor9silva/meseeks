@@ -1,5 +1,5 @@
 import { CircleX } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import { useDiscard } from '~/hooks/useTaskMutations';
 import { useLauncher } from '../LauncherProvider';
 import type { CurrentTask } from '../types';

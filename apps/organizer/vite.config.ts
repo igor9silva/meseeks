@@ -23,6 +23,10 @@ const config = defineConfig({
 			},
 		}),
 	],
+	// Mermaid pulls Langium; let Vite serve it directly instead of esbuild prebundling it.
+	optimizeDeps: {
+		exclude: ["mermaid"],
+	},
 	server: {
 		watch: {
 			// production builds are large enough to trip macos watcher limits here

@@ -4,8 +4,8 @@ import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 
 import { GenericAction } from '~/components/actions/GenericAction';
-import { Button } from '~/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Button } from '@reactor/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
 import { FailedMessage, Message, MessageContent, SimpleMessage } from '~/components/ui/message';
 
 export function SearchPlacesAction(props: ActionComponentProps) {

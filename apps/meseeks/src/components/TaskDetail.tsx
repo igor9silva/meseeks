@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
 import { TimeAgo } from '~/components/TimeAgo';
 import { TaskSchedules } from '~/components/TaskSchedules';
-import { Card, CardContent, CardHeader } from '~/components/ui/card';
+import { Card, CardContent, CardHeader } from '@reactor/ui/card';
 import MDX from '~/components/ui/mdx';
 import { useCurrentTask } from '~/hooks/useCurrentTask';
 import { useUpdateAvailableSkills, useUpdateInstructions, useUpdateTitle } from '~/hooks/useTaskMutations';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskAvailableSkills } from './TaskAvailableSkills';

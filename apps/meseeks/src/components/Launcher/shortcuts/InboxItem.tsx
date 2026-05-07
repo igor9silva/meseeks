@@ -1,5 +1,5 @@
 import { Inbox } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 
 export function InboxItem({ onSelect }: { onSelect: (value: string) => void }) {
 	//

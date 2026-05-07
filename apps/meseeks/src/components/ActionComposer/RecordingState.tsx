@@ -1,6 +1,6 @@
 import { Square, X } from 'lucide-react';
-import { ActionButton } from '~/components/ui/action-button';
-import { TextShimmer } from '~/components/ui/text-shimmer';
+import { ActionButton } from '@reactor/ui/action-button';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
 
 export function RecordingState({
 	stopRecording,

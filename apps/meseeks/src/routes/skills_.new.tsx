@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { HardSkillForm } from '~/components/skills/HardSkillForm';
 import { SkillLearningInfoBox } from '~/components/skills/SkillLearningInfoBox';
 import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
-import { CardDescription, CardTitle } from '~/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { CardDescription, CardTitle } from '@reactor/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
 
 export const Route = createFileRoute('/skills_/new')({
 	component: RouteComponent,

@@ -9,6 +9,7 @@ import { env } from 'schemas/envSchema';
 const dictionary = [
 	'Meseeks', //
 	'DeepSeek',
+	'Qwen',
 	'GPT',
 ].join(',');
 

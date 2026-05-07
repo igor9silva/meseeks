@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import type { ButtonProps } from '~/components/ui/button';
-import { LoadingButton } from '~/components/ui/loading-button';
+import type { ButtonProps } from '@reactor/ui/button';
+import { LoadingButton } from '@reactor/ui/loading-button';
 import { useSplatParams } from '~/hooks/useSplatParams';
 import { useReopen } from '~/hooks/useTaskMutations';
 import { RotateCcw } from 'lucide-react';

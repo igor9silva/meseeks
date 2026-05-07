@@ -1,4 +1,4 @@
-import { Badge } from '~/components/ui/badge';
+import { Badge } from '@reactor/ui/badge';
 import { parseJsonSchemaToProperties } from '~/lib/json-schema-parser';
 
 export function InputSchemaDisplay({ schema }: { schema: string }) {

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { z } from 'zod/v3';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
-import { ActionButton } from '~/components/ui/action-button';
+import { ActionButton } from '@reactor/ui/action-button';
 import { useSetPreferredIntelligence } from '~/hooks/useTaskMutations';
 import { KeyboardShortcutIndicator } from './KeyboardShortcutIndicator';
 

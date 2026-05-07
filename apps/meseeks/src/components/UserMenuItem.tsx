@@ -1,7 +1,6 @@
-import { CaretSortIcon, ComponentPlaceholderIcon } from '@radix-ui/react-icons';
 import { Link } from '@tanstack/react-router';
-import { BadgeCheck, Bell, LogOut, Sparkles } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
+import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,8 +9,8 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '~/components/ui/sidebar';
+} from '@reactor/ui/dropdown-menu';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@reactor/ui/sidebar';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { signOutAndReload } from 'lib/auth-client';
 
@@ -38,7 +37,7 @@ export function UserMenuItem() {
 								<span className="truncate font-semibold">{user.name}</span>
 								<span className="truncate text-xs">{user.email}</span>
 							</div>
-							<CaretSortIcon className="ml-auto size-4" />
+							<ChevronsUpDown className="ml-auto size-4" />
 						</SidebarMenuButton>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent
@@ -74,7 +73,7 @@ export function UserMenuItem() {
 							</DropdownMenuItem>
 							<DropdownMenuItem>
 								<Link to="/balance">
-									<ComponentPlaceholderIcon />
+									<CreditCard />
 									Billing
 								</Link>
 							</DropdownMenuItem>

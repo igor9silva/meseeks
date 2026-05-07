@@ -1,4 +1,4 @@
-import { CommandEmpty, CommandGroup, CommandInput, CommandList, CommandSeparator } from '~/components/ui/command';
+import { CommandEmpty, CommandGroup, CommandInput, CommandList, CommandSeparator } from '@reactor/ui/command';
 import { INTELLIGENCE_PROGRESSION, type IntelligenceKey, type Intelligence } from 'schemas/intelligenceSchema';
 import { IntelligenceOption } from './index';
 

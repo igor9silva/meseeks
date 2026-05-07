@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 
 import { Link } from '@tanstack/react-router';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { GenericAction } from '~/components/actions/GenericAction';
-import { Button } from '~/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
+import { Button } from '@reactor/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
 import MDX from '~/components/ui/mdx';
 import { Message, SimpleMessage } from '~/components/ui/message';
 
@@ -80,7 +80,7 @@ function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
 								target="_blank"
 								rel="noopener noreferrer"
 								className="break-all hover:underline"
-								onClick={(e) => e.stopPropagation()}
+								onClick={(e: MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
 							>
 								{url}
 							</Link>
@@ -135,7 +135,7 @@ function Success(props: ActionComponentProps) {
 								target="_blank"
 								rel="noopener noreferrer"
 								className="break-all hover:underline"
-								onClick={(e) => e.stopPropagation()}
+								onClick={(e: MouseEvent<HTMLAnchorElement>) => e.stopPropagation()}
 							>
 								{url}
 							</Link>

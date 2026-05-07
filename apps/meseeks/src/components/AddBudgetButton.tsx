@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Button, type ButtonProps } from '~/components/ui/button';
+import { Button, type ButtonProps } from '@reactor/ui/button';
 import { useComposer } from '~/hooks/useComposer';
 
 export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string; content?: ReactNode }) {

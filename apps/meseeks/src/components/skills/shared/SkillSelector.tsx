@@ -1,7 +1,7 @@
 import { Suspense, useState } from 'react';
-import { Button } from '~/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Button } from '@reactor/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
+import { Skeleton } from '@reactor/ui/skeleton';
 import { SkillCommandList } from './SkillCommandList';
 
 interface SkillSelectorProps {

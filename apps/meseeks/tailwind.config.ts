@@ -4,7 +4,7 @@ import { tailwindSafelist } from './tailwind-safelist';
 
 export default {
 	darkMode: 'selector',
-	content: ['src/**/*.{ts,tsx}'],
+	content: ['src/**/*.{ts,tsx}', '../../packages/ui/src/**/*.{ts,tsx}'],
 	safelist: tailwindSafelist,
 	theme: {
 		container: {
@@ -107,9 +107,8 @@ export default {
 		},
 	},
 	plugins: [
-		require('@tailwindcss/typography'),
+		require('@tailwindcss/typography'), //
 		require('tailwindcss-animate'),
-		require('tailwindcss-displaymodes'),
 		require('tailwind-scrollbar'),
 	],
 } satisfies Config;

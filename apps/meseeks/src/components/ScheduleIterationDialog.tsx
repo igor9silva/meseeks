@@ -3,14 +3,14 @@ import { CalendarIcon, ClockIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { getNextDates } from 'lib/cron';
-import { Button } from '~/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-import { LoadingButton } from '~/components/ui/loading-button';
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
-import { Textarea } from '~/components/ui/textarea';
-import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
+import { Button } from '@reactor/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@reactor/ui/dialog';
+import { Input } from '@reactor/ui/input';
+import { Label } from '@reactor/ui/label';
+import { LoadingButton } from '@reactor/ui/loading-button';
+import { RadioGroup, RadioGroupItem } from '@reactor/ui/radio-group';
+import { Textarea } from '@reactor/ui/textarea';
+import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
 import { useScheduleIteration } from '~/hooks/useTaskMutations';
 
 interface ScheduleIterationDialogProps {

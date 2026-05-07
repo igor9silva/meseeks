@@ -8,7 +8,7 @@ import { LowBalanceWarning } from '~/components/balance/LowBalanceWarning';
 import { TopUpSection } from '~/components/balance/TopUpSection';
 import { TransactionsTab } from '~/components/balance/TransactionsTab';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
 import { useLockedBalance } from '~/hooks/query/useTransactions';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useIsPro } from '~/hooks/useIsPro';

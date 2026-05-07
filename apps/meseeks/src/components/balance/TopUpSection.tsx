@@ -3,8 +3,8 @@ import { Doc } from 'convex/_generated/dataModel';
 import { AlertTriangle } from 'lucide-react';
 import { ExternalLink } from '~/components/subscribe/ExternalLink';
 import { TopUpCard } from '~/components/TopUpCard';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent } from '~/components/ui/card';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent } from '@reactor/ui/card';
 
 interface TopUpSectionProps {
 	isPro: boolean;

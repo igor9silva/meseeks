@@ -2,10 +2,10 @@ import { Link } from '@tanstack/react-router';
 import { CalendarIcon, ClockIcon, RefreshCwIcon } from 'lucide-react';
 
 import { TimeAgo } from '~/components/TimeAgo';
-import { Badge } from '~/components/ui/badge';
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
+import { Badge } from '@reactor/ui/badge';
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
 import { CancelScheduleButton, getScheduleInstructions, type Schedule } from '~/components/schedules/ScheduleItem';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function ScheduleCard({ schedule, taskTitle }: { schedule: Schedule; taskTitle: string }) {
 	//

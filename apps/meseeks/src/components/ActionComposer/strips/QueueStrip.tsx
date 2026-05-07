@@ -1,8 +1,8 @@
 import { ChevronDown, Loader2, Trash2, X } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '~/components/ui/button';
+import { Button } from '@reactor/ui/button';
 import { useComposer } from '~/hooks/useComposer';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import type { EnqueuedSkill } from '../types';
 
 const MAX_VISIBLE_ITEMS = 5;

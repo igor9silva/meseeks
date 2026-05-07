@@ -7,8 +7,8 @@ import { InnateSkillsList } from '~/components/skills/InnateSkillsList';
 import { ShareSkillRequestDialog } from '~/components/skills/ShareSkillRequestDialog';
 import { SkillCardSkeleton } from '~/components/skills/SkillCardSkeleton';
 import { SkillList } from '~/components/skills/SkillList';
-import { Card, CardContent, CardDescription, CardTitle } from '~/components/ui/card';
-import { Separator } from '~/components/ui/separator';
+import { Card, CardContent, CardDescription, CardTitle } from '@reactor/ui/card';
+import { Separator } from '@reactor/ui/separator';
 
 export const Route = createFileRoute('/skills')({
 	component: RouteComponent,

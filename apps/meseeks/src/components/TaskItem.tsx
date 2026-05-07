@@ -3,11 +3,11 @@ import type { Doc } from 'convex/_generated/dataModel';
 import { Archive, Check, Dot, Loader2 } from 'lucide-react';
 import { TaskBudget } from '~/components/TaskBudget';
 import { TaskStatusIndicator } from '~/components/TaskStatusIndicator';
-import { Button } from '~/components/ui/button';
-import { TextShimmer } from '~/components/ui/text-shimmer';
+import { Button } from '@reactor/ui/button';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
 import { useDiscard, useResolve } from '~/hooks/useTaskMutations';
 import { formatTaskItemTimestamp, formatTaskItemTimestampTooltip } from '~/lib/taskItemTimestamp';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 export function TaskItem({
 	task, //

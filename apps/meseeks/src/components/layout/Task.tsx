@@ -5,11 +5,11 @@ import { Loading } from '~/components/Loading';
 import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '~/components/ui/resizable';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
 import { useCurrentTaskId } from '~/hooks/useCurrentTask';
 import { usePreferences } from '~/hooks/usePreferences';
-import { useResizablePanelGroup } from '~/hooks/useResizablePanelGroup';
-import { cn } from '~/lib/utils';
+import { useResizablePanelGroup } from '@reactor/ui/hooks/useResizablePanelGroup';
+import { cn } from '@reactor/ui/lib/utils';
 
 interface TaskProps {
 	parentTaskId?: Id<'tasks'> | 'inbox';

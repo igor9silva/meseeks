@@ -1,5 +1,5 @@
-import { Card, CardContent, CardFooter, CardHeader } from '~/components/ui/card';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Card, CardContent, CardFooter, CardHeader } from '@reactor/ui/card';
+import { Skeleton } from '@reactor/ui/skeleton';
 
 export function SkillCardSkeleton() {
 	//

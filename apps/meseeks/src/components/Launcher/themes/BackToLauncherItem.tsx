@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 
 interface BackToLauncherItemProps {
 	onBack: () => void;

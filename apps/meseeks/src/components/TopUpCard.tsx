@@ -4,11 +4,11 @@ import { useAction } from 'convex/react';
 import { toast } from 'sonner';
 import { z } from 'zod/v3';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
-import { useHandleSubmit } from '~/hooks/useHandleSubmit';
-import { useSubmitHotkey } from '~/hooks/useSubmitHotkey';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent } from '@reactor/ui/card';
+import { Input } from '@reactor/ui/input';
+import { useHandleSubmit } from '@reactor/ui/hooks/useHandleSubmit';
+import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
 import { api } from 'convex/_generated/api';
 
 export function TopUpCard() {

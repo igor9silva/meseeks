@@ -2,7 +2,7 @@ import { useLocation, useRouter } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { signIn } from 'lib/auth-client';
 import { z } from 'zod/v3';
-import { LoadingButton } from '~/components/ui/loading-button';
+import { LoadingButton } from '@reactor/ui/loading-button';
 
 const authErrorSearchSchema = z.object({
 	error: z.string().optional(),

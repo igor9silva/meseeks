@@ -3,12 +3,12 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { INTELLIGENCES } from 'schemas/intelligenceSchema';
 import { Share } from 'lucide-react';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import { Switch } from '~/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { Badge } from '@reactor/ui/badge';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@reactor/ui/card';
+import { Switch } from '@reactor/ui/switch';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { cn } from '@reactor/ui/lib/utils';
 import { SkillTooltip } from './SkillTooltip';
 
 /**

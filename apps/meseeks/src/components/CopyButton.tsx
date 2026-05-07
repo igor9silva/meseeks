@@ -1,9 +1,9 @@
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 
-import { Button } from '~/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { cn } from '~/lib/utils';
+import { Button } from '@reactor/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
+import { cn } from '@reactor/ui/lib/utils';
 
 const TIME_TO_REVERT_MS = 1500;
 

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { CommandGroup } from '~/components/ui/command';
+import { CommandGroup } from '@reactor/ui/command';
 import { BalanceItem } from './BalanceItem';
 import { DevModeItem } from './DevModeItem';
 import { InboxItem } from './InboxItem';

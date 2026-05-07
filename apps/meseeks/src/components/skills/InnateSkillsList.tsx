@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Badge } from '~/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-import { Input } from '~/components/ui/input';
+import { Badge } from '@reactor/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@reactor/ui/card';
+import { Input } from '@reactor/ui/input';
 import { useInnateSkills } from '~/hooks/query/useSkills';
 
 export function InnateSkillsList() {

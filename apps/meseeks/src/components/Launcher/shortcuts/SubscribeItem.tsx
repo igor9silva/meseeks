@@ -1,5 +1,5 @@
 import { CreditCard } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import { useIsPro } from '~/hooks/useIsPro';
 
 export function SubscribeItem({ onSelect }: { onSelect: (value: string) => void }) {

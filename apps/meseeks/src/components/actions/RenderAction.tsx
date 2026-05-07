@@ -1,14 +1,14 @@
 import { Suspense, useEffect, useRef } from 'react';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from '@reactor/ui/error-boundary';
 import { z } from 'zod/v3';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { RenderActionControls } from '~/components/actions/RenderActionControls';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
-import { TextShimmer } from '~/components/ui/text-shimmer';
-import { useFullscreenAction } from '~/hooks/useFullscreenAction';
+import { TextShimmer } from '@reactor/ui/text-shimmer';
+import { useFullscreenAction } from '@reactor/ui/hooks/useFullscreenAction';
 import { useIframeRenderer } from '~/hooks/useIframeRenderer';
 
 const renderActionArgsSchema = z.object({
@@ -47,24 +47,29 @@ export function RenderAction(props: ActionComponentProps) {
 		case 'succeeded':
 			return (
 				<Suspense fallback={<TextShimmer text="Rendering..." />}>
-					<ErrorBoundary
-						fallbackRender={({ error, resetErrorBoundary }) => (
-							<div className="p-4">
-								<div className="text-red-600 mb-2">Unknown error during render.</div>
-								<button
-									onClick={resetErrorBoundary}
-									className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-								>
-									Retry
-								</button>
-							</div>
-						)}
-					>
+					<ErrorBoundary fallbackRender={ErrorFallback}>
 						<RenderActionContent {...props} />
 					</ErrorBoundary>
 				</Suspense>
 			);
 	}
+}
+
+function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErrorBoundary: () => void }) {
+	//
+	console.error(error);
+
+	return (
+		<div className="p-4">
+			<div className="text-red-600 mb-2">Unknown error during render.</div>
+			<button
+				onClick={resetErrorBoundary}
+				className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+			>
+				Retry
+			</button>
+		</div>
+	);
 }
 
 function RenderActionContent(props: ActionComponentProps) {

@@ -1,6 +1,6 @@
 import { RotateCcw } from 'lucide-react';
 import { asBigInt } from 'lib/money';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import { useIncreaseBudget } from '~/hooks/useTaskMutations';
 import { useLauncher } from '../LauncherProvider';
 import type { CurrentTask } from '../types';

@@ -3,7 +3,7 @@ import { Doc, Id } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { ArrowDown, ArrowUp, Clock, ExternalLink, RefreshCw, Wallet } from 'lucide-react';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 
 interface TransactionItemProps {
 	transaction: Doc<'transactions'>;

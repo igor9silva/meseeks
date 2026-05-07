@@ -1,12 +1,12 @@
 import { Id } from 'convex/_generated/dataModel';
 import { useEffect, useState } from 'react';
 import { Action } from '~/components/Action';
-import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
-import { Textarea } from '~/components/ui/textarea';
+import { Button } from '@reactor/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@reactor/ui/card';
+import { Textarea } from '@reactor/ui/textarea';
 
 import { z } from 'zod/v3';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 import { actionSchema } from 'schemas/actionSchema';
 
 // Default test action for setUserInfo

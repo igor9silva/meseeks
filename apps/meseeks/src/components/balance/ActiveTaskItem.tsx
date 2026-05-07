@@ -3,7 +3,7 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { DollarSign } from 'lucide-react';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 
 interface ActiveTaskItemProps {
 	task: Doc<'tasks'>;

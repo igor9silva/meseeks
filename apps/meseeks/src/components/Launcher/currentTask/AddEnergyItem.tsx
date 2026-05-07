@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { CircleCheckBig } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 import { useLauncher } from '../LauncherProvider';
 import type { CurrentTask } from '../types';
 

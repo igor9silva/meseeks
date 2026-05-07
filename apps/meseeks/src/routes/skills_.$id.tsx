@@ -5,9 +5,9 @@ import { BasicError } from '~/components/BasicError';
 import { HardSkillForm } from '~/components/skills/HardSkillForm';
 import { SkillLearningInfoBox } from '~/components/skills/SkillLearningInfoBox';
 import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
-import { Badge } from '~/components/ui/badge';
-import { CardDescription, CardTitle } from '~/components/ui/card';
-import { Skeleton } from '~/components/ui/skeleton';
+import { Badge } from '@reactor/ui/badge';
+import { CardDescription, CardTitle } from '@reactor/ui/card';
+import { Skeleton } from '@reactor/ui/skeleton';
 import { useSkill } from '~/hooks/query/useSkills';
 
 export const Route = createFileRoute('/skills_/$id')({

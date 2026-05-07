@@ -1,6 +1,4 @@
 {
-  "root": true,
-  "extends": ["react-app"],
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["react-hooks"]
+	"root": true,
+	"extends": ["react-app"],
 }

@@ -2,7 +2,7 @@ import { Doc } from 'convex/_generated/dataModel';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { z } from 'zod/v3';
 import { StatusIndicator } from '~/components/StatusIndicator';
-import { cn } from '~/lib/utils';
+import { cn } from '@reactor/ui/lib/utils';
 
 const classMap: Record<z.infer<typeof taskStatusSchema>, string> = {
 	idle: 'hidden',

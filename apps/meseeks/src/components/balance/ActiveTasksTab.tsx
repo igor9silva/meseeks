@@ -1,7 +1,7 @@
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject } from 'react';
 import { Loading } from '~/components/Loading';
-import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
+import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
 import { ActiveTaskItem } from './ActiveTaskItem';
 import { api } from 'convex/_generated/api';
 

@@ -1,7 +1,7 @@
 import { asDollars } from 'lib/money';
 import { builtInSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod/v3';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@reactor/ui/card';
 import { InputSchemaDisplay } from './shared/InputSchemaDisplay';
 
 type InnateSkill = z.infer<typeof builtInSkillSchema>;

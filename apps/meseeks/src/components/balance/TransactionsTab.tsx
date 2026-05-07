@@ -2,7 +2,7 @@ import { useDebouncedValue } from '@tanstack/react-pacer';
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject, useState } from 'react';
 import { Loading } from '~/components/Loading';
-import { useInfiniteScroll } from '~/hooks/useInfiniteScroll';
+import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
 import { TransactionItem } from './TransactionItem';
 import { api } from 'convex/_generated/api';
 

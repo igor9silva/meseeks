@@ -1,0 +1,27 @@
+{
+	"include": ["src/**/*.ts", "src/**/*.tsx"],
+	"exclude": ["node_modules"],
+	"compilerOptions": {
+		"esModuleInterop": true,
+		"jsx": "react-jsx",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"target": "ES2022",
+		"allowJs": false,
+		"paths": {
+			"@reactor/ui": ["./src/index.ts"],
+			"@reactor/ui/*": ["./src/*"],
+			"@reactor/ui/hooks/*": ["./src/hooks/*"],
+			"@reactor/ui/lib/*": ["./src/lib/*"]
+		},
+		"noEmit": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"strictNullChecks": true,
+		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true
+	}
+}

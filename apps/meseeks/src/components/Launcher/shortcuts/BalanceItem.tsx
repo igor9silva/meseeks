@@ -1,5 +1,5 @@
 import { Wallet } from 'lucide-react';
-import { CommandItem } from '~/components/ui/command';
+import { CommandItem } from '@reactor/ui/command';
 
 export function BalanceItem({ onSelect }: { onSelect: (value: string) => void }) {
 	//
