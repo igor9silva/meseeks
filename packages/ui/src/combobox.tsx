@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 import { Button } from './button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './command';
@@ -32,6 +32,7 @@ export function Combobox({
 }: ComboboxProps) {
 	//
 	const [open, setOpen] = useState(false);
+	const listId = useId();
 
 	const selectedOption = options.find((option) => option.value === value);
 
@@ -40,8 +41,10 @@ export function Combobox({
 			<PopoverTrigger asChild>
 				<Button
 					variant="outline"
+					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- radix popover uses a button trigger for the combobox; a native input would fight command selection
 					role="combobox"
 					aria-expanded={open}
+					aria-controls={listId}
 					className={cn(
 						'w-full justify-between rounded-full px-3 py-2 text-sm',
 						'flex h-9 items-center shadow-sm ring-offset-background',
@@ -64,7 +67,7 @@ export function Combobox({
 			>
 				<Command>
 					<CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
-					<CommandList>
+					<CommandList id={listId}>
 						<CommandEmpty>{emptyMessage}</CommandEmpty>
 						<CommandGroup>
 							{options.map((option) => (

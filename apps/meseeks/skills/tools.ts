@@ -67,7 +67,7 @@ export function createTool(
 	context?: MagicRockContext,
 ) {
 	//
-	// prettier-ignore
+	// oxfmt-ignore
 	switch (skill.kind) {
 		case 'hard': return createHTTPTool(ctx, task, action, skill);
 		case 'soft': return createAITool(ctx, task, action, skill, context);

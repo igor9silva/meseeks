@@ -1,4 +1,4 @@
-import { useDebouncedValue } from '@tanstack/react-pacer';
+import { useDebouncedValue } from '@reactor/ui/hooks/pacer';
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject } from 'react';
 import { Loading } from '~/components/Loading';

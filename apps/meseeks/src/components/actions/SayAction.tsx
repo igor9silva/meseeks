@@ -70,7 +70,6 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 			{fullscreen.isFullscreen && (
 				<FullscreenMessage
 					message={action.args[contentKey]}
-					isAuthorCurrentUser={isAuthorCurrentUser}
 					onClose={fullscreen.close}
 					onDoubleTap={fullscreen.handleCloseDoubleTap}
 					action={action}
@@ -83,14 +82,12 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 
 function FullscreenMessage({
 	message,
-	isAuthorCurrentUser,
 	onClose,
 	onDoubleTap,
 	action,
 	shouldRenderComponents,
 }: {
 	message: string;
-	isAuthorCurrentUser: boolean;
 	onClose: () => void;
 	onDoubleTap: (event: TouchEvent) => void;
 	action: ActionComponentProps['action'];

@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from 'cmdk';
+import { useCommandState } from '@reactor/ui/command';
 import { useCallback, useMemo } from 'react';
 import { SquarePen } from 'lucide-react';
 import { CommandItem } from '@reactor/ui/command';

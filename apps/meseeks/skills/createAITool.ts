@@ -54,7 +54,7 @@ export function createAITool(
 
 			const reactions = [] as Array<z.infer<typeof newActionSchema>>;
 
-			// prettier-ignore
+			// oxfmt-ignore
 			const say = (text: string) => reactions.push({
 				skillKey: 'say',
 				args: { message: text },
@@ -107,20 +107,20 @@ export function createAITool(
 					});
 					break;
 
-				// prettier-ignore
+				// oxfmt-ignore
 				case 'stop': say(text); break;
 
-				// prettier-ignore
+				// oxfmt-ignore
 				case 'error': say(text); break;
 
-				// prettier-ignore
+				// oxfmt-ignore
 				case 'content-filter': say(`[damn @sama] Content filter hit: ${warnings}`); break;
 
 				// TODO: better handling of max length
-				// prettier-ignore
+				// oxfmt-ignore
 				case 'length': say(`Max length hit. ${warnings}`); break;
 
-				// prettier-ignore
+				// oxfmt-ignore
 				default: throw new Error(`Unknown finish reason: ${reason}`);
 			}
 

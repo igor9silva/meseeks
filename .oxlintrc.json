@@ -1,0 +1,43 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": [
+		"typescript",
+		"react",
+		"import",
+		"jsx-a11y"
+	],
+	"env": {
+		"browser": true,
+		"node": true,
+		"es2022": true
+	},
+	"settings": {
+		"react": {
+			"version": "19.2.3"
+		}
+	},
+	"ignorePatterns": [
+		"private/**",
+		"prototypes/**",
+		"node_modules/**",
+		".opencode/**",
+		".output/**",
+		".nitro/**",
+		".tanstack/**",
+		".vinxi/**",
+		"dist/**",
+		"build/**",
+		"**/routeTree.gen.ts",
+		"**/convex/_generated/**",
+		"**/_generated/**"
+	],
+	"rules": {
+		"import/no-anonymous-default-export": "off",
+		"react/jsx-no-target-blank": [
+			"warn",
+			{
+				"allowReferrer": true
+			}
+		]
+	}
+}

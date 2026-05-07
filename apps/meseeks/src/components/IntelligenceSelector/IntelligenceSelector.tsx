@@ -1,6 +1,6 @@
 import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
-import { forwardRef, Suspense, useCallback, useEffect, useState } from 'react';
+import { forwardRef, Suspense, useCallback, useEffect, useId, useState } from 'react';
 import { Button } from '@reactor/ui/button';
 import { Command } from '@reactor/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
@@ -37,6 +37,7 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 		const [open, setOpen] = useState(false);
 		const [hovered, setHovered] = useState<IntelligenceKey | null>(null);
 		const [selected, setSelected] = useState<IntelligenceKey>(value ?? DEFAULT_INTELLIGENCE);
+		const listId = useId();
 
 		useEffect(() => {
 			setSelected(value ?? DEFAULT_INTELLIGENCE);
@@ -70,8 +71,10 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 					<Button
 						ref={ref}
 						variant="outline"
+						// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- radix popover uses a button trigger for the combobox; a native input would fight command selection
 						role="combobox"
 						aria-expanded={open}
+						aria-controls={listId}
 						disabled={disabled}
 						className={cn(
 							'w-full justify-between rounded-3xl px-3 py-2 text-sm',
@@ -105,6 +108,7 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 					<Command>
 						<div className="flex h-[400px] max-h-[70vh] md:h-[400px]">
 							<IntelligenceList
+								listId={listId}
 								options={Object.values(intelligences)}
 								selected={selected}
 								onSelect={handleSelect}

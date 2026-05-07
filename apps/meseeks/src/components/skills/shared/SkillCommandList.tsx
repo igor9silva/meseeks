@@ -6,12 +6,14 @@ interface SkillCommandListProps {
 	onSkillSelect: (skillKey: string) => void;
 	excludeSkills?: string[];
 	placeholder?: string;
+	listId?: string;
 }
 
 export function SkillCommandList({
 	onSkillSelect,
 	excludeSkills = [],
 	placeholder = 'Search skills...',
+	listId,
 }: SkillCommandListProps) {
 	//
 	const { enabledSkills } = useEnabledSkillsPreference();
@@ -19,8 +21,9 @@ export function SkillCommandList({
 
 	return (
 		<Command>
+			{/* oxlint-disable-next-line jsx-a11y/no-autofocus -- so far better than introducing an useEffect() */}
 			<CommandInput placeholder={placeholder} autoFocus />
-			<CommandList className="max-h-72">
+			<CommandList id={listId} className="max-h-72">
 				<CommandEmpty>No enabled skills found.</CommandEmpty>
 				<CommandGroup>
 					{availableSkills.map((skillKey) => (

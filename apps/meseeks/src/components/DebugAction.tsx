@@ -1,4 +1,4 @@
-import type { Doc, Id } from 'convex/_generated/dataModel';
+import type { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
@@ -43,8 +43,34 @@ const getStatusDot = (status: string) => {
 	return statusMap[status] || 'bg-gray-500';
 };
 
+function DisclosureButton({
+	isOpen,
+	onClick,
+	children,
+	className,
+}: {
+	isOpen: boolean;
+	onClick: () => void;
+	children: React.ReactNode;
+	className?: string;
+}) {
+	return (
+		<button
+			type="button"
+			className={cn(
+				'flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer bg-transparent p-0 text-left hover:text-blue-600 dark:hover:text-blue-400',
+				className,
+			)}
+			onClick={onClick}
+		>
+			{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+			{children}
+		</button>
+	);
+}
+
 // Approval display component
-function ApprovalSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
+function ApprovalSection({ action }: { action: Doc<'actions'> }) {
 	//
 	const hasApprovalInfo = action.approvedAt || action.approvedBy;
 
@@ -83,16 +109,13 @@ function ApprovalSection({ action, isAuthorCurrentUser }: { action: Doc<'actions
 					{isAutoApproval ? (
 						<span>automatically</span>
 					) : (
-						<code
-							className={
-								isClickable
-									? 'hover:text-foreground cursor-pointer underline-offset-2 hover:underline'
-									: ''
-							}
+						<button
+							type="button"
+							className="font-mono hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
 							onClick={isClickable ? handleApprovedByClick : undefined}
 						>
 							by {isApprovedByCurrentUser ? 'you' : action.approvedBy}
-						</code>
+						</button>
 					)}
 					{action.approvedAt && ' '}
 				</>
@@ -100,12 +123,13 @@ function ApprovalSection({ action, isAuthorCurrentUser }: { action: Doc<'actions
 			{action.approvedAt && (
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<span
+						<button
+							type="button"
 							className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
 							onClick={handleApprovedAtClick}
 						>
 							<TimeAgo date={action.approvedAt} />
-						</span>
+						</button>
 					</TooltipTrigger>
 					<TooltipContent side="top" className="max-w-sm">
 						<div className="space-y-1">
@@ -175,12 +199,13 @@ function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>
 	return (
 		<div className="text-xs text-muted-foreground">
 			{getStatusText()}{' '}
-			<code
-				className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
+			<button
+				type="button"
+				className="font-mono hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
 				onClick={handleClick}
 			>
 				{isAuthorCurrentUser ? 'you' : action.author}
-			</code>
+			</button>
 			{action.status === 'skipped' ? ', but skipped.' : '.'}
 		</div>
 	);
@@ -194,14 +219,10 @@ function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 
 	return (
 		<div>
-			<div
-				className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-				onClick={() => setIsOpen(!isOpen)}
-			>
-				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 				Arguments
 				<span className="text-muted-foreground font-normal text-xs">({Object.keys(args).length})</span>
-			</div>
+			</DisclosureButton>
 			{isOpen && (
 				<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 					{Object.entries(args).map(([key, value]) => (
@@ -218,7 +239,7 @@ function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
 	);
 }
 
-function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
+function ReactionItem({ reaction }: { reaction: any }) {
 	//
 	const [isOpen, setIsOpen] = useState(false);
 	const argCount = reaction.args ? Object.keys(reaction.args).length : 0;
@@ -230,14 +251,10 @@ function ReactionItem({ reaction, index }: { reaction: any; index: number }) {
 
 	return (
 		<div className="ml-4">
-			<div
-				className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-				onClick={() => setIsOpen(!isOpen)}
-			>
-				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 				{reaction.skillKey}
 				<span className="text-muted-foreground font-normal text-xs">({getArgumentText(argCount)})</span>
-			</div>
+			</DisclosureButton>
 			{isOpen &&
 				(argCount > 0 ? (
 					<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
@@ -274,14 +291,10 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 		const jsonString = JSON.stringify(result, null, 2);
 		return (
 			<div>
-				<div
-					className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-					onClick={() => setIsOpen(!isOpen)}
-				>
-					{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+				<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 					Result
 					<span className="text-muted-foreground font-normal text-xs">({jsonString.length} characters)</span>
-				</div>
+				</DisclosureButton>
 				{isOpen && (
 					<textarea
 						value={jsonString}
@@ -306,14 +319,10 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 
 	return (
 		<div>
-			<div
-				className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-				onClick={() => setIsOpen(!isOpen)}
-			>
-				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 				Result
 				<span className="text-muted-foreground font-normal text-xs">{summary}</span>
-			</div>
+			</DisclosureButton>
 			{isOpen && (
 				<div className="space-y-3">
 					{/* Text block - no labels, no container, just the text */}
@@ -330,7 +339,7 @@ function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
 					{hasReactions && (
 						<div className="space-y-2">
 							{result.reactions!.map((reaction, index) => (
-								<ReactionItem key={index} reaction={reaction} index={index} />
+								<ReactionItem key={index} reaction={reaction} />
 							))}
 						</div>
 					)}
@@ -354,11 +363,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 		<div className="space-y-3">
 			{hasActualCosts && (
 				<div>
-					<div
-						className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-						onClick={() => setIsOpen(!isOpen)}
-					>
-						{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+					<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 						Cost Breakdown ${asDollars({ bigInt: actualTotal, precision: 6 })}
 						<span className="text-muted-foreground font-normal text-xs">
 							{actualTotal === estimatedAmount ? (
@@ -382,7 +387,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 								<>(from ${asDollars({ bigInt: estimatedAmount, precision: 6 })} estimated)</>
 							)}
 						</span>
-					</div>
+					</DisclosureButton>
 					{isOpen && (
 						<div className="bg-muted border rounded-lg p-3 space-y-1 text-sm">
 							{action.costs.map((cost, index) => (
@@ -400,16 +405,12 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 
 			{hasEstimatedCost && !hasActualCosts && (
 				<div>
-					<div
-						className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-						onClick={() => setIsOpen(!isOpen)}
-					>
-						{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+					<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 						Estimated Cost
 						<span className="text-muted-foreground font-normal text-xs">
 							(${asDollars({ bigInt: action.estimatedCost!, precision: 6 })})
 						</span>
-					</div>
+					</DisclosureButton>
 					{isOpen && (
 						<div className="bg-muted border rounded-lg p-3 text-sm">
 							<div className="flex justify-between">
@@ -472,11 +473,11 @@ function MessageHistoryItem({
 
 	return (
 		<div className="border rounded-3xl p-3 bg-card">
-			<div
-				className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2"
+			<DisclosureButton
+				isOpen={isOpen}
 				onClick={() => setIsOpen(!isOpen)}
+				className="items-center hover:bg-muted/50 rounded-lg p-2 -m-2"
 			>
-				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
 				<span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
 				<span className={`text-sm font-medium ${getRoleColor(message.role)}`}>
 					{getRoleIcon(message.role)} {message.role}
@@ -486,7 +487,7 @@ function MessageHistoryItem({
 					{/* TODO: use env var CHAR_PER_TOKEN (currently server only) */}
 					{message.content.length} chars (~{Math.ceil(message.content.length / 3.5)} tokens)
 				</span>
-			</div>
+			</DisclosureButton>
 
 			{isOpen && (
 				<div className="mt-3 pt-3 border-t">
@@ -520,14 +521,10 @@ function MessageHistorySection({
 
 	return (
 		<div>
-			<div
-				className="flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-				onClick={() => setIsOpen(!isOpen)}
-			>
-				{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
 				History
 				<span className="text-muted-foreground font-normal text-xs">({messages.length} messages)</span>
-			</div>
+			</DisclosureButton>
 
 			{isOpen && (
 				<div className="space-y-3">
@@ -683,16 +680,16 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 
 			{Object.keys(searchParams).length > 0 && (
 				<div>
-					<div
-						className="flex items-center gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+					<DisclosureButton
+						isOpen={searchParamsOpen}
 						onClick={() => setSearchParamsOpen(!searchParamsOpen)}
+						className="items-center"
 					>
-						{searchParamsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
 						Search Parameters
 						<span className="text-muted-foreground font-normal text-xs">
 							({Object.keys(searchParams).length} parameters)
 						</span>
-					</div>
+					</DisclosureButton>
 					{searchParamsOpen && (
 						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 							{Object.entries(searchParams).map(([key, value]) => (
@@ -710,18 +707,18 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 
 			{http.responseBody && (
 				<div>
-					<div
-						className="flex items-center gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+					<DisclosureButton
+						isOpen={responseBodyOpen}
 						onClick={() => setResponseBodyOpen(!responseBodyOpen)}
+						className="items-center"
 					>
-						{responseBodyOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
 						Response Body
 						{http.responseBodySize && (
 							<span className="text-muted-foreground font-normal text-xs">
 								({http.responseBodySize} bytes)
 							</span>
 						)}
-					</div>
+					</DisclosureButton>
 					{responseBodyOpen && (
 						<textarea
 							value={http.responseBody}
@@ -735,20 +732,16 @@ function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
 
 			{http.responseHeaders && Object.keys(http.responseHeaders).length > 0 && (
 				<div>
-					<div
-						className="flex items-center gap-2 text-sm font-medium mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
+					<DisclosureButton
+						isOpen={responseHeadersOpen}
 						onClick={() => setResponseHeadersOpen(!responseHeadersOpen)}
+						className="items-center"
 					>
-						{responseHeadersOpen ? (
-							<ChevronDown className="h-4 w-4" />
-						) : (
-							<ChevronRight className="h-4 w-4" />
-						)}
 						Response Headers
 						<span className="text-muted-foreground font-normal text-xs">
 							({Object.keys(http.responseHeaders).length} headers)
 						</span>
-					</div>
+					</DisclosureButton>
 					{responseHeadersOpen && (
 						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
 							{Object.entries(http.responseHeaders).map(([key, value]) => (
@@ -843,17 +836,27 @@ function ActionRow({
 		setActionDetails(data);
 	};
 
+	const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		onToggle();
+	};
+
 	return (
 		<TooltipProvider>
 			<div className="border-b">
 				{/* Main row */}
 				<div
+					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- this row contains nested copy controls, so making the whole row a native button would create invalid nested buttons
+					role="button"
+					tabIndex={0}
 					className={cn(
 						'flex items-center py-2 hover:bg-muted/50 cursor-pointer group',
 						!isAuthorCurrentUser && 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
 					)}
 					style={{ paddingLeft: `${16 + action.depth * 4}px` }}
 					onClick={onToggle}
+					onKeyDown={handleRowKeyDown}
 				>
 					<div className="flex items-center gap-2 min-w-0 flex-1">
 						<Button variant="ghost" size="sm" className="h-4 w-4 p-0 opacity-60">
@@ -868,8 +871,9 @@ function ActionRow({
 								<span className="text-muted-foreground text-xs">({action.depth})</span>
 							</div>
 							<div className="flex items-center gap-2">
-								<code
-									className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+								<button
+									type="button"
+									className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
 									onClick={(e) => {
 										e.stopPropagation();
 										copyToClipboard(action._id);
@@ -878,7 +882,7 @@ function ActionRow({
 									title="Click to copy ID"
 								>
 									{action._id}
-								</code>
+								</button>
 								<div className="flex-1" />
 							</div>
 						</div>
@@ -887,7 +891,8 @@ function ActionRow({
 					<div className="flex items-center gap-4 text-sm text-muted-foreground">
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<span
+								<button
+									type="button"
 									className="hover:text-foreground cursor-pointer"
 									onClick={(e) => {
 										e.stopPropagation();
@@ -895,7 +900,7 @@ function ActionRow({
 									}}
 								>
 									<TimeAgo date={action._creationTime} />
-								</span>
+								</button>
 							</TooltipTrigger>
 							<TooltipContent side="top" className="max-w-sm">
 								<div className="space-y-1">
@@ -940,7 +945,7 @@ function ActionRow({
 					<div className="bg-muted/30 border-t">
 						<div className="p-4 space-y-4">
 							<AuthorSection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
-							<ApprovalSection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
+							<ApprovalSection action={action} />
 
 							<ArgumentsSection args={action.args} />
 							<ResultSection result={action.result} />
@@ -960,15 +965,11 @@ function ActionRow({
 export function DebugAction({
 	className,
 	action,
-	initialRenderDate,
 	isAuthorCurrentUser,
-	taskId,
 }: {
 	className?: string;
 	action: Doc<'actions'>;
-	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
 }) {
 	//
 	const [isExpanded, setIsExpanded] = useState(false);

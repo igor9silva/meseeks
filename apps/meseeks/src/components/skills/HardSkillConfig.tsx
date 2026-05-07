@@ -27,10 +27,6 @@ export interface KnownReaction {
 }
 
 export interface HardSkillConfigProps {
-	// Cost
-	cost?: string;
-	onCostChange?: (value: string) => void;
-
 	// HTTP Configuration
 	url?: string;
 	onUrlChange?: (value: string) => void;
@@ -58,10 +54,6 @@ export interface HardSkillConfigProps {
 }
 
 export function HardSkillConfig({
-	// Cost
-	cost = '0.01',
-	onCostChange = () => {},
-
 	// HTTP Configuration
 	url = '',
 	onUrlChange = () => {},

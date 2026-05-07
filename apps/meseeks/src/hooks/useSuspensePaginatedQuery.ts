@@ -1,8 +1,10 @@
 import { usePaginatedQuery } from 'convex/react';
+import type { Id } from 'convex/_generated/dataModel';
 import { useMemo } from 'react';
 import { api } from 'convex/_generated/api';
 
 interface UseSuspensePaginatedQueryOptions {
+	parentId?: Id<'tasks'>;
 	initialNumItems?: number;
 }
 
@@ -12,11 +14,11 @@ interface UseSuspensePaginatedQueryOptions {
  */
 export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions = {}) {
 	//
-	const { initialNumItems = 20 } = options;
+	const { parentId, initialNumItems = 20 } = options;
 
 	const { results, status, loadMore, isLoading } = usePaginatedQuery(
 		api.tasks.findAllAtInboxPaginated,
-		{ paginationOpts: { numItems: initialNumItems, cursor: null } },
+		{ parentId },
 		{ initialNumItems },
 	);
 

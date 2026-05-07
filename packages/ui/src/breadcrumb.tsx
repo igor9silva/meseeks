@@ -48,6 +48,7 @@ const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWit
 	({ className, ...props }, ref) => (
 		<span
 			ref={ref}
+			// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- shadcn marks the current breadcrumb page as a disabled link so screen readers keep the breadcrumb trail model without creating a self-link
 			role="link"
 			aria-disabled="true"
 			aria-current="page"

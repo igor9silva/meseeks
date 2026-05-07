@@ -1,23 +1,15 @@
-import type {
-	ExplorerQueryInput,
-	TaskSource,
-} from "~/lib/explorerSearchParams";
-import type { CreateTaskInput } from "~/server/taskExplorer";
-import type { CreateTaskDefaults, TaskDetailTask } from "./taskExplorerTypes";
+import type { ExplorerQueryInput, TaskSource } from '~/lib/explorerSearchParams';
+import type { CreateTaskInput } from '~/server/taskExplorer';
+import type { CreateTaskDefaults, TaskDetailTask } from './taskExplorerTypes';
 
-export const taskSourceOptions: TaskSource[] = ["public", "private"];
-export const taskPriorityOptions: Array<CreateTaskInput["priority"]> = [
-	"critical",
-	"high",
-	"medium",
-	"low",
-];
-export const defaultStatusOptions = ["active", "backlog", "inbox"];
+export const taskSourceOptions: TaskSource[] = ['public', 'private'];
+export const taskPriorityOptions: Array<CreateTaskInput['priority']> = ['critical', 'high', 'medium', 'low'];
+export const defaultStatusOptions = ['active', 'backlog', 'inbox'];
 export const SEARCH_DEBOUNCE_MS = 150;
 
 export function formatSourceLabel(source: TaskSource): string {
 	//
-	return source === "private" ? "Private" : "Public";
+	return source === 'private' ? 'Private' : 'Public';
 }
 
 export function dedupeStrings(values: string[]): string[] {
@@ -36,12 +28,10 @@ export function dedupeStrings(values: string[]): string[] {
 	return output;
 }
 
-export function getCreateTaskDefaults(
-	queryInput: ExplorerQueryInput,
-): CreateTaskDefaults {
+export function getCreateTaskDefaults(queryInput: ExplorerQueryInput): CreateTaskDefaults {
 	//
-	let taskSource: TaskSource = "public";
-	let status = "backlog";
+	let taskSource: TaskSource = 'public';
+	let status = 'backlog';
 
 	if (queryInput.sources.length === 1) {
 		const onlySource = queryInput.sources[0];
@@ -61,19 +51,17 @@ export function getCreateTaskDefaults(
 
 export function parseTaskSource(value: string): TaskSource | null {
 	//
-	if (value === "public") return value;
-	if (value === "private") return value;
+	if (value === 'public') return value;
+	if (value === 'private') return value;
 	return null;
 }
 
-export function parseTaskPriority(
-	value: string,
-): CreateTaskInput["priority"] | null {
+export function parseTaskPriority(value: string): CreateTaskInput['priority'] | null {
 	//
-	if (value === "critical") return value;
-	if (value === "high") return value;
-	if (value === "medium") return value;
-	if (value === "low") return value;
+	if (value === 'critical') return value;
+	if (value === 'high') return value;
+	if (value === 'medium') return value;
+	if (value === 'low') return value;
 	return null;
 }
 
@@ -81,7 +69,7 @@ export function parseTagDraft(value: string): string[] {
 	//
 	return dedupeStrings(
 		value
-			.split(",")
+			.split(',')
 			.map((tag) => tag.trim())
 			.filter((tag) => tag.length > 0),
 	);
@@ -89,36 +77,33 @@ export function parseTagDraft(value: string): string[] {
 
 export function createTaskFilename(value: string): string {
 	//
-	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, "");
+	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, '');
 
 	return withoutKnownExtension
 		.toLowerCase()
-		.replace(/'/g, "")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-+|-+$/g, "");
+		.replace(/'/g, '')
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-+|-+$/g, '');
 }
 
 export function createTaskRenameFilename(value: string): string {
 	//
-	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, "");
+	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, '');
 
-	if (withoutKnownExtension === "_index") return withoutKnownExtension;
+	if (withoutKnownExtension === '_index') return withoutKnownExtension;
 	return createTaskFilename(value);
 }
 
 export function getTaskFileBasename(relativePath: string): string {
 	//
-	const pathSegments = relativePath.split("/");
+	const pathSegments = relativePath.split('/');
 	const filename = pathSegments[pathSegments.length - 1] ?? relativePath;
 
-	return filename.replace(/\.(?:mdx|md|txt)$/i, "");
+	return filename.replace(/\.(?:mdx|md|txt)$/i, '');
 }
 
-export function getMutationErrorMessage(
-	error: unknown,
-	fallback: string,
-): string {
+export function getMutationErrorMessage(error: unknown, fallback: string): string {
 	//
 	return error instanceof Error ? error.message : fallback;
 }
@@ -131,18 +116,18 @@ export function toCursorFileHref(absolutePath: string | null): string | null {
 
 export function toCursorTaskHref(task: TaskDetailTask): string {
 	//
-	const url = new URL("cursor://anysphere.cursor-deeplink/prompt");
+	const url = new URL('cursor://anysphere.cursor-deeplink/prompt');
 
-	url.searchParams.set("text", task.body.trim());
+	url.searchParams.set('text', task.body.trim());
 
 	return url.toString();
 }
 
 export function toCodexTaskHref(task: TaskDetailTask): string {
 	//
-	const url = new URL("codex://new");
+	const url = new URL('codex://new');
 
-	url.searchParams.set("prompt", task.body.trim());
+	url.searchParams.set('prompt', task.body.trim());
 
 	return url.toString();
 }

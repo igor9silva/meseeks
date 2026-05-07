@@ -1,13 +1,13 @@
-import { existsSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 
 export function findRepoRoot(startDirectory = process.cwd()): string {
 	//
 	let current = resolve(startDirectory);
 
 	while (true) {
-		const hasRootPackage = existsSync(join(current, "package.json"));
-		const hasTasksDirectory = existsSync(join(current, "tasks"));
+		const hasRootPackage = existsSync(join(current, 'package.json'));
+		const hasTasksDirectory = existsSync(join(current, 'tasks'));
 
 		if (hasRootPackage && hasTasksDirectory) return current;
 

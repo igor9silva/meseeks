@@ -13,7 +13,7 @@ import { topUpSchema } from 'schemas/topUpSchema';
 import { transactionSchema } from 'schemas/transactionSchema';
 import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/userSchema';
 
-// prettier-ignore
+// oxfmt-ignore
 export default defineSchema({
 
 	users: defineTable(

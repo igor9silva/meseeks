@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'lib/date';
 import { type Doc } from 'convex/_generated/dataModel';
 import { Trash } from 'lucide-react';
 import { useState } from 'react';

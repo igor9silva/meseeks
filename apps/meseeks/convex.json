@@ -2,6 +2,6 @@
 	"$schema": "../../node_modules/convex/schemas/convex.schema.json",
 	"typescriptCompiler": "tsgo",
 	"node": {
-		"externalPackages": ["@babel/core", "@babel/preset-react", "@babel/preset-typescript"]
+		"externalPackages": ["@babel/core", "@babel/preset-react"]
 	}
 }

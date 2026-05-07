@@ -10,7 +10,7 @@ import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function SkillAction(props: ActionComponentProps) {
 	//
-	const { action, isAuthorCurrentUser, taskId, initialRenderDate } = props;
+	const { action, isAuthorCurrentUser, taskId } = props;
 
 	const isCreation = action.skillKey === 'createSkill';
 
@@ -21,7 +21,7 @@ export function SkillAction(props: ActionComponentProps) {
 			return null;
 
 		case 'pending authorization':
-			return <PendingAuthorization action={action} taskId={taskId} initialRenderDate={initialRenderDate} />;
+			return <PendingAuthorization action={action} taskId={taskId} />;
 
 		case 'failed':
 			return (
@@ -52,13 +52,11 @@ export function SkillAction(props: ActionComponentProps) {
 }
 
 function PendingAuthorization({
-	action,
+	action, //
 	taskId,
-	initialRenderDate,
 }: {
 	action: Doc<'actions'>;
 	taskId: Id<'tasks'>;
-	initialRenderDate: Date;
 }) {
 	const { approveAction, isApprovingAction } = useApproveAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();

@@ -28,8 +28,8 @@ export function SkillCard({
 	//
 	const isSpecial = skill.priority !== undefined; // TODO: hack
 	const isActive = isEnabled || isSpecial;
-	const availableSkills = skill.kind === 'soft' ? skill.config?.availableSkills ?? [] : [];
-	const knownReactions = skill.kind === 'hard' ? skill.knownReactions ?? [] : [];
+	const availableSkills = skill.kind === 'soft' ? (skill.config?.availableSkills ?? []) : [];
+	const knownReactions = skill.kind === 'hard' ? (skill.knownReactions ?? []) : [];
 
 	const handleToggle = (event: React.MouseEvent) => {
 		//

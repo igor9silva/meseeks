@@ -15,6 +15,13 @@ export const requestBudget = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
+			console.debug('requesting task budget increase', {
+				taskId: execution.task._id,
+				actionId: execution.action._id,
+				estimatedCost: args.estimatedCost.toString(),
+				previousActionKey: args.previousActionKey,
+			});
+
 			return {
 				text: `This task needs more energy to continue.\n\n<div className="flex flex-row gap-2"><AddBudgetButton variant="secondary" amount={0.2} /><AddBudgetButton variant="secondary" amount={1} /><AddCustomBudgetButton variant="secondary" text="Any amount" /></div>`,
 				reactions: [],

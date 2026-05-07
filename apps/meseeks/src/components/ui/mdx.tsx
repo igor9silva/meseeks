@@ -375,7 +375,7 @@ function MDXError({
 	//
 	const [shouldShowRaw, setShouldShowRaw] = useState(false);
 
-	const handleErrorClick = (e: MouseEvent<HTMLPreElement>) => {
+	const handleErrorClick = (e: MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
 		navigator.clipboard.writeText(error.message);
 		toast('Error copied to clipboard.');
@@ -400,9 +400,13 @@ function MDXError({
 		<div className="flex flex-col gap-2">
 			<div className="flex flex-col">
 				<p>Error loading content:</p>
-				<pre onClick={handleErrorClick} className="text-destructive whitespace-pre-wrap">
+				<button
+					type="button"
+					onClick={handleErrorClick}
+					className="text-destructive whitespace-pre-wrap text-left font-mono"
+				>
 					{error.message}
-				</pre>
+				</button>
 			</div>
 			<div className="flex flex-row gap-1">
 				<Button onClick={handleFixClick}>Fix it</Button>

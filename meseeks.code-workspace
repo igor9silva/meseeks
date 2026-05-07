@@ -10,10 +10,8 @@
 		},
 	],
 	"settings": {
-		// set prettier as default formatter for json, ts, tsx, js, jsx, html, css
-		"[json][jsonc][typescript][typescriptreact][javascript][javascriptreact][html][css][postcss][tailwindcss]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode",
-		},
+		// use Oxfmt wherever the Oxc VS Code extension provides formatting
+		"editor.defaultFormatter": "oxc.oxc-vscode",
 
 		// auto-format on save & paste
 		"editor.formatOnSave": true,
@@ -43,9 +41,6 @@
 			".codex": true,
 			".agents": true,
 			"AGENTS.md": true,
-		},
-		"[typescriptreact]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode",
 		},
 
 		// "terminal.integrated.defaultProfile.linux": "zsh",

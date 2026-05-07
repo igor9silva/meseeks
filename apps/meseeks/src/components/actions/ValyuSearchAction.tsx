@@ -1,4 +1,5 @@
 import { z } from 'zod/v3';
+import { isRecord } from 'lib/guards';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
@@ -194,9 +195,9 @@ function getMetadataDescription(metadata: Record<string, unknown> | null | undef
 	const end = getRecordString(metadata, 'end');
 
 	const parts = [
-		name && ticker ? `${name} (${ticker})` : name ?? ticker,
+		name && ticker ? `${name} (${ticker})` : (name ?? ticker),
 		interval,
-		start && end ? `${start} to ${end}` : start ?? end,
+		start && end ? `${start} to ${end}` : (start ?? end),
 	].filter(Boolean);
 
 	return parts.length > 0 ? parts.join(' | ') : undefined;
@@ -223,11 +224,6 @@ function getStructuredContentDescription(content: unknown, dataType: string | nu
 	}
 
 	return summaries.join(' ');
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	//
-	return typeof value === 'object' && value !== null;
 }
 
 function getRecordString(record: Record<string, unknown>, key: string) {

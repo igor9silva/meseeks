@@ -1,5 +1,3 @@
-import { ActionComponentProps } from '~/components/actions';
-
-export function StopAction(props: ActionComponentProps) {
+export function StopAction() {
 	return null;
 }

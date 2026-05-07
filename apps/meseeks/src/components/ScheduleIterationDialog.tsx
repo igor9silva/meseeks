@@ -46,6 +46,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 			try {
 				return { dates: getNextDates(cronExpression, timeZone, 5), error: null };
 			} catch (error) {
+				console.error('Failed to get next dates:', error);
 				return { dates: [], error: 'Invalid expression' };
 			}
 		}

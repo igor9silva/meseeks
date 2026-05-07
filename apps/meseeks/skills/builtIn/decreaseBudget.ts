@@ -25,7 +25,7 @@ export const decreaseBudget = defineSkill({
 					reactions: [],
 				};
 				//
-			} catch (error) {
+			} catch {
 				// perform() will resolve as failed with that message
 				throw new Error('Failed to remove energy from task.');
 			}

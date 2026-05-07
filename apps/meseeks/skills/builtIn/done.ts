@@ -17,6 +17,12 @@ export const done = defineSkill({
 		(execution: ToolExecution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
+			console.debug('done skill completed', {
+				actionId: execution.action._id,
+				reason: args.reason,
+				hasMessage: Boolean(args.message),
+			});
+
 			return {
 				reactions: execution.skill.knownReactions,
 			};

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { Id } from 'convex/_generated/dataModel';
+import { isNonEmptyString } from 'lib/guards';
 import { api } from 'convex/_generated/api';
 import { BasicError } from '~/components/BasicError';
 import { CompositionFrame } from '~/components/CompositionFrame';
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/action_/$id')({
 
 function isActionId(value: string | undefined): value is Id<'actions'> {
 	//
-	return Boolean(value && value.length > 0);
+	return isNonEmptyString(value);
 }
 
 function RouteComponent() {

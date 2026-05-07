@@ -1,4 +1,4 @@
-import { useDebouncer } from '@tanstack/react-pacer';
+import { useDebouncer } from '@reactor/ui/hooks/pacer';
 import type { Id } from 'convex/_generated/dataModel';
 import { api } from 'convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';

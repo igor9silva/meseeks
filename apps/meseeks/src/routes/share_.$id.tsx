@@ -2,6 +2,7 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Id } from 'convex/_generated/dataModel';
+import { isNonEmptyString } from 'lib/guards';
 import { api } from 'convex/_generated/api';
 import { BasicError } from '~/components/BasicError';
 import { CompositionFrame } from '~/components/CompositionFrame';
@@ -16,7 +17,7 @@ export const Route = createFileRoute('/share_/$id')({
 
 function isComponentId(value: string | undefined): value is Id<'components'> {
 	//
-	return Boolean(value && value.length > 0);
+	return isNonEmptyString(value);
 }
 
 function RouteComponent() {

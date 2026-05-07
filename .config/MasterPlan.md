@@ -85,7 +85,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 ## Code Style
 
 ### Formatting
-- Add blank `//` comment lines after function declarations for readability (prettier workaround)
+- Add blank `//` comment lines after function declarations for readability when the formatter would otherwise collapse the visual separation
 - Do not remove existing comments - user reviews manually
 - Do not change indentation
 - Prefer `Boolean()` over `!!`
@@ -95,7 +95,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
   - bad: `noExternal: ['@convex-dev/better-auth']`
   - good: comment that vite must bundle and transform the package during ssr instead of externalizing it
 - Every linter suppression must include a nearby explainer comment with the real reason the rule is being skipped.
-  - bad: `// eslint-disable-next-line react-hooks/exhaustive-deps`
+  - bad: `// oxlint-disable-next-line react-hooks/exhaustive-deps`
   - good: explain that `ref.current` is intentionally the dependency because the listener follows the current DOM node, then disable the rule
 - One-liner guards: `if (!element) return;` - use braces only when it doesn't fit on one line
 
@@ -112,7 +112,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - For complex conditions, extract to variables or early returns.
 
 ### Imports
-- Add imports AFTER first usage (prevents prettier from removing unused imports)
+- Add imports AFTER first usage when staging a partial edit that will use them later in the same change
 - Import specific React hooks: `import { useState, useEffect } from 'react'`
 - Never import entire React library
 - Never use namespace imports (`import * as ...`) unless the user explicitly asks for it.
@@ -319,17 +319,29 @@ One file per hook in `src/hooks/`.
 ## Making Changes
 
 - Every line of code has a maintenance cost. Crush unnecessary complexity.
-- Git index is user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
+- Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
+  - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
+  - good: review the staged snapshot, say whether it is ready to commit, and let the user commit
+  - good: only commit when the user explicitly says "commit it", "run git commit", "create the commit", or gives an equally direct instruction
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
 - The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
+- For linter unused-parameter fixes, remove dead local props/parameters instead of prefixing them with `_`. When preserving a real external/shared contract or callback signature, keep the normal parameter name and either use it for meaningful debug metadata or add a narrow lint suppression.
+  - bad: `function LocalPanel({ unused: _unused, value }: Props)`
+  - good: remove `unused` from `Props` and every call site, unless callers depend on that public contract
+  - bad: add `void args;` just to mark a required callback parameter as used
+  - good: log useful debug metadata from `args` when it helps inspect the callback execution
+  - good: keep `args` in the signature and suppress `no-unused-vars` with a nearby reason when there is no useful runtime signal to log
 - Lines of code are a liability, not an asset. Do not create one-use type files, wrappers, barrels, or helpers unless they reduce real complexity.
+- Oxlint and Oxfmt are the workspace lint/format standard. Do not reintroduce ESLint, Prettier, or Biome unless the user explicitly asks for a package-specific exception.
+- New dependencies need a real current use. Remove packages that are only commented out, historical, or transitive conveniences; prefer owning shared UI dependencies through `@reactor/ui` when app code can consume the UI package API.
 - Linter-driven fixes must preserve behavior. If satisfying a rule would change lifecycle, data loading, security, referrer behavior, or user interaction, stop and choose an explicit code structure or lint config instead.
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
 - Shared ignore patterns belong in the workspace `.gitignore`; app/package-local `.gitignore` files should contain only context-specific generated or local files.
+- `private/` and `prototypes/` are intentionally outside Bun workspaces and workspace-level QoL/tooling sweeps unless the user explicitly scopes work into them.
   - bad: create `apps/meseeks/.gitignore` just to ignore `.env.local`
   - good: put `.env.local` once in the workspace `.gitignore` so every app/package inherits it
 - When the same config value or path is used across multiple layers, define one shared source of truth instead of repeating the literal in each file.
@@ -384,6 +396,7 @@ CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, di
 Some directories are intentionally outside the main app scope:
 
 - `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
+- `prototypes/`: unrelated experiments and imported prototypes that should stay visible in this repository but should not be included in root Bun workspaces, Vercel builds, or workspace-level checks by default.
 - `prototypes/browser-poc/`: Electron browser experiment.
 - `prototypes/mecode-mvp/`: Electrobun macOS app shell prototype.
 - `prototypes/check-verse/`: standalone game prototype.

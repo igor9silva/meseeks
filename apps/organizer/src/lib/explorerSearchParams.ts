@@ -1,12 +1,8 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const explorerSortSchema = z.enum([
-	"priority_then_recency",
-	"recency",
-	"title",
-]);
+export const explorerSortSchema = z.enum(['priority_then_recency', 'recency', 'title']);
 
-const taskSourceSchema = z.enum(["public", "private"]);
+const taskSourceSchema = z.enum(['public', 'private']);
 
 export const explorerRouteSearchSchema = z.object({
 	q: z.string().optional(),
@@ -35,7 +31,7 @@ export interface ExplorerQueryInput {
 
 function parseBooleanFlag(value: string | undefined): boolean {
 	//
-	return value === "true";
+	return value === 'true';
 }
 
 export function splitCsv(value: string | undefined): string[] {
@@ -43,7 +39,7 @@ export function splitCsv(value: string | undefined): string[] {
 	if (!value) return [];
 
 	return value
-		.split(",")
+		.split(',')
 		.map((part) => part.trim())
 		.filter((part) => part.length > 0);
 }
@@ -74,14 +70,14 @@ export function parseSources(value: string | undefined): TaskSource[] {
 
 	const deduped = dedupeStrings(parsed);
 
-	if (deduped.length === 0) return ["public", "private"];
+	if (deduped.length === 0) return ['public', 'private'];
 	return deduped;
 }
 
 export function parseStatuses(value: string | undefined): string[] {
 	//
 	const statuses = dedupeStrings(splitCsv(value));
-	if (statuses.length === 0) return ["active", "backlog", "inbox"];
+	if (statuses.length === 0) return ['active', 'backlog', 'inbox'];
 	return statuses;
 }
 
@@ -93,20 +89,18 @@ export function parseTags(value: string | undefined): string[] {
 export function serializeCsv(values: string[]): string | undefined {
 	//
 	if (values.length === 0) return undefined;
-	return values.join(",");
+	return values.join(',');
 }
 
-export function parseExplorerQuery(
-	search: ExplorerRouteSearch,
-): ExplorerQueryInput {
+export function parseExplorerQuery(search: ExplorerRouteSearch): ExplorerQueryInput {
 	//
 	return {
-		q: search.q ?? "",
+		q: search.q ?? '',
 		sources: parseSources(search.sources),
 		statuses: parseStatuses(search.statuses),
 		tags: parseTags(search.tags),
 		excludedTags: parseTags(search.excludedTags),
 		rootsOnly: parseBooleanFlag(search.rootsOnly),
-		sort: search.sort ?? "priority_then_recency",
+		sort: search.sort ?? 'priority_then_recency',
 	};
 }

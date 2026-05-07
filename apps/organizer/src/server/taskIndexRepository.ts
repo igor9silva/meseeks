@@ -1,7 +1,7 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-import type { z } from "zod";
-import { findRepoRoot } from "~/server/repoRoot";
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import type { z } from 'zod';
+import { findRepoRoot } from '~/server/repoRoot';
 import {
 	type TasksContent,
 	type TasksGraph,
@@ -11,7 +11,7 @@ import {
 	tasksGraphSchema,
 	tasksLookupSchema,
 	tasksMetaSchema,
-} from "~/server/taskIndexSchemas";
+} from '~/server/taskIndexSchemas';
 
 interface FileSet {
 	metaPath: string;
@@ -48,16 +48,16 @@ let snapshotCache: SnapshotCache | null = null;
 
 function getGeneratedDir(): string {
 	//
-	return join(findRepoRoot(), "private", "tasks", ".generated");
+	return join(findRepoRoot(), 'private', 'tasks', '.generated');
 }
 
 function getFiles(generatedDir: string): FileSet {
 	//
 	return {
-		metaPath: join(generatedDir, "tasks.meta.json"),
-		lookupPath: join(generatedDir, "tasks.lookup.json"),
-		graphPath: join(generatedDir, "tasks.graph.json"),
-		contentPath: join(generatedDir, "tasks.content.json"),
+		metaPath: join(generatedDir, 'tasks.meta.json'),
+		lookupPath: join(generatedDir, 'tasks.lookup.json'),
+		graphPath: join(generatedDir, 'tasks.graph.json'),
+		contentPath: join(generatedDir, 'tasks.content.json'),
 	};
 }
 
@@ -70,10 +70,10 @@ function buildSignature(files: FileSet): {
 	const signatureParts: string[] = [];
 
 	const entries: Array<[string, string]> = [
-		["tasks.meta.json", files.metaPath],
-		["tasks.lookup.json", files.lookupPath],
-		["tasks.graph.json", files.graphPath],
-		["tasks.content.json", files.contentPath],
+		['tasks.meta.json', files.metaPath],
+		['tasks.lookup.json', files.lookupPath],
+		['tasks.graph.json', files.graphPath],
+		['tasks.content.json', files.contentPath],
 	];
 
 	for (const [name, filePath] of entries) {
@@ -87,18 +87,16 @@ function buildSignature(files: FileSet): {
 	}
 
 	if (errors.length > 0) return { signature: null, errors };
-	return { signature: signatureParts.join("|"), errors };
+	return { signature: signatureParts.join('|'), errors };
 }
 
 function parseJsonFile<TSchema extends z.ZodType>(
 	filePath: string,
 	schema: TSchema,
-):
-	| { success: true; data: z.infer<TSchema> }
-	| { success: false; error: string } {
+): { success: true; data: z.infer<TSchema> } | { success: false; error: string } {
 	//
 	try {
-		const raw = readFileSync(filePath, "utf-8");
+		const raw = readFileSync(filePath, 'utf-8');
 		const parsedJson: unknown = JSON.parse(raw);
 		const parsedResult = schema.safeParse(parsedJson);
 
@@ -108,8 +106,7 @@ function parseJsonFile<TSchema extends z.ZodType>(
 
 		return { success: true, data: parsedResult.data };
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "unknown read/parse failure";
+		const message = error instanceof Error ? error.message : 'unknown read/parse failure';
 		return { success: false, error: `${filePath}: ${message}` };
 	}
 }
@@ -132,13 +129,8 @@ function parseSnapshot(files: FileSet): {
 	if (!contentResult.success) errors.push(contentResult.error);
 
 	if (errors.length > 0) return { snapshot: null, errors };
-	if (
-		!metaResult.success ||
-		!lookupResult.success ||
-		!graphResult.success ||
-		!contentResult.success
-	) {
-		return { snapshot: null, errors: ["unexpected index parse state"] };
+	if (!metaResult.success || !lookupResult.success || !graphResult.success || !contentResult.success) {
+		return { snapshot: null, errors: ['unexpected index parse state'] };
 	}
 
 	return {

@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useId, useState } from 'react';
 import { Button } from '@reactor/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
 import { Skeleton } from '@reactor/ui/skeleton';
@@ -22,6 +22,7 @@ export function SkillSelector({
 }: SkillSelectorProps) {
 	//
 	const [isOpen, setIsOpen] = useState(false);
+	const listId = useId();
 
 	const handleSelect = (skillKey: string) => {
 		//
@@ -34,8 +35,10 @@ export function SkillSelector({
 			<PopoverTrigger asChild>
 				<Button
 					variant="outline"
+					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- radix popover uses a button trigger for the combobox; a native input would fight command selection
 					role="combobox"
 					aria-expanded={isOpen}
+					aria-controls={listId}
 					className="w-full justify-between"
 					disabled={disabled}
 				>
@@ -54,6 +57,7 @@ export function SkillSelector({
 					}
 				>
 					<SkillCommandList
+						listId={listId}
 						onSkillSelect={handleSelect}
 						excludeSkills={excludeSkills}
 						placeholder="Search skills..."

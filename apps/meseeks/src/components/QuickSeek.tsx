@@ -33,7 +33,7 @@ const PLACEHOLDERS = [
 export function QuickSeek({ className }: { className?: string }) {
 	//
 	return (
-		<div className="h-full flex flex-col justify-end items-center md:justify-center">
+		<div className={cn('h-full flex flex-col justify-end items-center md:justify-center', className)}>
 			<QuickSeekContent className="w-full max-w-5xl" />
 		</div>
 	);

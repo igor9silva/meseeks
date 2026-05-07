@@ -1,7 +1,7 @@
 import { Calendar, Heart, MessageCircle, Play, Repeat2, User, Verified } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { z } from 'zod/v3';
-import { isString } from 'lib/guards';
+import { isRecord, isString } from 'lib/guards';
 import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -303,11 +303,6 @@ function renderTweetText(text: string): ReactNode {
 		}
 		return part;
 	});
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	//
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function hasVideoUrl(video: { url?: string }): video is { url: string } {

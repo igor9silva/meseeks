@@ -1,4 +1,4 @@
-import { useCommandState } from 'cmdk';
+import { useCommandState } from '@reactor/ui/command';
 import { useEffect, useMemo } from 'react';
 import { CommandGroup, CommandSeparator } from '@reactor/ui/command';
 import { APP_THEMES, type AppThemeId } from '~/lib/themes/catalog';

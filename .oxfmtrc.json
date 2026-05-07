@@ -1,0 +1,31 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"singleQuote": true,
+	"semi": true,
+	"trailingComma": "all",
+	"endOfLine": "lf",
+	"useTabs": true,
+	"tabWidth": 4,
+	"printWidth": 120,
+	"quoteProps": "consistent",
+	"sortImports": false,
+	"sortPackageJson": false,
+	"ignorePatterns": [
+		"private/**",
+		"prototypes/**",
+		"node_modules/**",
+		".opencode/**",
+		".output/**",
+		".nitro/**",
+		".tanstack/**",
+		".vinxi/**",
+		"dist/**",
+		"build/**",
+		"**/api/**",
+		"**/public/**",
+		"**/data/**",
+		"**/routeTree.gen.ts",
+		"**/convex/_generated/**",
+		"**/_generated/**"
+	]
+}

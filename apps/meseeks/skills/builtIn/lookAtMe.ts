@@ -1,5 +1,5 @@
 import { z } from 'zod/v3';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const lookAtMe = defineSkill({
 	preApprovedCost: 0n,
@@ -79,14 +79,12 @@ export const lookAtMe = defineSkill({
 			condition: 'any',
 		},
 	],
-	use:
-		(execution: ToolExecution) =>
-		async (args): Promise<ExecutionResult> => {
-			//
-			return {
-				text: 'Welcome aboard!',
-				reactions: execution.skill.knownReactions,
-			};
-		},
+	use: (execution) => async (): Promise<ExecutionResult> => {
+		//
+		return {
+			text: 'Welcome aboard!',
+			reactions: execution.skill.knownReactions,
+		};
+	},
 	hidden: true,
 });

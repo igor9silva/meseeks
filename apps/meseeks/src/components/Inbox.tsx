@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import type { Id } from 'convex/_generated/dataModel';
 import { Loading } from '~/components/Loading';
 import { TaskItem } from '~/components/TaskItem';
 import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
@@ -13,14 +14,16 @@ export function TaskList({
 	currentTaskId,
 	className,
 }: {
-	parentTaskId?: string | 'inbox';
+	parentTaskId?: Id<'tasks'> | 'inbox';
 	currentTaskId?: string;
 	className?: string;
 }) {
 	//
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const parentId = parentTaskId === 'inbox' ? undefined : parentTaskId;
 
 	const { subtasks, loadMore, hasMore, isLoadingMore, isLoadingFirstPage } = usePaginatedSubtasks({
+		parentId,
 		initialNumItems: PAGE_SIZE,
 	});
 

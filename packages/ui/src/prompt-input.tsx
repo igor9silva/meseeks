@@ -81,44 +81,37 @@ export type PromptInputTextareaProps = {
 	inputRef: React.RefObject<HTMLTextAreaElement>;
 } & React.ComponentProps<typeof Textarea>;
 
-function PromptInputTextarea({
-	className,
-	onKeyDown,
-	disableAutosize = false,
-	inputRef,
-	...props
-}: PromptInputTextareaProps) {
+function PromptInputTextarea({ className, disableAutosize = false, inputRef, ...props }: PromptInputTextareaProps) {
 	//
 	const { maxHeight, disabled } = usePromptInput();
-
-	// Auto-resize functionality
-	const resizeIfNeeded = () => {
-		//
-		if (disableAutosize) return;
-		if (!inputRef.current) return;
-
-		inputRef.current.style.height = 'auto';
-		inputRef.current.style.height =
-			typeof maxHeight === 'number'
-				? `${Math.min(inputRef.current.scrollHeight, maxHeight)}px`
-				: `min(${inputRef.current.scrollHeight}px, ${maxHeight})`;
-	};
-
-	const handleFormReset = () => setTimeout(resizeIfNeeded, 0);
 
 	// Set up event listeners for auto-resize
 	useEffect(() => {
 		//
-		if (!inputRef.current) return;
+		const input = inputRef.current;
+		if (!input) return;
 
-		const form = inputRef.current.closest('form');
+		const resizeIfNeeded = () => {
+			//
+			if (disableAutosize) return;
+
+			input.style.height = 'auto';
+			input.style.height =
+				typeof maxHeight === 'number'
+					? `${Math.min(input.scrollHeight, maxHeight)}px`
+					: `min(${input.scrollHeight}px, ${maxHeight})`;
+		};
+
+		const handleFormReset = () => setTimeout(resizeIfNeeded, 0);
+
+		const form = input.closest('form');
 		if (!form) return console.warn('No form found (should have one)');
 
-		inputRef.current.addEventListener('input', resizeIfNeeded); // on input, resize
+		input.addEventListener('input', resizeIfNeeded); // on input, resize
 		form.addEventListener('reset', handleFormReset); // after submission, resize
 
 		return () => {
-			inputRef.current?.removeEventListener('input', resizeIfNeeded);
+			input.removeEventListener('input', resizeIfNeeded);
 			form.removeEventListener('reset', handleFormReset);
 		};
 		//

@@ -5,8 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"typecheck": "tsgo --noEmit -p tsconfig.json",
-		"lint": "prettier --check --ignore-path ../../.prettierignore 'src/**/*.{ts,tsx}' '*.{ts,json,md}' --ignore-unknown",
-		"format": "prettier --write --ignore-path ../../.prettierignore 'src/**/*.{ts,tsx}' '*.{ts,json,md}' --ignore-unknown"
+		"lint": "oxfmt --check src components.json package.json tsconfig.json README.md && oxlint src",
+		"format": "oxfmt src components.json package.json tsconfig.json README.md"
 	},
 	"exports": {
 		".": "./src/index.ts",
@@ -24,7 +24,8 @@
 		"./hooks/useResizablePanelGroup": "./src/hooks/useResizablePanelGroup.ts",
 		"./hooks/useSubmitHotkey": "./src/hooks/useSubmitHotkey.ts",
 		"./lib/utils": "./src/lib/utils.ts",
-		"./*": "./src/*.tsx"
+		"./*": "./src/*.tsx",
+		"./hooks/pacer": "./src/hooks/pacer.ts"
 	},
 	"dependencies": {
 		"@radix-ui/react-accordion": "^1.2.11",
@@ -46,17 +47,17 @@
 		"@radix-ui/react-tabs": "^1.1.4",
 		"@radix-ui/react-toggle": "^1.1.2",
 		"@radix-ui/react-tooltip": "^1.1.8",
+		"@tanstack/react-pacer": "^0.20.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "1.2.1",
 		"cmdk": "^1.0.4",
 		"lucide-react": "^0.514.0",
+		"motion": "^11.13.1",
 		"react-hook-form": "^7.55.0",
 		"react-resizable-panels": "^2.1.7",
 		"shiki": "^3.2.1",
 		"tailwind-merge": "^2.5.5",
 		"vaul": "^1.1.2",
-		"@tanstack/react-pacer": "^0.20.0",
-		"motion": "^11.13.1",
 		"zod": "^3.25.76"
 	},
 	"peerDependencies": {
@@ -66,6 +67,7 @@
 	"devDependencies": {
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@typescript/native-preview": "^7.0.0-dev.20260211.1"
+		"@typescript/native-preview": "^7.0.0-dev.20260211.1",
+		"shadcn": "~2.1.6"
 	}
 }

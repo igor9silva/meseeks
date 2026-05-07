@@ -1,4 +1,4 @@
-import { useCommandState } from 'cmdk';
+import { useCommandState } from '@reactor/ui/command';
 import { INTELLIGENCES, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, FileText } from 'lucide-react';
 import { formatPricing, formatWordCount } from '~/lib/intelligence-utils';

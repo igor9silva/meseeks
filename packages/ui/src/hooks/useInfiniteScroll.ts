@@ -62,7 +62,7 @@ export function useInfiniteScroll({
 			container.removeEventListener('scroll', handleScroll);
 		};
 		//
-	}, [handleScroll]);
+	}, [handleScroll, scrollContainerRef]);
 
 	// Check content height after loading state changes or hasMore changes
 	useLayoutEffect(() => {

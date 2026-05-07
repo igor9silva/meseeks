@@ -145,9 +145,7 @@ function TaskConversationInner({
 							<DebugAction
 								key={action._id}
 								action={action}
-								initialRenderDate={initialRenderDate}
 								isAuthorCurrentUser={action.author === user._id}
-								taskId={task._id}
 							/>
 						) : (
 							<Action

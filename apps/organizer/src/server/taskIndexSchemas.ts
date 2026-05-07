@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-const taskSourceSchema = z.enum(["public", "private"]);
+const taskSourceSchema = z.enum(['public', 'private']);
 
 const warningEntrySchema = z.object({
 	taskKey: z.string().min(1),
@@ -76,7 +76,7 @@ const graphNodeSchema = z
 
 const graphEdgeSchema = z
 	.object({
-		type: z.enum(["parent"]),
+		type: z.enum(['parent']),
 		from: z.string().min(1),
 		to: z.string().nullable(),
 		targetId: z.string().min(1),

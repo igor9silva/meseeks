@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { JSX, KeyboardEvent, MouseEvent, TouchEvent } from 'react';
 import { Input } from '@reactor/ui/input';
 import { Textarea } from '@reactor/ui/textarea';
@@ -36,6 +36,17 @@ export function EditableContent({
 	//
 	const [isEditing, setIsEditing] = useState(false);
 	const [editedValue, setEditedValue] = useState(value);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	useEffect(() => {
+		if (!isEditing) return;
+		if (multiline) {
+			textareaRef.current?.focus();
+			return;
+		}
+		inputRef.current?.focus();
+	}, [isEditing, multiline]);
 
 	const enterEditMode = (e: MouseEvent | TouchEvent) => {
 		//
@@ -73,22 +84,36 @@ export function EditableContent({
 		}
 	};
 
-	const InputComponent = multiline ? Textarea : Input;
-
 	if (isEditing) {
+		const sharedClassName = cn(
+			'w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary',
+			isPending && 'opacity-50 cursor-not-allowed',
+			editClassName,
+		);
+
+		if (multiline) {
+			return (
+				<Textarea
+					ref={textareaRef}
+					value={editedValue}
+					onChange={(e) => setEditedValue(e.target.value)}
+					onBlur={saveChanges}
+					onKeyDown={handleKeyDown}
+					disabled={isPending}
+					className={sharedClassName}
+				/>
+			);
+		}
+
 		return (
-			<InputComponent
+			<Input
+				ref={inputRef}
 				value={editedValue}
 				onChange={(e) => setEditedValue(e.target.value)}
 				onBlur={saveChanges}
 				onKeyDown={handleKeyDown}
 				disabled={isPending}
-				className={cn(
-					'w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary',
-					isPending && 'opacity-50 cursor-not-allowed',
-					editClassName,
-				)}
-				autoFocus
+				className={sharedClassName}
 			/>
 		);
 	}

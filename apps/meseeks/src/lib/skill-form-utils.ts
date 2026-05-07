@@ -134,7 +134,7 @@ export function buildHardSkillFromForm(data: HardSkillFormValues): NewHardSkill 
 	let bodyTemplate = {};
 	try {
 		bodyTemplate = JSON.parse(data.bodyTemplate);
-	} catch (e) {
+	} catch {
 		throw new Error('Invalid JSON in body template');
 	}
 

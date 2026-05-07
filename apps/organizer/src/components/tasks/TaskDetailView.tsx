@@ -1,19 +1,13 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { Check, FolderInput, X } from "lucide-react";
-import type { FormEvent } from "react";
-import { useId, useMemo, useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Mdx } from "~/components/ui/mdx";
-import {
-	markTaskDone,
-	moveTask,
-	renameTask,
-	updateTaskTags,
-	updateTaskTitle,
-} from "~/server/taskExplorer";
-import type { TaskDetailResult, TaskDetailTask } from "./taskExplorerTypes";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServerFn } from '@tanstack/react-start';
+import { Check, FolderInput, X } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Mdx } from '~/components/ui/mdx';
+import { markTaskDone, moveTask, renameTask, updateTaskTags, updateTaskTitle } from '~/server/taskExplorer';
+import type { TaskDetailResult, TaskDetailTask } from './taskExplorerTypes';
 import {
 	createTaskRenameFilename,
 	getMutationErrorMessage,
@@ -21,7 +15,7 @@ import {
 	toCodexTaskHref,
 	toCursorFileHref,
 	toCursorTaskHref,
-} from "./taskExplorerUtils";
+} from './taskExplorerUtils';
 
 export function TaskDetailView({
 	detail,
@@ -77,6 +71,8 @@ function TaskDetailContent({
 	const moveStatusInputId = useId();
 	const renameFilenameInputId = useId();
 	const titleInputId = useId();
+	const renameFilenameInputRef = useRef<HTMLInputElement>(null);
+	const titleInputRef = useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
 	const markTaskDoneServer = useServerFn(markTaskDone);
 	const moveTaskServer = useServerFn(moveTask);
@@ -84,49 +80,48 @@ function TaskDetailContent({
 	const updateTaskTagsServer = useServerFn(updateTaskTags);
 	const updateTaskTitleServer = useServerFn(updateTaskTitle);
 	const relatedTasks = detail.relatedTasks ?? [];
-	const relatedTaskByKey = new Map(
-		relatedTasks.map((relatedTask) => [relatedTask.key, relatedTask]),
-	);
+	const relatedTaskByKey = new Map(relatedTasks.map((relatedTask) => [relatedTask.key, relatedTask]));
 	const cursorFileHref = toCursorFileHref(task.absolutePath);
 	const cursorTaskHref = toCursorTaskHref(task);
 	const codexTaskHref = toCodexTaskHref(task);
-	const canMarkDone = task.status !== "completed";
-	const currentFileBasename = useMemo(
-		() => getTaskFileBasename(task.relativePath),
-		[task.relativePath],
-	);
-	const [tagDraft, setTagDraft] = useState("");
+	const canMarkDone = task.status !== 'completed';
+	const currentFileBasename = useMemo(() => getTaskFileBasename(task.relativePath), [task.relativePath]);
+	const [tagDraft, setTagDraft] = useState('');
 	const [isMoveOpen, setIsMoveOpen] = useState(false);
-	const [moveStatus, setMoveStatus] = useState("");
+	const [moveStatus, setMoveStatus] = useState('');
 	const [isRenamingFile, setIsRenamingFile] = useState(false);
-	const [renameDraft, setRenameDraft] = useState("");
+	const [renameDraft, setRenameDraft] = useState('');
 	const [isEditingTitle, setIsEditingTitle] = useState(false);
-	const [titleDraft, setTitleDraft] = useState("");
+	const [titleDraft, setTitleDraft] = useState('');
+
+	useEffect(() => {
+		if (isRenamingFile) renameFilenameInputRef.current?.focus();
+	}, [isRenamingFile]);
+
+	useEffect(() => {
+		if (isEditingTitle) titleInputRef.current?.focus();
+	}, [isEditingTitle]);
 	const moveStatusOptions = useMemo(() => {
 		return statusOptions.filter((statusOption) => statusOption !== task.status);
 	}, [statusOptions, task.status]);
-	const normalizedRenameFilename = useMemo(
-		() => createTaskRenameFilename(renameDraft),
-		[renameDraft],
-	);
+	const normalizedRenameFilename = useMemo(() => createTaskRenameFilename(renameDraft), [renameDraft]);
 	const markTaskDoneMutation = useMutation({
 		mutationFn: () => markTaskDoneServer({ data: { taskKey: task.key } }),
 		onSuccess: async (result) => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
 			onTaskCompleted(result.newTaskKey);
 		},
 	});
 	const moveTaskMutation = useMutation({
-		mutationFn: (status: string) =>
-			moveTaskServer({ data: { taskKey: task.key, status } }),
+		mutationFn: (status: string) => moveTaskServer({ data: { taskKey: task.key, status } }),
 		onSuccess: async (result) => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
 			setIsMoveOpen(false);
@@ -134,43 +129,41 @@ function TaskDetailContent({
 		},
 	});
 	const renameTaskMutation = useMutation({
-		mutationFn: (filename: string) =>
-			renameTaskServer({ data: { taskKey: task.key, filename } }),
+		mutationFn: (filename: string) => renameTaskServer({ data: { taskKey: task.key, filename } }),
 		onSuccess: async (result) => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
 			setIsRenamingFile(false);
-			setRenameDraft("");
+			setRenameDraft('');
 			onTaskRenamed(result.newTaskKey);
 		},
 	});
 	const updateTaskTitleMutation = useMutation({
-		mutationFn: (title: string) =>
-			updateTaskTitleServer({ data: { taskKey: task.key, title } }),
+		mutationFn: (title: string) => updateTaskTitleServer({ data: { taskKey: task.key, title } }),
 		onSuccess: async () => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
 			setIsEditingTitle(false);
-			setTitleDraft("");
+			setTitleDraft('');
 		},
 	});
 	const updateTaskTagsMutation = useMutation({
-		mutationFn: ({ action, tag }: { action: "add" | "remove"; tag: string }) =>
+		mutationFn: ({ action, tag }: { action: 'add' | 'remove'; tag: string }) =>
 			updateTaskTagsServer({ data: { taskKey: task.key, action, tag } }),
 		onSuccess: async (_, variables) => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
-			if (variables.action === "add") {
-				setTagDraft("");
+			if (variables.action === 'add') {
+				setTagDraft('');
 			}
 		},
 	});
@@ -181,14 +174,14 @@ function TaskDetailContent({
 		if (tagDraft.trim().length === 0) return;
 
 		updateTaskTagsMutation.mutate({
-			action: "add",
+			action: 'add',
 			tag: tagDraft,
 		});
 	};
 
 	const handleTagRemove = (tag: string) => {
 		updateTaskTagsMutation.mutate({
-			action: "remove",
+			action: 'remove',
 			tag,
 		});
 	};
@@ -204,14 +197,14 @@ function TaskDetailContent({
 	const handleRenameStart = () => {
 		setIsMoveOpen(false);
 		setIsEditingTitle(false);
-		setTitleDraft("");
+		setTitleDraft('');
 		setRenameDraft(currentFileBasename);
 		setIsRenamingFile(true);
 	};
 
 	const handleRenameCancel = () => {
 		setIsRenamingFile(false);
-		setRenameDraft("");
+		setRenameDraft('');
 	};
 
 	const handleRenameSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -236,20 +229,20 @@ function TaskDetailContent({
 	const handleTitleEditStart = () => {
 		setIsMoveOpen(false);
 		setIsRenamingFile(false);
-		setRenameDraft("");
+		setRenameDraft('');
 		setTitleDraft(task.title);
 		setIsEditingTitle(true);
 	};
 
 	const handleTitleEditCancel = () => {
 		setIsEditingTitle(false);
-		setTitleDraft("");
+		setTitleDraft('');
 	};
 
 	const handleTitleSubmit = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		const trimmedTitle = titleDraft.trim().replace(/\s+/g, " ");
+		const trimmedTitle = titleDraft.trim().replace(/\s+/g, ' ');
 
 		if (trimmedTitle.length === 0) return;
 		if (trimmedTitle === task.title) {
@@ -265,9 +258,7 @@ function TaskDetailContent({
 
 		return (
 			<div className="space-y-1">
-				<div className="text-xs uppercase tracking-wide text-muted-foreground">
-					{label}
-				</div>
+				<div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
 				<div className="space-y-1">
 					{keys.map((key) => {
 						const related = relatedTaskByKey.get(key);
@@ -281,9 +272,7 @@ function TaskDetailContent({
 								className="block w-full cursor-pointer rounded-md border border-border px-2 py-1 text-left text-sm hover:bg-muted"
 							>
 								<div className="font-medium">{title}</div>
-								<div className="break-all text-xs text-muted-foreground">
-									{key}
-								</div>
+								<div className="break-all text-xs text-muted-foreground">{key}</div>
 							</button>
 						);
 					})}
@@ -306,7 +295,7 @@ function TaskDetailContent({
 	const isTitleSubmitDisabled =
 		updateTaskTitleMutation.isPending ||
 		titleDraft.trim().length === 0 ||
-		titleDraft.trim().replace(/\s+/g, " ") === task.title;
+		titleDraft.trim().replace(/\s+/g, ' ') === task.title;
 
 	return (
 		<div className="h-full overflow-auto">
@@ -315,25 +304,20 @@ function TaskDetailContent({
 					<div className="min-w-0">
 						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 							{isEditingTitle ? (
-								<form
-									className="flex min-w-0 items-center gap-1"
-									onSubmit={handleTitleSubmit}
-								>
+								<form className="flex min-w-0 items-center gap-1" onSubmit={handleTitleSubmit}>
 									<label className="sr-only" htmlFor={titleInputId}>
 										Title
 									</label>
 									<Input
+										ref={titleInputRef}
 										id={titleInputId}
 										value={titleDraft}
-										onChange={(event) =>
-											setTitleDraft(event.currentTarget.value)
-										}
+										onChange={(event) => setTitleDraft(event.currentTarget.value)}
 										onKeyDown={(event) => {
-											if (event.key === "Escape") handleTitleEditCancel();
+											if (event.key === 'Escape') handleTitleEditCancel();
 										}}
 										disabled={updateTaskTitleMutation.isPending}
 										autoComplete="off"
-										autoFocus
 										className="h-8 min-w-64 text-base font-semibold md:text-xl"
 									/>
 									<Button
@@ -368,25 +352,20 @@ function TaskDetailContent({
 								</h2>
 							)}
 							{isRenamingFile ? (
-								<form
-									className="flex min-w-0 items-center gap-1"
-									onSubmit={handleRenameSubmit}
-								>
+								<form className="flex min-w-0 items-center gap-1" onSubmit={handleRenameSubmit}>
 									<label className="sr-only" htmlFor={renameFilenameInputId}>
 										Filename
 									</label>
 									<Input
+										ref={renameFilenameInputRef}
 										id={renameFilenameInputId}
 										value={renameDraft}
-										onChange={(event) =>
-											setRenameDraft(event.currentTarget.value)
-										}
+										onChange={(event) => setRenameDraft(event.currentTarget.value)}
 										onKeyDown={(event) => {
-											if (event.key === "Escape") handleRenameCancel();
+											if (event.key === 'Escape') handleRenameCancel();
 										}}
 										disabled={renameTaskMutation.isPending}
 										autoComplete="off"
-										autoFocus
 										className="h-7 w-64 max-w-full text-sm"
 									/>
 									<Button
@@ -430,7 +409,7 @@ function TaskDetailContent({
 								aria-expanded={isMoveOpen}
 								onClick={() => {
 									setIsMoveOpen(!isMoveOpen);
-									setMoveStatus("");
+									setMoveStatus('');
 								}}
 								disabled={isTaskFileMutationPending}
 							>
@@ -452,9 +431,7 @@ function TaskDetailContent({
 											</button>
 										))}
 										{moveStatusOptions.length === 0 ? (
-											<div className="px-2 py-1.5 text-muted-foreground">
-												No other statuses
-											</div>
+											<div className="px-2 py-1.5 text-muted-foreground">No other statuses</div>
 										) : null}
 									</div>
 									<form
@@ -467,9 +444,7 @@ function TaskDetailContent({
 										<Input
 											id={moveStatusInputId}
 											value={moveStatus}
-											onChange={(event) =>
-												setMoveStatus(event.currentTarget.value)
-											}
+											onChange={(event) => setMoveStatus(event.currentTarget.value)}
 											placeholder="new status"
 											disabled={moveTaskMutation.isPending}
 											className="h-8"
@@ -483,7 +458,7 @@ function TaskDetailContent({
 												moveStatus.trim() === task.status
 											}
 										>
-											{moveTaskMutation.isPending ? "Moving..." : "Move"}
+											{moveTaskMutation.isPending ? 'Moving...' : 'Move'}
 										</Button>
 									</form>
 								</div>
@@ -498,9 +473,7 @@ function TaskDetailContent({
 								disabled={isTaskFileMutationPending}
 							>
 								<Check className="size-4" />
-								{markTaskDoneMutation.isPending
-									? "Marking done..."
-									: "Mark done"}
+								{markTaskDoneMutation.isPending ? 'Marking done...' : 'Mark done'}
 							</Button>
 						) : null}
 					</div>
@@ -537,9 +510,7 @@ function TaskDetailContent({
 				</div>
 
 				<div className="mt-3 space-y-2">
-					<div className="text-xs uppercase tracking-wide text-muted-foreground">
-						Tags
-					</div>
+					<div className="text-xs uppercase tracking-wide text-muted-foreground">Tags</div>
 					<div className="flex flex-wrap gap-1">
 						{task.tags.map((tag) => (
 							<Button
@@ -555,9 +526,7 @@ function TaskDetailContent({
 								<X className="size-3" />
 							</Button>
 						))}
-						{task.tags.length === 0 && (
-							<div className="text-xs text-muted-foreground">No tags yet.</div>
-						)}
+						{task.tags.length === 0 && <div className="text-xs text-muted-foreground">No tags yet.</div>}
 					</div>
 					<form className="flex gap-2" onSubmit={handleTagSubmit}>
 						<label className="sr-only" htmlFor={tagInputId}>
@@ -574,85 +543,59 @@ function TaskDetailContent({
 							type="submit"
 							size="sm"
 							variant="secondary"
-							disabled={
-								updateTaskTagsMutation.isPending || tagDraft.trim().length === 0
-							}
+							disabled={updateTaskTagsMutation.isPending || tagDraft.trim().length === 0}
 						>
-							{updateTaskTagsMutation.isPending ? "Saving..." : "Add tag"}
+							{updateTaskTagsMutation.isPending ? 'Saving...' : 'Add tag'}
 						</Button>
 					</form>
 				</div>
 
 				<div className="mt-2 flex flex-wrap gap-2 text-xs">
-					<span className="rounded-md border border-border px-2 py-1">
-						{task.taskSource}
-					</span>
-					<span className="rounded-md border border-border px-2 py-1">
-						{task.status}
-					</span>
+					<span className="rounded-md border border-border px-2 py-1">{task.taskSource}</span>
+					<span className="rounded-md border border-border px-2 py-1">{task.status}</span>
 					{task.priority && (
-						<span className="rounded-md border border-border px-2 py-1">
-							{task.priority}
-						</span>
+						<span className="rounded-md border border-border px-2 py-1">{task.priority}</span>
 					)}
 				</div>
 
 				{markTaskDoneMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
-						{getMutationErrorMessage(
-							markTaskDoneMutation.error,
-							"failed to mark task as done",
-						)}
+						{getMutationErrorMessage(markTaskDoneMutation.error, 'failed to mark task as done')}
 					</div>
 				) : null}
 				{moveTaskMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
-						{getMutationErrorMessage(
-							moveTaskMutation.error,
-							"failed to move task",
-						)}
+						{getMutationErrorMessage(moveTaskMutation.error, 'failed to move task')}
 					</div>
 				) : null}
 				{renameTaskMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
-						{getMutationErrorMessage(
-							renameTaskMutation.error,
-							"failed to rename task file",
-						)}
+						{getMutationErrorMessage(renameTaskMutation.error, 'failed to rename task file')}
 					</div>
 				) : null}
 				{updateTaskTitleMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
-						{getMutationErrorMessage(
-							updateTaskTitleMutation.error,
-							"failed to update task title",
-						)}
+						{getMutationErrorMessage(updateTaskTitleMutation.error, 'failed to update task title')}
 					</div>
 				) : null}
 				{updateTaskTagsMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
-						{getMutationErrorMessage(
-							updateTaskTagsMutation.error,
-							"failed to update task tags",
-						)}
+						{getMutationErrorMessage(updateTaskTagsMutation.error, 'failed to update task tags')}
 					</div>
 				) : null}
 			</header>
 
 			<div className="space-y-4 p-4">
 				<div className="grid gap-4 md:grid-cols-2">
-					{detail.relations.parentKey &&
-						renderRelation("Parent", [detail.relations.parentKey])}
-					{renderRelation("Children", detail.relations.children)}
+					{detail.relations.parentKey && renderRelation('Parent', [detail.relations.parentKey])}
+					{renderRelation('Children', detail.relations.children)}
 				</div>
 
 				<Mdx text={task.body} className="text-sm" />
 
 				{task.warnings.length > 0 && (
 					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
-						<summary className="cursor-pointer font-medium">
-							Warnings ({task.warnings.length})
-						</summary>
+						<summary className="cursor-pointer font-medium">Warnings ({task.warnings.length})</summary>
 						<ul className="mt-2 list-disc space-y-1 pl-5">
 							{task.warnings.map((warning) => (
 								<li key={warning}>{warning}</li>

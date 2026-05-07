@@ -31,6 +31,7 @@
 		"workspace:lint": "bun run --workspaces --if-present lint",
 		"workspace:format": "bun run --workspaces --if-present format",
 		"workspace:test": "bun run --workspaces --if-present test",
+		"workspace:check": "bun workspace:lint && bun workspace:typecheck && bun workspace:test",
 		"skills:deploy:dev": "cd private/skills && bun deploy.ts --env dev",
 		"skills:deploy:prod": "cd private/skills && bun deploy.ts --env prod",
 		"skills:deploy:dev:delete": "cd private/skills && bun deploy.ts --env dev --delete-unspecified",
@@ -40,7 +41,9 @@
 		"@types/node": "^25.0.3",
 		"bun-types": "latest",
 		"concurrently": "~8.2.2",
-		"prettier": "3.2.5",
+		"oxfmt": "^0.48.0",
+		"oxlint": "^1.63.0",
+		"oxlint-tsgolint": "^0.22.1",
 		"zod": "^3.25.76"
 	}
 }

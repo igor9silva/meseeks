@@ -32,7 +32,7 @@ export const increaseBudget = defineSkill({
 					reactions: args.shouldIterate ? [instruct] : [],
 				};
 				//
-			} catch (error) {
+			} catch {
 				// perform() will resolve as failed with that message
 				throw new Error('Insufficient account funds to increase task energy.');
 			}

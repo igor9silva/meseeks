@@ -13,7 +13,6 @@ import { cn } from './lib/utils';
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '16rem';
-const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
@@ -139,7 +138,7 @@ const Sidebar = React.forwardRef<
 	}
 >(({ side = 'left', variant = 'sidebar', collapsible = 'offcanvas', className, children, ...props }, ref) => {
 	//
-	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	const { state } = useSidebar();
 
 	if (collapsible === 'none') {
 		return (
@@ -425,7 +424,7 @@ const SidebarMenuButton = React.forwardRef<
 	} & VariantProps<typeof sidebarMenuButtonVariants>
 >(({ asChild = false, isActive = false, variant = 'default', size = 'default', tooltip, className, ...props }, ref) => {
 	const Comp = asChild ? Slot : 'button';
-	const { isMobile, state } = useSidebar();
+	const { state } = useSidebar();
 
 	const button = (
 		<Comp

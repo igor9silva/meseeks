@@ -78,9 +78,9 @@ export function createHTTPTool(
 			await _persistDetails({
 				ctx,
 				action,
-				skill,
-				config,
-				url,
+				// skill,
+				// config,
+				// url,
 				requestBodySize,
 				response,
 				responseText: text,
@@ -116,18 +116,18 @@ export function createHTTPTool(
 async function _persistDetails({
 	ctx,
 	action,
-	skill,
-	config,
-	url,
+	// skill,
+	// config,
+	// url,
 	requestBodySize,
 	response,
 	responseText,
 }: {
 	ctx: ActionCtx | MutationCtx;
 	action: Doc<'actions'>;
-	skill: z.infer<typeof hardSkillSchema>;
-	config: z.infer<typeof hardSkillSchema>['config'];
-	url: URL;
+	// skill: z.infer<typeof hardSkillSchema>;
+	// config: z.infer<typeof hardSkillSchema>['config'];
+	// url: URL;
 	requestBodySize?: number;
 	response: Response;
 	responseText?: string;

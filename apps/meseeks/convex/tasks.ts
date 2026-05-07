@@ -123,22 +123,31 @@ export const findAllAtInbox = query({
 	},
 });
 
-// Paginated version of findAllAtInbox that maintains the same sorting logic
+// paginated task list query for inbox roots or one parent's children
 export const findAllAtInboxPaginated = query({
 	args: {
+		parentId: zid('tasks').optional(),
 		paginationOpts: paginationOptionsSchema,
 	},
-	handler: async (ctx, { paginationOpts }) => {
+	handler: async (ctx, { parentId, paginationOpts }) => {
 		//
+		if (parentId) {
+			await ensureTaskOwner(ctx, { taskId: parentId });
+
+			return await ctx.db
+				.query('tasks')
+				.withIndex('by_parent_isActive', (q) => q.eq('parentId', parentId))
+				.order('desc')
+				.paginate(paginationOpts);
+		}
+
 		const currentUser = await getCurrentUser(ctx, {});
 
-		// Use a single query with compound sorting
-		// First sort by isActive (false first, so inactive tasks come after active ones when reversed)
-		// Then sort by a computed priority based on status
+		// inbox roots are keyed by owner + missing parent; the hook applies ui ordering
 		const results = await ctx.db
 			.query('tasks')
 			.withIndex('by_owner_parentId_isActive', (q) => q.eq('owner', currentUser._id).eq('parentId', undefined))
-			.order('desc') // This will be overridden by our custom sorting
+			.order('desc')
 			.paginate(paginationOpts);
 
 		return results;

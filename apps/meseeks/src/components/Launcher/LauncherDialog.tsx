@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { defaultFilter } from 'cmdk';
+import { defaultFilter } from '@reactor/ui/command';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import {
 	Suspense,

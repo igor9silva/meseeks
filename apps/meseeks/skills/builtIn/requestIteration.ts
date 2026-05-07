@@ -1,5 +1,5 @@
 import { z } from 'zod/v3';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const requestIteration = defineSkill({
 	preApprovedCost: 0n,
@@ -12,12 +12,10 @@ export const requestIteration = defineSkill({
 			condition: 'owner',
 		},
 	],
-	use:
-		(execution: ToolExecution) =>
-		async (args): Promise<ExecutionResult> => {
-			//
-			return {
-				reactions: execution.skill.knownReactions,
-			};
-		},
+	use: (execution) => async (): Promise<ExecutionResult> => {
+		//
+		return {
+			reactions: execution.skill.knownReactions,
+		};
+	},
 });

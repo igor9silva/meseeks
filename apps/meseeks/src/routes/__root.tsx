@@ -90,6 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 	return (
 		<html
+			lang="en"
 			className={rootDocumentTheme.htmlClassName}
 			data-theme={rootDocumentTheme.themeId}
 			data-theme-source={rootDocumentTheme.themeSource}

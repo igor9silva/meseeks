@@ -114,7 +114,6 @@ export function GenericAction(props: ActionComponentProps) {
 								skillKey={action.skillKey}
 								args={action.args}
 								reactions={action.result.reactions}
-								costs={action.costs}
 								// reactions={action.reactions ?? []}
 								className={cn({
 									'bg-primary text-primary-foreground rounded-3xl border border-border p-2':
@@ -140,7 +139,6 @@ function Result({
 	args,
 	reactions,
 	className,
-	costs,
 	status,
 	actionId,
 }: {
@@ -149,11 +147,6 @@ function Result({
 	skillKey: string;
 	args: Record<string, unknown>;
 	reactions: Array<{ skillKey: string }>;
-	costs: Array<{
-		symbol: string;
-		amount: bigint;
-		description: string;
-	}>;
 	className?: string;
 	status: 'failed' | 'succeeded' | 'skipped';
 	actionId: string;

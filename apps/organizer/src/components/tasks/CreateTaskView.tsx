@@ -1,17 +1,14 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { ChevronDown, Plus, X } from "lucide-react";
-import type { FormEvent } from "react";
-import { useEffect, useId, useMemo, useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
-import { cn } from "~/lib/utils";
-import { type CreateTaskInput, createTask } from "~/server/taskExplorer";
-import type {
-	CreateTaskDefaults,
-	TaskCreatedResult,
-} from "./taskExplorerTypes";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServerFn } from '@tanstack/react-start';
+import { ChevronDown, Plus, X } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { Textarea } from '~/components/ui/textarea';
+import { cn } from '~/lib/utils';
+import { type CreateTaskInput, createTask } from '~/server/taskExplorer';
+import type { CreateTaskDefaults, TaskCreatedResult } from './taskExplorerTypes';
 import {
 	createTaskFilename,
 	formatSourceLabel,
@@ -21,7 +18,7 @@ import {
 	parseTaskSource,
 	taskPriorityOptions,
 	taskSourceOptions,
-} from "./taskExplorerUtils";
+} from './taskExplorerUtils';
 
 export function CreateTaskView({
 	defaults,
@@ -43,36 +40,31 @@ export function CreateTaskView({
 	const tagsInputId = useId();
 	const bodyTextareaId = useId();
 	const filenameInputId = useId();
+	const titleInputRef = useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
 	const createTaskServer = useServerFn(createTask);
-	const [title, setTitle] = useState("");
+	const [title, setTitle] = useState('');
 	const [taskSource, setTaskSource] = useState(defaults.taskSource);
 	const [status, setStatus] = useState(defaults.status);
 	const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
-	const [priority, setPriority] =
-		useState<CreateTaskInput["priority"]>("medium");
-	const [tagDraft, setTagDraft] = useState("");
-	const [body, setBody] = useState("");
-	const [filename, setFilename] = useState("");
+	const [priority, setPriority] = useState<CreateTaskInput['priority']>('medium');
+	const [tagDraft, setTagDraft] = useState('');
+	const [body, setBody] = useState('');
+	const [filename, setFilename] = useState('');
 	const [hasEditedFilename, setHasEditedFilename] = useState(false);
 	const filteredStatusOptions = useMemo(() => {
 		const normalizedStatus = status.trim().toLowerCase();
 		if (normalizedStatus.length === 0) return statusOptions;
 
-		return statusOptions.filter((statusOption) =>
-			statusOption.toLowerCase().includes(normalizedStatus),
-		);
+		return statusOptions.filter((statusOption) => statusOption.toLowerCase().includes(normalizedStatus));
 	}, [status, statusOptions]);
-	const normalizedFilename = useMemo(
-		() => createTaskFilename(filename),
-		[filename],
-	);
+	const normalizedFilename = useMemo(() => createTaskFilename(filename), [filename]);
 	const createTaskMutation = useMutation({
 		mutationFn: (input: CreateTaskInput) => createTaskServer({ data: input }),
 		onSuccess: async (result) => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["tasks-explorer"] }),
-				queryClient.invalidateQueries({ queryKey: ["task-detail"] }),
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
 			]);
 
 			onTaskCreated({
@@ -88,6 +80,10 @@ export function CreateTaskView({
 		setStatus(defaults.status);
 		setIsStatusMenuOpen(false);
 	}, [defaults.status, defaults.taskSource]);
+
+	useEffect(() => {
+		titleInputRef.current?.focus();
+	}, []);
 
 	useEffect(() => {
 		if (hasEditedFilename) return;
@@ -149,7 +145,7 @@ export function CreateTaskView({
 					<div>
 						<h2 className="text-xl font-semibold">New task</h2>
 						<div className="mt-1 text-xs text-muted-foreground">
-							{taskSource}:{status || "backlog"}
+							{taskSource}:{status || 'backlog'}
 						</div>
 					</div>
 					<Button
@@ -171,11 +167,11 @@ export function CreateTaskView({
 						Title
 					</label>
 					<Input
+						ref={titleInputRef}
 						id={titleInputId}
 						value={title}
 						onChange={(event) => setTitle(event.currentTarget.value)}
 						disabled={createTaskMutation.isPending}
-						autoFocus
 					/>
 				</div>
 
@@ -187,9 +183,7 @@ export function CreateTaskView({
 						<select
 							id={sourceSelectId}
 							value={taskSource}
-							onChange={(event) =>
-								handleSourceChange(event.currentTarget.value)
-							}
+							onChange={(event) => handleSourceChange(event.currentTarget.value)}
 							disabled={createTaskMutation.isPending}
 							className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
 						>
@@ -217,6 +211,7 @@ export function CreateTaskView({
 								onBlur={handleStatusBlur}
 								disabled={createTaskMutation.isPending}
 								autoComplete="off"
+								// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- this is our input primitive; oxlint cannot see through the component wrapper
 								role="combobox"
 								aria-expanded={isStatusMenuOpen}
 								aria-controls={statusOptionsListId}
@@ -237,6 +232,7 @@ export function CreateTaskView({
 							{isStatusMenuOpen ? (
 								<div
 									id={statusOptionsListId}
+									// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- this is a custom filtered status menu, not a native select
 									role="listbox"
 									className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-popover p-1 text-sm shadow-md"
 								>
@@ -249,18 +245,15 @@ export function CreateTaskView({
 											onMouseDown={(event) => event.preventDefault()}
 											onClick={() => handleStatusOptionSelect(statusOption)}
 											className={cn(
-												"block w-full rounded-sm px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground",
-												statusOption === status &&
-													"bg-accent text-accent-foreground",
+												'block w-full rounded-sm px-2 py-1.5 text-left hover:bg-accent hover:text-accent-foreground',
+												statusOption === status && 'bg-accent text-accent-foreground',
 											)}
 										>
 											{statusOption}
 										</button>
 									))}
 									{filteredStatusOptions.length === 0 ? (
-										<div className="px-2 py-1.5 text-muted-foreground">
-											Type a new status
-										</div>
+										<div className="px-2 py-1.5 text-muted-foreground">Type a new status</div>
 									) : null}
 								</div>
 							) : null}
@@ -274,9 +267,7 @@ export function CreateTaskView({
 						<select
 							id={prioritySelectId}
 							value={priority}
-							onChange={(event) =>
-								handlePriorityChange(event.currentTarget.value)
-							}
+							onChange={(event) => handlePriorityChange(event.currentTarget.value)}
 							disabled={createTaskMutation.isPending}
 							className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
 						>
@@ -324,9 +315,7 @@ export function CreateTaskView({
 						<Input
 							id={filenameInputId}
 							value={filename}
-							onChange={(event) =>
-								handleFilenameChange(event.currentTarget.value)
-							}
+							onChange={(event) => handleFilenameChange(event.currentTarget.value)}
 							onBlur={handleFilenameBlur}
 							placeholder="task-filename"
 							disabled={createTaskMutation.isPending}
@@ -337,32 +326,22 @@ export function CreateTaskView({
 
 				{createTaskMutation.error ? (
 					<div className="text-sm text-destructive">
-						{getMutationErrorMessage(
-							createTaskMutation.error,
-							"failed to create task",
-						)}
+						{getMutationErrorMessage(createTaskMutation.error, 'failed to create task')}
 					</div>
 				) : null}
 
 				<div className="flex justify-end gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={onCancel}
-						disabled={createTaskMutation.isPending}
-					>
+					<Button type="button" variant="outline" onClick={onCancel} disabled={createTaskMutation.isPending}>
 						Cancel
 					</Button>
 					<Button
 						type="submit"
 						disabled={
-							createTaskMutation.isPending ||
-							title.trim().length === 0 ||
-							normalizedFilename.length === 0
+							createTaskMutation.isPending || title.trim().length === 0 || normalizedFilename.length === 0
 						}
 					>
 						<Plus className="size-4" />
-						{createTaskMutation.isPending ? "Creating..." : "Create"}
+						{createTaskMutation.isPending ? 'Creating...' : 'Create'}
 					</Button>
 				</div>
 			</form>

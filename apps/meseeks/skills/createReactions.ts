@@ -10,7 +10,7 @@ export function createReactions(
 ) {
 	return (reactions ?? [])
 		.filter((reaction) => {
-			// prettier-ignore
+			// oxfmt-ignore
 			switch (reaction.condition ?? 'any') {
 				case 'owner': return action.owner === action.author;
 				case 'companion': return action.owner !== action.author;

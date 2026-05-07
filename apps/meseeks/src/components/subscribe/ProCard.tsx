@@ -1,4 +1,4 @@
-import { Database, DollarSign, Infinity, MessageCircle, Sparkles, Zap } from 'lucide-react';
+import { Database, DollarSign, Infinity as InfinityIcon, MessageCircle, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
 import { FeatureItem } from './FeatureItem';
@@ -27,7 +27,7 @@ export function ProCard({ onSubscribe }: { onSubscribe: (product: 'pro' | 'found
 			<CardContent className="space-y-6">
 				<ul className="space-y-3">
 					<FeatureItem text="$10 worth of credits, every month" icon={DollarSign} />
-					<FeatureItem text="Unlimited platform usage" icon={Infinity} />
+					<FeatureItem text="Unlimited platform usage" icon={InfinityIcon} />
 					<FeatureItem text="100GB of file storage" icon={Database} />
 					<FeatureItem text="Access to Pro-managed skills & loops" icon={Sparkles} />
 					<FeatureItem text="Direct channel with developers and founders" icon={MessageCircle} />

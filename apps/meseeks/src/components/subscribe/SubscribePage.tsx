@@ -5,10 +5,9 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { FaqSection, FounderCard, ProCard } from '~/components/subscribe';
 import { useIsPro } from '~/hooks/useIsPro';
-import { Route } from '~/routes/subscribe';
 import { api } from 'convex/_generated/api';
 
-export function SubscribePage({ route }: { route: typeof Route }) {
+export function SubscribePage() {
 	//
 	const navigate = useNavigate();
 	const startSubscription = useAction(api.subscriptions.startSubscription);

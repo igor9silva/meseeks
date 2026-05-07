@@ -1,20 +1,15 @@
-import { Link } from "@tanstack/react-router";
-import { Lock, Plus } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Link } from '@tanstack/react-router';
+import { Lock, Plus } from 'lucide-react';
+import { Button } from '~/components/ui/button';
 import {
 	type ExplorerQueryInput,
 	type ExplorerSort,
 	explorerSortSchema,
 	type TaskSource,
-} from "~/lib/explorerSearchParams";
-import { cn } from "~/lib/utils";
-import type {
-	ExplorerFacets,
-	ExplorerHealth,
-	ExplorerTask,
-	ExplorerTotals,
-} from "./taskExplorerTypes";
-import { formatSourceLabel, taskSourceOptions } from "./taskExplorerUtils";
+} from '~/lib/explorerSearchParams';
+import { cn } from '~/lib/utils';
+import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals } from './taskExplorerTypes';
+import { formatSourceLabel, taskSourceOptions } from './taskExplorerUtils';
 
 export function TaskExplorerSidebar({
 	queryInput,
@@ -58,22 +53,14 @@ export function TaskExplorerSidebar({
 	onTaskSelect: () => void;
 }) {
 	//
-	const tagEntries = buildTagEntries(
-		facets?.tags ?? [],
-		queryInput.tags.concat(queryInput.excludedTags),
-	);
+	const tagEntries = buildTagEntries(facets?.tags ?? [], queryInput.tags.concat(queryInput.excludedTags));
 
 	return (
 		<section className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
 			<header className="space-y-3 border-b border-border p-3">
 				<div className="flex items-center justify-between gap-2">
 					<h1 className="text-lg font-semibold">Organizer</h1>
-					<Button
-						type="button"
-						size="sm"
-						variant="secondary"
-						onClick={onCreateTaskOpen}
-					>
+					<Button type="button" size="sm" variant="secondary" onClick={onCreateTaskOpen}>
 						<Plus className="size-4" />
 						New
 					</Button>
@@ -81,9 +68,7 @@ export function TaskExplorerSidebar({
 
 				{shouldShowIndexUnavailable && (
 					<div className="rounded-md border border-destructive/30 bg-destructive/10 p-2 text-sm">
-						<div className="font-medium text-destructive">
-							Task indexes are unavailable.
-						</div>
+						<div className="font-medium text-destructive">Task indexes are unavailable.</div>
 						{health?.errors.map((error) => (
 							<div key={error} className="break-words text-destructive/90">
 								{error}
@@ -116,9 +101,7 @@ export function TaskExplorerSidebar({
 						<div className="space-y-1">
 							{taskSourceOptions.map((source) => {
 								const isSelected = queryInput.sources.includes(source);
-								const facetCount =
-									facets?.sources.find((entry) => entry.value === source)
-										?.count ?? 0;
+								const facetCount = facets?.sources.find((entry) => entry.value === source)?.count ?? 0;
 
 								return (
 									<label
@@ -146,17 +129,13 @@ export function TaskExplorerSidebar({
 						<select
 							value={queryInput.sort}
 							onChange={(event) => {
-								const parsedSort = explorerSortSchema.safeParse(
-									event.currentTarget.value,
-								);
+								const parsedSort = explorerSortSchema.safeParse(event.currentTarget.value);
 								if (!parsedSort.success) return;
 								onSortChange(parsedSort.data);
 							}}
 							className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-2 text-sm"
 						>
-							<option value="priority_then_recency">
-								priority then recency
-							</option>
+							<option value="priority_then_recency">priority then recency</option>
 							<option value="recency">recency</option>
 							<option value="title">title A-Z</option>
 						</select>
@@ -177,19 +156,17 @@ export function TaskExplorerSidebar({
 					<div className="text-sm font-medium">Statuses</div>
 					<div className="flex flex-wrap gap-2">
 						{(facets?.statuses ?? []).map((statusEntry) => {
-							const isSelected = queryInput.statuses.includes(
-								statusEntry.value,
-							);
+							const isSelected = queryInput.statuses.includes(statusEntry.value);
 							return (
 								<button
 									key={statusEntry.value}
 									type="button"
 									onClick={() => onStatusToggle(statusEntry.value)}
 									className={cn(
-										"cursor-pointer rounded-md border px-2 py-1 text-xs",
+										'cursor-pointer rounded-md border px-2 py-1 text-xs',
 										isSelected
-											? "border-primary bg-primary text-primary-foreground"
-											: "border-border bg-background text-foreground",
+											? 'border-primary bg-primary text-primary-foreground'
+											: 'border-border bg-background text-foreground',
 									)}
 								>
 									{statusEntry.value} ({statusEntry.count})
@@ -211,10 +188,10 @@ export function TaskExplorerSidebar({
 									type="button"
 									onClick={() => onTagToggle(tagEntry.value)}
 									className={cn(
-										"cursor-pointer rounded-md border px-2 py-1 text-xs",
+										'cursor-pointer rounded-md border px-2 py-1 text-xs',
 										isSelected
-											? "border-secondary bg-secondary text-secondary-foreground"
-											: "border-border bg-background text-foreground",
+											? 'border-secondary bg-secondary text-secondary-foreground'
+											: 'border-border bg-background text-foreground',
 									)}
 								>
 									{tagEntry.value} ({tagEntry.count})
@@ -228,9 +205,7 @@ export function TaskExplorerSidebar({
 					<div className="text-sm font-medium">Exclude tags</div>
 					<div className="flex max-h-24 flex-wrap gap-2 overflow-auto">
 						{tagEntries.map((tagEntry) => {
-							const isSelected = queryInput.excludedTags.includes(
-								tagEntry.value,
-							);
+							const isSelected = queryInput.excludedTags.includes(tagEntry.value);
 
 							return (
 								<button
@@ -238,10 +213,10 @@ export function TaskExplorerSidebar({
 									type="button"
 									onClick={() => onExcludedTagToggle(tagEntry.value)}
 									className={cn(
-										"cursor-pointer rounded-md border px-2 py-1 text-xs",
+										'cursor-pointer rounded-md border px-2 py-1 text-xs',
 										isSelected
-											? "border-destructive bg-destructive text-destructive-foreground"
-											: "border-border bg-background text-foreground",
+											? 'border-destructive bg-destructive text-destructive-foreground'
+											: 'border-border bg-background text-foreground',
 									)}
 								>
 									{tagEntry.value} ({tagEntry.count})
@@ -257,15 +232,9 @@ export function TaskExplorerSidebar({
 			</header>
 
 			<div className="flex-1 divide-y divide-border overflow-auto">
-				{isPending && (
-					<div className="p-3 text-sm text-muted-foreground">
-						Loading tasks...
-					</div>
-				)}
+				{isPending && <div className="p-3 text-sm text-muted-foreground">Loading tasks...</div>}
 				{!isPending && visibleTasks.length === 0 && (
-					<div className="p-3 text-sm text-muted-foreground">
-						No tasks match the current filters.
-					</div>
+					<div className="p-3 text-sm text-muted-foreground">No tasks match the current filters.</div>
 				)}
 
 				{visibleTasks.map((task) => (
@@ -279,28 +248,21 @@ export function TaskExplorerSidebar({
 							taskKey: task.key,
 						})}
 						className={cn(
-							"block w-full cursor-pointer p-3 text-left transition-colors hover:bg-muted/50",
-							selectedTaskKey === task.key && "bg-muted",
+							'block w-full cursor-pointer p-3 text-left transition-colors hover:bg-muted/50',
+							selectedTaskKey === task.key && 'bg-muted',
 						)}
 					>
 						<div className="flex items-start justify-between gap-2">
 							<div className="text-sm font-medium">{task.title}</div>
-							{task.taskSource === "private" ? (
-								<Lock
-									className="h-3.5 w-3.5 text-muted-foreground"
-									aria-label="Private task"
-								/>
+							{task.taskSource === 'private' ? (
+								<Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Private task" />
 							) : null}
 						</div>
 
-						<div className="mt-1 break-all text-xs text-muted-foreground">
-							{task.id}
-						</div>
+						<div className="mt-1 break-all text-xs text-muted-foreground">{task.id}</div>
 
 						<div className="mt-2 flex flex-wrap gap-1">
-							<span className="rounded border border-border px-1.5 py-0.5 text-xs">
-								{task.status}
-							</span>
+							<span className="rounded border border-border px-1.5 py-0.5 text-xs">{task.status}</span>
 							{task.priority && (
 								<span className="rounded border border-border px-1.5 py-0.5 text-xs">
 									{task.priority}
@@ -311,10 +273,7 @@ export function TaskExplorerSidebar({
 						{task.tags.length > 0 && (
 							<div className="mt-2 flex flex-wrap gap-1">
 								{task.tags.slice(0, 6).map((tag) => (
-									<span
-										key={tag}
-										className="rounded bg-muted px-1.5 py-0.5 text-xs"
-									>
+									<span key={tag} className="rounded bg-muted px-1.5 py-0.5 text-xs">
 										#{tag}
 									</span>
 								))}
@@ -327,12 +286,9 @@ export function TaskExplorerSidebar({
 	);
 }
 
-function buildTagEntries(
-	facetEntries: ExplorerFacets["tags"],
-	pinnedTags: string[],
-): ExplorerFacets["tags"] {
+function buildTagEntries(facetEntries: ExplorerFacets['tags'], pinnedTags: string[]): ExplorerFacets['tags'] {
 	//
-	const entryByValue = new Map<string, ExplorerFacets["tags"][number]>();
+	const entryByValue = new Map<string, ExplorerFacets['tags'][number]>();
 
 	for (const entry of facetEntries) {
 		entryByValue.set(entry.value, entry);

@@ -12,6 +12,7 @@ import { type ModelMessage, generateText, type LanguageModel } from 'ai';
 import { z } from 'zod/v3';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
+import { isRecord } from 'lib/guards';
 import { asDollars } from 'lib/money';
 import { env } from 'schemas/envSchema';
 import type { IntelligenceKey } from 'schemas/intelligenceSchema';
@@ -82,7 +83,7 @@ export async function prepareContext(
 	const model = languageModelFrom(intelligenceKey);
 
 	const [history, instructions, tools] = await Promise.all([
-		renderHistory(ctx, task, action, skill),
+		renderHistory(ctx, task, action),
 		renderInstructions(ctx, task, action, skill),
 		renderTools(ctx, task, action, skill),
 	]);
@@ -119,10 +120,19 @@ export async function prepareContext(
 			google: {
 				safetySettings: [
 					{ category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-					{ category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+					{
+						category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+						threshold: 'BLOCK_NONE',
+					},
 					{ category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-					{ category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-					{ category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+					{
+						category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+						threshold: 'BLOCK_NONE',
+					},
+					{
+						category: 'HARM_CATEGORY_CIVIC_INTEGRITY',
+						threshold: 'BLOCK_NONE',
+					},
 				],
 			},
 		}),
@@ -161,11 +171,6 @@ export async function prepareContext(
 		tools: tools,
 		providerOptions: Object.keys(providerOptions).length > 0 ? providerOptions : undefined,
 	};
-}
-
-// type guard: check if value is a record (object with string keys)
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export async function askMagicRock(args: MagicRockContext) {
@@ -367,7 +372,6 @@ async function renderHistory(
 	ctx: ActionCtx | MutationCtx, //
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
-	skill: z.infer<typeof softSkillSchema>,
 ): Promise<Array<ModelMessage>> {
 	//
 	const actions = await ctx.runQuery(internal.action._findLastActions, {
@@ -568,7 +572,10 @@ async function replaceActiveTasksIfNeeded(
 		sortedTasks
 			.map((task: Doc<'tasks'>) => {
 				const title = task.title || 'Untitled';
-				const totalBudget = asDollars({ bigInt: task.energyBudget.total, precision: 2 });
+				const totalBudget = asDollars({
+					bigInt: task.energyBudget.total,
+					precision: 2,
+				});
 				const createdAt = dateOrNever(task._creationTime);
 				return `- *${title}* (id: ${task._id}, ${totalBudget} energy, created: ${createdAt})`;
 			})
