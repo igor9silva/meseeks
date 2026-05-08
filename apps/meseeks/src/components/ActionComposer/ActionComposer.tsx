@@ -9,7 +9,6 @@ import { useVoiceRecording } from '~/hooks/useVoiceRecording';
 import { cn } from '@reactor/ui/lib/utils';
 import { IdleState } from './IdleState';
 import { RecordingState } from './RecordingState';
-import { TranscribingState } from './TranscribingState';
 import { StripContainer } from './strips/StripContainer';
 
 interface ActionComposerProps {
@@ -55,15 +54,14 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 		setMessage(e.target.value);
 	};
 
-	// sync local message back to URL when voice transcription completes
-	const handleTranscriptionComplete = (transcribedText: string) => {
+	const handleTranscriptionUpdate = (transcribedText: string) => {
 		//
 		setLocalMessage(transcribedText);
 		setMessage(transcribedText);
 	};
 
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
-		onTranscriptionComplete: handleTranscriptionComplete,
+		onTranscriptionUpdate: handleTranscriptionUpdate,
 	});
 
 	const isRecordingOrTranscribing = recordingStatus !== 'idle';
@@ -110,6 +108,11 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	const handleStop = () => {
 		//
 		stop({ taskId: task._id });
+	};
+
+	const handleStartRecording = () => {
+		//
+		void startRecording(localMessage);
 	};
 
 	// global focus shortcut (⌘+I)
@@ -181,13 +184,15 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 					</div>
 				)}
 
-				{/* recording state */}
-				{recordingStatus === 'recording' && (
-					<RecordingState stopRecording={stopRecording} cancelRecording={cancelRecording} />
+				{/* live voice state */}
+				{recordingStatus !== 'idle' && (
+					<RecordingState
+						status={recordingStatus}
+						transcript={localMessage}
+						stopRecording={stopRecording}
+						cancelRecording={cancelRecording}
+					/>
 				)}
-
-				{/* transcribing state */}
-				{recordingStatus === 'transcribing' && <TranscribingState cancelRecording={cancelRecording} />}
 
 				{/* idle state - input and action bar */}
 				{!isRecordingOrTranscribing && (
@@ -198,7 +203,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 						handleMessageChange={handleMessageChange}
 						isEmpty={isLocalEmpty}
 						hasQueuedSkills={queue.length > 0}
-						startRecording={startRecording}
+						startRecording={handleStartRecording}
 						handleAct={handleAct}
 						handleEnqueue={handleEnqueueMessage}
 						isActing={isTaskActing}

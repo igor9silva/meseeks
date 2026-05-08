@@ -7,7 +7,6 @@ import { INSUFFICIENT_ACCOUNT_FUNDS_ERROR, isError } from 'lib/errors';
 import { INTELLIGENCE_PROGRESSION, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { ArrowUp, Mic } from 'lucide-react';
 import { RecordingState } from '~/components/ActionComposer/RecordingState';
-import { TranscribingState } from '~/components/ActionComposer/TranscribingState';
 import { BudgetSelector } from '~/components/BudgetSelector';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { Loading } from '~/components/Loading';
@@ -75,14 +74,14 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	} = useExpandingTextarea({ initialValue: q || '' });
 
 	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
-		onTranscriptionComplete: setMessage,
+		onTranscriptionUpdate: setMessage,
 	});
 
 	const placeholder = useMemo(() => PLACEHOLDERS[0] ?? "What's happening?", []);
 
 	const handleStartRecording = async () => {
 		try {
-			await startRecording();
+			await startRecording(message);
 		} catch (error) {
 			console.error('Failed to start voice recording:', error);
 		}
@@ -166,11 +165,14 @@ export function QuickSeekContent({ className }: { className?: string }) {
 						showVoiceInterface && 'flex-row',
 					)}
 				>
-					{'recording' === recordingStatus && (
-						<RecordingState stopRecording={stopRecording} cancelRecording={cancelRecording} />
+					{'idle' !== recordingStatus && (
+						<RecordingState
+							status={recordingStatus}
+							transcript={message}
+							stopRecording={stopRecording}
+							cancelRecording={cancelRecording}
+						/>
 					)}
-
-					{'transcribing' === recordingStatus && <TranscribingState cancelRecording={cancelRecording} />}
 
 					{'idle' === recordingStatus && (
 						<>
