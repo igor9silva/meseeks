@@ -1,0 +1,39 @@
+{
+  "name": "Meseeks",
+  "short_name": "Meseeks",
+  "description": "AI-powered engine.",
+  "start_url": "/",
+  "id": "?pro.igorsilva.meseeks=v0",
+  "orientation": "any",
+  "display": "fullscreen",
+  "lang": "en",
+  "dir": "auto",
+  "theme_color": "#09090B",
+  "background_color": "#09090B",
+  "icons": [
+    {
+      "src": "/static/logo-dark-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/logo-dark-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/logo-dark-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/logo-dark-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

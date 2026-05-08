@@ -1,0 +1,483 @@
+import { useMutation as useTanStackMutation } from '@tanstack/react-query';
+import { Id } from 'convex/_generated/dataModel';
+import { asBigInt } from 'lib/money';
+import { useMutation } from 'convex/react';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
+import { z } from 'zod/v3';
+import { api } from 'convex/_generated/api';
+
+export function useAddTask() {
+	//
+	const addTask = useMutation(api.tasks.add);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			message,
+			initialFunds,
+			intelligence,
+		}: {
+			message: string;
+			initialFunds: number;
+			intelligence: z.infer<typeof intelligenceKeys> | undefined;
+		}) => {
+			//
+			return await addTask({
+				message: message.trim(),
+				initialFunds: asBigInt({ dollars: initialFunds }),
+				preferredIntelligence: intelligence,
+			});
+		},
+	});
+
+	return {
+		addTask: mutation.mutate,
+		isAdding: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useSay() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			message,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			message: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'say', args: { message } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		say: mutation.mutate,
+		isSaying: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useStop() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'stop', args: {} }, //
+				],
+			});
+		},
+	});
+
+	return {
+		stop: mutation.mutate,
+		isStopping: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useIncreaseBudget() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			amount,
+			shouldIterate,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			amount: bigint;
+			shouldIterate?: boolean;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'increaseBudget', args: { amount, shouldIterate } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		increaseBudget: mutation.mutate,
+		isIncreasingBudget: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useDecreaseBudget() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			amount,
+			shouldReopen = false,
+		}: {
+			taskId: Id<'tasks'>;
+			amount: bigint;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'decreaseBudget', args: { amount } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		decreaseBudget: mutation.mutate,
+		isDecreasingBudget: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useResolve() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'resolve', args: {} }, //
+				],
+			});
+		},
+	});
+
+	return {
+		resolve: mutation.mutate,
+		isResolving: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useDiscard() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'discard', args: {} }, //
+				],
+			});
+		},
+	});
+
+	return {
+		discard: mutation.mutate,
+		isDiscarding: mutation.isPending,
+		...mutation,
+	};
+}
+
+/**
+ * @deprecated use useAct + useComposer for batched skill submission
+ */
+export function useReopen() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+		}: {
+			taskId: Id<'tasks'>;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'reopen', args: {} }, //
+				],
+			});
+		},
+	});
+
+	return {
+		reopen: mutation.mutate,
+		isReopening: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useApproveAction() {
+	//
+	const authorize = useMutation(api.action.authorize);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			actionId,
+		}: {
+			taskId: Id<'tasks'>;
+			actionId: Id<'actions'>;
+		}) => {
+			//
+			return await authorize({
+				taskId,
+				actionId,
+				hasApproved: true,
+			});
+		},
+	});
+
+	return {
+		approveAction: mutation.mutate,
+		isApprovingAction: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useRejectAction() {
+	//
+	const authorize = useMutation(api.action.authorize);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			actionId,
+		}: {
+			taskId: Id<'tasks'>;
+			actionId: Id<'actions'>;
+		}) => {
+			//
+			return await authorize({
+				taskId,
+				actionId,
+				hasApproved: false,
+			});
+		},
+	});
+
+	return {
+		rejectAction: mutation.mutate,
+		isRejectingAction: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateInstructions() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			instructions,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			instructions: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'updateInstructions', args: { instructions } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateInstructions: mutation.mutate,
+		isUpdatingInstructions: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateTitle() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			title,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			title: string;
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'updateInstructions', args: { title } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateTitle: mutation.mutate,
+		isUpdatingTitle: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useUpdateAvailableSkills() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			availableSkills,
+			shouldReopen = true,
+		}: {
+			taskId: Id<'tasks'>;
+			availableSkills: string[];
+			shouldReopen?: boolean;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{ skillKey: 'updateInstructions', args: { availableSkills } }, //
+				],
+				shouldReopen,
+			});
+		},
+	});
+
+	return {
+		updateAvailableSkills: mutation.mutate,
+		isUpdatingAvailableSkills: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useScheduleIteration() {
+	//
+	const act = useMutation(api.action.act);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			scheduleType,
+			scheduledAt,
+			cronExpression,
+			timeZone,
+			instructions,
+		}: {
+			taskId: Id<'tasks'>;
+			scheduleType: 'one-time' | 'recurring';
+			scheduledAt?: string;
+			cronExpression?: string;
+			timeZone: string;
+			instructions?: string;
+		}) => {
+			//
+			return await act({
+				taskId,
+				skills: [
+					{
+						skillKey: 'schedule',
+						args: {
+							scheduleType,
+							scheduledAt,
+							cronExpression,
+							timeZone,
+							instructions,
+						},
+					},
+				],
+			});
+		},
+	});
+
+	return {
+		scheduleIteration: mutation.mutate,
+		isSchedulingIteration: mutation.isPending,
+		...mutation,
+	};
+}
+
+export function useSetPreferredIntelligence() {
+	//
+	const setPreferredIntelligenceMutation = useMutation(api.tasks.setPreferredIntelligence);
+
+	const mutation = useTanStackMutation({
+		mutationFn: async ({
+			taskId, //
+			preferredIntelligence,
+		}: {
+			taskId: Id<'tasks'>;
+			preferredIntelligence: z.infer<typeof intelligenceKeys>;
+		}) => {
+			//
+			return await setPreferredIntelligenceMutation({ taskId, preferredIntelligence });
+		},
+	});
+
+	return {
+		setPreferredIntelligence: mutation.mutate,
+		isSettingPreferredIntelligence: mutation.isPending,
+		...mutation,
+	};
+}
