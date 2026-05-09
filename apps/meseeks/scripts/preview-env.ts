@@ -141,21 +141,22 @@ function normalizePreviewName(value: string) {
 }
 
 function parseDotenvValue(rawValue: string) {
-	if (!rawValue) return '';
+	const value = stripDotenvComment(rawValue).trim();
+	if (!value) return '';
 
-	if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
+	if (value.startsWith('"') && value.endsWith('"')) {
 		try {
-			return JSON.parse(rawValue);
+			return JSON.parse(value);
 		} catch {
-			return rawValue.slice(1, -1);
+			return value.slice(1, -1);
 		}
 	}
 
-	if (rawValue.startsWith("'") && rawValue.endsWith("'")) {
-		return rawValue.slice(1, -1);
+	if (value.startsWith("'") && value.endsWith("'")) {
+		return value.slice(1, -1);
 	}
 
-	return rawValue;
+	return value;
 }
 
 function formatDotenvValue(value: string) {
@@ -170,4 +171,39 @@ function deploymentUrl(deployment: string | undefined, target: 'cloud' | 'site')
 	if (!match) return undefined;
 
 	return `https://${match[1]}.convex.${target}`;
+}
+
+function stripDotenvComment(value: string) {
+	let quote: '"' | "'" | undefined;
+	let escaped = false;
+
+	for (let index = 0; index < value.length; index++) {
+		const character = value[index];
+
+		if (escaped) {
+			escaped = false;
+			continue;
+		}
+
+		if (quote) {
+			if (quote === '"' && character === '\\') {
+				escaped = true;
+				continue;
+			}
+
+			if (character === quote) quote = undefined;
+			continue;
+		}
+
+		if (character === '"' || character === "'") {
+			quote = character;
+			continue;
+		}
+
+		if (character === '#' && (index === 0 || /\s/.test(value[index - 1]))) {
+			return value.slice(0, index);
+		}
+	}
+
+	return value;
 }

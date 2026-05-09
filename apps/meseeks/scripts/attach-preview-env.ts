@@ -10,6 +10,7 @@ import {
 	writeDotenv,
 } from './preview-env';
 
+const convexProjectSelector = 'isPro:meseeks';
 const defaultPreviewExpiration = 'in 7 days';
 
 function main() {
@@ -20,7 +21,7 @@ function main() {
 	const localEntries = readDotenv(envLocalFile);
 
 	console.log(`Preparing local preview env for ${deploymentRef}`);
-	const createdDeployment = selectConvexPreviewDeployment(deploymentRef);
+	const createdDeployment = selectConvexPreviewDeployment(deploymentRef, projectDeploymentRef(deploymentRef));
 
 	const convexEntries = readDotenv(envLocalFile);
 	const merged = new Map([...localEntries, ...convexEntries]);
@@ -40,9 +41,9 @@ function main() {
 	if (createdDeployment) bootstrapFreshPreview(merged);
 }
 
-function selectConvexPreviewDeployment(deploymentRef: string) {
+function selectConvexPreviewDeployment(deploymentRef: string, deploymentSelector: string) {
 	console.log(`Selecting Convex deployment ${deploymentRef}`);
-	const selected = tryRun('bunx', ['convex', 'deployment', 'select', deploymentRef]);
+	const selected = tryRun('bunx', ['convex', 'deployment', 'select', deploymentSelector]);
 	if (selected.ok) return false;
 
 	console.log(`Convex deployment ${deploymentRef} was not selectable; creating it.`);
@@ -50,7 +51,7 @@ function selectConvexPreviewDeployment(deploymentRef: string) {
 		'convex',
 		'deployment',
 		'create',
-		deploymentRef,
+		deploymentSelector,
 		'--type',
 		'preview',
 		'--select',
@@ -59,6 +60,10 @@ function selectConvexPreviewDeployment(deploymentRef: string) {
 	]);
 
 	return true;
+}
+
+function projectDeploymentRef(deploymentRef: string) {
+	return `${convexProjectSelector}:${deploymentRef}`;
 }
 
 function bootstrapFreshPreview(entries: Map<string, string>) {
