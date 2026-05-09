@@ -7,6 +7,17 @@ The engine. The platform.
 
 Note: start from existing active/action-execution-model.md
 
+## Current Decisions (2026-05-07)
+
+- Public action creation vocabulary is `act()`. `addActions` is an internal helper name and should not appear in product docs as the abstraction.
+- Reactor vocabulary should read `claim -> start -> execute -> finish -> react`, with one finalizer path for terminal action state.
+- Started Convex actions are treated as non-cancellable. A stop/interruption marks them so they still finish financially, then `react()` skips them and future history hides them.
+- No `chain`, `chainId`, or active-loop concept. An action may carry `loop` through its reactions; loops are collections of triggers.
+- `task.triggers` are always live and should be able to override loop triggers. Do not create separate "system triggers"; triggers belong to tasks or loops.
+- For v1 API ergonomics, use explicit `seek` / `silent` loop choices on `act()`. Do not add loop/trigger persistence beyond the accepted shape until the trigger model is designed.
+- Failed actions do not automatically `iterate`. The code path that fails an action decides whether to attach reactions; task energy failure should request budget, and account-funds failure likely needs a funds-specific reaction.
+- `computeMaxCost()` means worst-case cost. Store `maxCost` without buffer; apply task overrun buffer in memory only; reserve user-account energy when entering `running`.
+
 - files
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
@@ -41,7 +52,7 @@ Note: start from existing active/action-execution-model.md
 - keep "magic rock" naming for fun
 	- including the comment in the file
 - energy as a first-class citizen
-	- estimated cost should be "max theoretical cost"
+	- `maxCost` should be worst-case theoretical cost
 		- based on maxOutputTokens, fixed costs, and so on
 		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
 - multi-provider
