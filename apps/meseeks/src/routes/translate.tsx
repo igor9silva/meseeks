@@ -41,16 +41,23 @@ interface SecretResponse {
 	error?: string;
 }
 
-interface TranscriptEntry {
+interface TranscriptRound {
 	id: string;
-	sourceSide: SideKey;
-	targetSide: SideKey;
-	text: string;
+	heardText: string;
+	outputs: Record<SideKey, string>;
+	languages: Record<SideKey, LanguageCode>;
 	time: string;
+}
+
+interface RoundDraft {
+	heardText: string;
+	outputs: Record<SideKey, string>;
+	languages: Record<SideKey, LanguageCode>;
 }
 
 const apiRoute = '/api/translate/session';
 const translationCallsUrl = 'https://api.openai.com/v1/realtime/translations/calls';
+const roundSettleMs = 2200;
 
 const languages: LanguageOption[] = [
 	{ code: 'en', label: 'English', shortLabel: 'EN' },
@@ -91,15 +98,12 @@ function RouteComponent() {
 	const [error, setError] = useState<string | null>(null);
 	const [heardText, setHeardText] = useState('');
 	const [liveText, setLiveText] = useState<Record<SideKey, string>>({ a: '', b: '' });
-	const [history, setHistory] = useState<TranscriptEntry[]>([]);
+	const [history, setHistory] = useState<TranscriptRound[]>([]);
 
 	const channelsRef = useRef<TranslationChannel[]>([]);
 	const mediaStreamRef = useRef<MediaStream | null>(null);
-	const draftTextRef = useRef<Record<SideKey, string>>({ a: '', b: '' });
-	const draftSourceSideRef = useRef<Record<SideKey, SideKey>>({ a: 'b', b: 'a' });
-	const inputDraftRef = useRef('');
-	const commitTimersRef = useRef<Partial<Record<SideKey, ReturnType<typeof setTimeout>>>>({});
-	const inputTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const roundDraftRef = useRef<RoundDraft>(createRoundDraft(languagePair));
+	const roundCommitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const languagePairRef = useRef(languagePair);
 	const currentSourceSideRef = useRef<SideKey | null>(null);
 	const voiceTargetSideRef = useRef<SideKey | null>(voiceTargetSide);
@@ -144,62 +148,64 @@ function RouteComponent() {
 		setLanguagePair((current) => ({ a: current.b, b: current.a }));
 	}, []);
 
-	const addHistoryEntry = useCallback((entry: Omit<TranscriptEntry, 'id' | 'time'>) => {
-		const normalizedText = entry.text.trim();
-		if (!normalizedText) return;
+	const commitRound = useCallback(() => {
+		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
+		roundCommitTimerRef.current = null;
 
-		setHistory((current) =>
-			[
-				{
-					...entry,
-					id: createTranscriptId(),
-					text: normalizedText,
-					time: new Date().toLocaleTimeString('en', {
-						hour: '2-digit',
-						minute: '2-digit',
-					}),
-				},
-				...current,
-			].slice(0, 30),
-		);
+		const draft = roundDraftRef.current;
+		const sourceSide = currentSourceSideRef.current;
+		const heardText = draft.heardText.trim();
+		const outputs = {
+			a: draft.outputs.a.trim(),
+			b: draft.outputs.b.trim(),
+		};
+
+		if (sourceSide && heardText && !outputs[sourceSide]) outputs[sourceSide] = heardText;
+
+		if (heardText || outputs.a || outputs.b) {
+			setHistory((current) =>
+				[
+					...current,
+					{
+						id: createTranscriptId(),
+						heardText,
+						outputs,
+						languages: draft.languages,
+						time: new Date().toLocaleTimeString('en', {
+							hour: '2-digit',
+							minute: '2-digit',
+						}),
+					},
+				].slice(-30),
+			);
+		}
+
+		roundDraftRef.current = createRoundDraft(languagePairRef.current);
+		currentSourceSideRef.current = null;
+		setHeardText('');
+		setLiveText({ a: '', b: '' });
+		setActivity('listening');
 	}, []);
 
-	const commitDraft = useCallback(
-		(targetSide: SideKey) => {
-			const finalText = draftTextRef.current[targetSide].trim();
-			const sourceSide = draftSourceSideRef.current[targetSide];
-			draftTextRef.current[targetSide] = '';
-			delete commitTimersRef.current[targetSide];
-
-			if (finalText && sourceSide !== targetSide) addHistoryEntry({ sourceSide, targetSide, text: finalText });
-			setActivity('listening');
-		},
-		[addHistoryEntry],
-	);
-
-	const scheduleCommit = useCallback(
-		(targetSide: SideKey) => {
-			const timer = commitTimersRef.current[targetSide];
-			if (timer) clearTimeout(timer);
-
-			commitTimersRef.current[targetSide] = setTimeout(() => commitDraft(targetSide), 1500);
-		},
-		[commitDraft],
-	);
+	const scheduleRoundCommit = useCallback(() => {
+		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
+		roundCommitTimerRef.current = setTimeout(commitRound, roundSettleMs);
+	}, [commitRound]);
 
 	const setSourceDirection = useCallback((sourceSide: SideKey) => {
 		currentSourceSideRef.current = sourceSide;
-		draftSourceSideRef.current = { a: sourceSide, b: sourceSide };
 	}, []);
 
 	const handleInputDelta = useCallback(
 		(delta: string) => {
-			if (!inputDraftRef.current.trim()) {
+			const draft = roundDraftRef.current;
+			if (!hasRoundContent(draft)) {
+				draft.languages = { ...languagePairRef.current };
 				currentSourceSideRef.current = null;
 			}
 
-			inputDraftRef.current += delta;
-			const nextInput = inputDraftRef.current.trim();
+			draft.heardText += delta;
+			const nextInput = draft.heardText.trim();
 			setHeardText(nextInput);
 			setActivity('hearing');
 
@@ -208,31 +214,29 @@ function RouteComponent() {
 
 			const sourceSide = inferredSourceSide ?? currentSourceSideRef.current;
 			if (sourceSide) {
-				draftSourceSideRef.current[sourceSide] = sourceSide;
-				draftTextRef.current[sourceSide] = nextInput;
 				setLiveText((current) => ({ ...current, [sourceSide]: nextInput }));
 			}
 
-			if (inputTimerRef.current) clearTimeout(inputTimerRef.current);
-			inputTimerRef.current = setTimeout(() => {
-				inputDraftRef.current = '';
-				setActivity('listening');
-			}, 1400);
+			scheduleRoundCommit();
 		},
-		[setSourceDirection],
+		[scheduleRoundCommit, setSourceDirection],
 	);
 
 	const handleOutputDelta = useCallback(
 		(targetSide: SideKey, delta: string) => {
-			draftSourceSideRef.current[targetSide] = currentSourceSideRef.current ?? oppositeSide(targetSide);
-			const existingDraft = draftTextRef.current[targetSide];
+			const draft = roundDraftRef.current;
+			if (!hasRoundContent(draft)) {
+				draft.languages = { ...languagePairRef.current };
+			}
+
+			const existingDraft = draft.outputs[targetSide];
 			const nextText = existingDraft ? existingDraft + delta : delta;
-			draftTextRef.current[targetSide] = nextText;
+			draft.outputs[targetSide] = nextText;
 			setLiveText((current) => ({ ...current, [targetSide]: nextText.trim() }));
 			setActivity('speaking');
-			scheduleCommit(targetSide);
+			scheduleRoundCommit();
 		},
-		[scheduleCommit],
+		[scheduleRoundCommit],
 	);
 
 	const handleRealtimeEvent = useCallback(
@@ -254,12 +258,15 @@ function RouteComponent() {
 				case 'session.output_transcript.done':
 					if (event.text || event.transcript) {
 						const finalText = event.text ?? event.transcript ?? '';
-						draftSourceSideRef.current[targetSide] =
-							currentSourceSideRef.current ?? oppositeSide(targetSide);
-						draftTextRef.current[targetSide] = finalText;
+						const draft = roundDraftRef.current;
+						if (!hasRoundContent(draft)) {
+							draft.languages = { ...languagePairRef.current };
+						}
+
+						draft.outputs[targetSide] = finalText;
 						setLiveText((current) => ({ ...current, [targetSide]: finalText.trim() }));
 					}
-					commitDraft(targetSide);
+					scheduleRoundCommit();
 					break;
 
 				case 'error':
@@ -269,16 +276,12 @@ function RouteComponent() {
 					break;
 			}
 		},
-		[commitDraft, handleInputDelta, handleOutputDelta],
+		[handleInputDelta, handleOutputDelta, scheduleRoundCommit],
 	);
 
 	const cleanupSession = useCallback(() => {
-		Object.values(commitTimersRef.current).forEach((timer) => timer && clearTimeout(timer));
-		commitTimersRef.current = {};
-
-		if (inputTimerRef.current) clearTimeout(inputTimerRef.current);
-		inputTimerRef.current = null;
-		inputDraftRef.current = '';
+		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
+		roundCommitTimerRef.current = null;
 
 		channelsRef.current.forEach(({ audio, peerConnection }) => {
 			audio.pause();
@@ -289,15 +292,16 @@ function RouteComponent() {
 
 		mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
 		mediaStreamRef.current = null;
-		draftTextRef.current = { a: '', b: '' };
+		roundDraftRef.current = createRoundDraft(languagePairRef.current);
 	}, []);
 
 	const stopSession = useCallback(() => {
+		commitRound();
 		cleanupSession();
 		currentSourceSideRef.current = null;
 		setStatus('idle');
 		setActivity('quiet');
-	}, [cleanupSession]);
+	}, [cleanupSession, commitRound]);
 
 	useEffect(() => cleanupSession, [cleanupSession]);
 
@@ -634,12 +638,11 @@ function HistorySheet({
 	history,
 	languages,
 }: {
-	history: TranscriptEntry[];
+	history: TranscriptRound[];
 	languages: Record<SideKey, LanguageCode>;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const scrollRef = useRef<HTMLDivElement | null>(null);
-	const orderedHistory = history.slice().reverse();
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -666,42 +669,69 @@ function HistorySheet({
 			<SheetContent side="bottom" className="flex max-h-[75dvh] flex-col overflow-hidden rounded-t-xl">
 				<SheetHeader>
 					<SheetTitle>History</SheetTitle>
-					<SheetDescription className="sr-only">Translated messages from this session.</SheetDescription>
+					<SheetDescription className="sr-only">Translated rounds from this session.</SheetDescription>
 				</SheetHeader>
 				<div ref={scrollRef} className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
 					{history.length ? (
 						<div className="flex flex-col gap-3 pb-1">
-							{orderedHistory.map((entry) => (
-								<div
-									key={entry.id}
-									className={cn('flex', entry.targetSide === 'a' ? 'justify-end' : 'justify-start')}
-								>
-									<div
-										className={cn(
-											'max-w-[86%] rounded-2xl px-4 py-3 text-sm shadow-sm',
-											entry.targetSide === 'a'
-												? 'rounded-br-sm bg-primary text-primary-foreground'
-												: 'rounded-bl-sm bg-muted text-foreground',
-										)}
-									>
-										<div
-											className={cn(
-												'mb-1 flex items-center justify-between gap-3 text-xs font-medium',
-												entry.targetSide === 'a'
-													? 'text-primary-foreground/70'
-													: 'text-muted-foreground',
-											)}
-										>
+							{history.map((round) => (
+								<div key={round.id} className="flex justify-center">
+									<div className="w-full max-w-[94%] rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
+										<div className="mb-3 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
 											<span>
-												{languageByCode[languages[entry.sourceSide]].shortLabel}
-												{' to '}
-												{languageByCode[languages[entry.targetSide]].shortLabel}
+												{languageByCode[round.languages.a]?.shortLabel ??
+													languageByCode[languages.a].shortLabel}
+												{' / '}
+												{languageByCode[round.languages.b]?.shortLabel ??
+													languageByCode[languages.b].shortLabel}
 											</span>
-											<span>{entry.time}</span>
+											<span>{round.time}</span>
 										</div>
-										<p className="whitespace-pre-wrap break-words text-base leading-6">
-											{entry.text}
-										</p>
+
+										{round.heardText && (
+											<div className="mb-3 rounded-xl bg-muted px-3 py-2">
+												<div className="mb-1 text-xs font-medium text-muted-foreground">
+													Heard
+												</div>
+												<p className="whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
+													{round.heardText}
+												</p>
+											</div>
+										)}
+
+										<div className="grid gap-2">
+											{(['a', 'b'] as const).map((side) => {
+												const text = round.outputs[side];
+												if (!text) return null;
+
+												return (
+													<div
+														key={side}
+														className={cn(
+															'rounded-xl px-3 py-2',
+															side === 'a'
+																? 'bg-primary text-primary-foreground'
+																: 'bg-background text-foreground',
+														)}
+													>
+														<div
+															className={cn(
+																'mb-1 text-xs font-semibold',
+																side === 'a'
+																	? 'text-primary-foreground/70'
+																	: 'text-muted-foreground',
+															)}
+														>
+															{languageByCode[round.languages[side]]?.label ??
+																languageByCode[languages[side]].label}
+														</div>
+														<p className="whitespace-pre-wrap break-words text-base leading-6">
+															{text}
+														</p>
+													</div>
+												);
+											})}
+										</div>
 									</div>
 								</div>
 							))}
@@ -822,6 +852,18 @@ function syncChannelAudio(channels: TranslationChannel[], targetSide: SideKey | 
 	channels.forEach((channel) => {
 		channel.audio.muted = channel.targetSide !== targetSide;
 	});
+}
+
+function createRoundDraft(languages: Record<SideKey, LanguageCode>): RoundDraft {
+	return {
+		heardText: '',
+		outputs: { a: '', b: '' },
+		languages: { ...languages },
+	};
+}
+
+function hasRoundContent(draft: RoundDraft) {
+	return Boolean(draft.heardText.trim() || draft.outputs.a.trim() || draft.outputs.b.trim());
 }
 
 function oppositeSide(side: SideKey): SideKey {
