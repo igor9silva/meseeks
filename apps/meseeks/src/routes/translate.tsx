@@ -173,7 +173,7 @@ function RouteComponent() {
 			draftTextRef.current[targetSide] = '';
 			delete commitTimersRef.current[targetSide];
 
-			if (finalText) addHistoryEntry({ sourceSide, targetSide, text: finalText });
+			if (finalText && sourceSide !== targetSide) addHistoryEntry({ sourceSide, targetSide, text: finalText });
 			setActivity('listening');
 		},
 		[addHistoryEntry],
@@ -189,52 +189,16 @@ function RouteComponent() {
 		[commitDraft],
 	);
 
-	const resetTurnDirection = useCallback(() => {
-		const activeTargetSide = getTranslationTargetSide(currentSourceSideRef.current);
-		if (activeTargetSide && draftTextRef.current[activeTargetSide].trim()) {
-			commitDraft(activeTargetSide);
-		}
-
-		Object.values(commitTimersRef.current).forEach((timer) => timer && clearTimeout(timer));
-		commitTimersRef.current = {};
-		draftTextRef.current = { a: '', b: '' };
-		currentSourceSideRef.current = null;
-		setDetectedSourceSide(null);
-		setLiveText({ a: '', b: '' });
-		syncChannelAudio(channelsRef.current, null, audioMutedRef.current);
-	}, [commitDraft]);
-
-	const setSourceDirection = useCallback(
-		(sourceSide: SideKey) => {
-			const targetSide = oppositeSide(sourceSide);
-			if (currentSourceSideRef.current === sourceSide) {
-				syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
-				return;
-			}
-
-			const ignoredTimer = commitTimersRef.current[sourceSide];
-			if (ignoredTimer) clearTimeout(ignoredTimer);
-			delete commitTimersRef.current[sourceSide];
-			draftTextRef.current[sourceSide] = '';
-			draftSourceSideRef.current[targetSide] = sourceSide;
-			currentSourceSideRef.current = sourceSide;
-
-			setDetectedSourceSide(sourceSide);
-			setLiveText({
-				a: targetSide === 'a' ? draftTextRef.current.a.trim() : '',
-				b: targetSide === 'b' ? draftTextRef.current.b.trim() : '',
-			});
-			syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
-
-			if (draftTextRef.current[targetSide].trim()) scheduleCommit(targetSide);
-		},
-		[scheduleCommit],
-	);
+	const setSourceDirection = useCallback((sourceSide: SideKey) => {
+		const targetSide = oppositeSide(sourceSide);
+		currentSourceSideRef.current = sourceSide;
+		draftSourceSideRef.current = { a: sourceSide, b: sourceSide };
+		setDetectedSourceSide(sourceSide);
+		syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
+	}, []);
 
 	const handleInputDelta = useCallback(
 		(delta: string) => {
-			if (!inputDraftRef.current.trim() && currentSourceSideRef.current) resetTurnDirection();
-
 			inputDraftRef.current += delta;
 			const nextInput = inputDraftRef.current.trim();
 			setHeardText(nextInput);
@@ -249,28 +213,20 @@ function RouteComponent() {
 				setActivity('listening');
 			}, 1400);
 		},
-		[resetTurnDirection, setSourceDirection],
+		[setSourceDirection],
 	);
 
 	const handleOutputDelta = useCallback(
 		(targetSide: SideKey, delta: string) => {
+			draftSourceSideRef.current[targetSide] = currentSourceSideRef.current ?? oppositeSide(targetSide);
 			const existingDraft = draftTextRef.current[targetSide];
 			const nextText = existingDraft ? existingDraft + delta : delta;
 			draftTextRef.current[targetSide] = nextText;
-
-			if (!currentSourceSideRef.current && looksLikeSameLanguageEcho(inputDraftRef.current, nextText)) {
-				setSourceDirection(targetSide);
-			}
-
-			const activeTargetSide = getTranslationTargetSide(currentSourceSideRef.current);
-			if (targetSide !== activeTargetSide) return;
-
-			draftSourceSideRef.current[targetSide] = currentSourceSideRef.current ?? oppositeSide(targetSide);
 			setLiveText((current) => ({ ...current, [targetSide]: nextText.trim() }));
 			setActivity('speaking');
 			scheduleCommit(targetSide);
 		},
-		[scheduleCommit, setSourceDirection],
+		[scheduleCommit],
 	);
 
 	const handleRealtimeEvent = useCallback(
@@ -279,11 +235,6 @@ function RouteComponent() {
 				case 'session.created':
 				case 'session.updated':
 					setActivity('listening');
-					break;
-
-				case 'input_audio_buffer.speech_started':
-					resetTurnDirection();
-					setActivity('hearing');
 					break;
 
 				case 'session.input_transcript.delta':
@@ -295,10 +246,6 @@ function RouteComponent() {
 					break;
 
 				case 'session.output_transcript.done':
-					if (targetSide !== getTranslationTargetSide(currentSourceSideRef.current)) {
-						draftTextRef.current[targetSide] = '';
-						return;
-					}
 					if (event.text || event.transcript) {
 						const finalText = event.text ?? event.transcript ?? '';
 						draftSourceSideRef.current[targetSide] =
@@ -316,7 +263,7 @@ function RouteComponent() {
 					break;
 			}
 		},
-		[commitDraft, handleInputDelta, handleOutputDelta, resetTurnDirection],
+		[commitDraft, handleInputDelta, handleOutputDelta],
 	);
 
 	const cleanupSession = useCallback(() => {
@@ -433,7 +380,7 @@ function RouteComponent() {
 						<h1 className="mt-4 text-4xl font-semibold leading-none tracking-normal">Live Translate</h1>
 					</div>
 
-					<div className="grid gap-5 py-8">
+					<div className="grid py-8">
 						<LanguagePicker
 							side="a"
 							language={sideA}
@@ -441,15 +388,17 @@ function RouteComponent() {
 							onChange={(value) => updateLanguage('a', value)}
 						/>
 
-						<Button
-							type="button"
-							variant="outline"
-							className="mx-auto size-12 rounded-full bg-background shadow-sm"
-							onClick={swapLanguages}
-							aria-label="Swap languages"
-						>
-							<ArrowLeftRight className="size-5 rotate-90" />
-						</Button>
+						<div className="flex justify-center pb-1 pt-8">
+							<Button
+								type="button"
+								variant="outline"
+								className="size-12 rounded-full bg-background shadow-sm"
+								onClick={swapLanguages}
+								aria-label="Swap languages"
+							>
+								<ArrowLeftRight className="size-5 rotate-90" />
+							</Button>
+						</div>
 
 						<LanguagePicker
 							side="b"
@@ -975,37 +924,6 @@ function scoreLanguage(text: string, language: LanguageCode) {
 	}
 
 	return score;
-}
-
-function looksLikeSameLanguageEcho(input: string, output: string) {
-	const normalizedInput = normalizeForComparison(input);
-	const normalizedOutput = normalizeForComparison(output);
-	if (normalizedInput.length < 8 || normalizedOutput.length < 8) return false;
-	if (normalizedInput === normalizedOutput) return true;
-
-	const shorter = normalizedInput.length < normalizedOutput.length ? normalizedInput : normalizedOutput;
-	const longer = shorter === normalizedInput ? normalizedOutput : normalizedInput;
-	if (longer.includes(shorter) && shorter.length / longer.length > 0.75) return true;
-
-	const inputWords = new Set(normalizedInput.split(' ').filter(Boolean));
-	const outputWords = new Set(normalizedOutput.split(' ').filter(Boolean));
-	if (!inputWords.size || !outputWords.size) return false;
-
-	let overlap = 0;
-	for (const word of inputWords) {
-		if (outputWords.has(word)) overlap += 1;
-	}
-
-	return overlap / Math.min(inputWords.size, outputWords.size) > 0.8;
-}
-
-function normalizeForComparison(text: string) {
-	return text
-		.toLocaleLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.replace(/[^\p{L}\p{N}]+/gu, ' ')
-		.trim();
 }
 
 function topStatusLabel(status: ConnectionStatus, activity: Activity) {
