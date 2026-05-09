@@ -1,4 +1,5 @@
 .env.local
+.env.convex.*
 
 # Inner repos
 private/
@@ -34,4 +35,3 @@ dist/
 
 ## Task indexes
 tasks/.generated/
-

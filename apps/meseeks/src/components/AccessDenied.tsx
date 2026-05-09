@@ -8,7 +8,7 @@ const authErrorSearchSchema = z.object({
 	error: z.string().optional(),
 });
 
-const allowAnonymousSignIn = import.meta.env.VERCEL_ENV !== 'production';
+const allowAnonymousSignIn = import.meta.env.VERCEL_ENV === 'preview' || import.meta.env.VERCEL_ENV === 'development';
 
 export function AccessDenied() {
 	//

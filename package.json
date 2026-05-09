@@ -23,6 +23,7 @@
 		"build": "bun --cwd apps/meseeks build",
 		"start": "bun --cwd apps/meseeks start",
 		"deploy": "bun --cwd apps/meseeks deploy",
+		"sync-env-to-preview": "bun --cwd apps/meseeks sync-env-to-preview",
 		"organizer": "concurrently -r 'bun --cwd apps/organizer dev' 'bun run config:watch'",
 		"tasks:build": "bun run .config/generate-task-index.ts",
 		"config:build": "bun run .config/generate-configs.ts",
