@@ -81,7 +81,7 @@ export const Route = createFileRoute('/translate')({
 	component: RouteComponent,
 	head: () => ({
 		meta: [
-			{ title: 'Live Translate' },
+			{ title: 'Translate' },
 			{
 				name: 'description',
 				content: 'Live speech translation.',
