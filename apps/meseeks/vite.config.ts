@@ -7,6 +7,9 @@ import { defineConfig } from 'vite';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
+	define: {
+		'import.meta.env.VERCEL_ENV': JSON.stringify(process.env['VERCEL_ENV'] ?? ''),
+	},
 	server: {
 		strictPort: false,
 	},
