@@ -1,3 +1,7 @@
+/**
+ * Sync Convex env vars from 'development' to 'preview' (default one, used for every new environment).
+ */
+
 import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
