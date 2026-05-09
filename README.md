@@ -116,25 +116,23 @@ We haven't yet spent much energy making it easy to run locally, but it should be
 
 ### Branch preview backend
 
-For feature branches and Codex worktrees, use the same temporary Convex preview deployment as the Vercel PR:
+`bun dev` uses the normal local development deployment on `main`. On any other branch, it uses the same temporary Convex preview deployment as the Vercel PR:
 
 ```sh
-bun preview:attach
-bun dev:preview
+bun dev
 ```
 
-If the worktree is detached, pass the branch explicitly:
+If the worktree is detached, pass the branch explicitly so the preview deployment can match the PR branch:
 
 ```sh
-bun preview:attach -- --branch my-branch
-bun dev:preview -- --branch my-branch
+bun dev -- --branch my-branch
 ```
 
-If the worktree is not linked to Vercel yet, set `VERCEL_PROJECT` or run `vercel link` inside `apps/meseeks` before attaching.
+If the worktree is not linked to Vercel yet, set `VERCEL_PROJECT` or run `vercel link` inside `apps/meseeks` before `bun dev`.
 
-`preview:attach` pulls the branch-scoped Vercel preview env into `apps/meseeks/.env.local`, selects or creates `preview/<branch>` in Convex, and writes `VITE_CONVEX_URL` plus `VITE_CONVEX_SITE_URL` for the local Vite server. `dev:preview` runs the local web server and watches backend files, pushing Convex function changes to that same preview deployment.
+For non-main branches, `dev` pulls the branch-scoped Vercel preview env into `apps/meseeks/.env.local`, selects or creates `preview/<branch>` in Convex, and runs `convex dev --env-file .env.local --start 'bun run dev:web'`. Convex owns backend file watching and pushes function changes to the preview deployment.
 
-If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in the Vercel preview environment. Re-run `bun preview:attach` whenever Vercel or Convex recreates the branch preview.
+If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in the Vercel preview environment. Re-run `bun dev` whenever Vercel or Convex recreates the branch preview.
 
 ### Self-Hosting Options
 

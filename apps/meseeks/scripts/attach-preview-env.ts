@@ -42,7 +42,7 @@ function main() {
 	console.log(`VITE_CONVEX_URL=${merged.get('VITE_CONVEX_URL') ?? '<missing>'}`);
 	console.log(`VITE_CONVEX_SITE_URL=${merged.get('VITE_CONVEX_SITE_URL') ?? '<missing>'}`);
 
-	if (createdDeployment) bootstrapFreshPreview(previewName, deploymentRef, merged);
+	if (createdDeployment) bootstrapFreshPreview(merged);
 }
 
 function ensureVercelProjectLink() {
@@ -95,14 +95,13 @@ function selectConvexPreviewDeployment(deploymentRef: string) {
 	return true;
 }
 
-function bootstrapFreshPreview(previewName: string, deploymentRef: string, entries: Map<string, string>) {
+function bootstrapFreshPreview(entries: Map<string, string>) {
 	const previewRun = entries.get('CONVEX_PREVIEW_RUN');
 	if (!previewRun) return;
 
 	const env = { ...process.env, ...Object.fromEntries(entries) };
-	console.log(`Fresh preview created; deploying code and running ${previewRun}`);
-	run('bun', ['./scripts/deploy-preview.ts', '--branch', previewName], { env });
-	run('bunx', ['convex', 'run', '--deployment', deploymentRef, previewRun], { env });
+	console.log(`Fresh preview created; pushing code with Convex dev and running ${previewRun}`);
+	run('convex', ['dev', '--once', '--env-file', envLocalFile, '--run', previewRun], { env });
 }
 
 function cleanupTempFile() {

@@ -57,6 +57,15 @@ export function getPreviewName(args: string[]) {
 	throw new Error('Could not infer the branch name. Pass --branch <branch-name>.');
 }
 
+export function getCurrentBranch() {
+	return runCapture('git', ['branch', '--show-current']).trim();
+}
+
+export function isMainBranch() {
+	const branch = getCurrentBranch();
+	return branch === 'main' || branch === 'master';
+}
+
 export function previewRef(previewName: string) {
 	return `preview/${previewName}`;
 }
