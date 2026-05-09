@@ -1,4 +1,5 @@
 import { convex as convexPlugin } from '@convex-dev/better-auth/plugins';
+import { anonymous } from 'better-auth/plugins';
 import type { AdapterFactory } from 'better-auth/adapters';
 import { authBasePath } from 'lib/auth';
 import authConfig from 'convex/auth.config';
@@ -9,6 +10,7 @@ type CreateAuthOptionsArgs = {
 	secret: string;
 	googleClientId: string;
 	googleClientSecret: string;
+	allowAnonymousSignIn: boolean;
 	sessionDurationSeconds: number;
 	sessionUpdateAgeSeconds: number;
 	database?: AdapterFactory;
@@ -32,6 +34,7 @@ export function createAuthOptions(input: CreateAuthOptionsArgs) {
 			encryptOAuthTokens: true,
 		},
 		advanced: {
+			disableOriginCheck: input.allowAnonymousSignIn,
 			cookies: {
 				convex_jwt: {
 					attributes: {
@@ -49,6 +52,7 @@ export function createAuthOptions(input: CreateAuthOptionsArgs) {
 			},
 		},
 		plugins: [
+			...(input.allowAnonymousSignIn ? [anonymous()] : []),
 			convexPlugin({
 				authConfig,
 				options: {
@@ -73,6 +77,7 @@ export function createCodegenAuthOptions() {
 		secret: 'component-auth-secret',
 		googleClientId: 'component-google-client-id',
 		googleClientSecret: 'component-google-client-secret',
+		allowAnonymousSignIn: true,
 		sessionDurationSeconds: 60 * 60 * 24 * 30, // 30 days
 		sessionUpdateAgeSeconds: 60 * 60 * 24, // 1 day
 	});
