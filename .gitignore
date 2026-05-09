@@ -1,8 +1,7 @@
 .env.local
 .env.convex.*
 
-# Convex CLI may generate app-local .gitignore files containing only .env.local.
-# Root .gitignore already owns env-file ignores, so keep those generated files out.
+# Convex may generate app-local ignore files for .env.local; root ignore owns env files.
 apps/*/.gitignore
 
 # Inner repos
