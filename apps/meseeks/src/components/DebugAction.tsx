@@ -1,8 +1,9 @@
-import type { Doc } from 'convex/_generated/dataModel';
+import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Bug, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Action } from '~/components/Action';
 import { CopyButton } from '~/components/CopyButton';
 import { Loading } from '~/components/Loading';
 import { TimeAgo } from '~/components/TimeAgo';
@@ -813,11 +814,13 @@ function ActionRow({
 	action,
 	isExpanded,
 	onToggle,
+	onShowAction,
 	isAuthorCurrentUser,
 }: {
 	action: Doc<'actions'>;
 	isExpanded: boolean;
 	onToggle: () => void;
+	onShowAction: () => void;
 	isAuthorCurrentUser: boolean;
 }) {
 	//
@@ -932,6 +935,24 @@ function ActionRow({
 							</Tooltip>
 						</div>
 
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="h-7 w-7 p-0 opacity-60 hover:opacity-100 transition-opacity"
+									onClick={(event) => {
+										event.stopPropagation();
+										onShowAction();
+									}}
+								>
+									<Eye className="h-4 w-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent className="px-2 py-1 text-xs">Show actual action</TooltipContent>
+						</Tooltip>
+
 						<CopyButton
 							textToCopy={serializeActionToJSON(action, actionDetails)}
 							tooltipText="Copy as JSON"
@@ -965,15 +986,20 @@ function ActionRow({
 export function DebugAction({
 	className,
 	action,
+	initialRenderDate,
 	isAuthorCurrentUser,
+	taskId,
 }: {
 	className?: string;
 	action: Doc<'actions'>;
+	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
+	taskId: Id<'tasks'>;
 }) {
 	//
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [isHighlighted, setIsHighlighted] = useState(false);
+	const [isShowingAction, setIsShowingAction] = useState(false);
 
 	// Check if this action is the one in the URL hash
 	useEffect(() => {
@@ -997,6 +1023,45 @@ export function DebugAction({
 		};
 	}, [action._id]);
 
+	if (isShowingAction) {
+		return (
+			<div
+				className={cn(
+					'w-full border-b bg-background/60 p-2',
+					className,
+					isHighlighted && 'ring-2 ring-primary ring-offset-2',
+				)}
+				id={`action-${action._id}`}
+			>
+				<div className="mb-2 flex justify-end">
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									className="h-7 w-7 p-0 opacity-60 hover:opacity-100"
+									onClick={() => setIsShowingAction(false)}
+								>
+									<Bug className="h-4 w-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent className="px-2 py-1 text-xs">Show debug row</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				</div>
+				<Action
+					action={action}
+					initialRenderDate={initialRenderDate}
+					isAuthorCurrentUser={isAuthorCurrentUser}
+					suppressAnchorId
+					taskId={taskId}
+				/>
+			</div>
+		);
+	}
+
 	return (
 		<div
 			className={cn('w-full', className, isHighlighted && 'ring-2 ring-primary ring-offset-2')}
@@ -1009,6 +1074,7 @@ export function DebugAction({
 					console.log('Toggle clicked, current state:', isExpanded);
 					setIsExpanded(!isExpanded);
 				}}
+				onShowAction={() => setIsShowingAction(true)}
 				isAuthorCurrentUser={isAuthorCurrentUser}
 			/>
 		</div>

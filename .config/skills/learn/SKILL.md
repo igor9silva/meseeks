@@ -1,6 +1,6 @@
 ---
 name: learn
-description: Extract lessons from conversation mistakes and update project rules, skills, and relevant tasks to prevent recurrence. Use when the user says "learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
+description: Extract lessons from conversation mistakes and update project rules, skills, and relevant tasks to prevent recurrence. Use when the user says "learn" or "/learn", asks to update rules from mistakes, or wants to capture lessons from a completed task.
 ---
 
 # Learn from Mistakes
@@ -76,6 +76,7 @@ When adding or tightening rules, prefer concise examples over abstract-only phra
 Bias toward signals where the user had to correct, redirect, or steer the model.
 
 Do **not** add a rule when:
+
 - The model already followed the correct behavior
 
 Do add or update rules for explicit user preferences when the preference is durable (conventions, naming, process expectations) and capturing it will improve future behavior.
@@ -239,6 +240,7 @@ Examples:
 ## Step 6: Summary
 
 Tell the user:
+
 - How many mistakes were identified
 - What rules were added, modified, or merged
 - Whether any existing rules were tightened or reorganized
