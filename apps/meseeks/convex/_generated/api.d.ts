@@ -20,6 +20,7 @@ import type * as migrations from "../migrations.js";
 import type * as reactor from "../reactor.js";
 import type * as schedule_lifecycle from "../schedule/lifecycle.js";
 import type * as schedules from "../schedules.js";
+import type * as seed from "../seed.js";
 import type * as skills from "../skills.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as tasks from "../tasks.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   reactor: typeof reactor;
   "schedule/lifecycle": typeof schedule_lifecycle;
   schedules: typeof schedules;
+  seed: typeof seed;
   skills: typeof skills;
   subscriptions: typeof subscriptions;
   tasks: typeof tasks;

@@ -1,6 +1,9 @@
 .env.local
 .env.convex.*
 
+# Convex may generate app-local ignore files for .env.local; root ignore owns env files.
+apps/*/.gitignore
+
 # Inner repos
 private/
 private
