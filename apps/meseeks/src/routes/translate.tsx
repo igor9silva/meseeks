@@ -4,7 +4,7 @@ import { Button } from '@reactor/ui/button';
 import { cn } from '@reactor/ui/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@reactor/ui/sheet';
-import { ArrowLeftRight, History, Languages, Loader2, Mic, MicOff, Volume2, VolumeX, Waves } from 'lucide-react';
+import { ArrowLeftRight, History, Languages, Loader2, Mic, MicOff, VolumeX, Waves } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type LanguageCode = 'en' | 'pt' | 'zh' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'hi' | 'it';
@@ -85,8 +85,7 @@ export const Route = createFileRoute('/translate')({
 
 function RouteComponent() {
 	const [languagePair, setLanguagePair] = useState<Record<SideKey, LanguageCode>>({ a: 'pt', b: 'en' });
-	const [detectedSourceSide, setDetectedSourceSide] = useState<SideKey | null>(null);
-	const [isAudioMuted, setIsAudioMuted] = useState(false);
+	const [voiceTargetSide, setVoiceTargetSide] = useState<SideKey | null>('b');
 	const [status, setStatus] = useState<ConnectionStatus>('setup');
 	const [activity, setActivity] = useState<Activity>('quiet');
 	const [error, setError] = useState<string | null>(null);
@@ -103,22 +102,21 @@ function RouteComponent() {
 	const inputTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const languagePairRef = useRef(languagePair);
 	const currentSourceSideRef = useRef<SideKey | null>(null);
-	const audioMutedRef = useRef(isAudioMuted);
+	const voiceTargetSideRef = useRef<SideKey | null>(voiceTargetSide);
 
 	const sideA = languageByCode[languagePair.a];
 	const sideB = languageByCode[languagePair.b];
 	const isBusy = status === 'starting' || status === 'connecting';
 	const isLive = status === 'live';
-	const translationTargetSide = detectedSourceSide ? oppositeSide(detectedSourceSide) : null;
 
 	useEffect(() => {
 		languagePairRef.current = languagePair;
 	}, [languagePair]);
 
 	useEffect(() => {
-		audioMutedRef.current = isAudioMuted;
-		syncChannelAudio(channelsRef.current, getTranslationTargetSide(currentSourceSideRef.current), isAudioMuted);
-	}, [isAudioMuted]);
+		voiceTargetSideRef.current = voiceTargetSide;
+		syncChannelAudio(channelsRef.current, voiceTargetSide);
+	}, [voiceTargetSide]);
 
 	useEffect(() => {
 		track('live-translate', {
@@ -190,19 +188,14 @@ function RouteComponent() {
 	);
 
 	const setSourceDirection = useCallback((sourceSide: SideKey) => {
-		const targetSide = oppositeSide(sourceSide);
 		currentSourceSideRef.current = sourceSide;
 		draftSourceSideRef.current = { a: sourceSide, b: sourceSide };
-		setDetectedSourceSide(sourceSide);
-		syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
 	}, []);
 
 	const handleInputDelta = useCallback(
 		(delta: string) => {
 			if (!inputDraftRef.current.trim()) {
 				currentSourceSideRef.current = null;
-				setDetectedSourceSide(null);
-				syncChannelAudio(channelsRef.current, null, audioMutedRef.current);
 			}
 
 			inputDraftRef.current += delta;
@@ -302,7 +295,6 @@ function RouteComponent() {
 	const stopSession = useCallback(() => {
 		cleanupSession();
 		currentSourceSideRef.current = null;
-		setDetectedSourceSide(null);
 		setStatus('idle');
 		setActivity('quiet');
 	}, [cleanupSession]);
@@ -328,7 +320,6 @@ function RouteComponent() {
 		setError(null);
 		setHeardText('');
 		setLiveText({ a: '', b: '' });
-		setDetectedSourceSide(null);
 		currentSourceSideRef.current = null;
 		setStatus('starting');
 		setActivity('quiet');
@@ -370,7 +361,7 @@ function RouteComponent() {
 			]);
 
 			channelsRef.current = channels;
-			syncChannelAudio(channels, null, audioMutedRef.current);
+			syncChannelAudio(channels, voiceTargetSideRef.current);
 			setStatus('live');
 			setActivity('listening');
 		} catch (error) {
@@ -466,7 +457,7 @@ function RouteComponent() {
 					side="b"
 					text={liveText.b}
 					isLive={isLive}
-					isTranslationTarget={translationTargetSide === 'b'}
+					isVoiceTarget={voiceTargetSide === 'b'}
 				/>
 				<TranslationPanel
 					className="border-t border-border bg-background"
@@ -474,22 +465,48 @@ function RouteComponent() {
 					side="a"
 					text={liveText.a}
 					isLive={isLive}
-					isTranslationTarget={translationTargetSide === 'a'}
+					isVoiceTarget={voiceTargetSide === 'a'}
 				/>
 			</section>
 
 			<footer className="shrink-0 border-t border-border bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-				<div className="mx-auto grid w-full max-w-xl grid-cols-[auto_1fr] gap-3">
-					<Button
-						type="button"
-						variant={isAudioMuted ? 'secondary' : 'outline'}
-						className="h-16 w-16 rounded-lg"
-						onClick={() => setIsAudioMuted((current) => !current)}
-						aria-label={isAudioMuted ? 'Unmute translations' : 'Mute translations'}
-						aria-pressed={isAudioMuted}
+				<div className="mx-auto grid w-full max-w-xl grid-cols-[minmax(9.25rem,auto)_1fr] gap-3">
+					<div
+						className="grid h-16 grid-cols-3 rounded-lg border border-border bg-muted p-1"
+						aria-label="Voice output"
 					>
-						{isAudioMuted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
-					</Button>
+						<button
+							type="button"
+							className={cn(
+								'grid min-w-0 place-items-center rounded-md text-sm font-semibold transition',
+								voiceTargetSide === null
+									? 'bg-background text-foreground shadow-sm'
+									: 'text-muted-foreground hover:text-foreground',
+							)}
+							onClick={() => setVoiceTargetSide(null)}
+							aria-label="Mute voice"
+							aria-pressed={voiceTargetSide === null}
+						>
+							<VolumeX className="size-5" />
+						</button>
+						{(['a', 'b'] as const).map((side) => (
+							<button
+								key={side}
+								type="button"
+								className={cn(
+									'min-w-0 rounded-md px-2 text-sm font-semibold transition',
+									voiceTargetSide === side
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground',
+								)}
+								onClick={() => setVoiceTargetSide(side)}
+								aria-label={`Speak ${languageByCode[languagePair[side]].label}`}
+								aria-pressed={voiceTargetSide === side}
+							>
+								{languageByCode[languagePair[side]].shortLabel}
+							</button>
+						))}
+					</div>
 					<Button
 						type="button"
 						size="lg"
@@ -509,7 +526,7 @@ function RouteComponent() {
 				</div>
 
 				<div className="mx-auto mt-2 max-w-xl truncate text-sm text-muted-foreground">
-					{heardText || idlePrompt(status, detectedSourceSide, languagePair)}
+					{heardText || idlePrompt(status, voiceTargetSide, languagePair)}
 				</div>
 
 				{error && (
@@ -561,20 +578,20 @@ function TranslationPanel({
 	side,
 	text,
 	isLive,
-	isTranslationTarget,
+	isVoiceTarget,
 }: {
 	className?: string;
 	language: LanguageOption;
 	side: SideKey;
 	text: string;
 	isLive: boolean;
-	isTranslationTarget: boolean;
+	isVoiceTarget: boolean;
 }) {
 	return (
 		<section
 			className={cn(
 				'flex min-h-0 flex-col justify-between overflow-hidden p-4 text-left transition',
-				isTranslationTarget && 'ring-2 ring-inset ring-primary',
+				isVoiceTarget && 'ring-2 ring-inset ring-primary',
 				className,
 			)}
 		>
@@ -584,7 +601,7 @@ function TranslationPanel({
 						<span
 							className={cn(
 								'size-2.5 rounded-full',
-								isTranslationTarget ? 'bg-primary' : 'bg-muted-foreground',
+								isVoiceTarget ? 'bg-primary' : 'bg-muted-foreground',
 							)}
 						/>
 						{side.toUpperCase()}
@@ -801,18 +818,14 @@ function extractClientSecret(session: SecretResponse | null) {
 	return session.client_secret?.value ?? null;
 }
 
-function syncChannelAudio(channels: TranslationChannel[], targetSide: SideKey | null, isAudioMuted: boolean) {
+function syncChannelAudio(channels: TranslationChannel[], targetSide: SideKey | null) {
 	channels.forEach((channel) => {
-		channel.audio.muted = isAudioMuted || channel.targetSide !== targetSide;
+		channel.audio.muted = channel.targetSide !== targetSide;
 	});
 }
 
 function oppositeSide(side: SideKey): SideKey {
 	return side === 'a' ? 'b' : 'a';
-}
-
-function getTranslationTargetSide(sourceSide: SideKey | null) {
-	return sourceSide ? oppositeSide(sourceSide) : null;
 }
 
 function firstDifferentLanguage(language: LanguageCode) {
@@ -975,18 +988,15 @@ function topStatusLabel(status: ConnectionStatus, activity: Activity) {
 
 function idlePrompt(
 	status: ConnectionStatus,
-	detectedSourceSide: SideKey | null,
+	voiceTargetSide: SideKey | null,
 	languages: Record<SideKey, LanguageCode>,
 ) {
 	if (status === 'starting') return 'Opening microphone';
 	if (status === 'connecting') return 'Connecting';
 	if (status === 'error') return 'Stopped';
-	if (!detectedSourceSide) return 'Listening';
+	if (!voiceTargetSide) return 'Voice muted';
 
-	const targetSide = oppositeSide(detectedSourceSide);
-	return `${languageByCode[languages[detectedSourceSide]].shortLabel} to ${
-		languageByCode[languages[targetSide]].shortLabel
-	}`;
+	return `Voice: ${languageByCode[languages[voiceTargetSide]].shortLabel}`;
 }
 
 function createTranscriptId() {
