@@ -1,6 +1,5 @@
 import {
 	assertAppRoot,
-	cleanupGeneratedGitignore,
 	ensureConvexClientUrls,
 	envLocalFile,
 	getPreviewName,
@@ -40,7 +39,6 @@ function main() {
 	console.log(`VITE_CONVEX_SITE_URL=${merged.get('VITE_CONVEX_SITE_URL') ?? '<missing>'}`);
 
 	if (createdDeployment) bootstrapFreshPreview(merged);
-	cleanupGeneratedGitignore();
 }
 
 function selectConvexPreviewDeployment(deploymentRef: string, deploymentSelector: string) {
@@ -79,7 +77,6 @@ function bootstrapFreshPreview(entries: Map<string, string>) {
 try {
 	main();
 } catch (error) {
-	cleanupGeneratedGitignore();
 	console.error(error instanceof Error ? error.message : String(error));
 	process.exit(1);
 }
