@@ -4,7 +4,7 @@ import { Button } from '@reactor/ui/button';
 import { cn } from '@reactor/ui/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@reactor/ui/sheet';
-import { ArrowLeftRight, History, Languages, Loader2, Mic, MicOff, Volume2, Waves } from 'lucide-react';
+import { ArrowLeftRight, History, Languages, Loader2, Mic, MicOff, Volume2, VolumeX, Waves } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type LanguageCode = 'en' | 'pt' | 'zh' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'hi' | 'it';
@@ -84,8 +84,9 @@ export const Route = createFileRoute('/translate')({
 });
 
 function RouteComponent() {
-	const [languagePair, setLanguagePair] = useState<Record<SideKey, LanguageCode>>({ a: 'pt', b: 'zh' });
-	const [activeSpeaker, setActiveSpeaker] = useState<SideKey>('a');
+	const [languagePair, setLanguagePair] = useState<Record<SideKey, LanguageCode>>({ a: 'pt', b: 'en' });
+	const [detectedSourceSide, setDetectedSourceSide] = useState<SideKey | null>(null);
+	const [isAudioMuted, setIsAudioMuted] = useState(false);
 	const [status, setStatus] = useState<ConnectionStatus>('setup');
 	const [activity, setActivity] = useState<Activity>('quiet');
 	const [error, setError] = useState<string | null>(null);
@@ -101,24 +102,23 @@ function RouteComponent() {
 	const commitTimersRef = useRef<Partial<Record<SideKey, ReturnType<typeof setTimeout>>>>({});
 	const inputTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const languagePairRef = useRef(languagePair);
-	const activeSpeakerRef = useRef(activeSpeaker);
-	const audibleSideRef = useRef(oppositeSide(activeSpeaker));
+	const currentSourceSideRef = useRef<SideKey | null>(null);
+	const audioMutedRef = useRef(isAudioMuted);
 
 	const sideA = languageByCode[languagePair.a];
 	const sideB = languageByCode[languagePair.b];
 	const isBusy = status === 'starting' || status === 'connecting';
 	const isLive = status === 'live';
-	const audibleSide = oppositeSide(activeSpeaker);
+	const translationTargetSide = detectedSourceSide ? oppositeSide(detectedSourceSide) : null;
 
 	useEffect(() => {
 		languagePairRef.current = languagePair;
 	}, [languagePair]);
 
 	useEffect(() => {
-		activeSpeakerRef.current = activeSpeaker;
-		audibleSideRef.current = oppositeSide(activeSpeaker);
-		syncChannelAudio(channelsRef.current, audibleSideRef.current);
-	}, [activeSpeaker]);
+		audioMutedRef.current = isAudioMuted;
+		syncChannelAudio(channelsRef.current, getTranslationTargetSide(currentSourceSideRef.current), isAudioMuted);
+	}, [isAudioMuted]);
 
 	useEffect(() => {
 		track('live-translate', {
@@ -171,6 +171,7 @@ function RouteComponent() {
 			const finalText = draftTextRef.current[targetSide].trim();
 			const sourceSide = draftSourceSideRef.current[targetSide];
 			draftTextRef.current[targetSide] = '';
+			delete commitTimersRef.current[targetSide];
 
 			if (finalText) addHistoryEntry({ sourceSide, targetSide, text: finalText });
 			setActivity('listening');
@@ -188,29 +189,71 @@ function RouteComponent() {
 		[commitDraft],
 	);
 
-	const handleInputDelta = useCallback((delta: string) => {
-		inputDraftRef.current += delta;
-		setHeardText(inputDraftRef.current.trim());
-		setActivity('hearing');
+	const setSourceDirection = useCallback(
+		(sourceSide: SideKey) => {
+			const targetSide = oppositeSide(sourceSide);
+			if (currentSourceSideRef.current === sourceSide) {
+				syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
+				return;
+			}
 
-		if (inputTimerRef.current) clearTimeout(inputTimerRef.current);
-		inputTimerRef.current = setTimeout(() => {
-			inputDraftRef.current = '';
-			setActivity('listening');
-		}, 1400);
-	}, []);
+			const ignoredTimer = commitTimersRef.current[sourceSide];
+			if (ignoredTimer) clearTimeout(ignoredTimer);
+			delete commitTimersRef.current[sourceSide];
+			draftTextRef.current[sourceSide] = '';
+			draftSourceSideRef.current[targetSide] = sourceSide;
+			currentSourceSideRef.current = sourceSide;
+
+			setDetectedSourceSide(sourceSide);
+			setLiveText({
+				a: targetSide === 'a' ? draftTextRef.current.a.trim() : '',
+				b: targetSide === 'b' ? draftTextRef.current.b.trim() : '',
+			});
+			syncChannelAudio(channelsRef.current, targetSide, audioMutedRef.current);
+
+			if (draftTextRef.current[targetSide].trim()) scheduleCommit(targetSide);
+		},
+		[scheduleCommit],
+	);
+
+	const handleInputDelta = useCallback(
+		(delta: string) => {
+			inputDraftRef.current += delta;
+			const nextInput = inputDraftRef.current.trim();
+			setHeardText(nextInput);
+			setActivity('hearing');
+
+			const sourceSide = inferSourceSide(nextInput, languagePairRef.current);
+			if (sourceSide) setSourceDirection(sourceSide);
+
+			if (inputTimerRef.current) clearTimeout(inputTimerRef.current);
+			inputTimerRef.current = setTimeout(() => {
+				inputDraftRef.current = '';
+				setActivity('listening');
+			}, 1400);
+		},
+		[setSourceDirection],
+	);
 
 	const handleOutputDelta = useCallback(
 		(targetSide: SideKey, delta: string) => {
-			draftSourceSideRef.current[targetSide] = activeSpeakerRef.current;
 			const existingDraft = draftTextRef.current[targetSide];
 			const nextText = existingDraft ? existingDraft + delta : delta;
 			draftTextRef.current[targetSide] = nextText;
+
+			if (!currentSourceSideRef.current && looksLikeSameLanguageEcho(inputDraftRef.current, nextText)) {
+				setSourceDirection(targetSide);
+			}
+
+			const activeTargetSide = getTranslationTargetSide(currentSourceSideRef.current);
+			if (targetSide !== activeTargetSide) return;
+
+			draftSourceSideRef.current[targetSide] = currentSourceSideRef.current ?? oppositeSide(targetSide);
 			setLiveText((current) => ({ ...current, [targetSide]: nextText.trim() }));
 			setActivity('speaking');
 			scheduleCommit(targetSide);
 		},
-		[scheduleCommit],
+		[scheduleCommit, setSourceDirection],
 	);
 
 	const handleRealtimeEvent = useCallback(
@@ -226,15 +269,18 @@ function RouteComponent() {
 					break;
 
 				case 'session.output_transcript.delta':
-					if (targetSide === audibleSideRef.current && event.delta)
-						handleOutputDelta(targetSide, event.delta);
+					if (event.delta) handleOutputDelta(targetSide, event.delta);
 					break;
 
 				case 'session.output_transcript.done':
-					if (targetSide !== audibleSideRef.current) return;
+					if (targetSide !== getTranslationTargetSide(currentSourceSideRef.current)) {
+						draftTextRef.current[targetSide] = '';
+						return;
+					}
 					if (event.text || event.transcript) {
 						const finalText = event.text ?? event.transcript ?? '';
-						draftSourceSideRef.current[targetSide] = activeSpeakerRef.current;
+						draftSourceSideRef.current[targetSide] =
+							currentSourceSideRef.current ?? oppositeSide(targetSide);
 						draftTextRef.current[targetSide] = finalText;
 						setLiveText((current) => ({ ...current, [targetSide]: finalText.trim() }));
 					}
@@ -273,6 +319,8 @@ function RouteComponent() {
 
 	const stopSession = useCallback(() => {
 		cleanupSession();
+		currentSourceSideRef.current = null;
+		setDetectedSourceSide(null);
 		setStatus('idle');
 		setActivity('quiet');
 	}, [cleanupSession]);
@@ -298,6 +346,8 @@ function RouteComponent() {
 		setError(null);
 		setHeardText('');
 		setLiveText({ a: '', b: '' });
+		setDetectedSourceSide(null);
+		currentSourceSideRef.current = null;
 		setStatus('starting');
 		setActivity('quiet');
 
@@ -318,13 +368,12 @@ function RouteComponent() {
 			setStatus('connecting');
 
 			const pair = languagePairRef.current;
-			const nextAudibleSide = audibleSideRef.current;
 			const channels = await Promise.all([
 				openTranslationChannel({
 					sourceStream: stream,
 					targetLanguage: pair.a,
 					targetSide: 'a',
-					isAudible: nextAudibleSide === 'a',
+					isAudible: false,
 					shouldCaptureInput: true,
 					onEvent: handleRealtimeEvent,
 				}),
@@ -332,14 +381,14 @@ function RouteComponent() {
 					sourceStream: stream,
 					targetLanguage: pair.b,
 					targetSide: 'b',
-					isAudible: nextAudibleSide === 'b',
+					isAudible: false,
 					shouldCaptureInput: false,
 					onEvent: handleRealtimeEvent,
 				}),
 			]);
 
 			channelsRef.current = channels;
-			syncChannelAudio(channels, nextAudibleSide);
+			syncChannelAudio(channels, null, audioMutedRef.current);
 			setStatus('live');
 			setActivity('listening');
 		} catch (error) {
@@ -362,7 +411,7 @@ function RouteComponent() {
 						<h1 className="mt-4 text-4xl font-semibold leading-none tracking-normal">Live Translate</h1>
 					</div>
 
-					<div className="grid gap-4 py-8">
+					<div className="relative grid gap-10 py-8">
 						<LanguagePicker
 							side="a"
 							language={sideA}
@@ -373,7 +422,7 @@ function RouteComponent() {
 						<Button
 							type="button"
 							variant="outline"
-							className="mx-auto size-12 rounded-full"
+							className="absolute left-1/2 top-1/2 z-10 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background shadow-sm"
 							onClick={swapLanguages}
 							aria-label="Swap languages"
 						>
@@ -433,8 +482,7 @@ function RouteComponent() {
 					side="b"
 					text={liveText.b}
 					isLive={isLive}
-					isActiveSpeaker={activeSpeaker === 'b'}
-					onSelectSpeaker={() => setActiveSpeaker('b')}
+					isTranslationTarget={translationTargetSide === 'b'}
 				/>
 				<TranslationPanel
 					className="border-t border-border bg-background"
@@ -442,19 +490,27 @@ function RouteComponent() {
 					side="a"
 					text={liveText.a}
 					isLive={isLive}
-					isActiveSpeaker={activeSpeaker === 'a'}
-					onSelectSpeaker={() => setActiveSpeaker('a')}
+					isTranslationTarget={translationTargetSide === 'a'}
 				/>
 			</section>
 
 			<footer className="shrink-0 border-t border-border bg-background p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-				<div className="mx-auto grid w-full max-w-xl grid-cols-[1fr_auto] gap-3">
-					<SpeakerToggle activeSpeaker={activeSpeaker} languages={languagePair} onChange={setActiveSpeaker} />
+				<div className="mx-auto grid w-full max-w-xl grid-cols-[auto_1fr] gap-3">
+					<Button
+						type="button"
+						variant={isAudioMuted ? 'secondary' : 'outline'}
+						className="h-16 w-16 rounded-lg"
+						onClick={() => setIsAudioMuted((current) => !current)}
+						aria-label={isAudioMuted ? 'Unmute translations' : 'Mute translations'}
+						aria-pressed={isAudioMuted}
+					>
+						{isAudioMuted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
+					</Button>
 					<Button
 						type="button"
 						size="lg"
 						variant={isLive ? 'destructive' : 'default'}
-						className="h-16 w-32 shrink-0 rounded-lg text-lg font-semibold"
+						className="h-16 rounded-lg text-lg font-semibold"
 						onClick={isLive || isBusy ? stopSession : startSession}
 					>
 						{isBusy ? (
@@ -469,7 +525,7 @@ function RouteComponent() {
 				</div>
 
 				<div className="mx-auto mt-2 max-w-xl truncate text-sm text-muted-foreground">
-					{heardText || idlePrompt(status, audibleSide)}
+					{heardText || idlePrompt(status, detectedSourceSide, languagePair)}
 				</div>
 
 				{error && (
@@ -521,24 +577,20 @@ function TranslationPanel({
 	side,
 	text,
 	isLive,
-	isActiveSpeaker,
-	onSelectSpeaker,
+	isTranslationTarget,
 }: {
 	className?: string;
 	language: LanguageOption;
 	side: SideKey;
 	text: string;
 	isLive: boolean;
-	isActiveSpeaker: boolean;
-	onSelectSpeaker: () => void;
+	isTranslationTarget: boolean;
 }) {
 	return (
-		<button
-			type="button"
-			onClick={onSelectSpeaker}
+		<section
 			className={cn(
-				'flex min-h-0 flex-col justify-between p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-				isActiveSpeaker && 'ring-2 ring-inset ring-primary',
+				'flex min-h-0 flex-col justify-between overflow-hidden p-4 text-left transition',
+				isTranslationTarget && 'ring-2 ring-inset ring-primary',
 				className,
 			)}
 		>
@@ -548,23 +600,22 @@ function TranslationPanel({
 						<span
 							className={cn(
 								'size-2.5 rounded-full',
-								isActiveSpeaker ? 'bg-primary' : 'bg-muted-foreground',
+								isTranslationTarget ? 'bg-primary' : 'bg-muted-foreground',
 							)}
 						/>
 						{side.toUpperCase()}
 					</div>
 					<h2 className="mt-1 truncate text-2xl font-semibold tracking-normal">{language.label}</h2>
 				</div>
-				<Volume2 className={cn('size-7 shrink-0', isLive ? 'text-primary' : 'text-muted-foreground')} />
 			</div>
 
-			<div className="flex min-h-0 flex-1 items-center py-4">
+			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-4 pr-1">
 				{text ? (
-					<p className="w-full text-balance text-4xl font-semibold leading-tight tracking-normal sm:text-6xl">
+					<p className="whitespace-pre-wrap break-words text-4xl font-semibold leading-tight tracking-normal sm:text-6xl">
 						{text}
 					</p>
 				) : (
-					<div className="flex w-full flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+					<div className="flex min-h-full w-full flex-col items-center justify-center gap-3 text-center text-muted-foreground">
 						<Waves className={cn('size-10', isLive && 'animate-pulse text-primary')} />
 						<p className="text-lg font-medium">{isLive ? 'Listening' : 'Ready'}</p>
 					</div>
@@ -574,38 +625,7 @@ function TranslationPanel({
 			<div className="text-right text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 				{language.shortLabel}
 			</div>
-		</button>
-	);
-}
-
-function SpeakerToggle({
-	activeSpeaker,
-	languages,
-	onChange,
-}: {
-	activeSpeaker: SideKey;
-	languages: Record<SideKey, LanguageCode>;
-	onChange: (side: SideKey) => void;
-}) {
-	return (
-		<div className="grid h-16 grid-cols-2 rounded-lg border border-border bg-muted p-1">
-			{(['a', 'b'] as const).map((side) => (
-				<button
-					key={side}
-					type="button"
-					onClick={() => onChange(side)}
-					className={cn(
-						'min-w-0 rounded-md px-3 text-left text-sm font-semibold transition',
-						activeSpeaker === side
-							? 'bg-background text-foreground shadow-sm'
-							: 'text-muted-foreground hover:text-foreground',
-					)}
-				>
-					<span className="block text-[0.65rem] uppercase tracking-[0.18em]">{side}</span>
-					<span className="block truncate">{languageByCode[languages[side]].label}</span>
-				</button>
-			))}
-		</div>
+		</section>
 	);
 }
 
@@ -629,22 +649,38 @@ function HistorySheet({
 					<SheetTitle>History</SheetTitle>
 					<SheetDescription className="sr-only">Translated messages from this session.</SheetDescription>
 				</SheetHeader>
-				<div className="mt-5 grid gap-3">
+				<div className="mt-5 flex flex-col gap-3">
 					{history.length ? (
 						history.map((entry) => (
 							<div
 								key={entry.id}
-								className="rounded-lg border border-border bg-card p-3 text-card-foreground"
+								className={cn('flex', entry.targetSide === 'a' ? 'justify-end' : 'justify-start')}
 							>
-								<div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
-									<span>
-										{languageByCode[languages[entry.sourceSide]].shortLabel}
-										{' to '}
-										{languageByCode[languages[entry.targetSide]].shortLabel}
-									</span>
-									<span>{entry.time}</span>
+								<div
+									className={cn(
+										'max-w-[86%] rounded-2xl px-4 py-3 text-sm shadow-sm',
+										entry.targetSide === 'a'
+											? 'rounded-br-sm bg-primary text-primary-foreground'
+											: 'rounded-bl-sm bg-muted text-foreground',
+									)}
+								>
+									<div
+										className={cn(
+											'mb-1 flex items-center justify-between gap-3 text-xs font-medium',
+											entry.targetSide === 'a'
+												? 'text-primary-foreground/70'
+												: 'text-muted-foreground',
+										)}
+									>
+										<span>
+											{languageByCode[languages[entry.sourceSide]].shortLabel}
+											{' to '}
+											{languageByCode[languages[entry.targetSide]].shortLabel}
+										</span>
+										<span>{entry.time}</span>
+									</div>
+									<p className="whitespace-pre-wrap break-words text-base leading-6">{entry.text}</p>
 								</div>
-								<p className="text-base leading-6">{entry.text}</p>
 							</div>
 						))
 					) : (
@@ -759,9 +795,9 @@ function extractClientSecret(session: SecretResponse | null) {
 	return session.client_secret?.value ?? null;
 }
 
-function syncChannelAudio(channels: TranslationChannel[], audibleSide: SideKey) {
+function syncChannelAudio(channels: TranslationChannel[], targetSide: SideKey | null, isAudioMuted: boolean) {
 	channels.forEach((channel) => {
-		channel.audio.muted = channel.targetSide !== audibleSide;
+		channel.audio.muted = isAudioMuted || channel.targetSide !== targetSide;
 	});
 }
 
@@ -769,8 +805,185 @@ function oppositeSide(side: SideKey): SideKey {
 	return side === 'a' ? 'b' : 'a';
 }
 
+function getTranslationTargetSide(sourceSide: SideKey | null) {
+	return sourceSide ? oppositeSide(sourceSide) : null;
+}
+
 function firstDifferentLanguage(language: LanguageCode) {
 	return languages.find((option) => option.code !== language)?.code ?? 'en';
+}
+
+const languageHintWords: Record<LanguageCode, Set<string>> = {
+	en: new Set([
+		'hello',
+		'hi',
+		'hey',
+		'how',
+		'are',
+		'you',
+		'yes',
+		'thanks',
+		'thank',
+		'please',
+		'good',
+		'morning',
+		'afternoon',
+		'evening',
+		'what',
+		'where',
+		'when',
+		'translation',
+		'speaking',
+		'hearing',
+	]),
+	pt: new Set([
+		'oi',
+		'olá',
+		'ola',
+		'você',
+		'voce',
+		'vocês',
+		'voces',
+		'tudo',
+		'bem',
+		'não',
+		'nao',
+		'sim',
+		'obrigado',
+		'obrigada',
+		'cadê',
+		'cade',
+		'tradução',
+		'traducao',
+		'português',
+		'portugues',
+		'estou',
+		'está',
+		'esta',
+		'estão',
+		'estao',
+		'ouvindo',
+		'falando',
+	]),
+	zh: new Set(['你好', '谢谢', '謝謝', '中文', '普通话', '普通話', '可以']),
+	es: new Set([
+		'hola',
+		'cómo',
+		'como',
+		'estás',
+		'estas',
+		'estoy',
+		'gracias',
+		'por',
+		'qué',
+		'que',
+		'español',
+		'espanol',
+		'buenos',
+		'días',
+		'dias',
+		'noches',
+	]),
+	fr: new Set([
+		'bonjour',
+		'salut',
+		'merci',
+		'comment',
+		'vous',
+		'êtes',
+		'etes',
+		'suis',
+		'français',
+		'francais',
+		'oui',
+		'avec',
+		'pour',
+	]),
+	de: new Set([
+		'hallo',
+		'danke',
+		'bitte',
+		'wie',
+		'geht',
+		'ich',
+		'bin',
+		'du',
+		'deutsch',
+		'nicht',
+		'und',
+		'ist',
+		'das',
+	]),
+	ja: new Set(['こんにちは', 'ありがとう', '日本語', 'はい', 'いいえ']),
+	ko: new Set(['안녕하세요', '감사합니다', '한국어', '네', '아니요']),
+	hi: new Set(['नमस्ते', 'धन्यवाद', 'हिन्दी', 'हिंदी', 'हाँ', 'नहीं']),
+	it: new Set(['ciao', 'grazie', 'come', 'stai', 'sono', 'italiano', 'italiana', 'per', 'non', 'sei', 'bene']),
+};
+
+function inferSourceSide(text: string, pair: Record<SideKey, LanguageCode>) {
+	const aScore = scoreLanguage(text, pair.a);
+	const bScore = scoreLanguage(text, pair.b);
+	if (aScore === bScore || Math.max(aScore, bScore) < 2) return null;
+	return aScore > bScore ? 'a' : 'b';
+}
+
+function scoreLanguage(text: string, language: LanguageCode) {
+	const normalizedText = text.toLocaleLowerCase();
+	if (!normalizedText.trim()) return 0;
+
+	let score = 0;
+	if (language === 'zh' && /[\u3400-\u9fff]/u.test(normalizedText)) score += 8;
+	if (language === 'ja' && /[\u3040-\u30ff]/u.test(normalizedText)) score += 8;
+	if (language === 'ko' && /[\uac00-\ud7af]/u.test(normalizedText)) score += 8;
+	if (language === 'hi' && /[\u0900-\u097f]/u.test(normalizedText)) score += 8;
+	if (language === 'pt' && /[ãõç]/u.test(normalizedText)) score += 3;
+	if (language === 'es' && /[ñ¿¡]/u.test(normalizedText)) score += 3;
+	if (language === 'de' && /[äöüß]/u.test(normalizedText)) score += 3;
+	if (language === 'fr' && /[âêîôûëïü]/u.test(normalizedText)) score += 2;
+	if (language === 'it' && /[èòìù]/u.test(normalizedText)) score += 2;
+
+	const hintWords = languageHintWords[language];
+	const words = normalizedText.match(/\p{L}+/gu) ?? [];
+	for (const word of words) {
+		if (hintWords.has(word)) score += word.length <= 2 ? 2 : 3;
+	}
+
+	for (const hint of hintWords) {
+		if (hint.length > 2 && normalizedText.includes(hint)) score += 2;
+	}
+
+	return score;
+}
+
+function looksLikeSameLanguageEcho(input: string, output: string) {
+	const normalizedInput = normalizeForComparison(input);
+	const normalizedOutput = normalizeForComparison(output);
+	if (normalizedInput.length < 8 || normalizedOutput.length < 8) return false;
+	if (normalizedInput === normalizedOutput) return true;
+
+	const shorter = normalizedInput.length < normalizedOutput.length ? normalizedInput : normalizedOutput;
+	const longer = shorter === normalizedInput ? normalizedOutput : normalizedInput;
+	if (longer.includes(shorter) && shorter.length / longer.length > 0.75) return true;
+
+	const inputWords = new Set(normalizedInput.split(' ').filter(Boolean));
+	const outputWords = new Set(normalizedOutput.split(' ').filter(Boolean));
+	if (!inputWords.size || !outputWords.size) return false;
+
+	let overlap = 0;
+	for (const word of inputWords) {
+		if (outputWords.has(word)) overlap += 1;
+	}
+
+	return overlap / Math.min(inputWords.size, outputWords.size) > 0.8;
+}
+
+function normalizeForComparison(text: string) {
+	return text
+		.toLocaleLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/[^\p{L}\p{N}]+/gu, ' ')
+		.trim();
 }
 
 function topStatusLabel(status: ConnectionStatus, activity: Activity) {
@@ -785,11 +998,20 @@ function topStatusLabel(status: ConnectionStatus, activity: Activity) {
 	return 'Ready';
 }
 
-function idlePrompt(status: ConnectionStatus, audibleSide: SideKey) {
+function idlePrompt(
+	status: ConnectionStatus,
+	detectedSourceSide: SideKey | null,
+	languages: Record<SideKey, LanguageCode>,
+) {
 	if (status === 'starting') return 'Opening microphone';
 	if (status === 'connecting') return 'Connecting';
 	if (status === 'error') return 'Stopped';
-	return `Audio plays on ${audibleSide.toUpperCase()}`;
+	if (!detectedSourceSide) return 'Listening';
+
+	const targetSide = oppositeSide(detectedSourceSide);
+	return `${languageByCode[languages[detectedSourceSide]].shortLabel} to ${
+		languageByCode[languages[targetSide]].shortLabel
+	}`;
 }
 
 function createTranscriptId() {
