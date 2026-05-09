@@ -5,7 +5,7 @@ const translationClientSecretUrl = 'https://api.openai.com/v1/realtime/translati
 const model = 'gpt-realtime-translate';
 const transcriptionModel = 'gpt-realtime-whisper';
 
-const targetLanguageSchema = z.enum(['en', 'pt', 'zh']);
+const targetLanguageSchema = z.enum(['en', 'pt', 'zh', 'es', 'fr', 'de', 'ja', 'ko', 'hi', 'it']);
 const requestSchema = z.object({
 	targetLanguage: targetLanguageSchema,
 });
@@ -16,7 +16,7 @@ interface OpenAITranslationSecretResponse {
 	error?: unknown;
 }
 
-export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')({
+export const Route = createFileRoute('/api/translate/session')({
 	server: {
 		handlers: {
 			POST: async ({ request }: { request: Request }) => {
@@ -37,7 +37,7 @@ export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')
 					headers: {
 						Authorization: `Bearer ${apiKey}`,
 						'Content-Type': 'application/json',
-						'OpenAI-Safety-Identifier': 'meseeks-mum-translator-mvp',
+						'OpenAI-Safety-Identifier': 'meseeks-live-translate',
 					},
 					body: JSON.stringify({
 						session: {
