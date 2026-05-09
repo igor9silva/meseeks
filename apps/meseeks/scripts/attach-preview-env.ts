@@ -32,7 +32,6 @@ function main() {
 	ensureConvexClientUrls(merged);
 
 	writeDotenv(envLocalFile, merged);
-	cleanupTempFile();
 
 	console.log(`Wrote ${envLocalFile} for ${deploymentRef}`);
 	console.log(`VITE_CONVEX_URL=${merged.get('VITE_CONVEX_URL') ?? '<missing>'}`);
