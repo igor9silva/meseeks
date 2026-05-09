@@ -49,8 +49,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				image: '/og.webp',
 			}),
 
-			{ name: 'application-name', content: 'Meseeks' },
-			{ name: 'apple-mobile-web-app-title', content: 'Meseeks' },
 			{ name: 'theme-color', content: defaultDarkThemeColor, media: '(prefers-color-scheme: dark)' },
 			{ name: 'theme-color', content: defaultLightThemeColor, media: '(prefers-color-scheme: light)' },
 			{ name: 'mobile-web-app-capable', content: 'yes' },
@@ -63,9 +61,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			// Favicon
 			{ rel: 'icon', href: '/static/favicon-dark.ico', media: '(prefers-color-scheme: dark)' },
 			{ rel: 'icon', href: '/static/favicon-light.ico', media: '(prefers-color-scheme: light)' },
-
-			// PWA Manifest
-			{ rel: 'manifest', href: '/static/site.webmanifest' },
 
 			// Styling
 			{ rel: 'apple-touch-icon', sizes: '180x180', href: '/static/logo-dark-192.png' },
@@ -87,6 +82,8 @@ function RootComponent() {
 function RootDocument({ children }: { children: React.ReactNode }) {
 	//
 	const rootDocumentTheme = getRootDocumentTheme();
+	const { pathname } = useLocation();
+	const pwa = getPwaConfig(pathname);
 
 	return (
 		<html
@@ -101,6 +98,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				 */}
 				<style>{baseThemeCssText}</style>
 				<script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
+				<meta name="application-name" content={pwa.title} />
+				<meta name="apple-mobile-web-app-title" content={pwa.title} />
+				<link rel="manifest" href={pwa.manifestHref} />
 				<HeadContent />
 			</head>
 			<body>
@@ -111,6 +111,20 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</body>
 		</html>
 	);
+}
+
+function getPwaConfig(pathname: string) {
+	if (pathname === '/translate') {
+		return {
+			title: 'Translate',
+			manifestHref: '/static/translate.webmanifest',
+		};
+	}
+
+	return {
+		title: 'Meseeks',
+		manifestHref: '/static/site.webmanifest',
+	};
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
