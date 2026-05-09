@@ -189,6 +189,21 @@ function RouteComponent() {
 		[commitDraft],
 	);
 
+	const resetTurnDirection = useCallback(() => {
+		const activeTargetSide = getTranslationTargetSide(currentSourceSideRef.current);
+		if (activeTargetSide && draftTextRef.current[activeTargetSide].trim()) {
+			commitDraft(activeTargetSide);
+		}
+
+		Object.values(commitTimersRef.current).forEach((timer) => timer && clearTimeout(timer));
+		commitTimersRef.current = {};
+		draftTextRef.current = { a: '', b: '' };
+		currentSourceSideRef.current = null;
+		setDetectedSourceSide(null);
+		setLiveText({ a: '', b: '' });
+		syncChannelAudio(channelsRef.current, null, audioMutedRef.current);
+	}, [commitDraft]);
+
 	const setSourceDirection = useCallback(
 		(sourceSide: SideKey) => {
 			const targetSide = oppositeSide(sourceSide);
@@ -218,6 +233,8 @@ function RouteComponent() {
 
 	const handleInputDelta = useCallback(
 		(delta: string) => {
+			if (!inputDraftRef.current.trim() && currentSourceSideRef.current) resetTurnDirection();
+
 			inputDraftRef.current += delta;
 			const nextInput = inputDraftRef.current.trim();
 			setHeardText(nextInput);
@@ -232,7 +249,7 @@ function RouteComponent() {
 				setActivity('listening');
 			}, 1400);
 		},
-		[setSourceDirection],
+		[resetTurnDirection, setSourceDirection],
 	);
 
 	const handleOutputDelta = useCallback(
@@ -262,6 +279,11 @@ function RouteComponent() {
 				case 'session.created':
 				case 'session.updated':
 					setActivity('listening');
+					break;
+
+				case 'input_audio_buffer.speech_started':
+					resetTurnDirection();
+					setActivity('hearing');
 					break;
 
 				case 'session.input_transcript.delta':
@@ -294,7 +316,7 @@ function RouteComponent() {
 					break;
 			}
 		},
-		[commitDraft, handleInputDelta, handleOutputDelta],
+		[commitDraft, handleInputDelta, handleOutputDelta, resetTurnDirection],
 	);
 
 	const cleanupSession = useCallback(() => {
@@ -411,7 +433,7 @@ function RouteComponent() {
 						<h1 className="mt-4 text-4xl font-semibold leading-none tracking-normal">Live Translate</h1>
 					</div>
 
-					<div className="relative grid gap-10 py-8">
+					<div className="grid gap-5 py-8">
 						<LanguagePicker
 							side="a"
 							language={sideA}
@@ -422,7 +444,7 @@ function RouteComponent() {
 						<Button
 							type="button"
 							variant="outline"
-							className="absolute left-1/2 top-1/2 z-10 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background shadow-sm"
+							className="mx-auto size-12 rounded-full bg-background shadow-sm"
 							onClick={swapLanguages}
 							aria-label="Swap languages"
 						>
