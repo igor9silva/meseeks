@@ -114,6 +114,28 @@ Transparency is a foundational principle of Meseeks, so you can always hit the `
 
 We haven't yet spent much energy making it easy to run locally, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
 
+### Branch preview backend
+
+For feature branches and Codex worktrees, use the same temporary Convex preview deployment as the Vercel PR:
+
+```sh
+bun preview:attach
+bun dev:preview
+```
+
+If the worktree is detached, pass the branch explicitly:
+
+```sh
+bun preview:attach -- --branch my-branch
+bun dev:preview -- --branch my-branch
+```
+
+If the worktree is not linked to Vercel yet, set `VERCEL_PROJECT` or run `vercel link` inside `apps/meseeks` before attaching.
+
+`preview:attach` pulls the branch-scoped Vercel preview env into `apps/meseeks/.env.local`, selects or creates `preview/<branch>` in Convex, and writes `VITE_CONVEX_URL` plus `VITE_CONVEX_SITE_URL` for the local Vite server. `dev:preview` runs the local web server and watches backend files, pushing Convex function changes to that same preview deployment.
+
+If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in the Vercel preview environment. Re-run `bun preview:attach` whenever Vercel or Convex recreates the branch preview.
+
 ### Self-Hosting Options
 
 You can run Meseeks entirely offline on your own infrastructure:

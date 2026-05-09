@@ -14,6 +14,7 @@
 	],
 	"scripts": {
 		"dev": "bun --cwd apps/meseeks dev",
+		"dev:preview": "bun --cwd apps/meseeks dev:preview",
 		"dev:db": "bun --cwd apps/meseeks dev:db",
 		"dev:web": "bun --cwd apps/meseeks dev:web",
 		"lint": "bun --cwd apps/meseeks lint",
@@ -23,6 +24,8 @@
 		"build": "bun --cwd apps/meseeks build",
 		"start": "bun --cwd apps/meseeks start",
 		"deploy": "bun --cwd apps/meseeks deploy",
+		"preview:attach": "bun --cwd apps/meseeks preview:attach",
+		"preview:deploy": "bun --cwd apps/meseeks preview:deploy",
 		"sync-env-to-preview": "bun --cwd apps/meseeks sync-env-to-preview",
 		"organizer": "concurrently -r 'bun --cwd apps/organizer dev' 'bun run config:watch' 'bun run worktrees:watch'",
 		"tasks:build": "bun run .config/generate-task-index.ts",

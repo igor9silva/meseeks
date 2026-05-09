@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"dev": "concurrently -r bun:dev:web bun:dev:db",
+		"dev:preview": "bun ./scripts/dev-preview.ts",
 		"dev:db": "convex dev",
 		"dev:web": "vite dev --port 3000",
 		"build": "vite build",
@@ -18,6 +19,9 @@
 		"test": "bun test",
 		"lint": "oxfmt --check src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json && oxlint src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts",
 		"format": "oxfmt src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json",
+		"preview:attach": "bun ./scripts/attach-preview-env.ts",
+		"preview:deploy": "bun ./scripts/deploy-preview.ts",
+		"preview:watch": "bun ./scripts/watch-preview-deploy.ts",
 		"sync-env-to-preview": "bun ./scripts/sync-env-to-preview.ts"
 	},
 	"keywords": [],
