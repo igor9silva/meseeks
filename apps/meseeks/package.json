@@ -12,7 +12,7 @@
 		"dev:db": "convex dev",
 		"dev:web": "vite dev --port 3000",
 		"build": "vite build",
-		"deploy": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then convex deploy --preview-create \"$VERCEL_GIT_COMMIT_REF\" --cmd 'bun run build'; else convex deploy --cmd 'bun run build'; fi",
+		"deploy": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then convex deploy --preview-create \"$VERCEL_GIT_COMMIT_REF\" --preview-run internal.seed._all --cmd 'bun run build'; else convex deploy --cmd 'bun run build'; fi",
 		"start": "bun .output/server/index.mjs",
 		"typecheck": "tsgo --noEmit --incremental --tsBuildInfoFile .output/typecheck.tsbuildinfo",
 		"test": "bun test",
