@@ -1,4 +1,3 @@
-import { existsSync, rmSync } from 'node:fs';
 import {
 	assertAppRoot,
 	ensureConvexClientUrls,
@@ -11,7 +10,6 @@ import {
 	writeDotenv,
 } from './preview-env';
 
-const vercelPreviewEnvFile = '.env.convex.vercel-preview';
 const defaultPreviewExpiration = 'in 7 days';
 
 function main() {
@@ -19,15 +17,13 @@ function main() {
 
 	const previewName = getPreviewName(process.argv.slice(2));
 	const deploymentRef = previewRef(previewName);
+	const localEntries = readDotenv(envLocalFile);
 
 	console.log(`Preparing local preview env for ${deploymentRef}`);
-	ensureVercelProjectLink();
-	pullVercelPreviewEnv(previewName);
 	const createdDeployment = selectConvexPreviewDeployment(deploymentRef);
 
-	const vercelEntries = readDotenv(vercelPreviewEnvFile);
 	const convexEntries = readDotenv(envLocalFile);
-	const merged = new Map([...vercelEntries, ...convexEntries]);
+	const merged = new Map([...localEntries, ...convexEntries]);
 
 	merged.set('CONVEX_PREVIEW_NAME', previewName);
 	merged.set('CONVEX_PREVIEW_REF', deploymentRef);
@@ -43,35 +39,6 @@ function main() {
 	console.log(`VITE_CONVEX_SITE_URL=${merged.get('VITE_CONVEX_SITE_URL') ?? '<missing>'}`);
 
 	if (createdDeployment) bootstrapFreshPreview(merged);
-}
-
-function ensureVercelProjectLink() {
-	if (existsSync('.vercel/project.json')) return;
-
-	const project = process.env.VERCEL_PROJECT;
-	if (!project) {
-		console.log(
-			'No .vercel/project.json found. Set VERCEL_PROJECT to link non-interactively, or run vercel link in apps/meseeks.',
-		);
-		return;
-	}
-
-	console.log(`Linking Vercel project ${project}`);
-	run('bunx', ['vercel', 'link', '--yes', '--project', project]);
-}
-
-function pullVercelPreviewEnv(previewName: string) {
-	console.log(`Pulling Vercel preview env for branch ${previewName}`);
-	run('bunx', [
-		'vercel',
-		'env',
-		'pull',
-		vercelPreviewEnvFile,
-		'--environment=preview',
-		'--git-branch',
-		previewName,
-		'--yes',
-	]);
 }
 
 function selectConvexPreviewDeployment(deploymentRef: string) {
@@ -96,7 +63,7 @@ function selectConvexPreviewDeployment(deploymentRef: string) {
 }
 
 function bootstrapFreshPreview(entries: Map<string, string>) {
-	const previewRun = entries.get('CONVEX_PREVIEW_RUN');
+	const previewRun = process.env.CONVEX_PREVIEW_RUN ?? entries.get('CONVEX_PREVIEW_RUN');
 	if (!previewRun) return;
 
 	const env = { ...process.env, ...Object.fromEntries(entries) };
@@ -104,15 +71,9 @@ function bootstrapFreshPreview(entries: Map<string, string>) {
 	run('convex', ['dev', '--once', '--env-file', envLocalFile, '--run', previewRun], { env });
 }
 
-function cleanupTempFile() {
-	if (!existsSync(vercelPreviewEnvFile)) return;
-	rmSync(vercelPreviewEnvFile, { force: true });
-}
-
 try {
 	main();
 } catch (error) {
-	cleanupTempFile();
 	console.error(error instanceof Error ? error.message : String(error));
 	process.exit(1);
 }

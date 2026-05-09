@@ -128,11 +128,9 @@ If the worktree is detached, pass the branch explicitly so the preview deploymen
 bun dev -- --branch my-branch
 ```
 
-If the worktree is not linked to Vercel yet, set `VERCEL_PROJECT` or run `vercel link` inside `apps/meseeks` before `bun dev`.
+For non-main branches, `dev` selects or creates `preview/<branch>` in Convex, lets the Convex CLI write `apps/meseeks/.env.local`, fills the browser Convex URLs from that deployment, and runs `convex dev --env-file .env.local --start 'bun run dev:web'`. Convex owns backend file watching and pushes function changes to the preview deployment.
 
-For non-main branches, `dev` pulls the branch-scoped Vercel preview env into `apps/meseeks/.env.local`, selects or creates `preview/<branch>` in Convex, and runs `convex dev --env-file .env.local --start 'bun run dev:web'`. Convex owns backend file watching and pushes function changes to the preview deployment.
-
-If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in the Vercel preview environment. Re-run `bun dev` whenever Vercel or Convex recreates the branch preview.
+If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in your local shell or keep it in `.env.local`; the setup preserves existing local entries when Convex rewrites the file. Re-run `bun dev` whenever Convex recreates the branch preview.
 
 ### Self-Hosting Options
 
