@@ -17,7 +17,7 @@ import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 
 export function GenericAction(props: ActionComponentProps) {
 	//
-	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className } = props;
+	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className, suppressAnchorId } = props;
 	const { approveAction, isApprovingAction } = useApproveAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
 	const isNew = useMemo(() => {
@@ -51,7 +51,7 @@ export function GenericAction(props: ActionComponentProps) {
 
 	return (
 		<div
-			id={`action-${action._id}`}
+			id={suppressAnchorId ? undefined : `action-${action._id}`}
 			className={cn(className, 'flex flex-row justify-between', {
 				'ml-auto': isAuthorCurrentUser,
 				'animate-in duration-100': isNew,

@@ -1,10 +1,11 @@
 import { convexClient } from '@convex-dev/better-auth/client/plugins';
+import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import { authBasePath } from 'lib/auth';
 
 const authClient = createAuthClient({
 	basePath: authBasePath,
-	plugins: [convexClient()],
+	plugins: [convexClient(), anonymousClient()],
 });
 
 export const signIn = authClient.signIn;

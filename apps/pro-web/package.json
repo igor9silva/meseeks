@@ -12,13 +12,14 @@
 		"dev:db": "convex dev",
 		"dev:web": "vite dev --port 3001",
 		"build": "vite build",
-		"deploy": "convex deploy --cmd 'bun run build'",
+		"deploy": "if [ \"$VERCEL_ENV\" = \"preview\" ]; then convex deploy --preview-create \"$VERCEL_GIT_COMMIT_REF\" --cmd 'bun run build'; else convex deploy --cmd 'bun run build'; fi",
 		"start": "bun .output/server/index.mjs",
 		"seed": "bun scripts/seed.ts",
 		"typecheck": "tsgo --noEmit --incremental --tsBuildInfoFile .output/typecheck.tsbuildinfo",
 		"test": "bun test",
-		"lint": "oxfmt --check src convex lib schemas skills tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json && oxlint src convex lib schemas skills tailwind.config.ts tailwind-safelist.ts vite.config.ts",
-		"format": "oxfmt src convex lib schemas skills tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json"
+		"lint": "oxfmt --check src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json && oxlint src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts",
+		"format": "oxfmt src convex lib schemas skills scripts tailwind.config.ts tailwind-safelist.ts vite.config.ts postcss.config.cjs components.json convex.json package.json tsconfig.json",
+		"sync-env-to-preview": "bun ./scripts/sync-env-to-preview.ts"
 	},
 	"keywords": [],
 	"author": "",

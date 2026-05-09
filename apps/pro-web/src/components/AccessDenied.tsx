@@ -8,11 +8,14 @@ const authErrorSearchSchema = z.object({
 	error: z.string().optional(),
 });
 
+const allowAnonymousSignIn = import.meta.env.VERCEL_ENV === 'preview' || import.meta.env.VERCEL_ENV === 'development';
+
 export function AccessDenied() {
 	//
 	const router = useRouter();
 	const { pathname, hash, search } = useLocation();
 	const [isSigningIn, setIsSigningIn] = useState(false);
+	const [isSigningInAnonymously, setIsSigningInAnonymously] = useState(false);
 	const authError = authErrorSearchSchema.parse(search).error;
 
 	const callbackUrl = useMemo(() => {
@@ -55,6 +58,20 @@ export function AccessDenied() {
 			});
 	};
 
+	const handleAnonymousSignIn = async () => {
+		//
+		setIsSigningInAnonymously(true);
+
+		await signIn
+			.anonymous()
+			.then(() => {
+				window.location.assign(callbackUrl);
+			})
+			.catch(() => {
+				setIsSigningInAnonymously(false);
+			});
+	};
+
 	return (
 		<div className="h-screen w-full flex flex-col items-center justify-center gap-4">
 			<div className="flex flex-wrap items-center justify-center gap-3">
@@ -63,6 +80,18 @@ export function AccessDenied() {
 				</LoadingButton>
 				{errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
 			</div>
+			{allowAnonymousSignIn && (
+				<div>
+					<LoadingButton
+						variant="secondary"
+						onClick={handleAnonymousSignIn}
+						loading={isSigningInAnonymously}
+						loadingText="Signing in..."
+					>
+						Continue anonymously
+					</LoadingButton>
+				</div>
+			)}
 			<footer className="absolute bottom-4 text-sm text-muted-foreground flex gap-4">
 				<a
 					href="/static/privacy-policy.md"
