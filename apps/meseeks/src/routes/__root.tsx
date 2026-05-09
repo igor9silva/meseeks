@@ -117,26 +117,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	//
 	const { pathname } = useLocation();
 	const isShareRoute = pathname.startsWith('/share/');
-	const isTranslateRoute = pathname === '/translate';
 
 	if (isShareRoute) {
 		return <div className="h-dvh w-full">{children}</div>;
-	}
-
-	if (isTranslateRoute) {
-		return (
-			<div>
-				<AuthLoading>
-					<Loading className="h-svh" />
-				</AuthLoading>
-				<Unauthenticated>
-					<AccessDenied />
-				</Unauthenticated>
-				<Authenticated>
-					<div className="h-dvh w-full">{children}</div>
-				</Authenticated>
-			</div>
-		);
 	}
 
 	return (
