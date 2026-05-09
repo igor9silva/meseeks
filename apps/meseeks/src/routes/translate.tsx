@@ -367,7 +367,7 @@ function RouteComponent() {
 					<div className="grid py-8">
 						<LanguagePicker value={languagePair.a} onChange={(value) => updateLanguage('a', value)} />
 
-						<div className="flex justify-center pb-1 pt-8">
+						<div className="flex justify-center py-4">
 							<Button
 								type="button"
 								variant="outline"
@@ -618,18 +618,7 @@ function HistorySheet({
 						<div className="flex flex-col gap-2 pb-1">
 							{history.map((round) => (
 								<div key={round.id} className="flex justify-center">
-									<div className="w-full rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
-										<div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
-											<span>
-												{languageByCode[round.languages.a]?.shortLabel ??
-													languageByCode[languages.a].shortLabel}
-												{' / '}
-												{languageByCode[round.languages.b]?.shortLabel ??
-													languageByCode[languages.b].shortLabel}
-											</span>
-											<span>{round.time}</span>
-										</div>
-
+									<div className="w-full rounded-lg border border-border bg-card px-2 py-2 shadow-sm">
 										<div className="grid gap-1.5">
 											{(['a', 'b'] as const).map((side) => {
 												const text = round.outputs[side] || round.heardText;
@@ -639,7 +628,7 @@ function HistorySheet({
 													<div
 														key={side}
 														className={cn(
-															'grid grid-cols-[3.25rem_1fr] gap-2 rounded-lg px-2 py-2',
+															'grid grid-cols-[2.25rem_1fr] gap-1 rounded-md px-2 py-2',
 															side === 'a'
 																? 'bg-primary text-primary-foreground'
 																: 'bg-muted/70 text-foreground',
