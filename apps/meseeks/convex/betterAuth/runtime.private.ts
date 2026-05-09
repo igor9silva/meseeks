@@ -8,10 +8,12 @@ import { betterAuthComponent } from './component';
 
 export function createBetterAuth(ctx: GenericCtx<DataModel>) {
 	//
+	const authSiteUrl = getAuthSiteUrl();
+
 	return betterAuth(
 		createAuthOptions({
-			baseURL: `${getAuthSiteUrl()}${authBasePath}`,
-			siteUrl: env.SITE_URL,
+			baseURL: `${authSiteUrl}${authBasePath}`,
+			siteUrl: authSiteUrl,
 			secret: env.BETTER_AUTH_SECRET,
 			googleClientId: env.AUTH_GOOGLE_ID,
 			googleClientSecret: env.AUTH_GOOGLE_SECRET,
