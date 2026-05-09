@@ -3,7 +3,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 import { cn } from './lib/utils';
 
 interface ActionButtonProps {
-	//
 	icon: React.ReactNode;
 	onClick: () => void;
 	disabled?: boolean;
@@ -20,7 +19,6 @@ export function ActionButton({
 	variant = 'default',
 	className = '',
 }: ActionButtonProps) {
-	//
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
@@ -30,6 +28,7 @@ export function ActionButton({
 					size="icon"
 					className={cn('h-8 w-8 rounded-full', className)}
 					onClick={onClick}
+					aria-label={tooltip || undefined}
 					disabled={disabled}
 				>
 					{icon}

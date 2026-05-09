@@ -2,8 +2,8 @@ import { z } from 'zod/v3';
 import { action } from 'lib/convex';
 import { env } from 'schemas/envSchema';
 
-const dictionary = [
-	'Meseeks', //
+const baseDictionary = [
+	'Meseeks',
 	'Convex',
 	'TanStack',
 	'TanStack Router',
@@ -28,7 +28,6 @@ const maxAudioBytes = 25 * 1024 * 1024;
 const maxPromptCharacters = 1800;
 
 const audioArrayBufferSchema = z.unknown().transform((value, ctx) => {
-	//
 	if (value instanceof ArrayBuffer) return value;
 
 	ctx.addIssue({
@@ -47,6 +46,7 @@ const audioContentTypeSchema = z
 	.optional();
 
 const promptContextSchema = z.string().trim().max(2000).optional();
+const dictionarySchema = z.array(z.string().trim().min(1).max(80)).max(80).optional();
 
 const languageSchema = z
 	.string()
@@ -55,6 +55,9 @@ const languageSchema = z
 	.max(12)
 	.regex(/^[a-z]{2,3}(?:-[a-z]{2})?$/i)
 	.optional();
+
+const vadModeSchema = z.enum(['server', 'semantic']).optional();
+const latencyModeSchema = z.enum(['fast', 'balanced', 'accurate']).optional();
 
 const realtimeSessionSchema = z
 	.object({
@@ -79,10 +82,10 @@ export const transcribe = action({
 		audio: audioArrayBufferSchema,
 		contentType: audioContentTypeSchema,
 		promptContext: promptContextSchema,
+		dictionary: dictionarySchema,
 		language: languageSchema,
 	},
-	handler: async (ctx, { audio, contentType, promptContext, language }) => {
-		//
+	handler: async (ctx, { audio, contentType, promptContext, dictionary, language }) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) throw new Error('Unauthorized');
 		if (audio.byteLength > maxAudioBytes) throw new Error('Audio is too large to transcribe');
@@ -94,7 +97,7 @@ export const transcribe = action({
 		formData.append('file', file);
 		formData.append('model', fallbackModel);
 		formData.append('response_format', 'json');
-		formData.append('prompt', buildPrompt(promptContext));
+		formData.append('prompt', buildPrompt({ promptContext, dictionary }));
 		if (language) formData.append('language', language);
 
 		const response = await fetch(`${baseUrl}/audio/transcriptions`, {
@@ -116,12 +119,10 @@ export const transcribe = action({
 		const result = z.object({ text: z.string() }).parse(json);
 		const transcription = result.text.trim();
 
-		console.debug('Transcription result', {
+		console.debug('OpenAI transcription result', {
 			model: fallbackModel,
-			baseUrl,
 			characterCount: transcription.length,
-			dictionary,
-			text: transcription,
+			dictionaryCount: buildDictionary({ promptContext, dictionary }).length,
 		});
 
 		return transcription;
@@ -131,10 +132,12 @@ export const transcribe = action({
 export const createRealtimeTranscriptionSession = action({
 	args: {
 		promptContext: promptContextSchema,
+		dictionary: dictionarySchema,
 		language: languageSchema,
+		vadMode: vadModeSchema,
+		latencyMode: latencyModeSchema,
 	},
-	handler: async (ctx, { promptContext, language }) => {
-		//
+	handler: async (ctx, { promptContext, dictionary, language, vadMode, latencyMode }) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) throw new Error('Unauthorized');
 
@@ -144,15 +147,10 @@ export const createRealtimeTranscriptionSession = action({
 				input: {
 					transcription: {
 						model: realtimeModel,
-						prompt: buildPrompt(promptContext),
+						prompt: buildPrompt({ promptContext, dictionary }),
 						...(language ? { language } : {}),
 					},
-					turn_detection: {
-						type: 'server_vad',
-						threshold: 0.5,
-						prefix_padding_ms: 300,
-						silence_duration_ms: 450,
-					},
+					turn_detection: buildTurnDetection(vadMode, latencyMode),
 					noise_reduction: {
 						type: 'near_field',
 					},
@@ -198,10 +196,9 @@ export const createRealtimeTranscriptionSession = action({
 	},
 });
 
-function buildPrompt(promptContext?: string) {
-	//
-	const promptDictionary = [...dictionary, ...extractPromptDictionary(promptContext)];
-	const prompt = [`Keywords: ${dedupe(promptDictionary).join(', ')}`];
+function buildPrompt({ promptContext, dictionary }: { promptContext?: string; dictionary?: string[] }) {
+	const terms = buildDictionary({ promptContext, dictionary });
+	const prompt = [`Keywords: ${terms.join(', ')}`];
 	const context = promptContext?.trim();
 
 	if (context) {
@@ -211,8 +208,27 @@ function buildPrompt(promptContext?: string) {
 	return prompt.join('\n').slice(0, maxPromptCharacters);
 }
 
+function buildDictionary({ promptContext, dictionary }: { promptContext?: string; dictionary?: string[] }) {
+	return dedupe([...baseDictionary, ...(dictionary ?? []), ...extractPromptDictionary(promptContext)]).slice(0, 100);
+}
+
+function buildTurnDetection(vadMode?: 'server' | 'semantic', latencyMode: 'fast' | 'balanced' | 'accurate' = 'fast') {
+	if (vadMode === 'semantic') {
+		return {
+			type: 'semantic_vad',
+			eagerness: latencyMode === 'accurate' ? 'low' : latencyMode === 'balanced' ? 'medium' : 'high',
+		};
+	}
+
+	return {
+		type: 'server_vad',
+		threshold: 0.5,
+		prefix_padding_ms: 300,
+		silence_duration_ms: latencyMode === 'accurate' ? 1200 : latencyMode === 'balanced' ? 700 : 350,
+	};
+}
+
 function recordingFilename(contentType?: string) {
-	//
 	const type = contentType?.split(';')[0]?.toLowerCase();
 
 	if (type === 'audio/wav' || type === 'audio/x-wav') return 'recording.wav';
@@ -224,13 +240,11 @@ function recordingFilename(contentType?: string) {
 }
 
 async function getSafetyIdentifier(subject: string) {
-	//
 	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(subject));
 	return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function extractPromptDictionary(promptContext?: string) {
-	//
 	const context = promptContext?.trim();
 	if (!context) return [];
 
@@ -240,6 +254,16 @@ function extractPromptDictionary(promptContext?: string) {
 }
 
 function dedupe(values: string[]) {
-	//
-	return Array.from(new Set(values));
+	const seen = new Set<string>();
+	const result: string[] = [];
+
+	for (const value of values) {
+		const term = value.trim();
+		const key = term.toLowerCase();
+		if (!term || seen.has(key)) continue;
+		seen.add(key);
+		result.push(term);
+	}
+
+	return result;
 }

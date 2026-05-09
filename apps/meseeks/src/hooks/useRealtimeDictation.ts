@@ -3,14 +3,20 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from 'convex/_generated/api';
 
-type RecordingStatus = 'idle' | 'recording' | 'transcribing';
-type TranscriptionMode = 'idle' | 'connecting' | 'realtime' | 'fallback';
+export type DictationStatus = 'idle' | 'connecting' | 'streaming' | 'finalizing';
+export type DictationTransport = 'idle' | 'webrtc' | 'fallback';
+export type DictationVadMode = 'server' | 'semantic';
+export type DictationLatencyMode = 'fast' | 'balanced' | 'accurate';
 
-type TranscriptTurn = {
+export type DictationTurn = {
 	itemId: string;
 	previousItemId?: string | null;
-	delta: string;
-	final?: string;
+	text: string;
+	finalText?: string;
+	status: 'streaming' | 'final';
+	startedAt: number;
+	updatedAt: number;
+	confidence?: number;
 };
 
 type RealtimeEvent = {
@@ -20,77 +26,104 @@ type RealtimeEvent = {
 	delta?: string;
 	transcript?: string;
 	text?: string;
+	logprobs?: Array<{ logprob?: number }>;
 	error?: unknown;
 };
 
-interface UseVoiceRecordingProps {
+type UseRealtimeDictationProps = {
 	promptContext?: string;
+	dictionary?: string[];
 	language?: string;
-	onTranscriptionDelta?: (text: string) => void;
-	onTranscriptionComplete: (text: string) => void;
-	onTranscriptionCancel?: () => void;
-}
+	vadMode: DictationVadMode;
+	latencyMode: DictationLatencyMode;
+	onTranscript: (text: string, turns: DictationTurn[]) => void;
+	onComplete: (text: string, turns: DictationTurn[]) => void;
+	onCancel: () => void;
+};
 
 const realtimeCallsUrl = 'https://api.openai.com/v1/realtime/calls';
-const realtimeFinishWaitMs = 1400;
+const realtimeFinishWaitMs = 1500;
 
-export function useVoiceRecording({
+export function useRealtimeDictation({
 	promptContext,
+	dictionary,
 	language,
-	onTranscriptionDelta,
-	onTranscriptionComplete,
-	onTranscriptionCancel,
-}: UseVoiceRecordingProps) {
-	//
+	vadMode,
+	latencyMode,
+	onTranscript,
+	onComplete,
+	onCancel,
+}: UseRealtimeDictationProps) {
 	const createRealtimeSession = useAction(api.magicRock.createRealtimeTranscriptionSession);
 	const transcribeAction = useAction(api.magicRock.transcribe);
 
 	const streamRef = useRef<MediaStream | null>(null);
-	const currentStatusRef = useRef<RecordingStatus>('idle');
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 	const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 	const dataChannelRef = useRef<RTCDataChannel | null>(null);
 	const audioContextRef = useRef<AudioContext | null>(null);
 	const meterFrameRef = useRef<number | null>(null);
 	const timerRef = useRef<number | null>(null);
-	const recordingStartedAtRef = useRef<number | null>(null);
+	const startedAtRef = useRef<number | null>(null);
 	const chunksRef = useRef<Blob[]>([]);
-	const turnsRef = useRef<Map<string, TranscriptTurn>>(new Map());
+	const turnsRef = useRef<Map<string, DictationTurn>>(new Map());
 	const turnOrderRef = useRef<string[]>([]);
 	const transcriptRef = useRef('');
+	const statusRef = useRef<DictationStatus>('idle');
 	const realtimeFailedRef = useRef(false);
 	const canceledRef = useRef(false);
 	const isFinishingRef = useRef(false);
 
-	const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
-	const [transcriptionMode, setTranscriptionMode] = useState<TranscriptionMode>('idle');
-	const [liveTranscript, setLiveTranscript] = useState('');
+	const [status, setStatus] = useState<DictationStatus>('idle');
+	const [transport, setTransport] = useState<DictationTransport>('idle');
+	const [turns, setTurns] = useState<DictationTurn[]>([]);
+	const [activeText, setActiveText] = useState('');
 	const [inputLevel, setInputLevel] = useState(0);
 	const [elapsedMs, setElapsedMs] = useState(0);
+	const [error, setError] = useState<string | null>(null);
 
-	const updateStatus = useCallback((status: RecordingStatus) => {
-		//
-		currentStatusRef.current = status;
-		setRecordingStatus(status);
+	const updateStatus = useCallback((nextStatus: DictationStatus) => {
+		statusRef.current = nextStatus;
+		setStatus(nextStatus);
+	}, []);
+
+	const orderedTurns = useCallback(() => {
+		const ids = orderTurnIds(turnsRef.current, turnOrderRef.current);
+		return ids.flatMap((itemId) => {
+			const turn = turnsRef.current.get(itemId);
+			return turn ? [turn] : [];
+		});
 	}, []);
 
 	const emitTranscript = useCallback(() => {
-		//
-		const text = orderTranscript(turnsRef.current, turnOrderRef.current);
+		const ordered = orderedTurns();
+		const text = ordered
+			.map((turn) => (turn.finalText ?? turn.text).trim())
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
 		transcriptRef.current = text;
-		setLiveTranscript(text);
+		setTurns(ordered);
+		setActiveText(text);
 
 		if (text) {
-			onTranscriptionDelta?.(text);
+			onTranscript(text, ordered);
 		}
-	}, [onTranscriptionDelta]);
+	}, [onTranscript, orderedTurns]);
 
 	const ensureTurn = useCallback((itemId: string) => {
-		//
 		const existing = turnsRef.current.get(itemId);
 		if (existing) return existing;
 
-		const turn: TranscriptTurn = { itemId, delta: '' };
+		const now = Date.now();
+		const turn: DictationTurn = {
+			itemId,
+			text: '',
+			status: 'streaming',
+			startedAt: now,
+			updatedAt: now,
+		};
 		turnsRef.current.set(itemId, turn);
 		turnOrderRef.current.push(itemId);
 		return turn;
@@ -98,52 +131,62 @@ export function useVoiceRecording({
 
 	const handleRealtimeEvent = useCallback(
 		(event: RealtimeEvent) => {
-			//
+			if (canceledRef.current) return;
+
 			if (event.type === 'input_audio_buffer.committed' && event.item_id) {
 				const turn = ensureTurn(event.item_id);
 				turn.previousItemId = event.previous_item_id;
+				turn.updatedAt = Date.now();
+				setTurns(orderedTurns());
 				return;
 			}
 
 			if (event.type === 'conversation.item.input_audio_transcription.delta' && event.item_id && event.delta) {
 				const turn = ensureTurn(event.item_id);
-				turn.delta += event.delta;
+				turn.text += event.delta;
+				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
 			}
 
 			if (event.type === 'conversation.item.input_audio_transcription.completed' && event.item_id) {
 				const turn = ensureTurn(event.item_id);
-				turn.final = event.transcript ?? turn.delta;
+				turn.finalText = event.transcript ?? turn.text;
+				turn.status = 'final';
+				turn.updatedAt = Date.now();
+				turn.confidence = estimateConfidence(event.logprobs);
 				emitTranscript();
 				return;
 			}
 
 			if (event.type === 'transcript.text.delta' && event.delta) {
 				const turn = ensureTurn('transcript.text');
-				turn.delta += event.delta;
+				turn.text += event.delta;
+				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
 			}
 
 			if (event.type === 'transcript.text.done' && event.text) {
 				const turn = ensureTurn('transcript.text');
-				turn.final = event.text;
+				turn.finalText = event.text;
+				turn.status = 'final';
+				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
 			}
 
 			if (event.type === 'error') {
 				realtimeFailedRef.current = true;
-				setTranscriptionMode('fallback');
+				setTransport('fallback');
+				setError('Realtime stream failed; buffered fallback is armed.');
 				console.error('Realtime transcription error:', event.error ?? event);
 			}
 		},
-		[emitTranscript, ensureTurn],
+		[emitTranscript, ensureTurn, orderedTurns],
 	);
 
 	const closeRealtime = useCallback(() => {
-		//
 		const dataChannel = dataChannelRef.current;
 		if (dataChannel && dataChannel.readyState !== 'closed') {
 			dataChannel.close();
@@ -158,23 +201,19 @@ export function useVoiceRecording({
 	}, []);
 
 	const stopStream = useCallback(() => {
-		//
-		if (streamRef.current) {
-			streamRef.current.getTracks().forEach((track) => track.stop());
-			streamRef.current = null;
-		}
+		streamRef.current?.getTracks().forEach((track) => track.stop());
+		streamRef.current = null;
 	}, []);
 
 	const resetTranscript = useCallback(() => {
-		//
 		turnsRef.current = new Map();
 		turnOrderRef.current = [];
 		transcriptRef.current = '';
-		setLiveTranscript('');
+		setTurns([]);
+		setActiveText('');
 	}, []);
 
 	const stopMeter = useCallback(() => {
-		//
 		if (meterFrameRef.current !== null) {
 			window.cancelAnimationFrame(meterFrameRef.current);
 			meterFrameRef.current = null;
@@ -191,7 +230,6 @@ export function useVoiceRecording({
 
 	const startMeter = useCallback(
 		(stream: MediaStream) => {
-			//
 			stopMeter();
 
 			const audioWindow = window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
@@ -227,31 +265,31 @@ export function useVoiceRecording({
 	);
 
 	const stopTimer = useCallback((resetElapsed = true) => {
-		//
 		if (timerRef.current !== null) {
 			window.clearInterval(timerRef.current);
 			timerRef.current = null;
 		}
-		recordingStartedAtRef.current = null;
+		startedAtRef.current = null;
 		if (resetElapsed) setElapsedMs(0);
 	}, []);
 
 	const startTimer = useCallback(() => {
-		//
 		stopTimer();
-		recordingStartedAtRef.current = Date.now();
+		startedAtRef.current = Date.now();
 		timerRef.current = window.setInterval(() => {
-			const startedAt = recordingStartedAtRef.current;
+			const startedAt = startedAtRef.current;
 			if (startedAt) setElapsedMs(Date.now() - startedAt);
 		}, 250);
 	}, [stopTimer]);
 
 	const startRealtime = useCallback(
 		async (stream: MediaStream) => {
-			//
 			const session = await createRealtimeSession({
 				...(promptContext ? { promptContext } : {}),
+				...(dictionary?.length ? { dictionary } : {}),
 				...(language ? { language } : {}),
+				vadMode,
+				latencyMode,
 			});
 
 			const peerConnection = new RTCPeerConnection();
@@ -267,25 +305,31 @@ export function useVoiceRecording({
 			dataChannel.addEventListener('message', (event) => {
 				try {
 					handleRealtimeEvent(JSON.parse(event.data));
-				} catch (error) {
-					console.error('Failed to parse realtime transcription event:', error);
+				} catch (parseError) {
+					console.error('Failed to parse realtime transcription event:', parseError);
 				}
 			});
 
 			dataChannel.addEventListener('open', () => {
-				setTranscriptionMode('realtime');
+				if (canceledRef.current || isFinishingRef.current) return;
+				setTransport('webrtc');
+				updateStatus('streaming');
 			});
 
 			dataChannel.addEventListener('error', (event) => {
+				if (canceledRef.current || isFinishingRef.current) return;
 				realtimeFailedRef.current = true;
-				setTranscriptionMode('fallback');
+				setTransport('fallback');
+				setError('Realtime data channel failed; buffered fallback is armed.');
 				console.error('Realtime transcription data channel error:', event);
 			});
 
 			peerConnection.addEventListener('connectionstatechange', () => {
+				if (canceledRef.current || isFinishingRef.current) return;
 				if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
 					realtimeFailedRef.current = true;
-					setTranscriptionMode('fallback');
+					setTransport('fallback');
+					setError('Realtime connection dropped; buffered fallback is armed.');
 				}
 			});
 
@@ -303,7 +347,7 @@ export function useVoiceRecording({
 
 			if (!response.ok) {
 				realtimeFailedRef.current = true;
-				setTranscriptionMode('fallback');
+				setTransport('fallback');
 				throw new Error(`Realtime transcription call failed: ${response.status}`);
 			}
 
@@ -312,15 +356,23 @@ export function useVoiceRecording({
 				sdp: await response.text(),
 			});
 		},
-		[createRealtimeSession, handleRealtimeEvent, language, promptContext],
+		[
+			createRealtimeSession,
+			dictionary,
+			handleRealtimeEvent,
+			language,
+			latencyMode,
+			promptContext,
+			updateStatus,
+			vadMode,
+		],
 	);
 
-	const finishRecording = useCallback(
+	const finish = useCallback(
 		async (audio?: Blob) => {
-			//
 			if (isFinishingRef.current || canceledRef.current) return;
 			isFinishingRef.current = true;
-			updateStatus('transcribing');
+			updateStatus('finalizing');
 			stopTimer(false);
 			stopMeter();
 
@@ -333,22 +385,22 @@ export function useVoiceRecording({
 
 				const realtimeTranscript = transcriptRef.current.trim();
 				if (realtimeTranscript) {
-					onTranscriptionComplete(realtimeTranscript);
+					onComplete(realtimeTranscript, orderedTurns());
 					return;
 				}
 
 				if (!audio) {
-					toast.error('No voice detected. Please try again.');
+					toast.error('No voice detected.');
 					return;
 				}
 
-				setTranscriptionMode('fallback');
-
+				setTransport('fallback');
 				const audioBuffer = await audio.arrayBuffer();
 				const text = await transcribeAction({
 					audio: audioBuffer,
 					...(audio.type ? { contentType: audio.type } : {}),
 					...(promptContext ? { promptContext } : {}),
+					...(dictionary?.length ? { dictionary } : {}),
 					...(language ? { language } : {}),
 				});
 
@@ -356,31 +408,33 @@ export function useVoiceRecording({
 				if (canceledRef.current) return;
 
 				if (transcription) {
-					onTranscriptionComplete(transcription);
+					onTranscript(transcription, []);
+					onComplete(transcription, []);
 				} else {
-					toast.error('No voice detected. Please try again.');
+					toast.error('No voice detected.');
 				}
-			} catch (error) {
+			} catch (finishError) {
 				if (!canceledRef.current) {
-					console.error('Error transcribing audio:', error);
-					toast.error('Failed to transcribe audio. Please try again.');
+					console.error('Error finalizing dictation:', finishError);
+					toast.error('Failed to transcribe audio.');
 				}
 			} finally {
 				closeRealtime();
 				stopStream();
 				stopTimer();
-				resetTranscript();
 				isFinishingRef.current = false;
-				setTranscriptionMode('idle');
+				setTransport('idle');
 				updateStatus('idle');
 			}
 		},
 		[
 			closeRealtime,
+			dictionary,
 			language,
-			onTranscriptionComplete,
+			onComplete,
+			onTranscript,
+			orderedTurns,
 			promptContext,
-			resetTranscript,
 			stopMeter,
 			stopStream,
 			stopTimer,
@@ -389,16 +443,17 @@ export function useVoiceRecording({
 		],
 	);
 
-	const startRecording = useCallback(async () => {
-		//
-		if (currentStatusRef.current !== 'idle') return;
+	const start = useCallback(async () => {
+		if (statusRef.current !== 'idle') return;
 
 		try {
 			canceledRef.current = false;
 			realtimeFailedRef.current = false;
 			chunksRef.current = [];
 			resetTranscript();
-			setTranscriptionMode('connecting');
+			setError(null);
+			setTransport('idle');
+			updateStatus('connecting');
 
 			const stream = await navigator.mediaDevices.getUserMedia({
 				audio: {
@@ -416,44 +471,38 @@ export function useVoiceRecording({
 
 			if (mediaRecorder) {
 				mediaRecorder.ondataavailable = (event) => {
-					if (event.data.size > 0) {
-						chunksRef.current.push(event.data);
-					}
+					if (event.data.size > 0) chunksRef.current.push(event.data);
 				};
 
 				mediaRecorder.onstop = () => {
 					if (canceledRef.current) return;
-
 					const audio = new Blob(chunksRef.current, { type: mediaRecorder.mimeType || 'audio/webm' });
-					void finishRecording(audio);
+					void finish(audio);
 				};
 
 				mediaRecorder.start(1000);
 			}
 
-			updateStatus('recording');
-
-			void startRealtime(stream).catch((error) => {
+			void startRealtime(stream).catch((startError) => {
 				realtimeFailedRef.current = true;
-				setTranscriptionMode('fallback');
-				console.error('Realtime transcription unavailable; falling back after recording stops:', error);
+				setTransport('fallback');
+				setError('Realtime unavailable; buffered fallback is armed.');
+				updateStatus('streaming');
+				console.error('Realtime transcription unavailable:', startError);
 			});
-			//
-		} catch (error) {
-			console.error('Error starting recording:', error);
-			toast.error('Unable to access microphone. Please check your browser permissions.');
+		} catch (startError) {
+			console.error('Error starting dictation:', startError);
+			toast.error('Unable to access microphone.');
 			closeRealtime();
 			stopMeter();
 			stopStream();
 			stopTimer();
-			resetTranscript();
-			setTranscriptionMode('idle');
+			setTransport('idle');
 			updateStatus('idle');
 		}
-		//
 	}, [
 		closeRealtime,
-		finishRecording,
+		finish,
 		resetTranscript,
 		startMeter,
 		startRealtime,
@@ -464,11 +513,10 @@ export function useVoiceRecording({
 		updateStatus,
 	]);
 
-	const stopRecording = useCallback(() => {
-		//
-		if (currentStatusRef.current !== 'recording') return;
+	const stop = useCallback(() => {
+		if (statusRef.current !== 'streaming' && statusRef.current !== 'connecting') return;
 
-		updateStatus('transcribing');
+		updateStatus('finalizing');
 
 		const dataChannel = dataChannelRef.current;
 		if (dataChannel?.readyState === 'open') {
@@ -480,16 +528,15 @@ export function useVoiceRecording({
 			mediaRecorder.requestData();
 			mediaRecorder.stop();
 		} else {
-			void finishRecording();
+			void finish();
 		}
 
 		stopStream();
-	}, [finishRecording, stopStream, updateStatus]);
+	}, [finish, stopStream, updateStatus]);
 
-	const cancelRecording = useCallback(() => {
-		//
+	const cancel = useCallback(() => {
 		canceledRef.current = true;
-		onTranscriptionCancel?.();
+		onCancel();
 
 		const mediaRecorder = mediaRecorderRef.current;
 		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -501,12 +548,12 @@ export function useVoiceRecording({
 		stopStream();
 		stopTimer();
 		resetTranscript();
-		setTranscriptionMode('idle');
+		setTransport('idle');
+		setError(null);
 		updateStatus('idle');
-	}, [closeRealtime, onTranscriptionCancel, resetTranscript, stopMeter, stopStream, stopTimer, updateStatus]);
+	}, [closeRealtime, onCancel, resetTranscript, stopMeter, stopStream, stopTimer, updateStatus]);
 
 	useEffect(() => {
-		//
 		return () => {
 			canceledRef.current = true;
 			closeRealtime();
@@ -517,19 +564,20 @@ export function useVoiceRecording({
 	}, [closeRealtime, stopMeter, stopStream, stopTimer]);
 
 	return {
-		recordingStatus,
-		transcriptionMode,
-		liveTranscript,
+		status,
+		transport,
+		turns,
+		activeText,
 		inputLevel,
 		elapsedMs,
-		startRecording,
-		stopRecording,
-		cancelRecording,
+		error,
+		start,
+		stop,
+		cancel,
 	};
 }
 
 function createMediaRecorder(stream: MediaStream) {
-	//
 	if (typeof MediaRecorder === 'undefined') return null;
 
 	const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((type) =>
@@ -539,21 +587,7 @@ function createMediaRecorder(stream: MediaStream) {
 	return new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
 }
 
-function orderTranscript(turns: Map<string, TranscriptTurn>, fallbackOrder: string[]) {
-	//
-	const orderedIds = orderTurnIds(turns, fallbackOrder);
-	return orderedIds
-		.map((itemId) => {
-			const turn = turns.get(itemId);
-			return (turn?.final ?? turn?.delta ?? '').trim();
-		})
-		.filter(Boolean)
-		.join(' ')
-		.trim();
-}
-
-function orderTurnIds(turns: Map<string, TranscriptTurn>, fallbackOrder: string[]) {
-	//
+function orderTurnIds(turns: Map<string, DictationTurn>, fallbackOrder: string[]) {
 	const nextByPrevious = new Map<string | null, string>();
 
 	for (const turn of turns.values()) {
@@ -579,7 +613,14 @@ function orderTurnIds(turns: Map<string, TranscriptTurn>, fallbackOrder: string[
 	return ordered;
 }
 
+function estimateConfidence(logprobs?: Array<{ logprob?: number }>) {
+	const values = logprobs?.flatMap((item) => (typeof item.logprob === 'number' ? [item.logprob] : []));
+	if (!values?.length) return undefined;
+
+	const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+	return Math.max(0, Math.min(1, Math.exp(average)));
+}
+
 function wait(ms: number) {
-	//
 	return new Promise((resolve) => window.setTimeout(resolve, ms));
 }

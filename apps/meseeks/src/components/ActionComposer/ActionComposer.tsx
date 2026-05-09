@@ -17,7 +17,6 @@ interface ActionComposerProps {
 }
 
 export function ActionComposer({ task, onSubmit, className }: ActionComposerProps) {
-	//
 	const composerRef = useRef<ComposerHandle>(null);
 	const intelligenceSelectorRef = useRef<HTMLButtonElement | null>(null);
 	const { queue, message, enqueue, setMessage, submit } = useComposer();
@@ -31,17 +30,23 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	const canRequestIteration = isMessageEmpty && !isBlocked && !isTaskActing && queue.length === 0;
 
 	const voicePromptContext = useMemo(() => {
-		//
-		return [
-			task.title ? `Task: ${task.title}` : null, //
-			message ? `Draft: ${message}` : null,
-		]
+		return [task.title ? `Task: ${task.title}` : null, message ? `Draft: ${message}` : null]
 			.filter(Boolean)
 			.join('\n');
 	}, [message, task.title]);
 
+	const dictionary = useMemo(() => {
+		return [
+			'Meseeks',
+			'Convex',
+			'TanStack',
+			'TypeScript',
+			...(task.title ? extractTerms(task.title) : []),
+			...(message ? extractTerms(message) : []),
+		];
+	}, [message, task.title]);
+
 	const handleAct = async () => {
-		//
 		await submit(task);
 
 		if (!isMessageEmpty) {
@@ -50,7 +55,6 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	};
 
 	const handleEnqueueMessage = () => {
-		//
 		const trimmed = message.trim();
 		if (!trimmed) return;
 
@@ -65,12 +69,10 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	};
 
 	const handleStop = () => {
-		//
 		stop({ taskId: task._id });
 	};
 
 	const handleIntelligenceChange = (key: z.infer<typeof intelligenceKeys>) => {
-		//
 		if (isSettingPreferredIntelligence) return;
 		setPreferredIntelligence({ taskId: task._id, preferredIntelligence: key });
 	};
@@ -108,6 +110,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 			onEnqueue={handleEnqueueMessage}
 			onStop={handleStop}
 			promptContext={voicePromptContext}
+			dictionary={dictionary}
 			className={className}
 			strips={<StripContainer task={task} />}
 			leadingControls={
@@ -128,4 +131,11 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 			isStopping={isStopping}
 		/>
 	);
+}
+
+function extractTerms(value: string) {
+	return Array.from(
+		value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g),
+		(match) => match[0],
+	).slice(0, 24);
 }

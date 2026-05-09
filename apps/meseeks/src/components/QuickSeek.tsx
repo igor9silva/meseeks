@@ -25,7 +25,6 @@ const PLACEHOLDERS = [
 ];
 
 export function QuickSeek({ className }: { className?: string }) {
-	//
 	return (
 		<div className={cn('flex h-full flex-col items-center justify-end md:justify-center', className)}>
 			<QuickSeekContent className="w-full max-w-5xl" />
@@ -34,7 +33,6 @@ export function QuickSeek({ className }: { className?: string }) {
 }
 
 export function QuickSeekContent({ className }: { className?: string }) {
-	//
 	const navigate = useNavigate();
 	const { addTask, isAdding } = useAddTask();
 	const composerRef = useRef<ComposerHandle>(null);
@@ -49,19 +47,16 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	const [hasUserSelectedIntelligence, setHasUserSelectedIntelligence] = useState(false);
 
 	useEffect(() => {
-		//
 		setMessage(initialMessage);
 	}, [initialMessage]);
 
 	useEffect(() => {
-		//
 		if (!hasUserSelectedIntelligence) {
 			setIntelligence(getIntelligenceForBudget(initialFunds));
 		}
 	}, [initialFunds, hasUserSelectedIntelligence]);
 
 	const handleIntelligenceChange = (newIntelligence: IntelligenceKey) => {
-		//
 		setIntelligence(newIntelligence);
 		setHasUserSelectedIntelligence(true);
 	};
@@ -70,7 +65,6 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	const isMessageEmpty = message.trim().length === 0;
 
 	const handleSubmit = () => {
-		//
 		if (isAdding) return;
 		if (isMessageEmpty) {
 			toast.error('Message is required');
@@ -127,6 +121,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 				onSubmit={handleSubmit}
 				placeholder={placeholder}
 				promptContext={message ? `Draft: ${message}` : undefined}
+				dictionary={message ? extractTerms(message) : undefined}
 				className="mx-0 mb-0 p-4"
 				textareaClassName="min-h-20"
 				leadingControls={
@@ -159,7 +154,6 @@ export function QuickSeekContent({ className }: { className?: string }) {
 }
 
 function getIntelligenceForBudget(budget: number) {
-	//
 	for (const [key, budgetThreshold] of Object.entries(INTELLIGENCE_PROGRESSION)) {
 		const parsedKey = intelligenceKeys.safeParse(key);
 		if (!parsedKey.success) continue;
@@ -167,4 +161,11 @@ function getIntelligenceForBudget(budget: number) {
 	}
 
 	throw new Error(`Invalid intelligence progression setup for budget ${budget}`);
+}
+
+function extractTerms(value: string) {
+	return Array.from(
+		value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g),
+		(match) => match[0],
+	).slice(0, 24);
 }
