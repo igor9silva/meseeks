@@ -2,6 +2,7 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
+const convexCliPackage = 'convex@1.34.1';
 
 export const envLocalFile = '.env.local';
 
@@ -98,6 +99,14 @@ export function tryRun(command: string, args: string[], options: SpawnSyncOption
 		ok: result.status === 0 && !result.error,
 		output: [result.stdout, result.stderr].filter(Boolean).join('\n').trim(),
 	};
+}
+
+export function runConvex(args: string[], options: SpawnSyncOptions = {}) {
+	run('bunx', ['-y', convexCliPackage, ...args], options);
+}
+
+export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
+	return tryRun('bunx', ['-y', convexCliPackage, ...args], options);
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {

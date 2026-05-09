@@ -1,10 +1,10 @@
-import { assertAppRoot, getPreviewName, isMainBranch, loadEnvLocal, run } from './preview-env';
+import { assertAppRoot, getPreviewName, isMainBranch, loadEnvLocal, run, runConvex } from './preview-env';
 
 function main() {
 	assertAppRoot();
 
 	if (isMainBranch()) {
-		run('concurrently', ['-r', 'bun:dev:web', 'bun:dev:db']);
+		run('bunx', ['concurrently', '-r', 'bun:dev:web', 'bun:dev:db']);
 		return;
 	}
 
@@ -18,7 +18,7 @@ function main() {
 		VERCEL_GIT_COMMIT_REF: previewName,
 	};
 
-	run('convex', ['dev', '--env-file', '.env.local', '--start', 'bun run dev:web'], { env });
+	runConvex(['dev', '--env-file', '.env.local', '--run-sh', 'bun run dev:web'], { env });
 }
 
 try {

@@ -5,8 +5,8 @@ import {
 	getPreviewName,
 	previewRef,
 	readDotenv,
-	run,
-	tryRun,
+	runConvex,
+	tryRunConvex,
 	writeDotenv,
 } from './preview-env';
 
@@ -43,12 +43,11 @@ function main() {
 
 function selectConvexPreviewDeployment(deploymentRef: string, deploymentSelector: string) {
 	console.log(`Selecting Convex deployment ${deploymentRef}`);
-	const selected = tryRun('bunx', ['convex', 'deployment', 'select', deploymentSelector]);
+	const selected = tryRunConvex(['deployment', 'select', deploymentSelector]);
 	if (selected.ok) return false;
 
 	console.log(`Convex deployment ${deploymentRef} was not selectable; creating it.`);
-	run('bunx', [
-		'convex',
+	runConvex([
 		'deployment',
 		'create',
 		deploymentSelector,
@@ -72,7 +71,7 @@ function bootstrapFreshPreview(entries: Map<string, string>) {
 
 	const env = { ...process.env, ...Object.fromEntries(entries) };
 	console.log(`Fresh preview created; pushing code with Convex dev and running ${previewRun}`);
-	run('convex', ['dev', '--once', '--env-file', envLocalFile, '--run', previewRun], { env });
+	runConvex(['dev', '--once', '--env-file', envLocalFile, '--run', previewRun], { env });
 }
 
 try {
