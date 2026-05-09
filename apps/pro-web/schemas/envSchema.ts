@@ -123,7 +123,7 @@ export const env = createEnv({
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
 		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
-		MISTRAL_API_KEY: z.string().min(1).describe('Mistral API key.'),
+		OPENAI_API_KEY: z.string().min(1).describe('OpenAI API key.'),
 		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
 
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),

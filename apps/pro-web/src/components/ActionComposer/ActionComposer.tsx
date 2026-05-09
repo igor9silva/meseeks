@@ -1,98 +1,64 @@
 import type { Doc } from 'convex/_generated/dataModel';
-import { useEffect, useMemo, useRef } from 'react';
-import { TooltipProvider } from '@reactor/ui/tooltip';
-import { useComposer } from '~/hooks/useComposer';
-import { useExpandingTextarea } from '@reactor/ui/hooks/useExpandingTextarea';
+import { useMemo, useRef } from 'react';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
+import { z } from 'zod/v3';
 import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
-import { useStop } from '~/hooks/useTaskMutations';
-import { useVoiceRecording } from '~/hooks/useVoiceRecording';
-import { cn } from '@reactor/ui/lib/utils';
-import { IdleState } from './IdleState';
-import { RecordingState } from './RecordingState';
-import { TranscribingState } from './TranscribingState';
+import { Composer, type ComposerHandle } from '~/components/Composer';
+import { IntelligenceSelector } from '~/components/IntelligenceSelector';
+import { SkillsLink } from '~/components/SkillsLink';
+import { useComposer } from '~/hooks/useComposer';
+import { useSetPreferredIntelligence, useStop } from '~/hooks/useTaskMutations';
 import { StripContainer } from './strips/StripContainer';
 
 interface ActionComposerProps {
-	//
 	task: Doc<'tasks'>;
 	onSubmit?: (message: string) => void;
 	className?: string;
 }
 
 export function ActionComposer({ task, onSubmit, className }: ActionComposerProps) {
-	//
-	const {
-		queue, //
-		message,
-		enqueue,
-		setMessage,
-		submit,
-	} = useComposer();
-
-	const { stop, isStopping } = useStop();
-
-	const {
-		textareaRef,
-		value: localMessage,
-		isEmpty: isLocalEmpty,
-		onChange: handleLocalMessageChange,
-		setValue: setLocalMessage,
-	} = useExpandingTextarea({ singleLineHeight: 40 });
-
+	const composerRef = useRef<ComposerHandle>(null);
 	const intelligenceSelectorRef = useRef<HTMLButtonElement | null>(null);
+	const { queue, message, enqueue, setMessage, submit } = useComposer();
+	const { stop, isStopping } = useStop();
+	const { setPreferredIntelligence, isSettingPreferredIntelligence } = useSetPreferredIntelligence();
 
-	// sync URL message to local textarea on mount and when URL changes externally
-	useEffect(() => {
-		if (message !== localMessage) {
-			setLocalMessage(message);
-		}
-	}, [message, localMessage, setLocalMessage]);
+	const isMessageEmpty = message.trim().length === 0;
+	const isComposing = !isMessageEmpty || queue.length > 0;
+	const isBlocked = task.status === 'blocked' && isMessageEmpty;
+	const isTaskActing = task.status === 'acting' && isMessageEmpty;
+	const canRequestIteration = isMessageEmpty && !isBlocked && !isTaskActing && queue.length === 0;
 
-	// handle message change - update both local and URL state
-	const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		//
-		handleLocalMessageChange(e);
-		setMessage(e.target.value);
-	};
+	const voicePromptContext = useMemo(() => {
+		return [task.title ? `Task: ${task.title}` : null, message ? `Draft: ${message}` : null]
+			.filter(Boolean)
+			.join('\n');
+	}, [message, task.title]);
 
-	// sync local message back to URL when voice transcription completes
-	const handleTranscriptionComplete = (transcribedText: string) => {
-		//
-		setLocalMessage(transcribedText);
-		setMessage(transcribedText);
-	};
-
-	const { recordingStatus, startRecording, stopRecording, cancelRecording } = useVoiceRecording({
-		onTranscriptionComplete: handleTranscriptionComplete,
-	});
-
-	const isRecordingOrTranscribing = recordingStatus !== 'idle';
-
-	// computed states for UI
-	const isComposing = !isLocalEmpty || queue.length > 0;
-	const isBlocked = useMemo(() => task.status === 'blocked' && isLocalEmpty, [task.status, isLocalEmpty]);
-	const isTaskActing = useMemo(() => task.status === 'acting' && isLocalEmpty, [task.status, isLocalEmpty]);
-	const canRequestIteration = useMemo(
-		() => isLocalEmpty && !isBlocked && !isTaskActing && queue.length === 0,
-		[isLocalEmpty, isBlocked, isTaskActing, queue.length],
-	);
+	const dictionary = useMemo(() => {
+		return [
+			'Meseeks',
+			'Convex',
+			'TanStack',
+			'TypeScript',
+			...(task.title ? extractTerms(task.title) : []),
+			...(message ? extractTerms(message) : []),
+		];
+	}, [message, task.title]);
 
 	const handleAct = async () => {
-		//
 		await submit(task);
 
-		if (!isLocalEmpty) {
-			onSubmit?.(localMessage);
+		if (!isMessageEmpty) {
+			onSubmit?.(message);
 		}
 	};
 
 	const handleEnqueueMessage = () => {
-		//
-		const trimmed = localMessage.trim();
+		const trimmed = message.trim();
 		if (!trimmed) return;
 
-		// enqueue with clearMessage option to avoid race condition
-		const didEnqueue = enqueue(
+		enqueue(
 			{
 				skillKey: 'say',
 				args: { message: trimmed },
@@ -100,65 +66,35 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 			},
 			{ clearMessage: true },
 		);
-
-		// only clear local state if enqueue succeeded
-		if (didEnqueue) {
-			setLocalMessage('');
-		}
 	};
 
 	const handleStop = () => {
-		//
 		stop({ taskId: task._id });
 	};
 
-	// global focus shortcut (⌘+I)
+	const handleIntelligenceChange = (key: z.infer<typeof intelligenceKeys>) => {
+		if (isSettingPreferredIntelligence) return;
+		setPreferredIntelligence({ taskId: task._id, preferredIntelligence: key });
+	};
+
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'i' },
-		callback: () => {
-			textareaRef.current?.focus();
-			const length = textareaRef.current?.value.length || 0;
-			textareaRef.current?.setSelectionRange(length, length);
-		},
+		callback: () => composerRef.current?.focusEnd(),
 	});
 
-	// submit/request iteration shortcut (⌘+Enter)
-	useKeyboardShortcut({
-		targetRef: textareaRef,
-		combo: { withCommand: true, key: 'Enter' },
-		callback: () => {
-			if (recordingStatus === 'idle' && !isStopping) {
-				handleAct();
-			}
-		},
-	});
-
-	// enqueue message shortcut (⌥+Enter)
-	useKeyboardShortcut({
-		targetRef: textareaRef,
-		combo: { withAlt: true, key: 'Enter' },
-		callback: () => {
-			if (recordingStatus === 'idle') {
-				handleEnqueueMessage();
-			}
-		},
-	});
-
-	// stop acting shortcut (CTRL+C)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCtrl: true, key: 'c' },
 		skipPreventDefault: true,
-		callback: (e) => {
+		callback: (event) => {
 			if (task.status === 'acting' && !isStopping) {
 				handleStop();
-				e.preventDefault();
+				event.preventDefault();
 			}
 		},
 	});
 
-	// intelligence selector shortcut (⌘+/)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: '/' },
@@ -166,50 +102,40 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	});
 
 	return (
-		<TooltipProvider>
-			<div
-				className={cn(
-					'bg-sidebar rounded-3xl border p-2 mx-2 mb-2 shadow-xs flex flex-col',
-					className,
-					isRecordingOrTranscribing && 'flex-row',
-				)}
-			>
-				{/* strips - only visible when idle */}
-				{!isRecordingOrTranscribing && (
-					<div className="border-b border-border/50 -mx-2 -mt-2 rounded-t-3xl overflow-hidden">
-						<StripContainer task={task} />
-					</div>
-				)}
-
-				{/* recording state */}
-				{recordingStatus === 'recording' && (
-					<RecordingState stopRecording={stopRecording} cancelRecording={cancelRecording} />
-				)}
-
-				{/* transcribing state */}
-				{recordingStatus === 'transcribing' && <TranscribingState cancelRecording={cancelRecording} />}
-
-				{/* idle state - input and action bar */}
-				{!isRecordingOrTranscribing && (
-					<IdleState
-						task={task}
-						textareaRef={textareaRef}
-						message={localMessage}
-						handleMessageChange={handleMessageChange}
-						isEmpty={isLocalEmpty}
-						hasQueuedSkills={queue.length > 0}
-						startRecording={startRecording}
-						handleAct={handleAct}
-						handleEnqueue={handleEnqueueMessage}
-						isActing={isTaskActing}
-						isBlocked={isBlocked}
-						isComposing={isComposing}
-						canRequestIteration={canRequestIteration}
-						intelligenceSelectorRef={intelligenceSelectorRef}
-						handleStop={handleStop}
+		<Composer
+			ref={composerRef}
+			value={message}
+			onValueChange={setMessage}
+			onSubmit={handleAct}
+			onEnqueue={handleEnqueueMessage}
+			onStop={handleStop}
+			promptContext={voicePromptContext}
+			dictionary={dictionary}
+			className={className}
+			strips={<StripContainer task={task} />}
+			leadingControls={
+				<>
+					<IntelligenceSelector
+						value={task.preferredIntelligence}
+						onChange={handleIntelligenceChange}
+						ref={intelligenceSelectorRef}
 					/>
-				)}
-			</div>
-		</TooltipProvider>
+					<SkillsLink />
+				</>
+			}
+			isActing={isTaskActing}
+			isBlocked={isBlocked}
+			isComposing={isComposing}
+			canRequestIteration={canRequestIteration}
+			hasQueuedItems={queue.length > 0}
+			isStopping={isStopping}
+		/>
 	);
+}
+
+function extractTerms(value: string) {
+	return Array.from(
+		value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g),
+		(match) => match[0],
+	).slice(0, 24);
 }
