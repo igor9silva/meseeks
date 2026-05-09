@@ -199,13 +199,26 @@ function RouteComponent() {
 
 	const handleInputDelta = useCallback(
 		(delta: string) => {
+			if (!inputDraftRef.current.trim()) {
+				currentSourceSideRef.current = null;
+				setDetectedSourceSide(null);
+				syncChannelAudio(channelsRef.current, null, audioMutedRef.current);
+			}
+
 			inputDraftRef.current += delta;
 			const nextInput = inputDraftRef.current.trim();
 			setHeardText(nextInput);
 			setActivity('hearing');
 
-			const sourceSide = inferSourceSide(nextInput, languagePairRef.current);
-			if (sourceSide) setSourceDirection(sourceSide);
+			const inferredSourceSide = inferSourceSide(nextInput, languagePairRef.current);
+			if (inferredSourceSide) setSourceDirection(inferredSourceSide);
+
+			const sourceSide = inferredSourceSide ?? currentSourceSideRef.current;
+			if (sourceSide) {
+				draftSourceSideRef.current[sourceSide] = sourceSide;
+				draftTextRef.current[sourceSide] = nextInput;
+				setLiveText((current) => ({ ...current, [sourceSide]: nextInput }));
+			}
 
 			if (inputTimerRef.current) clearTimeout(inputTimerRef.current);
 			inputTimerRef.current = setTimeout(() => {
