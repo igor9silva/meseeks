@@ -620,53 +620,75 @@ function HistorySheet({
 	history: TranscriptEntry[];
 	languages: Record<SideKey, LanguageCode>;
 }) {
+	const [isOpen, setIsOpen] = useState(false);
+	const scrollRef = useRef<HTMLDivElement | null>(null);
+	const orderedHistory = history.slice().reverse();
+
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const scrollToBottom = () => {
+			const node = scrollRef.current;
+			if (!node) return;
+			node.scrollTop = node.scrollHeight;
+		};
+
+		scrollToBottom();
+		const timeout = setTimeout(scrollToBottom, 50);
+		return () => clearTimeout(timeout);
+	}, [isOpen, history.length]);
+
 	return (
-		<Sheet>
+		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			<SheetTrigger asChild>
 				<Button type="button" variant="ghost" size="sm">
 					<History className="size-4" />
 					History
 				</Button>
 			</SheetTrigger>
-			<SheetContent side="bottom" className="max-h-[75dvh] overflow-y-auto rounded-t-xl">
+			<SheetContent side="bottom" className="flex max-h-[75dvh] flex-col overflow-hidden rounded-t-xl">
 				<SheetHeader>
 					<SheetTitle>History</SheetTitle>
 					<SheetDescription className="sr-only">Translated messages from this session.</SheetDescription>
 				</SheetHeader>
-				<div className="mt-5 flex flex-col gap-3">
+				<div ref={scrollRef} className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
 					{history.length ? (
-						history.map((entry) => (
-							<div
-								key={entry.id}
-								className={cn('flex', entry.targetSide === 'a' ? 'justify-end' : 'justify-start')}
-							>
+						<div className="flex flex-col gap-3 pb-1">
+							{orderedHistory.map((entry) => (
 								<div
-									className={cn(
-										'max-w-[86%] rounded-2xl px-4 py-3 text-sm shadow-sm',
-										entry.targetSide === 'a'
-											? 'rounded-br-sm bg-primary text-primary-foreground'
-											: 'rounded-bl-sm bg-muted text-foreground',
-									)}
+									key={entry.id}
+									className={cn('flex', entry.targetSide === 'a' ? 'justify-end' : 'justify-start')}
 								>
 									<div
 										className={cn(
-											'mb-1 flex items-center justify-between gap-3 text-xs font-medium',
+											'max-w-[86%] rounded-2xl px-4 py-3 text-sm shadow-sm',
 											entry.targetSide === 'a'
-												? 'text-primary-foreground/70'
-												: 'text-muted-foreground',
+												? 'rounded-br-sm bg-primary text-primary-foreground'
+												: 'rounded-bl-sm bg-muted text-foreground',
 										)}
 									>
-										<span>
-											{languageByCode[languages[entry.sourceSide]].shortLabel}
-											{' to '}
-											{languageByCode[languages[entry.targetSide]].shortLabel}
-										</span>
-										<span>{entry.time}</span>
+										<div
+											className={cn(
+												'mb-1 flex items-center justify-between gap-3 text-xs font-medium',
+												entry.targetSide === 'a'
+													? 'text-primary-foreground/70'
+													: 'text-muted-foreground',
+											)}
+										>
+											<span>
+												{languageByCode[languages[entry.sourceSide]].shortLabel}
+												{' to '}
+												{languageByCode[languages[entry.targetSide]].shortLabel}
+											</span>
+											<span>{entry.time}</span>
+										</div>
+										<p className="whitespace-pre-wrap break-words text-base leading-6">
+											{entry.text}
+										</p>
 									</div>
-									<p className="whitespace-pre-wrap break-words text-base leading-6">{entry.text}</p>
 								</div>
-							</div>
-						))
+							))}
+						</div>
 					) : (
 						<div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
 							No history yet
