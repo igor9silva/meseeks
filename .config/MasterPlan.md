@@ -20,6 +20,7 @@ You are working on the Meseeks codebase. Follow these rules strictly.
 - Do not silently inflate "compare X with Y" into an encyclopedia entry. A comparison can be thorough without opening with definitions, history, or neutral throat-clearing.
 - If the model already found the sharp take while reasoning, put that take at the top of the `say()` instead of burying it in the final paragraph.
 - If the user asks "why?", answer that specific why first. Do not restart the whole overview unless they asked for the whole overview.
+- Do not repeat the same point in different words. User prefers shorter answers, compress harder: direct take, dense bullets if needed, stop.
 - Avoid fake balance. If there is a clear better default, say so. "Both are good; it depends" is only acceptable when the tradeoff is genuinely even.
 - This example is about answer ordering, not permanent facts. Verify current facts when needed.
   - bad: user asks `Compare Radix UI with Base UI.` and the answer opens with `# Radix UI vs Base UI: A Comprehensive Comparison`, then definitions, philosophy, component lists, ecosystem notes, and only near the end says Base UI is probably better.
@@ -85,6 +86,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 ## Code Style
 
 ### Formatting
+
 - Add blank `//` comment lines after function declarations for readability when the formatter would otherwise collapse the visual separation
 - Do not remove existing comments - user reviews manually
 - Do not change indentation
@@ -100,11 +102,16 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - One-liner guards: `if (!element) return;` - use braces only when it doesn't fit on one line
 
 ### Naming
+
 - Booleans: `isSomething`, `hasSomething`, `shouldDoSomething` (yes/no question format)
 - Component files: PascalCase (`TaskDetail.tsx`), except `@reactor/ui` primitives in `packages/ui/src`
 - Event handlers: `handleSubmit`, `handleTaskUpdate`, `handleDialogClose`
+- Prefer short, exact names over verbose names. Do not repeat the containing concept in the identifier.
+  - bad: `task.loopBinding`, `reactionTrigger`, `buildMagicRockContextFromActionDetails`, `SeekLoop@12`
+  - good: `task.loop`, `trigger`, `buildContext({ details })`, `Seek@12`
 
 ### Ternaries
+
 - Only use when it fits on a single line.
 - Do not use ternaries for non-trivial state transforms or branching. Use explicit `if` blocks so the change is easy to review.
   - bad: `const next = isEnabled ? Array.from(new Set([...items, item])) : items.filter((x) => x !== item)`
@@ -112,6 +119,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - For complex conditions, extract to variables or early returns.
 
 ### Imports
+
 - Add imports AFTER first usage when staging a partial edit that will use them later in the same change
 - Import specific React hooks: `import { useState, useEffect } from 'react'`
 - Never import entire React library
@@ -123,10 +131,12 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
   - good: keep `hooks/preferences/index.ts` when components import several preference hooks and direct paths make call sites noisy
 
 ### Return Types
+
 - Prefer inferred return types for local/private helpers.
 - Add explicit return types only at public API boundaries or when inference is ambiguous.
 
 ### Type Inference
+
 - Prefer inferred types for local variables, array callback params, and intermediate collections.
 - Add explicit type annotations only at real boundaries or when inference is genuinely ambiguous after checking the source type.
 - When a type issue shows up in app code, fix the source type or boundary first instead of annotating every usage site.
@@ -134,10 +144,12 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
   - good: `const filteredSkills = skills.filter((skill) => ...)`
 
 ### Tailwind
+
 - Never use hardcoded values like `min-w-[256px]`
 - Use Tailwind conventions: `min-w-64`
 
 ### Performance
+
 - Prefer `array.concat()` over spread syntax
 - Avoid unnecessary re-renders
 
@@ -172,12 +184,14 @@ components/
 ## React Patterns
 
 ### State
+
 ```tsx
 const [isLoading, setIsLoading] = useState(false);
 const [hasError, setHasError] = useState(false);
 ```
 
 ### Conditional Rendering
+
 ```tsx
 // avoid nested ternaries
 if (isLoading) return <Loading />;
@@ -186,22 +200,26 @@ return <Content />;
 ```
 
 ### Hydration
+
 - Never add `suppressHydrationWarning` silently. Fix the mismatch instead, or stop and explain why the mismatch exists.
   - bad: slap `suppressHydrationWarning` on `<html>` to hide a server/client mismatch during a migration
   - good: make the server and client agree, or ask before using `suppressHydrationWarning` as an explicit last resort
 
 ### Event Props
+
 - When an event prop can call an existing function directly, pass the function directly instead of wrapping it in an inline async callback.
   - bad: `<DropdownMenuItem onClick={async () => { await signOutAndReload(); }} />`
   - good: `<DropdownMenuItem onClick={signOutAndReload} />`
 
 ### Memoization
+
 - React Compiler is enabled for the app. Do not add `useMemo` or `useCallback` solely for routine referential stability or cheap calculations.
 - Add manual memoization only when there is a real contract or measured performance reason, and leave a short comment when the reason is non-obvious.
   - bad: wrap `mutation.withOptimisticUpdate(...)` in `useMemo` just in case
   - good: rely on the compiler unless a child API requires stable identity or profiling proves churn matters
 
 ### Queries
+
 - Suspense queries (preferred) suspend to nearest `<Suspense>` and throw to nearest `<ErrorBoundary>`
 - Regular queries handle their own pending and error states
 - Use Convex with TanStack Query: `convexQuery`, `useSuspenseQuery`
@@ -210,14 +228,17 @@ return <Content />;
   - good: render `<PersonalSkillList />` or `<PublicSkillList />`, each with its own query hook
 
 ### Validation
+
 Always use Zod for any kind of validation.
 
 ## Convex Backend
 
 ### CRITICAL: Never deploy directly to production
+
 Do not run `bunx convex deploy` - this deploys to production.
 
 ### File Structure
+
 - Prefer `<module>.ts` + `<module>.private.ts` for Convex domains.
 - `<module>.ts` - Convex entrypoints (`query`, `mutation`, `action`, `internal*`)
 - `<module>.private.ts` - reusable helper functions (not Convex entrypoints)
@@ -225,14 +246,19 @@ Do not run `bunx convex deploy` - this deploys to production.
 - `lib/` - shared utilities
 
 ### Public Functions
+
 - Descriptive names without underscores
 - Validate args with Zod schemas
 - Must include authentication/authorization checks
+- In docs and user-facing explanations, use public API names, not private helper names.
+  - bad: say users call `actions.addActions`
+  - good: say users call `act()`
 - Keep public entrypoints focused on orchestration (args parsing, authorization, policy checks, and helper composition). If a DB read/write helper exists (or should exist), call the private helper instead of using `ctx.db.*` inline.
   - bad: public query does `ctx.db.get(componentId)` directly for domain reads
   - good: public query calls `findComponent(...)` from `<module>.private.ts`, then applies endpoint-specific policy checks
 
 ### Internal Functions
+
 - Internal Convex exports in `<module>.ts` must use underscore prefix: `_functionName`.
 - Helper functions in `<module>.private.ts` must not use underscore prefixes.
 - Use `internalQuery`, `internalMutation`, `internalAction` only for Convex exports in `<module>.ts`.
@@ -241,6 +267,7 @@ Do not run `bunx convex deploy` - this deploys to production.
   - good: `// called by createHttpTool after HTTP execution to persist response metadata`
 
 ### Helper Composition
+
 - Helpers should receive `(ctx, argsObject)` so call sites stay labeled.
 - Define Zod args at helper declaration time; avoid separate `argsSchema` constants unless the exact schema is reused in multiple declarations.
 - Do not rename helper imports unless required by a real collision.
@@ -252,6 +279,7 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Reuse existing domain helpers for current-user loading (for example `users.current`) instead of duplicating auth+user lookup logic in each module.
 
 ### Authorization
+
 - Never mention "authorization" in error messages - use generic "not found"
 - Check ownership before public-facing operations
 - Perform ownership/auth checks in public Convex entrypoints (`<module>.ts`) before calling reusable private helpers.
@@ -259,11 +287,13 @@ Do not run `bunx convex deploy` - this deploys to production.
   - good: public mutation runs `ensureTaskOwner(...)`, then passes validated/trusted args into the private helper
 
 ### Database
+
 - Always use indexes for queries
 - Never use `filter()` without explicit user consent
 - Use `zid('tableName')` for typed IDs
 
 ### Environment Variables
+
 - Never edit `.env`, `.env.local`, `.env.*`, or similar local env files unless the user explicitly asks. These files are user-owned configuration.
 - Never run `bunx convex env set`, `bunx convex env unset`, or similar Convex env mutation commands unless the user explicitly asks. If backend code needs a new Convex env var, tell the user the exact variable name, where it is read, and ask them to set it.
   - bad: silently add `BETTER_AUTH_SECRET` to `.env.local` or mutate Convex envs during a migration
@@ -272,6 +302,7 @@ Do not run `bunx convex deploy` - this deploys to production.
 - In Convex backend modules, import app-owned env vars from `./schemas/envSchema`: `import { env } from './schemas/envSchema'`
 
 ### Types
+
 - Use Zod schemas for all custom types
 - Avoid rewriting schemas - import and use `z.infer()`
 - Use generated types: `Doc<'tableName'>`, `Id<'tableName'>`
@@ -284,6 +315,7 @@ Do not run `bunx convex deploy` - this deploys to production.
 ## TanStack Router
 
 ### File Naming
+
 - `index.tsx` - index routes
 - `$param.tsx` - dynamic segments
 - `$.tsx` - splat/catch-all
@@ -291,6 +323,7 @@ Do not run `bunx convex deploy` - this deploys to production.
 - `-file.tsx` - excluded from routing
 
 ### Search State
+
 - Inside routed UI, prefer TanStack Router's parsed location/search APIs over manual URL or query-string parsing.
   - bad: `new URLSearchParams(searchStr).get('error')`
   - good: `const authError = authErrorSearchSchema.parse(search).error`
@@ -305,6 +338,7 @@ One file per hook in `src/hooks/`.
 ## Library Utilities
 
 `src/lib/` contains shared utilities that aren't hooks or components. Everything must be:
+
 - Validated with Zod
 - Performant
 - Well-written and readable
@@ -315,6 +349,7 @@ One file per hook in `src/hooks/`.
 - `AGENTS.md` is auto-generated from `MasterPlan.md`; never edit it directly
 - `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
 - If a named skill is not loaded in the Codex app, check repo-local `.config/skills/<name>/SKILL.md` before claiming it cannot be used. Use the on-disk source manually when present.
+- If the user invokes a repo skill by name or path, run that skill workflow instead of only acknowledging it.
 
 ## Making Changes
 
@@ -326,6 +361,7 @@ One file per hook in `src/hooks/`.
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
+- Never drop stashes. Use `git stash apply`, not `git stash pop`, and leave stash entries intact unless the user explicitly says to drop or clear them.
 - The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
 - Clean up the full impact of every change, not just the literal lines requested
@@ -348,6 +384,9 @@ One file per hook in `src/hooks/`.
   - bad: repeat `'/api/auth'` in app client setup, server proxy setup, and Convex auth setup
   - good: define `authBasePath` once and import it everywhere that needs it
 - After file moves/renames, update all call sites in the same pass (`api.*`, `internal.*`, and imports), then verify with a targeted search.
+- Do not delete a route, query, mutation, feature, or file as "dead" unless you have proved it with targeted searches and checked whether it is a user-facing entrypoint.
+  - bad: delete `/action/$id` because the current component tree did not link to it
+  - good: search route generation, direct links, analytics, API usage, and docs before removing it
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
