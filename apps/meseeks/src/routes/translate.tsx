@@ -92,7 +92,7 @@ export const Route = createFileRoute('/translate')({
 
 function RouteComponent() {
 	const [languagePair, setLanguagePair] = useState<Record<SideKey, LanguageCode>>({ a: 'pt', b: 'en' });
-	const [voiceTargetSide, setVoiceTargetSide] = useState<SideKey | null>('b');
+	const [voiceTargetSide, setVoiceTargetSide] = useState<SideKey | null>(null);
 	const [status, setStatus] = useState<ConnectionStatus>('setup');
 	const [activity, setActivity] = useState<Activity>('quiet');
 	const [error, setError] = useState<string | null>(null);
