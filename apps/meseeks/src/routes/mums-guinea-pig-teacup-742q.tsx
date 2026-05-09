@@ -34,6 +34,8 @@ interface RealtimeEvent {
 }
 
 interface SecretResponse {
+	clientSecret?: string;
+	value?: string;
 	client_secret?: string | { value?: string };
 	error?: string;
 }
@@ -630,6 +632,8 @@ async function openTranslationChannel({
 
 function extractClientSecret(session: SecretResponse | null) {
 	if (!session) return null;
+	if (typeof session.clientSecret === 'string') return session.clientSecret;
+	if (typeof session.value === 'string') return session.value;
 	if (typeof session.client_secret === 'string') return session.client_secret;
 	return session.client_secret?.value ?? null;
 }

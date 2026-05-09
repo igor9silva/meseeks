@@ -10,6 +10,12 @@ const requestSchema = z.object({
 	targetLanguage: targetLanguageSchema,
 });
 
+interface OpenAITranslationSecretResponse {
+	value?: unknown;
+	client_secret?: unknown;
+	error?: unknown;
+}
+
 export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')({
 	server: {
 		handlers: {
@@ -54,7 +60,7 @@ export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')
 				});
 
 				const responseText = await response.text();
-				const body = parseOpenAIResponse(responseText);
+				const body = parseOpenAIResponse(responseText) as OpenAITranslationSecretResponse;
 
 				if (!response.ok) {
 					console.error('OpenAI translation client secret failed:', {
@@ -68,7 +74,18 @@ export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')
 					);
 				}
 
-				return Response.json(body, {
+				const clientSecret = extractClientSecret(body);
+
+				if (!clientSecret) {
+					console.error('OpenAI translation client secret response was missing a value:', body);
+
+					return Response.json(
+						{ error: 'OpenAI did not return a translation client secret.' },
+						{ status: 502 },
+					);
+				}
+
+				return Response.json({ clientSecret }, {
 					status: 200,
 					headers: {
 						'Cache-Control': 'no-store',
@@ -85,4 +102,10 @@ function parseOpenAIResponse(responseText: string) {
 	} catch {
 		return { error: responseText };
 	}
+}
+
+function extractClientSecret(body: OpenAITranslationSecretResponse) {
+	if (typeof body.value === 'string') return body.value;
+	if (typeof body.client_secret === 'string') return body.client_secret;
+	return null;
 }
