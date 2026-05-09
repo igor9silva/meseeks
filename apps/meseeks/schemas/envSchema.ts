@@ -8,7 +8,7 @@ export const env = createEnv({
 	server: {
 		//
 		SITE_URL: z.string().min(1).describe('The app public URL.'),
-		VERCEL_URL: z.string().min(1).optional().describe('Vercel deployment URL without the protocol.'),
+		ENV_TYPE: z.enum(['production', 'preview', 'development']).optional().describe('Deployment environment.'),
 		BETTER_AUTH_SECRET: z.string().min(1).describe('Better Auth application secret.'),
 
 		POLAR_SERVER: z.enum(['sandbox', 'production']).default('sandbox').describe('Polar server.'),
