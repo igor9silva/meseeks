@@ -1,4 +1,15 @@
-import { assertAppRoot, getPreviewName, isMainBranch, loadEnvLocal, run, runConvex } from './preview-env';
+import {
+	assertAppRoot,
+	cleanupGeneratedGitignore,
+	getPreviewName,
+	isMainBranch,
+	loadEnvLocal,
+	registerGeneratedGitignoreCleanup,
+	run,
+	runConvex,
+} from './preview-env';
+
+registerGeneratedGitignoreCleanup();
 
 function main() {
 	assertAppRoot();
@@ -18,12 +29,17 @@ function main() {
 		VERCEL_GIT_COMMIT_REF: previewName,
 	};
 
-	runConvex(['dev', '--env-file', '.env.local', '--run-sh', 'bun run dev:web'], { env });
+	try {
+		runConvex(['dev', '--env-file', '.env.local', '--start', 'bun run dev:web'], { env });
+	} finally {
+		cleanupGeneratedGitignore();
+	}
 }
 
 try {
 	main();
 } catch (error) {
+	cleanupGeneratedGitignore();
 	console.error(error instanceof Error ? error.message : String(error));
 	process.exit(1);
 }

@@ -1,8 +1,8 @@
 import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
-import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const convexCliPackage = 'convex@1.34.1';
+const convexCliPackage = 'convex@1.38.0';
 
 export const envLocalFile = '.env.local';
 
@@ -107,6 +107,28 @@ export function runConvex(args: string[], options: SpawnSyncOptions = {}) {
 
 export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
 	return tryRun('bunx', ['-y', convexCliPackage, ...args], options);
+}
+
+export function cleanupGeneratedGitignore() {
+	const path = '.gitignore';
+	if (!existsSync(path)) return;
+	if (readFileSync(path, 'utf8').trim() !== envLocalFile) return;
+
+	rmSync(path, { force: true });
+}
+
+export function registerGeneratedGitignoreCleanup() {
+	process.once('exit', cleanupGeneratedGitignore);
+
+	process.once('SIGINT', () => {
+		cleanupGeneratedGitignore();
+		process.exit(130);
+	});
+
+	process.once('SIGTERM', () => {
+		cleanupGeneratedGitignore();
+		process.exit(143);
+	});
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {
