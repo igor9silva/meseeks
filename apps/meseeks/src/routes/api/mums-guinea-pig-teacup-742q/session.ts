@@ -1,17 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod/v3';
 
-const openAIRealtimeCallsUrl = 'https://api.openai.com/v1/realtime/calls';
+const translationClientSecretUrl = 'https://api.openai.com/v1/realtime/translations/client_secrets';
 const model = 'gpt-realtime-translate';
-const transcriptionModel = 'gpt-4o-transcribe';
+const transcriptionModel = 'gpt-realtime-whisper';
 
-const targetSchema = z.enum(['english', 'mandarin', 'portuguese']).default('english');
-
-const targetLanguages = {
-	english: 'British English',
-	mandarin: 'Mandarin Chinese',
-	portuguese: 'Portuguese',
-} as const;
+const targetLanguageSchema = z.enum(['en', 'pt', 'zh']);
+const requestSchema = z.object({
+	targetLanguage: targetLanguageSchema,
+});
 
 export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')({
 	server: {
@@ -23,44 +20,57 @@ export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')
 					return Response.json({ error: 'OPENAI_API_KEY is not configured.' }, { status: 500 });
 				}
 
-				const target = targetSchema.parse(new URL(request.url).searchParams.get('target') ?? undefined);
-				const sdp = await request.text();
+				const parsedBody = requestSchema.safeParse(await request.json().catch(() => null));
 
-				if (!sdp.trim()) {
-					return Response.json({ error: 'Missing SDP offer.' }, { status: 400 });
+				if (!parsedBody.success) {
+					return Response.json({ error: 'Choose a supported target language.' }, { status: 400 });
 				}
 
-				const formData = new FormData();
-				formData.set('sdp', sdp);
-				formData.set('session', JSON.stringify(createSessionConfig(target)));
-
-				const response = await fetch(openAIRealtimeCallsUrl, {
+				const response = await fetch(translationClientSecretUrl, {
 					method: 'POST',
 					headers: {
 						Authorization: `Bearer ${apiKey}`,
+						'Content-Type': 'application/json',
 						'OpenAI-Safety-Identifier': 'meseeks-mum-translator-mvp',
 					},
-					body: formData,
+					body: JSON.stringify({
+						session: {
+							model,
+							audio: {
+								input: {
+									transcription: {
+										model: transcriptionModel,
+									},
+									noise_reduction: {
+										type: 'near_field',
+									},
+								},
+								output: {
+									language: parsedBody.data.targetLanguage,
+								},
+							},
+						},
+					}),
 				});
 
-				const answer = await response.text();
+				const responseText = await response.text();
+				const body = parseOpenAIResponse(responseText);
 
 				if (!response.ok) {
-					console.error('OpenAI realtime session failed:', {
+					console.error('OpenAI translation client secret failed:', {
 						status: response.status,
-						body: answer,
+						body,
 					});
 
 					return Response.json(
-						{ error: `OpenAI realtime session failed with ${response.status}.` },
+						{ error: `OpenAI translation session failed with ${response.status}.` },
 						{ status: response.status },
 					);
 				}
 
-				return new Response(answer, {
+				return Response.json(body, {
 					status: 200,
 					headers: {
-						'Content-Type': 'application/sdp',
 						'Cache-Control': 'no-store',
 					},
 				});
@@ -69,40 +79,10 @@ export const Route = createFileRoute('/api/mums-guinea-pig-teacup-742q/session')
 	},
 } as any);
 
-function createSessionConfig(target: z.output<typeof targetSchema>) {
-	const language = targetLanguages[target];
-
-	return {
-		type: 'realtime',
-		model,
-		output_modalities: ['audio'],
-		instructions: createInstructions(language),
-		audio: {
-			input: {
-				transcription: {
-					model: transcriptionModel,
-				},
-				turn_detection: {
-					type: 'semantic_vad',
-					eagerness: 'medium',
-					create_response: true,
-					interrupt_response: true,
-				},
-			},
-			output: {
-				voice: 'marin',
-				speed: 0.95,
-			},
-		},
-	};
-}
-
-function createInstructions(language: string) {
-	return [
-		`Translate every spoken turn into ${language}.`,
-		'Only translate what was said. Do not answer as an assistant.',
-		'Keep names, places, laughter, and small affectionate phrases natural.',
-		'If the speaker pauses or corrects themselves, preserve the corrected meaning.',
-		'Use warm, clear phrasing suitable for a family conversation.',
-	].join(' ');
+function parseOpenAIResponse(responseText: string) {
+	try {
+		return JSON.parse(responseText);
+	} catch {
+		return { error: responseText };
+	}
 }
