@@ -383,8 +383,8 @@ function RouteComponent() {
 
 	if (status === 'setup') {
 		return (
-			<main className="min-h-dvh bg-background px-4 py-5 text-foreground">
-				<div className="mx-auto flex min-h-[calc(100dvh-2.5rem)] w-full max-w-md flex-col justify-between">
+			<main className="h-full bg-background px-4 py-5 text-foreground">
+				<div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-between">
 					<div className="pt-6">
 						<div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 							<Languages className="size-4 text-primary" />
@@ -444,7 +444,7 @@ function RouteComponent() {
 	}
 
 	return (
-		<main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+		<main className="flex h-full min-h-0 flex-col overflow-hidden bg-background text-foreground">
 			<header className="flex h-14 shrink-0 items-center justify-between border-b border-border px-3">
 				<div className="flex min-w-0 items-center gap-2">
 					<span className={cn('size-2.5 rounded-full', isLive ? 'bg-primary' : 'bg-muted-foreground')} />
