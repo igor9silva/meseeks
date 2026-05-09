@@ -10,7 +10,7 @@ export function createBetterAuth(ctx: GenericCtx<DataModel>) {
 	//
 	return betterAuth(
 		createAuthOptions({
-			baseURL: `${env.SITE_URL}${authBasePath}`,
+			baseURL: `${getAuthSiteUrl()}${authBasePath}`,
 			siteUrl: env.SITE_URL,
 			secret: env.BETTER_AUTH_SECRET,
 			googleClientId: env.AUTH_GOOGLE_ID,
@@ -20,4 +20,10 @@ export function createBetterAuth(ctx: GenericCtx<DataModel>) {
 			database: betterAuthComponent.adapter(ctx),
 		}),
 	);
+}
+
+function getAuthSiteUrl() {
+	//
+	if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`;
+	return env.SITE_URL;
 }
