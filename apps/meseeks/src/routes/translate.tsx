@@ -57,7 +57,7 @@ interface RoundDraft {
 
 const apiRoute = '/api/translate/session';
 const translationCallsUrl = 'https://api.openai.com/v1/realtime/translations/calls';
-const roundSettleMs = 2200;
+const roundSettleMs = 3000;
 
 const languages: LanguageOption[] = [
 	{ code: 'en', label: 'English', shortLabel: 'EN' },
@@ -105,7 +105,6 @@ function RouteComponent() {
 	const roundDraftRef = useRef<RoundDraft>(createRoundDraft(languagePair));
 	const roundCommitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const languagePairRef = useRef(languagePair);
-	const currentSourceSideRef = useRef<SideKey | null>(null);
 	const voiceTargetSideRef = useRef<SideKey | null>(voiceTargetSide);
 
 	const sideA = languageByCode[languagePair.a];
@@ -153,14 +152,11 @@ function RouteComponent() {
 		roundCommitTimerRef.current = null;
 
 		const draft = roundDraftRef.current;
-		const sourceSide = currentSourceSideRef.current;
 		const heardText = draft.heardText.trim();
 		const outputs = {
 			a: draft.outputs.a.trim(),
 			b: draft.outputs.b.trim(),
 		};
-
-		if (sourceSide && heardText && !outputs[sourceSide]) outputs[sourceSide] = heardText;
 
 		if (heardText || outputs.a || outputs.b) {
 			setHistory((current) =>
@@ -181,10 +177,17 @@ function RouteComponent() {
 		}
 
 		roundDraftRef.current = createRoundDraft(languagePairRef.current);
-		currentSourceSideRef.current = null;
+		setActivity('listening');
+	}, []);
+
+	const beginRound = useCallback(() => {
+		const draft = roundDraftRef.current;
+		if (hasRoundContent(draft)) return draft;
+
+		draft.languages = { ...languagePairRef.current };
 		setHeardText('');
 		setLiveText({ a: '', b: '' });
-		setActivity('listening');
+		return draft;
 	}, []);
 
 	const scheduleRoundCommit = useCallback(() => {
@@ -192,43 +195,22 @@ function RouteComponent() {
 		roundCommitTimerRef.current = setTimeout(commitRound, roundSettleMs);
 	}, [commitRound]);
 
-	const setSourceDirection = useCallback((sourceSide: SideKey) => {
-		currentSourceSideRef.current = sourceSide;
-	}, []);
-
 	const handleInputDelta = useCallback(
 		(delta: string) => {
-			const draft = roundDraftRef.current;
-			if (!hasRoundContent(draft)) {
-				draft.languages = { ...languagePairRef.current };
-				currentSourceSideRef.current = null;
-			}
-
+			const draft = beginRound();
 			draft.heardText += delta;
 			const nextInput = draft.heardText.trim();
 			setHeardText(nextInput);
 			setActivity('hearing');
 
-			const inferredSourceSide = inferSourceSide(nextInput, languagePairRef.current);
-			if (inferredSourceSide) setSourceDirection(inferredSourceSide);
-
-			const sourceSide = inferredSourceSide ?? currentSourceSideRef.current;
-			if (sourceSide) {
-				setLiveText((current) => ({ ...current, [sourceSide]: nextInput }));
-			}
-
 			scheduleRoundCommit();
 		},
-		[scheduleRoundCommit, setSourceDirection],
+		[beginRound, scheduleRoundCommit],
 	);
 
 	const handleOutputDelta = useCallback(
 		(targetSide: SideKey, delta: string) => {
-			const draft = roundDraftRef.current;
-			if (!hasRoundContent(draft)) {
-				draft.languages = { ...languagePairRef.current };
-			}
-
+			const draft = beginRound();
 			const existingDraft = draft.outputs[targetSide];
 			const nextText = existingDraft ? existingDraft + delta : delta;
 			draft.outputs[targetSide] = nextText;
@@ -236,7 +218,7 @@ function RouteComponent() {
 			setActivity('speaking');
 			scheduleRoundCommit();
 		},
-		[scheduleRoundCommit],
+		[beginRound, scheduleRoundCommit],
 	);
 
 	const handleRealtimeEvent = useCallback(
@@ -258,11 +240,7 @@ function RouteComponent() {
 				case 'session.output_transcript.done':
 					if (event.text || event.transcript) {
 						const finalText = event.text ?? event.transcript ?? '';
-						const draft = roundDraftRef.current;
-						if (!hasRoundContent(draft)) {
-							draft.languages = { ...languagePairRef.current };
-						}
-
+						const draft = beginRound();
 						draft.outputs[targetSide] = finalText;
 						setLiveText((current) => ({ ...current, [targetSide]: finalText.trim() }));
 					}
@@ -276,7 +254,7 @@ function RouteComponent() {
 					break;
 			}
 		},
-		[handleInputDelta, handleOutputDelta, scheduleRoundCommit],
+		[beginRound, handleInputDelta, handleOutputDelta, scheduleRoundCommit],
 	);
 
 	const cleanupSession = useCallback(() => {
@@ -298,7 +276,6 @@ function RouteComponent() {
 	const stopSession = useCallback(() => {
 		commitRound();
 		cleanupSession();
-		currentSourceSideRef.current = null;
 		setStatus('idle');
 		setActivity('quiet');
 	}, [cleanupSession, commitRound]);
@@ -324,7 +301,6 @@ function RouteComponent() {
 		setError(null);
 		setHeardText('');
 		setLiveText({ a: '', b: '' });
-		currentSourceSideRef.current = null;
 		setStatus('starting');
 		setActivity('quiet');
 
@@ -389,12 +365,7 @@ function RouteComponent() {
 					</div>
 
 					<div className="grid py-8">
-						<LanguagePicker
-							side="a"
-							language={sideA}
-							value={languagePair.a}
-							onChange={(value) => updateLanguage('a', value)}
-						/>
+						<LanguagePicker value={languagePair.a} onChange={(value) => updateLanguage('a', value)} />
 
 						<div className="flex justify-center pb-1 pt-8">
 							<Button
@@ -408,12 +379,7 @@ function RouteComponent() {
 							</Button>
 						</div>
 
-						<LanguagePicker
-							side="b"
-							language={sideB}
-							value={languagePair.b}
-							onChange={(value) => updateLanguage('b', value)}
-						/>
+						<LanguagePicker value={languagePair.b} onChange={(value) => updateLanguage('b', value)} />
 					</div>
 
 					<div className="space-y-3 pb-2">
@@ -458,16 +424,14 @@ function RouteComponent() {
 				<TranslationPanel
 					className="rotate-180 border-t border-border bg-card"
 					language={sideB}
-					side="b"
-					text={liveText.b}
+					text={liveText.b || heardText}
 					isLive={isLive}
 					isVoiceTarget={voiceTargetSide === 'b'}
 				/>
 				<TranslationPanel
 					className="border-t border-border bg-background"
 					language={sideA}
-					side="a"
-					text={liveText.a}
+					text={liveText.a || heardText}
 					isLive={isLive}
 					isVoiceTarget={voiceTargetSide === 'a'}
 				/>
@@ -543,23 +507,9 @@ function RouteComponent() {
 	);
 }
 
-function LanguagePicker({
-	side,
-	language,
-	value,
-	onChange,
-}: {
-	side: SideKey;
-	language: LanguageOption;
-	value: LanguageCode;
-	onChange: (value: LanguageCode) => void;
-}) {
+function LanguagePicker({ value, onChange }: { value: LanguageCode; onChange: (value: LanguageCode) => void }) {
 	return (
-		<div className="grid gap-2">
-			<div className="flex items-center justify-between text-sm font-medium text-muted-foreground">
-				<span>{side.toUpperCase()}</span>
-				<span>{language.shortLabel}</span>
-			</div>
+		<div>
 			<Select value={value} onValueChange={(nextValue) => onChange(nextValue as LanguageCode)}>
 				<SelectTrigger className="h-16 rounded-lg border-border bg-card px-4 text-xl font-semibold">
 					<SelectValue />
@@ -579,42 +529,38 @@ function LanguagePicker({
 function TranslationPanel({
 	className,
 	language,
-	side,
 	text,
 	isLive,
 	isVoiceTarget,
 }: {
 	className?: string;
 	language: LanguageOption;
-	side: SideKey;
 	text: string;
 	isLive: boolean;
 	isVoiceTarget: boolean;
 }) {
+	const scrollRef = useRef<HTMLDivElement | null>(null);
+
+	useEffect(() => {
+		const node = scrollRef.current;
+		if (!node) return;
+		node.scrollTop = node.scrollHeight;
+	}, [text]);
+
 	return (
 		<section
 			className={cn(
-				'flex min-h-0 flex-col justify-between overflow-hidden p-4 text-left transition',
+				'flex min-h-0 flex-col overflow-hidden p-4 text-left transition',
 				isVoiceTarget && 'ring-2 ring-inset ring-primary',
 				className,
 			)}
 		>
-			<div className="flex items-center justify-between gap-3">
-				<div className="min-w-0">
-					<div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-						<span
-							className={cn(
-								'size-2.5 rounded-full',
-								isVoiceTarget ? 'bg-primary' : 'bg-muted-foreground',
-							)}
-						/>
-						{side.toUpperCase()}
-					</div>
-					<h2 className="mt-1 truncate text-2xl font-semibold tracking-normal">{language.label}</h2>
-				</div>
+			<div className="flex shrink-0 items-center gap-2 text-lg font-semibold tracking-normal">
+				<span className={cn('size-2.5 rounded-full', isVoiceTarget ? 'bg-primary' : 'bg-muted-foreground')} />
+				<span className="truncate">{language.label}</span>
 			</div>
 
-			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-4 pr-1">
+			<div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-3 pr-1">
 				{text ? (
 					<p className="whitespace-pre-wrap break-words text-4xl font-semibold leading-tight tracking-normal sm:text-6xl">
 						{text}
@@ -625,10 +571,6 @@ function TranslationPanel({
 						<p className="text-lg font-medium">{isLive ? 'Listening' : 'Ready'}</p>
 					</div>
 				)}
-			</div>
-
-			<div className="text-right text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-				{language.shortLabel}
 			</div>
 		</section>
 	);
@@ -656,7 +598,7 @@ function HistorySheet({
 		scrollToBottom();
 		const timeout = setTimeout(scrollToBottom, 50);
 		return () => clearTimeout(timeout);
-	}, [isOpen, history.length]);
+	}, [isOpen]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -673,11 +615,11 @@ function HistorySheet({
 				</SheetHeader>
 				<div ref={scrollRef} className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
 					{history.length ? (
-						<div className="flex flex-col gap-3 pb-1">
+						<div className="flex flex-col gap-2 pb-1">
 							{history.map((round) => (
 								<div key={round.id} className="flex justify-center">
-									<div className="w-full max-w-[94%] rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
-										<div className="mb-3 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
+									<div className="w-full rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+										<div className="mb-2 flex items-center justify-between gap-3 text-xs font-medium text-muted-foreground">
 											<span>
 												{languageByCode[round.languages.a]?.shortLabel ??
 													languageByCode[languages.a].shortLabel}
@@ -688,42 +630,31 @@ function HistorySheet({
 											<span>{round.time}</span>
 										</div>
 
-										{round.heardText && (
-											<div className="mb-3 rounded-xl bg-muted px-3 py-2">
-												<div className="mb-1 text-xs font-medium text-muted-foreground">
-													Heard
-												</div>
-												<p className="whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
-													{round.heardText}
-												</p>
-											</div>
-										)}
-
-										<div className="grid gap-2">
+										<div className="grid gap-1.5">
 											{(['a', 'b'] as const).map((side) => {
-												const text = round.outputs[side];
+												const text = round.outputs[side] || round.heardText;
 												if (!text) return null;
 
 												return (
 													<div
 														key={side}
 														className={cn(
-															'rounded-xl px-3 py-2',
+															'grid grid-cols-[3.25rem_1fr] gap-2 rounded-lg px-2 py-2',
 															side === 'a'
 																? 'bg-primary text-primary-foreground'
-																: 'bg-background text-foreground',
+																: 'bg-muted/70 text-foreground',
 														)}
 													>
 														<div
 															className={cn(
-																'mb-1 text-xs font-semibold',
+																'pt-1 text-xs font-semibold',
 																side === 'a'
 																	? 'text-primary-foreground/70'
 																	: 'text-muted-foreground',
 															)}
 														>
-															{languageByCode[round.languages[side]]?.label ??
-																languageByCode[languages[side]].label}
+															{languageByCode[round.languages[side]]?.shortLabel ??
+																languageByCode[languages[side]].shortLabel}
 														</div>
 														<p className="whitespace-pre-wrap break-words text-base leading-6">
 															{text}
@@ -872,148 +803,6 @@ function oppositeSide(side: SideKey): SideKey {
 
 function firstDifferentLanguage(language: LanguageCode) {
 	return languages.find((option) => option.code !== language)?.code ?? 'en';
-}
-
-const languageHintWords: Record<LanguageCode, Set<string>> = {
-	en: new Set([
-		'hello',
-		'hi',
-		'hey',
-		'how',
-		'are',
-		'you',
-		'yes',
-		'thanks',
-		'thank',
-		'please',
-		'good',
-		'morning',
-		'afternoon',
-		'evening',
-		'what',
-		'where',
-		'when',
-		'translation',
-		'speaking',
-		'hearing',
-	]),
-	pt: new Set([
-		'oi',
-		'olá',
-		'ola',
-		'você',
-		'voce',
-		'vocês',
-		'voces',
-		'tudo',
-		'bem',
-		'não',
-		'nao',
-		'sim',
-		'obrigado',
-		'obrigada',
-		'cadê',
-		'cade',
-		'tradução',
-		'traducao',
-		'português',
-		'portugues',
-		'estou',
-		'está',
-		'esta',
-		'estão',
-		'estao',
-		'ouvindo',
-		'falando',
-	]),
-	zh: new Set(['你好', '谢谢', '謝謝', '中文', '普通话', '普通話', '可以']),
-	es: new Set([
-		'hola',
-		'cómo',
-		'como',
-		'estás',
-		'estas',
-		'estoy',
-		'gracias',
-		'por',
-		'qué',
-		'que',
-		'español',
-		'espanol',
-		'buenos',
-		'días',
-		'dias',
-		'noches',
-	]),
-	fr: new Set([
-		'bonjour',
-		'salut',
-		'merci',
-		'comment',
-		'vous',
-		'êtes',
-		'etes',
-		'suis',
-		'français',
-		'francais',
-		'oui',
-		'avec',
-		'pour',
-	]),
-	de: new Set([
-		'hallo',
-		'danke',
-		'bitte',
-		'wie',
-		'geht',
-		'ich',
-		'bin',
-		'du',
-		'deutsch',
-		'nicht',
-		'und',
-		'ist',
-		'das',
-	]),
-	ja: new Set(['こんにちは', 'ありがとう', '日本語', 'はい', 'いいえ']),
-	ko: new Set(['안녕하세요', '감사합니다', '한국어', '네', '아니요']),
-	hi: new Set(['नमस्ते', 'धन्यवाद', 'हिन्दी', 'हिंदी', 'हाँ', 'नहीं']),
-	it: new Set(['ciao', 'grazie', 'come', 'stai', 'sono', 'italiano', 'italiana', 'per', 'non', 'sei', 'bene']),
-};
-
-function inferSourceSide(text: string, pair: Record<SideKey, LanguageCode>) {
-	const aScore = scoreLanguage(text, pair.a);
-	const bScore = scoreLanguage(text, pair.b);
-	if (aScore === bScore || Math.max(aScore, bScore) < 2) return null;
-	return aScore > bScore ? 'a' : 'b';
-}
-
-function scoreLanguage(text: string, language: LanguageCode) {
-	const normalizedText = text.toLocaleLowerCase();
-	if (!normalizedText.trim()) return 0;
-
-	let score = 0;
-	if (language === 'zh' && /[\u3400-\u9fff]/u.test(normalizedText)) score += 8;
-	if (language === 'ja' && /[\u3040-\u30ff]/u.test(normalizedText)) score += 8;
-	if (language === 'ko' && /[\uac00-\ud7af]/u.test(normalizedText)) score += 8;
-	if (language === 'hi' && /[\u0900-\u097f]/u.test(normalizedText)) score += 8;
-	if (language === 'pt' && /[ãõç]/u.test(normalizedText)) score += 3;
-	if (language === 'es' && /[ñ¿¡]/u.test(normalizedText)) score += 3;
-	if (language === 'de' && /[äöüß]/u.test(normalizedText)) score += 3;
-	if (language === 'fr' && /[âêîôûëïü]/u.test(normalizedText)) score += 2;
-	if (language === 'it' && /[èòìù]/u.test(normalizedText)) score += 2;
-
-	const hintWords = languageHintWords[language];
-	const words = normalizedText.match(/\p{L}+/gu) ?? [];
-	for (const word of words) {
-		if (hintWords.has(word)) score += word.length <= 2 ? 2 : 3;
-	}
-
-	for (const hint of hintWords) {
-		if (hint.length > 2 && normalizedText.includes(hint)) score += 2;
-	}
-
-	return score;
 }
 
 function topStatusLabel(status: ConnectionStatus, activity: Activity) {
