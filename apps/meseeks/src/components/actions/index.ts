@@ -32,6 +32,7 @@ export type ActionComponentProps = {
 	action: Doc<'actions'>;
 	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
+	suppressAnchorId?: boolean;
 	taskId: Id<'tasks'>;
 };
 
