@@ -134,7 +134,21 @@ If the worktree is detached, pass the branch explicitly:
 bun preview -- --branch my-branch
 ```
 
-`bun preview` selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the repo-pinned CLI, deploys functions/schema to that exact preview backend with `--preview-name`, and then starts Vite against the same URL. Frontend changes use Vite HMR; backend changes require rerunning `bun preview`.
+`bun preview` selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the repo-pinned CLI, deploys functions/schema to that exact preview backend with `--preview-name`, and exits. It does not start Vite or keep the terminal open.
+
+Start the frontend separately when you want to use that preview backend:
+
+```sh
+bun dev:web
+```
+
+Or use the combined command when you intentionally want one terminal to deploy the preview backend and then stay open as the Vite server:
+
+```sh
+bun preview:dev
+```
+
+Frontend changes use Vite HMR while `dev:web` or `preview:dev` is running; backend changes require rerunning `bun preview` or `bun preview:dev`.
 
 Fresh preview backends are seeded with `internal.seed._all` during the first preview deploy. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
 

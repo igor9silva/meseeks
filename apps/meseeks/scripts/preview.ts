@@ -23,7 +23,9 @@ const defaultPreviewExpiration = 'in 7 days';
 function main() {
 	assertAppRoot();
 
-	const previewName = getPreviewName(process.argv.slice(2));
+	const args = process.argv.slice(2);
+	const shouldStartDevServer = args.includes('--dev');
+	const previewName = getPreviewName(args);
 	const deploymentRef = previewRef(previewName);
 	const createdDeployment = selectPreviewDeployment(deploymentRef);
 	const entries = writePreviewEnv(previewName, deploymentRef);
@@ -39,6 +41,8 @@ function main() {
 
 	const deployedEntries = loadEnvLocal();
 	assertPreviewDeployment(deployedEntries, deploymentRef);
+	if (!shouldStartDevServer) return;
+
 	run('bun', ['run', 'dev:web'], { env: previewCommandEnv(deployedEntries) });
 }
 

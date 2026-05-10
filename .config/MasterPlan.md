@@ -295,6 +295,9 @@ Do not run `bunx convex deploy` - this deploys to production.
 ### Environment Variables
 
 - Never edit `.env`, `.env.local`, `.env.*`, or similar local env files unless the user explicitly asks. These files are user-owned configuration.
+- For Codex worktree previews, use `bun preview` to create/select the branch Convex preview, write `apps/meseeks/.env.local`, deploy backend code/schema, and exit. Use `bun preview:dev` only when you intentionally want the same command to keep a terminal open with Vite.
+  - bad: make `bun dev` branch-aware or silently attach it to a preview backend
+  - good: run `bun preview`, then run `bun dev:web` in the terminal/session that should stay open
 - Never run `bunx convex env set`, `bunx convex env unset`, or similar Convex env mutation commands unless the user explicitly asks. If backend code needs a new Convex env var, tell the user the exact variable name, where it is read, and ask them to set it.
   - bad: silently add `BETTER_AUTH_SECRET` to `.env.local` or mutate Convex envs during a migration
   - good: say `convex/auth.ts` now reads `BETTER_AUTH_SECRET`; ask the user to set it in the Convex environment they own
