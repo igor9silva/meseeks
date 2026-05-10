@@ -384,7 +384,7 @@ One file per hook in `src/hooks/`.
 - Linter-driven fixes must preserve behavior. If satisfying a rule would change lifecycle, data loading, security, referrer behavior, or user interaction, stop and choose an explicit code structure or lint config instead.
 - Don't hardcode conventions that can be inferred from existing code — read the target file and match its patterns
 - Shared ignore patterns belong in the workspace `.gitignore`; app/package-local `.gitignore` files should contain only context-specific generated or local files.
-- `private/` and `prototypes/` are intentionally outside Bun workspaces and workspace-level QoL/tooling sweeps unless the user explicitly scopes work into them.
+- `private/` and `side/` are intentionally outside Bun workspaces and workspace-level QoL/tooling sweeps unless the user explicitly scopes work into them.
   - bad: create `apps/meseeks/.gitignore` just to ignore `.env.local`
   - good: put `.env.local` once in the workspace `.gitignore` so every app/package inherits it
 - When the same config value or path is used across multiple layers, define one shared source of truth instead of repeating the literal in each file.
@@ -442,14 +442,14 @@ CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, di
 Some directories are intentionally outside the main app scope:
 
 - `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
-- `prototypes/`: unrelated experiments and imported prototypes that should stay visible in this repository but should not be included in root Bun workspaces, Vercel builds, or workspace-level checks by default.
-- `prototypes/browser-poc/`: Electron browser experiment.
-- `prototypes/mecode-mvp/`: Electrobun macOS app shell prototype.
-- `prototypes/check-verse/`: standalone game prototype.
-- `prototypes/safe-mdx-compiler/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
+- `side/`: unrelated experiments and imported side projects that should stay visible in this repository but should not be included in root Bun workspaces, Vercel builds, or workspace-level checks by default.
+- `side/browser-poc/`: Electron browser experiment.
+- `side/mecode-mvp/`: Electrobun macOS app shell prototype.
+- `side/check-verse/`: standalone game prototype.
+- `side/safe-mdx-compiler/`: isolated compiler experiment (Babel/AST whitelist checks for React/MDX-like input).
 
 Scope rule: treat these as separate from the main codebase. Do not include them in broad typechecking, refactors, or migrations unless the user explicitly asks.
 
-Unrelated prototypes live under `prototypes/<name>/`. They are intentionally outside `apps/` and `packages/`, so they do not participate in workspace installs, package scripts, shared dependency resolution, or broad workspace checks. Promote a prototype into `apps/` or `packages/` only when it becomes an active app or shared library.
+Unrelated side projects live under `side/<name>/`. They are intentionally outside `apps/` and `packages/`, so they do not participate in workspace installs, package scripts, shared dependency resolution, or broad workspace checks. Promote a side project into `apps/` or `packages/` only when it becomes an active app or shared library.
 
 Shared UI primitives live in `packages/ui/src` and use package name `@reactor/ui`. The shadcn CLI config for shared primitives lives in `packages/ui/components.json`; app shadcn config imports shared primitives by package name instead of relative filesystem paths. App-coupled wrappers, such as MDX rendering and themed toasts, stay in `apps/meseeks/src/components/ui`. Local workspace dependencies see current package source immediately; opt-in version bumps require a release boundary such as a published package or git tag.

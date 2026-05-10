@@ -40,6 +40,17 @@ Be broad and practical. Look for anything that makes the task system harder to t
 
 Use judgment. The point is uncluttering, not satisfying a tiny checklist.
 
+## Tag Hygiene
+
+Keep tags short, reusable, and useful for organization. Do not add model names, provider names, vendor names, one-off feature names, or tags that repeat the title.
+
+Prefer existing tags over creating new ones.
+
+Use `source:ticktick` for every task imported from TickTick or carrying TickTick metadata.
+Use `scraped` for captures that were expanded from a link.
+
+When adding one of the broad organizational tags, scan for nearby tasks that should receive the same tag so the vocabulary stays useful instead of becoming accidental.
+
 ## How To Work
 
 Inspect broadly, edit directly, and keep going until the requested scope is organized.
