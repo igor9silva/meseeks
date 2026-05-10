@@ -30,7 +30,7 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - tasks that should be references
 - public tasks that should be private
 - private tasks that should be public after review-safe cleanup
-- raw imports that need triage or better source metadata
+- raw imports that need planning or better source metadata
 - weak titles, bad filenames, empty shells, outdated wording
 - duplicated, misspelled, or overly-specific tags that should be unified
 - topic folders that should become tags

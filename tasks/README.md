@@ -13,7 +13,7 @@ Raw TickTick and phone captures default to `private/tasks/inbox/`. Move them pub
 
 Use these top-level buckets:
 
-- `inbox/` for untriaged captures.
+- `inbox/` for unplanned captures.
 - `active/` for work we are doing now or committed to doing next.
 - `backlog/` for valid work we might do later.
 - `references/` for searchable context that is not a completable task.
@@ -65,9 +65,9 @@ Captured: 2026-05-10
 
 For scraped links, keep the source URL even if the body has been summarized. For transcript-backed tasks, put the real synthesis in the main body and keep source quotes or transcript pointers where they help verify the interpretation.
 
-## Inbox Triage
+## Inbox Planning
 
-Triage in batches. Do not perfect one capture while the rest of the inbox rots.
+Plan in batches. Do not perfect one capture while the rest of the inbox rots.
 
 For each inbox item:
 

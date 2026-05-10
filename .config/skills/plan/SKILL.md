@@ -1,9 +1,9 @@
 ---
-name: triage
-description: Triage Meseeks task inbox/raw items into real tasks or references. Use when the user asks to triage a task, organize an inbox item, turn a raw capture into a public/private task or reference, split/merge/delete task files, or invokes Triage from Organizer or Codex.
+name: plan
+description: Plan Meseeks task inbox/raw items into real tasks or references. Use when the user asks to plan a task, organize an inbox item, turn a raw capture into a public/private task or reference, split/merge/delete task files, or invokes Plan from Organizer or Codex.
 ---
 
-# Triage
+# Plan
 
 Turn raw captures into useful task-system files without laundering private mess into public history.
 
@@ -19,7 +19,7 @@ Nearby candidates means search both public and private task roots when available
 
 ## Decide
 
-Produce a triage decision covering:
+Produce a plan covering:
 
 - title and short slug
 - tags, reusing nearby/root tags before inventing new ones
@@ -42,7 +42,7 @@ Plain text is fine. Add sections only when they make the task easier to act on.
 
 ## Apply Rules
 
-Do not edit, move, delete, or create task files unless the user explicitly asks to apply the triage decision.
+Do not edit, move, delete, or create task files unless the user explicitly asks to apply the plan.
 
 When applying:
 

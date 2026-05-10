@@ -5,7 +5,7 @@ description: Create simple Meseeks task or reference files in the right public/p
 
 # Create Task
 
-Create the smallest useful task file. Default shape is title plus plain body. Add metadata only when it helps future triage or preserves a source.
+Create the smallest useful task file. Default shape is title plus plain body. Add metadata only when it helps future planning or preserves a source.
 
 ## Read First
 
@@ -22,7 +22,7 @@ Pick the root before the bucket:
 
 Use only these buckets:
 
-- `inbox/` for untriaged captures.
+- `inbox/` for unplanned captures.
 - `active/` for work happening now or committed next.
 - `backlog/` for valid work we might do later.
 - `references/` for searchable context, not completable tasks.

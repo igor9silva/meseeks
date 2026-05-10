@@ -1,6 +1,7 @@
 import type { ExplorerQuery } from '~/server/taskExplorerSchemas';
 import type { SnapshotResult } from '~/server/taskIndexRepository';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
+import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
 
 type FacetEntry = {
 	value: string;
@@ -12,8 +13,6 @@ type ExplorerFacets = {
 	statuses: FacetEntry[];
 	tags: FacetEntry[];
 };
-
-const defaultSources: ExplorerQuery['sources'] = ['public', 'private'];
 
 function dedupeStrings(values: string[]): string[] {
 	//
@@ -33,9 +32,8 @@ function dedupeStrings(values: string[]): string[] {
 
 function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 	//
-	const normalizedSources = input.sources.length > 0 ? input.sources : defaultSources;
-	const normalizedStatuses =
-		input.statuses.length > 0 ? dedupeStrings(input.statuses) : ['active', 'backlog', 'inbox'];
+	const normalizedSources = input.sources.length > 0 ? input.sources : [];
+	const normalizedStatuses = dedupeStrings(input.statuses);
 	const normalizedTags = dedupeStrings(input.tags);
 	const normalizedExcludedTags = dedupeStrings(input.excludedTags);
 
@@ -225,13 +223,26 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 
 function buildStatusOptions(tasks: TaskSummary[]): string[] {
 	//
-	const statuses = new Set<string>();
+	const statuses = new Set<string>(getDefaultTaskBuckets());
 
 	for (const task of tasks) {
 		statuses.add(task.status);
 	}
 
 	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
+}
+
+function buildTagOptions(tasks: TaskSummary[]): string[] {
+	//
+	const tags = new Set<string>();
+
+	for (const task of tasks) {
+		for (const tag of task.tags) {
+			tags.add(tag);
+		}
+	}
+
+	return Array.from(tags).sort((left, right) => left.localeCompare(right));
 }
 
 export function createTaskLookup(tasks: TaskSummary[]): Map<string, TaskSummary> {
@@ -261,6 +272,7 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 				visible: 0,
 			},
 			statusOptions: [],
+			tagOptions: [],
 			query: normalizeQueryInput(input),
 		};
 	}
@@ -325,6 +337,7 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 			visible: tasks.length,
 		},
 		statusOptions: buildStatusOptions(snapshotResult.snapshot.meta.tasks),
+		tagOptions: buildTagOptions(snapshotResult.snapshot.meta.tasks),
 		query: normalizedQuery,
 	};
 }

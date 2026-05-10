@@ -1,10 +1,17 @@
-import type { ExplorerQueryInput, TaskSource } from '~/lib/explorerSearchParams';
+import type { TaskSource } from '~/lib/explorerSearchParams';
+import {
+	getTaskFileBasename,
+	getTaskFilename,
+	normalizeTaskFilenameSlug,
+	normalizeTaskRenameFilenameSlug,
+} from '~/lib/taskFilename';
+import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
 import type { CreateTaskInput } from '~/server/taskExplorer';
 import type { CreateTaskDefaults, TaskDetailTask } from './taskExplorerTypes';
 
 export const taskSourceOptions: TaskSource[] = ['public', 'private'];
 export const taskPriorityOptions: Array<CreateTaskInput['priority']> = ['critical', 'high', 'medium', 'low'];
-export const defaultStatusOptions = ['active', 'backlog', 'inbox'];
+export const defaultStatusOptions = getDefaultTaskBuckets();
 export const SEARCH_DEBOUNCE_MS = 150;
 
 export function formatSourceLabel(source: TaskSource): string {
@@ -28,24 +35,11 @@ export function dedupeStrings(values: string[]): string[] {
 	return output;
 }
 
-export function getCreateTaskDefaults(queryInput: ExplorerQueryInput): CreateTaskDefaults {
+export function getCreateTaskDefaults(): CreateTaskDefaults {
 	//
-	let taskSource: TaskSource = 'public';
-	let status = 'backlog';
-
-	if (queryInput.sources.length === 1) {
-		const onlySource = queryInput.sources[0];
-		if (onlySource) taskSource = onlySource;
-	}
-
-	if (queryInput.statuses.length === 1) {
-		const onlyStatus = queryInput.statuses[0];
-		if (onlyStatus) status = onlyStatus;
-	}
-
 	return {
-		status,
-		taskSource,
+		status: 'inbox',
+		taskSource: 'private',
 	};
 }
 
@@ -77,31 +71,15 @@ export function parseTagDraft(value: string): string[] {
 
 export function createTaskFilename(value: string): string {
 	//
-	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, '');
-
-	return withoutKnownExtension
-		.toLowerCase()
-		.replace(/'/g, '')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '');
+	return normalizeTaskFilenameSlug(value);
 }
 
 export function createTaskRenameFilename(value: string): string {
 	//
-	const withoutKnownExtension = value.trim().replace(/\.(?:mdx|md|txt)$/i, '');
-
-	if (withoutKnownExtension === '_index') return withoutKnownExtension;
-	return createTaskFilename(value);
+	return normalizeTaskRenameFilenameSlug(value);
 }
 
-export function getTaskFileBasename(relativePath: string): string {
-	//
-	const pathSegments = relativePath.split('/');
-	const filename = pathSegments[pathSegments.length - 1] ?? relativePath;
-
-	return filename.replace(/\.(?:mdx|md|txt)$/i, '');
-}
+export { getTaskFileBasename, getTaskFilename };
 
 export function getMutationErrorMessage(error: unknown, fallback: string): string {
 	//
@@ -111,14 +89,42 @@ export function getMutationErrorMessage(error: unknown, fallback: string): strin
 export function toCursorFileHref(absolutePath: string | null): string | null {
 	//
 	if (!absolutePath) return null;
-	return `cursor://file${encodeURI(absolutePath)}`;
+
+	const url = new URL('cursor://file');
+	url.pathname = absolutePath;
+
+	return url.toString();
+}
+
+function buildTaskContextPrompt(task: TaskDetailTask, intent: string): string {
+	//
+	const lines = [
+		intent,
+		'',
+		'Task context:',
+		`- key: ${task.key}`,
+		`- visibility: ${task.taskSource}`,
+		`- path: ${task.relativePath}`,
+		`- title: ${task.title}`,
+		`- bucket: ${task.status}`,
+		`- priority: ${task.priority ?? 'none'}`,
+		`- tags: ${task.tags.length > 0 ? task.tags.join(', ') : 'none'}`,
+	];
+
+	if (task.absolutePath) {
+		lines.push(`- absolute path: ${task.absolutePath}`);
+	}
+
+	lines.push('', 'Body:', task.body.trim());
+
+	return lines.join('\n');
 }
 
 export function toCursorTaskHref(task: TaskDetailTask): string {
 	//
 	const url = new URL('cursor://anysphere.cursor-deeplink/prompt');
 
-	url.searchParams.set('text', task.body.trim());
+	url.searchParams.set('text', buildTaskContextPrompt(task, 'Open this Meseeks task and help implement it.'));
 
 	return url.toString();
 }
@@ -127,7 +133,34 @@ export function toCodexTaskHref(task: TaskDetailTask): string {
 	//
 	const url = new URL('codex://new');
 
-	url.searchParams.set('prompt', task.body.trim());
+	url.searchParams.set('prompt', buildTaskContextPrompt(task, 'Open this Meseeks task and help implement it.'));
+
+	return url.toString();
+}
+
+export function toCodexPlanHref(task: TaskDetailTask): string {
+	//
+	const url = new URL('codex://new');
+
+	url.searchParams.set(
+		'prompt',
+		buildTaskContextPrompt(
+			task,
+			'Use the plan skill on this Meseeks task. Preserve source context, decide the right bucket/tags, and avoid destructive moves unless I confirm.',
+		),
+	);
+
+	return url.toString();
+}
+
+export function toCodexSeekHref(task: TaskDetailTask): string {
+	//
+	const url = new URL('codex://new');
+
+	url.searchParams.set(
+		'prompt',
+		buildTaskContextPrompt(task, 'Use the seek skill on this Meseeks task. Seek a resolution and do the task.'),
+	);
 
 	return url.toString();
 }
