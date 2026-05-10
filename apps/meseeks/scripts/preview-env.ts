@@ -2,9 +2,6 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@1.34.1';
-const convexDeployCliPackage =
-	process.env.CONVEX_DEPLOY_CLI_PACKAGE ?? process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
 const defaultPreviewRun = 'internal.seed._all';
 
 export const envLocalFile = '.env.local';
@@ -136,15 +133,15 @@ export function tryRun(command: string, args: string[], options: SpawnSyncOption
 }
 
 export function runConvex(args: string[], options: SpawnSyncOptions = {}) {
-	runConvexPackage(convexCliPackage, args, options);
+	run('bun', ['convex', ...args], options);
 }
 
 export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
-	return tryRun('bunx', ['-y', convexCliPackage, ...args], options);
+	return tryRun('bun', ['convex', ...args], options);
 }
 
 export function runConvexDeploy(args: string[], options: SpawnSyncOptions = {}) {
-	runConvexPackage(convexDeployCliPackage, args, options);
+	runConvex(args, options);
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {
@@ -170,10 +167,6 @@ function runCapture(command: string, args: string[]) {
 
 	if (result.error || result.status !== 0) return '';
 	return typeof result.stdout === 'string' ? result.stdout : '';
-}
-
-function runConvexPackage(packageName: string, args: string[], options: SpawnSyncOptions = {}) {
-	run('bunx', ['-y', packageName, ...args], options);
 }
 
 function readArg(args: string[], name: string) {

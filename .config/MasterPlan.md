@@ -295,9 +295,12 @@ Do not run `bunx convex deploy` - this deploys to production.
 ### Environment Variables
 
 - Never edit `.env`, `.env.local`, `.env.*`, or similar local env files unless the user explicitly asks. These files are user-owned configuration.
-- For Codex worktree previews, use `bun preview` to create/select the branch Convex preview, write `apps/meseeks/.env.local`, deploy backend code/schema, and exit. Use `bun preview:dev` only when you intentionally want the same command to keep a terminal open with Vite.
+- For Codex worktree previews, use `bun preview` to regenerate ignored assistant config, create/select the branch Convex preview, write `apps/meseeks/.env.local`, deploy backend code/schema, and exit. Use `bun preview:dev` only when you intentionally want the same command to keep a terminal open with Vite.
   - bad: make `bun dev` branch-aware or silently attach it to a preview backend
+  - bad: run Convex scripts through `bunx convex@latest` or another CLI version that can drift away from the app dependency
   - good: run `bun preview`, then run `bun dev:web` in the terminal/session that should stay open
+  - good: run Convex scripts through the app-installed `convex` binary so CLI behavior and app runtime stay on the same package version
+  - preview seed runs after the first successful deploy for a worktree/branch and is tracked in `apps/meseeks/.env.local`; set `CONVEX_PREVIEW_RUN=none` only when the preview should not be seeded
 - Never run `bunx convex env set`, `bunx convex env unset`, or similar Convex env mutation commands unless the user explicitly asks. If backend code needs a new Convex env var, tell the user the exact variable name, where it is read, and ask them to set it.
   - bad: silently add `BETTER_AUTH_SECRET` to `.env.local` or mutate Convex envs during a migration
   - good: say `convex/auth.ts` now reads `BETTER_AUTH_SECRET`; ask the user to set it in the Convex environment they own
@@ -350,6 +353,7 @@ One file per hook in `src/hooks/`.
 
 - `.config/MasterPlan.md` is the source of truth for AI assistant rules
 - `AGENTS.md` is auto-generated from `MasterPlan.md`; never edit it directly
+- Codex worktree setup is generated at `.codex/environments/environment.toml` and must run `bun run config:build` so new worktrees get `AGENTS.md`, MCP config, Codex config, and repo-local skills before task work starts
 - `.config/` is the editable source for skills/rules/prompts/mcp used by build pipelines — do not edit `.agents/` files directly
 - If a named skill is not loaded in the Codex app, check repo-local `.config/skills/<name>/SKILL.md` before claiming it cannot be used. Use the on-disk source manually when present.
 - If the user invokes a repo skill by name or path, run that skill workflow instead of only acknowledging it.

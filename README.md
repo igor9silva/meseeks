@@ -134,7 +134,7 @@ If the worktree is detached, pass the branch explicitly:
 bun preview -- --branch my-branch
 ```
 
-`bun preview` selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the repo-pinned CLI, deploys functions/schema to that exact preview backend with `--preview-name`, and exits. It does not start Vite or keep the terminal open.
+`bun preview` regenerates the ignored worktree assistant config (`AGENTS.md`, MCP config, Codex environment config, and repo-local skills), selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the app-installed Convex CLI, deploys functions/schema to that exact preview backend with `--preview-name`, seeds when needed, and exits. It does not start Vite or keep the terminal open.
 
 Start the frontend separately when you want to use that preview backend:
 
@@ -150,7 +150,9 @@ bun preview:dev
 
 Frontend changes use Vite HMR while `dev:web` or `preview:dev` is running; backend changes require rerunning `bun preview` or `bun preview:dev`.
 
-Fresh preview backends are seeded with `internal.seed._all` during the first preview deploy. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
+Preview backends are seeded with `internal.seed._all` after the first successful preview deploy for that worktree/branch. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Set `CONVEX_PREVIEW_EXPIRATION="in 7 days"` or another Convex-supported value when creating a temporary preview deployment. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
+
+Codex worktree setup also runs `bun run config:build` through `.codex/environments/environment.toml`, so newly created worktrees get their ignored assistant config before the task starts. If setup was skipped or generated config looks stale, run `bun preview` once in that worktree.
 
 ### Self-Hosting Options
 

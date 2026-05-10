@@ -25,28 +25,30 @@ export const mcpConfig: MCPConfig = {
 	servers: {
 		Convex: {
 			name: 'Convex',
-			command: 'bunx',
+			command: 'bun',
 			args: [
-				'-y', //
-				'convex@latest',
+				'--cwd', //
+				'apps/meseeks',
+				'convex',
 				'mcp',
 				'start',
 				'--project-dir',
-				'apps/meseeks',
+				'.',
 			],
 			enabled: true,
 			description: 'Convex MCP server for database operations',
 		},
 		ConvexProd: {
 			name: 'Convex Production',
-			command: 'bunx',
+			command: 'bun',
 			args: [
-				'-y', //
-				'convex@latest',
+				'--cwd',
+				'apps/meseeks',
+				'convex',
 				'mcp',
 				'start',
 				'--project-dir',
-				'apps/meseeks',
+				'.',
 				'--prod',
 				'--cautiously-allow-production-pii', // read-only
 			],

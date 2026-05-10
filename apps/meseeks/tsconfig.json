@@ -2,7 +2,7 @@
 	"include": ["**/*.ts", "**/*.tsx"],
 	"exclude": ["node_modules"],
 	"compilerOptions": {
-		"types": ["vite/client", "node"],
+		"types": ["vite/client", "node", "bun-types"],
 		"esModuleInterop": true,
 		"jsx": "react-jsx",
 		"module": "ESNext",
