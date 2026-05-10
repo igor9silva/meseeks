@@ -42,18 +42,17 @@ export function writeDotenv(path: string, entries: Map<string, string>) {
 }
 
 export function getPreviewName(args: string[]) {
-	const explicit =
-		readArg(args, '--branch') ??
-		readArg(args, '--preview-name') ??
-		process.env.CONVEX_PREVIEW_NAME ??
-		process.env.VERCEL_GIT_COMMIT_REF;
+	const explicit = readArg(args, '--branch') ?? readArg(args, '--preview-name');
 	if (explicit) return normalizePreviewName(explicit);
-
-	const envLocalPreviewName = readDotenv(envLocalFile).get('CONVEX_PREVIEW_NAME');
-	if (envLocalPreviewName) return normalizePreviewName(envLocalPreviewName);
 
 	const branch = runCapture('git', ['branch', '--show-current']).trim();
 	if (branch) return normalizePreviewName(branch);
+
+	const envPreviewName = process.env.CONVEX_PREVIEW_NAME ?? process.env.VERCEL_GIT_COMMIT_REF;
+	if (envPreviewName) return normalizePreviewName(envPreviewName);
+
+	const envLocalPreviewName = readDotenv(envLocalFile).get('CONVEX_PREVIEW_NAME');
+	if (envLocalPreviewName) return normalizePreviewName(envLocalPreviewName);
 
 	throw new Error('Could not infer the branch name. Pass --branch <branch-name>.');
 }

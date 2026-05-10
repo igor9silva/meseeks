@@ -38,7 +38,9 @@ function main() {
 	console.log(`VITE_CONVEX_URL=${merged.get('VITE_CONVEX_URL') ?? '<missing>'}`);
 	console.log(`VITE_CONVEX_SITE_URL=${merged.get('VITE_CONVEX_SITE_URL') ?? '<missing>'}`);
 
-	if (createdDeployment) bootstrapFreshPreview(merged);
+	if (createdDeployment && !process.argv.includes('--skip-preview-run')) {
+		bootstrapFreshPreview(merged);
+	}
 }
 
 function selectConvexPreviewDeployment(deploymentRef: string, deploymentSelector: string) {
