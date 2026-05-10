@@ -96,7 +96,16 @@ export function TaskBoard({
 				<div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
 					<div className="min-w-0">
 						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-							<h1 className="text-lg font-semibold">Organizer</h1>
+							<h1 className="text-lg font-semibold">
+								<Link
+									from="/"
+									to="/"
+									search={{}}
+									className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+								>
+									Organizer
+								</Link>
+							</h1>
 							<span className="text-xs text-muted-foreground">
 								{totals?.visible ?? 0} visible / {totals?.all ?? 0} indexed
 							</span>

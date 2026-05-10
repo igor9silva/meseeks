@@ -23,6 +23,10 @@ Do not create topic folders by default. Use short tags for reusable organization
 
 Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
 
+Flatten grouping-only folders once tags or UI filters can carry the organization. Keep a nested folder when the folder itself is part of the task shape: a parent task with real child tasks, an import/source batch that needs shared provenance, or a reference collection that needs colocated assets.
+
+An `_index.*` file usually means the folder is the parent task or collection. Do not flatten that folder unless the index is only obsolete grouping scaffolding and Igor agreed it should be replaced by tags.
+
 Example:
 
 ```yaml
@@ -115,7 +119,7 @@ When working on tasks:
 - keep public and private roots separate
 - split mixed public/private files
 - delete rejected work instead of marking it completed
-- do not migrate topic folders into new buckets without review
+- flatten grouping-only folders instead of preserving directory buckets as topics
 - run the task index build only when task files changed and the task scope allows it
 
 Do not overfit to Organizer internals. The contract is simple: roots define safety, buckets define lifecycle, file content carries the work.
