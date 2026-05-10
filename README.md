@@ -114,23 +114,43 @@ Transparency is a foundational principle of Meseeks, so you can always hit the `
 
 We haven't yet spent much energy making it easy to run locally, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
 
-### Branch preview backend
+### Codex branch preview
 
-`bun dev` uses the normal local development deployment on `main`. On any other branch, it uses the same temporary Convex preview deployment as the Vercel PR:
+Use normal local development when you want the personal Convex dev deployment:
 
 ```sh
 bun dev
 ```
 
-If the worktree is detached, pass the branch explicitly so the preview deployment can match the PR branch:
+Use a branch preview when a Codex worktree needs its own backend:
 
 ```sh
-bun dev -- --branch my-branch
+bun preview
 ```
 
-For non-main branches, `dev` selects or creates `preview/<branch>` in Convex, writes `apps/meseeks/.env.local`, loads that file, and runs only `bun run dev:web` with `VERCEL_ENV=preview` and `VERCEL_GIT_COMMIT_REF=<branch>`. Local Vite uses the branch preview backend without letting `convex dev` rewrite the env file back to the normal dev deployment.
+If the worktree is detached, pass the branch explicitly:
 
-`bun dev` skips the one-shot preview seed path so preview startup never runs `convex dev`. If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in your local shell or keep it in `.env.local`, then run `bun run preview:attach -- --branch my-branch` intentionally.
+```sh
+bun preview -- --branch my-branch
+```
+
+`bun preview` selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the repo-pinned CLI, deploys functions/schema to that exact preview backend with `--preview-name`, and exits. It does not start Vite or keep the terminal open.
+
+Start the frontend separately when you want to use that preview backend:
+
+```sh
+bun dev:web
+```
+
+Or use the combined command when you intentionally want one terminal to deploy the preview backend and then stay open as the Vite server:
+
+```sh
+bun preview:dev
+```
+
+Frontend changes use Vite HMR while `dev:web` or `preview:dev` is running; backend changes require rerunning `bun preview` or `bun preview:dev`.
+
+Fresh preview backends are seeded with `internal.seed._all` during the first preview deploy. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
 
 ### Self-Hosting Options
 

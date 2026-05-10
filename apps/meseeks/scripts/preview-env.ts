@@ -2,7 +2,10 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const convexCliPackage = 'convex@1.34.1';
+const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@1.34.1';
+const convexDeployCliPackage =
+	process.env.CONVEX_DEPLOY_CLI_PACKAGE ?? process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
+const defaultPreviewRun = 'internal.seed._all';
 
 export const envLocalFile = '.env.local';
 
@@ -51,19 +54,7 @@ export function getPreviewName(args: string[]) {
 	const envPreviewName = process.env.CONVEX_PREVIEW_NAME ?? process.env.VERCEL_GIT_COMMIT_REF;
 	if (envPreviewName) return normalizePreviewName(envPreviewName);
 
-	const envLocalPreviewName = readDotenv(envLocalFile).get('CONVEX_PREVIEW_NAME');
-	if (envLocalPreviewName) return normalizePreviewName(envLocalPreviewName);
-
 	throw new Error('Could not infer the branch name. Pass --branch <branch-name>.');
-}
-
-export function getCurrentBranch() {
-	return runCapture('git', ['branch', '--show-current']).trim();
-}
-
-export function isMainBranch() {
-	const branch = getCurrentBranch();
-	return branch === 'main' || branch === 'master';
 }
 
 export function previewRef(previewName: string) {
@@ -72,6 +63,50 @@ export function previewRef(previewName: string) {
 
 export function loadEnvLocal() {
 	return readDotenv(envLocalFile);
+}
+
+export function getPreviewRun(entries = new Map<string, string>()) {
+	const value = process.env.CONVEX_PREVIEW_RUN ?? entries.get('CONVEX_PREVIEW_RUN') ?? defaultPreviewRun;
+	const previewRun = value.trim();
+	if (!previewRun || ['0', 'false', 'none', 'off'].includes(previewRun.toLowerCase())) return undefined;
+
+	return previewRun;
+}
+
+export function previewCommandEnv(entries = new Map<string, string>()) {
+	const env = {
+		...process.env,
+		...Object.fromEntries(entries),
+	};
+
+	delete env.CONVEX_DEPLOY_KEY;
+	return env;
+}
+
+export function removePreviewUnsafeEntries(entries: Map<string, string>) {
+	entries.delete('CONVEX_DEPLOY_KEY');
+}
+
+export function assertPreviewDeployment(entries: Map<string, string>, deploymentRef: string) {
+	const deployment = entries.get('CONVEX_DEPLOYMENT');
+	if (!deployment?.startsWith('preview:')) {
+		throw new Error(
+			`Refusing to start preview dev without a Convex preview deployment. Expected ${deploymentRef}, found ${deployment ?? '<missing>'}.`,
+		);
+	}
+
+	const previewRefValue = entries.get('CONVEX_PREVIEW_REF');
+	if (previewRefValue !== deploymentRef) {
+		throw new Error(
+			`Refusing to start preview dev with mismatched preview ref. Expected ${deploymentRef}, found ${previewRefValue ?? '<missing>'}.`,
+		);
+	}
+
+	for (const key of ['VITE_CONVEX_URL', 'VITE_CONVEX_SITE_URL']) {
+		if (!entries.get(key)) {
+			throw new Error(`Refusing to start preview dev because ${key} is missing from ${envLocalFile}.`);
+		}
+	}
 }
 
 export function run(command: string, args: string[], options: SpawnSyncOptions = {}) {
@@ -101,11 +136,15 @@ export function tryRun(command: string, args: string[], options: SpawnSyncOption
 }
 
 export function runConvex(args: string[], options: SpawnSyncOptions = {}) {
-	run('bunx', ['-y', convexCliPackage, ...args], options);
+	runConvexPackage(convexCliPackage, args, options);
 }
 
 export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
 	return tryRun('bunx', ['-y', convexCliPackage, ...args], options);
+}
+
+export function runConvexDeploy(args: string[], options: SpawnSyncOptions = {}) {
+	runConvexPackage(convexDeployCliPackage, args, options);
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {
@@ -131,6 +170,10 @@ function runCapture(command: string, args: string[]) {
 
 	if (result.error || result.status !== 0) return '';
 	return typeof result.stdout === 'string' ? result.stdout : '';
+}
+
+function runConvexPackage(packageName: string, args: string[], options: SpawnSyncOptions = {}) {
+	run('bunx', ['-y', packageName, ...args], options);
 }
 
 function readArg(args: string[], name: string) {
