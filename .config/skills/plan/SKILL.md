@@ -1,11 +1,11 @@
 ---
 name: plan
-description: Plan Meseeks task inbox/raw items into real tasks or references. Use when the user asks to plan a task, organize an inbox item, turn a raw capture into a public/private task or reference, split/merge/delete task files, or invokes Plan from Organizer or Codex.
+description: Clarify and structure Meseeks tasks before execution or organization. Use when the user asks to plan a task, invokes Plan from Organizer or Codex, or Seek needs assumptions questioned before acting.
 ---
 
 # Plan
 
-Turn raw captures into useful task-system files without laundering private mess into public history.
+Make a task clear enough to act on. For raw inbox captures, also turn them into useful task-system files without laundering private mess into public history.
 
 ## Start Here
 
@@ -17,7 +17,15 @@ Turn raw captures into useful task-system files without laundering private mess 
 
 Nearby candidates means search both public and private task roots when available for title words, source URLs, TickTick IDs, slugs, transcript names, and distinctive quoted text.
 
-## Decide
+## Clarify
+
+Question assumptions before planning. If the goal, context, acceptance criteria, public/private boundary, or next action is unclear, ask Igor concrete questions instead of producing a fake-certain plan.
+
+Break the task down until the next actor can execute it. If the task is already clear enough, keep the plan short.
+
+When Plan was invoked by Seek, stop once the task is executable and hand back the execution plan. Seek should then act.
+
+## Organize
 
 Produce a plan covering:
 
@@ -38,7 +46,9 @@ Plain text is fine. Add sections only when they make the task easier to act on.
 - Preserve imported source metadata close to the content it explains.
 - Use `references/` for context, saved links, transcripts, prompts, examples, and research that is not itself completable work.
 - Use `completed/` only for achieved work. Delete rejected task shells unless useful context should survive as a reference.
-- Do not migrate topic folders into lifecycle buckets without user review.
+- Flatten grouping-only folders when tags or UI filters can carry the organization.
+- Keep nested folders when they model a real parent task, source/import batch, or reference collection with colocated assets.
+- Treat `_index.*` as the folder's parent task or collection by default. Do not flatten it unless the index is only obsolete grouping scaffolding and Igor agreed it should become tags.
 
 ## Apply Rules
 

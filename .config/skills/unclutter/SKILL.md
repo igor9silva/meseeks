@@ -33,7 +33,8 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - raw imports that need planning or better source metadata
 - weak titles, bad filenames, empty shells, outdated wording
 - duplicated, misspelled, or overly-specific tags that should be unified
-- topic folders that should become tags
+- grouping-only folders that should be flattened because tags or UI filters now carry that organization
+- nested folders with `_index.*` that must be preserved because they are real parent tasks or reference collections
 - completed tasks that were not actually completed
 - rejected work sitting in `completed/` instead of being deleted
 - source-backed tasks missing traceability
@@ -66,6 +67,8 @@ Ask Igor before:
 When a task mixes public work with private context, split it: public actionable task in `tasks/`, private source/reference note in `private/tasks/references/`.
 
 When something is rejected but has useful context, keep the context as a reference and remove the task shell.
+
+Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
 
 ## After Editing
 
