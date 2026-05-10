@@ -114,23 +114,29 @@ Transparency is a foundational principle of Meseeks, so you can always hit the `
 
 We haven't yet spent much energy making it easy to run locally, but it should be as straightforward as filling up the environment variables and initialize Convex — which should take a couple minutes at most. We expect to have a full tutorial/guide soon.
 
-### Branch preview backend
+### Codex branch preview
 
-`bun dev` uses the normal local development deployment on `main`. On any other branch, it uses the same temporary Convex preview deployment as the Vercel PR:
+Use normal local development when you want the personal Convex dev deployment:
 
 ```sh
 bun dev
 ```
 
-If the worktree is detached, pass the branch explicitly so the preview deployment can match the PR branch:
+Use a branch preview when a Codex worktree needs its own backend:
 
 ```sh
-bun dev -- --branch my-branch
+bun preview
 ```
 
-For non-main branches, `dev` selects or creates `preview/<branch>` in Convex, writes `apps/meseeks/.env.local`, verifies it points at a `preview:` deployment, and then runs `convex dev --start "bun run dev:web"` with `VERCEL_ENV=preview` and `VERCEL_GIT_COMMIT_REF=<branch>`. Convex pushes local functions and schema before Vite starts, then keeps watching the same backend.
+If the worktree is detached, pass the branch explicitly:
 
-Fresh preview backends are seeded with `internal.seed._all` once. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
+```sh
+bun preview -- --branch my-branch
+```
+
+`bun preview` selects or creates `preview/<branch>`, writes `apps/meseeks/.env.local`, generates local Convex types with the repo-pinned CLI, deploys functions/schema to that exact preview backend with `--preview-name`, and then starts Vite against the same URL. Frontend changes use Vite HMR; backend changes require rerunning `bun preview`.
+
+Fresh preview backends are seeded with `internal.seed._all` during the first preview deploy. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
 
 ### Self-Hosting Options
 

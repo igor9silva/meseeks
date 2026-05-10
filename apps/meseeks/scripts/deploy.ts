@@ -1,15 +1,15 @@
-import { assertAppRoot, getPreviewName, getPreviewRun, runConvex } from './preview-env';
+import { assertAppRoot, getPreviewName, getPreviewRun, runConvex, runConvexDeploy } from './preview-env';
 
 function main() {
 	assertAppRoot();
 
 	if (process.env.VERCEL_ENV === 'preview') {
 		const previewName = getPreviewName(process.argv.slice(2));
-		const args = ['deploy', '--preview-name', previewName, '--cmd', 'bun run build'];
+		const args = ['deploy', '--preview-name', previewName, '--codegen', 'disable', '--cmd', 'bun run build'];
 		const previewRun = getPreviewRun();
 		if (previewRun) args.push('--preview-run', previewRun);
 
-		runConvex(args);
+		runConvexDeploy(args);
 		return;
 	}
 

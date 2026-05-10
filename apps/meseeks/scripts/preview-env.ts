@@ -2,7 +2,9 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
+const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@1.34.1';
+const convexDeployCliPackage =
+	process.env.CONVEX_DEPLOY_CLI_PACKAGE ?? process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
 const defaultPreviewRun = 'internal.seed._all';
 
 export const envLocalFile = '.env.local';
@@ -52,19 +54,7 @@ export function getPreviewName(args: string[]) {
 	const envPreviewName = process.env.CONVEX_PREVIEW_NAME ?? process.env.VERCEL_GIT_COMMIT_REF;
 	if (envPreviewName) return normalizePreviewName(envPreviewName);
 
-	const detachedBranch = getDetachedBranchCandidate();
-	if (detachedBranch) return normalizePreviewName(detachedBranch);
-
 	throw new Error('Could not infer the branch name. Pass --branch <branch-name>.');
-}
-
-export function getCurrentBranch() {
-	return runCapture('git', ['branch', '--show-current']).trim();
-}
-
-export function isMainBranch() {
-	const branch = getCurrentBranch();
-	return isMainBranchName(branch);
 }
 
 export function previewRef(previewName: string) {
@@ -146,11 +136,15 @@ export function tryRun(command: string, args: string[], options: SpawnSyncOption
 }
 
 export function runConvex(args: string[], options: SpawnSyncOptions = {}) {
-	run('bunx', ['-y', convexCliPackage, ...args], options);
+	runConvexPackage(convexCliPackage, args, options);
 }
 
 export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
 	return tryRun('bunx', ['-y', convexCliPackage, ...args], options);
+}
+
+export function runConvexDeploy(args: string[], options: SpawnSyncOptions = {}) {
+	runConvexPackage(convexDeployCliPackage, args, options);
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {
@@ -178,6 +172,10 @@ function runCapture(command: string, args: string[]) {
 	return typeof result.stdout === 'string' ? result.stdout : '';
 }
 
+function runConvexPackage(packageName: string, args: string[], options: SpawnSyncOptions = {}) {
+	run('bunx', ['-y', packageName, ...args], options);
+}
+
 function readArg(args: string[], name: string) {
 	const prefix = `${name}=`;
 	const inline = args.find((arg) => arg.startsWith(prefix));
@@ -191,22 +189,6 @@ function readArg(args: string[], name: string) {
 
 function normalizePreviewName(value: string) {
 	return value.replace(/^preview\//, '').trim();
-}
-
-function getDetachedBranchCandidate() {
-	const output = runCapture('git', ['branch', '--format=%(refname:short)', '--contains', 'HEAD']);
-	const candidates = output
-		.split(/\r?\n/)
-		.map((branch) => branch.trim())
-		.filter((branch) => branch && branch !== '(no branch)' && !branch.startsWith('remotes/'))
-		.filter((branch) => !isMainBranchName(branch));
-	const uniqueCandidates = Array.from(new Set(candidates));
-
-	return uniqueCandidates.length === 1 ? uniqueCandidates[0] : undefined;
-}
-
-function isMainBranchName(branch: string) {
-	return branch === 'main' || branch === 'master';
 }
 
 function parseDotenvValue(rawValue: string) {
