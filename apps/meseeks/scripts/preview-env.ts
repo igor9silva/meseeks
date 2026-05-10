@@ -2,7 +2,8 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const convexCliPackage = 'convex@1.34.1';
+const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
+const defaultPreviewRun = 'internal.seed._all';
 
 export const envLocalFile = '.env.local';
 
@@ -51,8 +52,8 @@ export function getPreviewName(args: string[]) {
 	const envPreviewName = process.env.CONVEX_PREVIEW_NAME ?? process.env.VERCEL_GIT_COMMIT_REF;
 	if (envPreviewName) return normalizePreviewName(envPreviewName);
 
-	const envLocalPreviewName = readDotenv(envLocalFile).get('CONVEX_PREVIEW_NAME');
-	if (envLocalPreviewName) return normalizePreviewName(envLocalPreviewName);
+	const detachedBranch = getDetachedBranchCandidate();
+	if (detachedBranch) return normalizePreviewName(detachedBranch);
 
 	throw new Error('Could not infer the branch name. Pass --branch <branch-name>.');
 }
@@ -63,7 +64,7 @@ export function getCurrentBranch() {
 
 export function isMainBranch() {
 	const branch = getCurrentBranch();
-	return branch === 'main' || branch === 'master';
+	return isMainBranchName(branch);
 }
 
 export function previewRef(previewName: string) {
@@ -72,6 +73,50 @@ export function previewRef(previewName: string) {
 
 export function loadEnvLocal() {
 	return readDotenv(envLocalFile);
+}
+
+export function getPreviewRun(entries = new Map<string, string>()) {
+	const value = process.env.CONVEX_PREVIEW_RUN ?? entries.get('CONVEX_PREVIEW_RUN') ?? defaultPreviewRun;
+	const previewRun = value.trim();
+	if (!previewRun || ['0', 'false', 'none', 'off'].includes(previewRun.toLowerCase())) return undefined;
+
+	return previewRun;
+}
+
+export function previewCommandEnv(entries = new Map<string, string>()) {
+	const env = {
+		...process.env,
+		...Object.fromEntries(entries),
+	};
+
+	delete env.CONVEX_DEPLOY_KEY;
+	return env;
+}
+
+export function removePreviewUnsafeEntries(entries: Map<string, string>) {
+	entries.delete('CONVEX_DEPLOY_KEY');
+}
+
+export function assertPreviewDeployment(entries: Map<string, string>, deploymentRef: string) {
+	const deployment = entries.get('CONVEX_DEPLOYMENT');
+	if (!deployment?.startsWith('preview:')) {
+		throw new Error(
+			`Refusing to start preview dev without a Convex preview deployment. Expected ${deploymentRef}, found ${deployment ?? '<missing>'}.`,
+		);
+	}
+
+	const previewRefValue = entries.get('CONVEX_PREVIEW_REF');
+	if (previewRefValue !== deploymentRef) {
+		throw new Error(
+			`Refusing to start preview dev with mismatched preview ref. Expected ${deploymentRef}, found ${previewRefValue ?? '<missing>'}.`,
+		);
+	}
+
+	for (const key of ['VITE_CONVEX_URL', 'VITE_CONVEX_SITE_URL']) {
+		if (!entries.get(key)) {
+			throw new Error(`Refusing to start preview dev because ${key} is missing from ${envLocalFile}.`);
+		}
+	}
 }
 
 export function run(command: string, args: string[], options: SpawnSyncOptions = {}) {
@@ -146,6 +191,22 @@ function readArg(args: string[], name: string) {
 
 function normalizePreviewName(value: string) {
 	return value.replace(/^preview\//, '').trim();
+}
+
+function getDetachedBranchCandidate() {
+	const output = runCapture('git', ['branch', '--format=%(refname:short)', '--contains', 'HEAD']);
+	const candidates = output
+		.split(/\r?\n/)
+		.map((branch) => branch.trim())
+		.filter((branch) => branch && branch !== '(no branch)' && !branch.startsWith('remotes/'))
+		.filter((branch) => !isMainBranchName(branch));
+	const uniqueCandidates = Array.from(new Set(candidates));
+
+	return uniqueCandidates.length === 1 ? uniqueCandidates[0] : undefined;
+}
+
+function isMainBranchName(branch: string) {
+	return branch === 'main' || branch === 'master';
 }
 
 function parseDotenvValue(rawValue: string) {

@@ -1,4 +1,15 @@
-import { assertAppRoot, getPreviewName, isMainBranch, loadEnvLocal, run } from './preview-env';
+import {
+	assertAppRoot,
+	assertPreviewDeployment,
+	envLocalFile,
+	getPreviewName,
+	isMainBranch,
+	loadEnvLocal,
+	previewCommandEnv,
+	previewRef,
+	run,
+	runConvex,
+} from './preview-env';
 
 function main() {
 	assertAppRoot();
@@ -9,16 +20,16 @@ function main() {
 	}
 
 	const previewName = getPreviewName(process.argv.slice(2));
-	run('bun', ['./scripts/attach-preview-env.ts', '--branch', previewName, '--skip-preview-run']);
+	const deploymentRef = previewRef(previewName);
+	run('bun', ['./scripts/attach-preview-env.ts', '--branch', previewName], { env: previewCommandEnv() });
 
-	const env = {
-		...process.env,
-		...Object.fromEntries(loadEnvLocal()),
-		VERCEL_ENV: 'preview',
-		VERCEL_GIT_COMMIT_REF: previewName,
-	};
+	const entries = loadEnvLocal();
+	assertPreviewDeployment(entries, deploymentRef);
+	const env = previewCommandEnv(entries);
+	env.VERCEL_ENV = 'preview';
+	env.VERCEL_GIT_COMMIT_REF = previewName;
 
-	run('bun', ['run', 'dev:web'], { env });
+	runConvex(['dev', '--env-file', envLocalFile, '--start', 'bun run dev:web'], { env });
 }
 
 try {

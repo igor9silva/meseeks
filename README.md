@@ -128,9 +128,9 @@ If the worktree is detached, pass the branch explicitly so the preview deploymen
 bun dev -- --branch my-branch
 ```
 
-For non-main branches, `dev` selects or creates `preview/<branch>` in Convex, writes `apps/meseeks/.env.local`, loads that file, and runs only `bun run dev:web` with `VERCEL_ENV=preview` and `VERCEL_GIT_COMMIT_REF=<branch>`. Local Vite uses the branch preview backend without letting `convex dev` rewrite the env file back to the normal dev deployment.
+For non-main branches, `dev` selects or creates `preview/<branch>` in Convex, writes `apps/meseeks/.env.local`, verifies it points at a `preview:` deployment, and then runs `convex dev --start "bun run dev:web"` with `VERCEL_ENV=preview` and `VERCEL_GIT_COMMIT_REF=<branch>`. Convex pushes local functions and schema before Vite starts, then keeps watching the same backend.
 
-`bun dev` skips the one-shot preview seed path so preview startup never runs `convex dev`. If the preview seed function should run when a new preview backend is created, set `CONVEX_PREVIEW_RUN` in your local shell or keep it in `.env.local`, then run `bun run preview:attach -- --branch my-branch` intentionally.
+Fresh preview backends are seeded with `internal.seed._all` once. Set `CONVEX_PREVIEW_RUN=none` to skip that, or set it to another function name if the preview needs a different seed. Vercel preview deploys use the same branch preview name instead of recreating a random backend.
 
 ### Self-Hosting Options
 

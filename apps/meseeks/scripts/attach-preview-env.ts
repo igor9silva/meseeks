@@ -1,10 +1,14 @@
 import {
+	assertPreviewDeployment,
 	assertAppRoot,
 	ensureConvexClientUrls,
 	envLocalFile,
 	getPreviewName,
+	getPreviewRun,
 	previewRef,
+	previewCommandEnv,
 	readDotenv,
+	removePreviewUnsafeEntries,
 	runConvex,
 	tryRunConvex,
 	writeDotenv,
@@ -19,6 +23,9 @@ function main() {
 	const previewName = getPreviewName(process.argv.slice(2));
 	const deploymentRef = previewRef(previewName);
 	const localEntries = readDotenv(envLocalFile);
+	if (localEntries.has('CONVEX_DEPLOY_KEY')) {
+		throw new Error(`Refusing to use ${envLocalFile} for preview dev because it contains CONVEX_DEPLOY_KEY.`);
+	}
 
 	console.log(`Preparing local preview env for ${deploymentRef}`);
 	const createdDeployment = selectConvexPreviewDeployment(deploymentRef, projectDeploymentRef(deploymentRef));
@@ -30,7 +37,9 @@ function main() {
 	merged.set('CONVEX_PREVIEW_REF', deploymentRef);
 	merged.set('VERCEL_ENV', 'preview');
 	merged.set('VERCEL_GIT_COMMIT_REF', previewName);
+	removePreviewUnsafeEntries(merged);
 	ensureConvexClientUrls(merged);
+	assertPreviewDeployment(merged, deploymentRef);
 
 	writeDotenv(envLocalFile, merged);
 
@@ -45,20 +54,24 @@ function main() {
 
 function selectConvexPreviewDeployment(deploymentRef: string, deploymentSelector: string) {
 	console.log(`Selecting Convex deployment ${deploymentRef}`);
-	const selected = tryRunConvex(['deployment', 'select', deploymentSelector]);
+	const env = previewCommandEnv();
+	const selected = tryRunConvex(['deployment', 'select', deploymentSelector], { env });
 	if (selected.ok) return false;
 
 	console.log(`Convex deployment ${deploymentRef} was not selectable; creating it.`);
-	runConvex([
-		'deployment',
-		'create',
-		deploymentSelector,
-		'--type',
-		'preview',
-		'--select',
-		'--expiration',
-		process.env.CONVEX_PREVIEW_EXPIRATION ?? defaultPreviewExpiration,
-	]);
+	runConvex(
+		[
+			'deployment',
+			'create',
+			deploymentSelector,
+			'--type',
+			'preview',
+			'--select',
+			'--expiration',
+			process.env.CONVEX_PREVIEW_EXPIRATION ?? defaultPreviewExpiration,
+		],
+		{ env },
+	);
 
 	return true;
 }
@@ -68,12 +81,12 @@ function projectDeploymentRef(deploymentRef: string) {
 }
 
 function bootstrapFreshPreview(entries: Map<string, string>) {
-	const previewRun = process.env.CONVEX_PREVIEW_RUN ?? entries.get('CONVEX_PREVIEW_RUN');
+	const previewRun = getPreviewRun(entries);
 	if (!previewRun) return;
 
-	const env = { ...process.env, ...Object.fromEntries(entries) };
+	const env = previewCommandEnv(entries);
 	console.log(`Fresh preview created; pushing code with Convex dev and running ${previewRun}`);
-	runConvex(['dev', '--once', '--env-file', envLocalFile, '--run', previewRun], { env });
+	runConvex(['dev', '--once', '--env-file', envLocalFile, '--run', previewRun, '--tail-logs', 'disable'], { env });
 }
 
 try {
