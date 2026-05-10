@@ -10,6 +10,16 @@
 	"quoteProps": "consistent",
 	"sortImports": false,
 	"sortPackageJson": false,
+	"overrides": [
+		{
+			"files": ["**/*.md", "**/*.mdx"],
+			"options": {
+				"useTabs": true,
+				"tabWidth": 2,
+				"proseWrap": "preserve"
+			}
+		}
+	],
 	"ignorePatterns": [
 		"private/**",
 		"prototypes/**",
