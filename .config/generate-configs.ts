@@ -196,6 +196,7 @@ persistence = "save-all"
 [mcp_servers.${toTomlKey(key)}]
 command = ${toTomlString(server.command)}
 args = ${toTomlArray(server.args)}
+enabled = true
 `;
 
 		if (server.env && Object.keys(server.env).length > 0) {

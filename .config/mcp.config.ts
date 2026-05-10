@@ -31,6 +31,8 @@ export const mcpConfig: MCPConfig = {
 				'convex@latest',
 				'mcp',
 				'start',
+				'--project-dir',
+				'apps/meseeks',
 			],
 			enabled: true,
 			description: 'Convex MCP server for database operations',
@@ -44,7 +46,7 @@ export const mcpConfig: MCPConfig = {
 				'mcp',
 				'start',
 				'--project-dir',
-				'.',
+				'apps/meseeks',
 				'--prod',
 				'--cautiously-allow-production-pii', // read-only
 			],
