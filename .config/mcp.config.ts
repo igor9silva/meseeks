@@ -26,7 +26,15 @@ export const mcpConfig: MCPConfig = {
 		Convex: {
 			name: 'Convex',
 			command: 'bun',
-			args: ['--cwd', 'apps/meseeks', 'convex', 'mcp', 'start', '--project-dir', '.'],
+			args: [
+				'--cwd', //
+				'apps/meseeks',
+				'convex',
+				'mcp',
+				'start',
+				'--project-dir',
+				'.',
+			],
 			enabled: true,
 			description: 'Convex MCP server for database operations',
 		},
