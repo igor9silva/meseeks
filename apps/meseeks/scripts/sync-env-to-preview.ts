@@ -17,11 +17,6 @@ const envFile = '.env.convex.dev';
 // preview deployments, not a single already-created preview deployment.
 const targetType = 'preview';
 
-// The app currently pins an older Convex runtime package. The default-env CLI is
-// newer than that runtime package, so use the latest CLI by default without
-// changing the runtime dependency used by app code.
-const convexCliPackage = process.env.CONVEX_CLI_PACKAGE ?? 'convex@latest';
-
 // Preview deployments mostly inherit development values today, with a small set
 // of intentional differences. Keep those differences in one object so future
 // preview-specific values can be added without changing the rewrite flow.
@@ -70,9 +65,7 @@ function assertAppRoot() {
 }
 
 function runConvex(args: string[], mode: 'capture' | 'inherit' = 'inherit') {
-	// Use bunx here instead of the package script's local `convex` binary so the
-	// CLI version can move independently from the app runtime dependency.
-	const result = spawnSync('bunx', [convexCliPackage, ...args], {
+	const result = spawnSync('bun', ['convex', ...args], {
 		encoding: 'utf8',
 		// Capture only commands whose stdout is data we need to rewrite. All other
 		// commands inherit stdio so Convex prompts/errors stay visible.
@@ -84,7 +77,7 @@ function runConvex(args: string[], mode: 'capture' | 'inherit' = 'inherit') {
 	}
 
 	if (result.status !== 0) {
-		const command = ['bunx', convexCliPackage, ...args].join(' ');
+		const command = ['bun', 'convex', ...args].join(' ');
 		throw new Error(`${command} failed with exit code ${result.status ?? 1}.`);
 	}
 

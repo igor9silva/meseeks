@@ -18,26 +18,33 @@ import {
 } from './preview-env';
 
 const convexProjectSelector = 'isPro:meseeks';
-const defaultPreviewExpiration = 'in 7 days';
+const repoRoot = '../..';
+const previewSeededRefKey = 'CONVEX_PREVIEW_SEEDED_REF';
 
 function main() {
 	assertAppRoot();
+	buildGeneratedConfigs();
 
 	const args = process.argv.slice(2);
 	const shouldStartDevServer = args.includes('--dev');
 	const previewName = getPreviewName(args);
 	const deploymentRef = previewRef(previewName);
-	const createdDeployment = selectPreviewDeployment(deploymentRef);
+	const createdDeployment = selectPreviewDeployment(previewName, deploymentRef);
 	const entries = writePreviewEnv(previewName, deploymentRef);
 	const env = previewCommandEnv(entries);
 
 	runConvex(['codegen'], { env });
 
 	const deployArgs = ['deploy', '--preview-name', previewName, '--env-file', envLocalFile, '--codegen', 'disable'];
-	const previewRun = createdDeployment ? getPreviewRun(entries) : undefined;
-	if (previewRun) deployArgs.push('--preview-run', previewRun);
+	const previewRun = shouldRunPreviewSeed(createdDeployment, entries, deploymentRef)
+		? getPreviewRun(entries)
+		: undefined;
 
 	runConvexDeploy(deployArgs, { env });
+	if (previewRun) {
+		runConvex(['run', previewRun], { env });
+		markPreviewSeeded(deploymentRef);
+	}
 
 	const deployedEntries = loadEnvLocal();
 	assertPreviewDeployment(deployedEntries, deploymentRef);
@@ -46,8 +53,9 @@ function main() {
 	run('bun', ['run', 'dev:web'], { env: previewCommandEnv(deployedEntries) });
 }
 
-function selectPreviewDeployment(deploymentRef: string) {
+function selectPreviewDeployment(previewName: string, deploymentRef: string) {
 	const deploymentSelector = `${convexProjectSelector}:${deploymentRef}`;
+	const createSelector = `${convexProjectSelector}:${previewName}`;
 	const env = previewCommandEnv();
 
 	console.log(`Selecting Convex deployment ${deploymentRef}`);
@@ -55,21 +63,34 @@ function selectPreviewDeployment(deploymentRef: string) {
 	if (selected.ok) return false;
 
 	console.log(`Creating Convex deployment ${deploymentRef}`);
-	runConvex(
-		[
-			'deployment',
-			'create',
-			deploymentSelector,
-			'--type',
-			'preview',
-			'--select',
-			'--expiration',
-			process.env.CONVEX_PREVIEW_EXPIRATION ?? defaultPreviewExpiration,
-		],
-		{ env },
-	);
+	const createArgs = ['deployment', 'create', createSelector, '--type', 'preview'];
+	const expiration = getPreviewExpiration();
+	if (expiration) createArgs.push('--expiration', expiration);
+
+	runConvex(createArgs, { env });
+	runConvex(['deployment', 'select', deploymentSelector], { env });
 
 	return true;
+}
+
+function buildGeneratedConfigs() {
+	console.log('Generating worktree assistant config');
+	run('bun', ['run', 'config:build'], { cwd: repoRoot });
+}
+
+function shouldRunPreviewSeed(createdDeployment: boolean, entries: Map<string, string>, deploymentRef: string) {
+	return createdDeployment || entries.get(previewSeededRefKey) !== deploymentRef;
+}
+
+function getPreviewExpiration() {
+	const expiration = process.env.CONVEX_PREVIEW_EXPIRATION?.trim();
+	return expiration || undefined;
+}
+
+function markPreviewSeeded(deploymentRef: string) {
+	const entries = loadEnvLocal();
+	entries.set(previewSeededRefKey, deploymentRef);
+	writeDotenv(envLocalFile, entries);
 }
 
 function writePreviewEnv(previewName: string, deploymentRef: string) {

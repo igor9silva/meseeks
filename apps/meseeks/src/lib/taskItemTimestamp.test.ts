@@ -1,5 +1,3 @@
-/// <reference types="bun" />
-
 import { describe, expect, test } from 'bun:test';
 import { formatTaskItemTimestamp, formatTaskItemTimestampTooltip } from './taskItemTimestamp';
 
