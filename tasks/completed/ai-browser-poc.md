@@ -1,3 +1,9 @@
+---
+title: AI-preprocessed browser POC
+priority: medium
+tags: [side]
+---
+
 # AI Coding Prompt: AI-Preprocessed Browser POC
 
 ## Project Overview

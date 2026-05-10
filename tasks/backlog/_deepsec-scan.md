@@ -1,3 +1,9 @@
+---
+title: Deepsec vulnerability scan
+priority: high
+tags: [security]
+---
+
 # Vulnerability Scan Report
 
 | Field | Value |
@@ -177,7 +183,7 @@ The runtime auth config enables Google OAuth with only clientId and clientSecret
 
 ### Unauthenticated local code-server exposes the workbench, filesystem, and terminal surface
 
-- **File:** `prototypes/mecode-mvp/backend/supervisor.ts`
+- **File:** `side/mecode-mvp/backend/supervisor.ts`
 - **Recent committers:** Igor Silva <igor@igorsilva.pro>
 - **Lines:** 149, 173, 193, 194, 365, 366
 - **Slug:** missing-auth
@@ -1358,4 +1364,3 @@ TaskScheduleCompactItem sets its title from formatScheduleHover, which passes sc
 **Recommendation:** Await the `act` mutation or keep an explicit recoverable snapshot. Clear the local/server draft only after the backend accepts the action batch, and on failure restore the queue/message, remove the pending strip items, and show an error toast. If background submission is intentional, still attach a `.catch(...)` and preserve the draft until success.
 
 ---
-

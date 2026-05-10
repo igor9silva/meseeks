@@ -19,14 +19,14 @@ Use these top-level buckets:
 - `references/` for searchable context that is not a completable task.
 - `completed/` for achieved work only.
 
-Do not create topic folders by default. Use tags for topics like `security`, `convex`, `organizer`, `ticktick`, `intelligence`, or `billing`.
+Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `intelligence`, or `billing`.
 
 Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
 
 Example:
 
 ```yaml
-tags: [intelligence, grok]
+tags: [intelligence]
 ```
 
 Not:
