@@ -50,6 +50,8 @@ For each mistake found, extract:
 5. **Skill involvement** — if a skill contributed to the mistake, note which one and how
 6. **Task impact** — whether the lesson should change tracked work, such as scope, acceptance criteria, notes, or a missing follow-up task
 
+Before editing, check whether the requested lesson is already covered. If it is covered and no wording needs tightening, tell the user it is already handled and stop. Do not continue into broader cleanup just to produce changes.
+
 ### Generalizing properly
 
 This is the critical part. Don't write rules about the specific code that was wrong. Write rules about the _class of mistake_.
@@ -95,7 +97,7 @@ Look at it with fresh eyes every time:
 - Are there rules that could be tightened or expressed more directly?
 - Does the tone and style stay consistent throughout?
 
-Improve anything you find, even if it's unrelated to the current session's mistakes. The goal is to leave the file better than you found it every time. Don't be afraid to make changes — the user reviews all diffs before committing.
+Improve rule quality where it affects the identified lesson or invoked workflow. Do not edit unrelated sections just because they could be nicer; bonus churn is still churn, and the user did not ask for it.
 
 ## Step 3: Update rules
 

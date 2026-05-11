@@ -361,6 +361,9 @@ One file per hook in `src/hooks/`.
 ## Making Changes
 
 - Every line of code has a maintenance cost. Crush unnecessary complexity.
+- If the requested change, cleanup, check, or task is already satisfied, say so and stop. Do not invent adjacent work just to make a diff.
+  - bad: user asks to add a rule that already exists, and the assistant rewrites nearby rules anyway
+  - good: verify the rule exists, report where it lives, and leave the tree untouched
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit
