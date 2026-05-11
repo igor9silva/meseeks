@@ -16,7 +16,7 @@ import { z } from 'zod/v3';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'tasks', '.generated');
-const OUTPUT_VERSION = 2;
+const OUTPUT_VERSION = 3;
 const VERBOSE = process.argv.includes('--verbose');
 
 type TaskSourceLabel = 'public' | 'private';
@@ -91,6 +91,7 @@ interface TaskRecord {
 	status: string;
 	priority: string | null;
 	tags: string[];
+	tagDetails: TaskTag[];
 	parentId: string | null;
 	parentKey: string | null;
 	parentSource: 'filesystem' | 'none';
@@ -126,6 +127,7 @@ interface TaskSummary {
 	status: string;
 	priority: string | null;
 	tags: string[];
+	tagDetails: TaskTag[];
 	parentId: string | null;
 	parentKey: string | null;
 	parentSource: 'filesystem' | 'none';
@@ -173,6 +175,23 @@ interface TaskWarningEntry {
 	taskKey: string;
 	relativePath: string;
 	message: string;
+}
+
+interface TaskTag {
+	tag: string;
+	key: string | null;
+	value: string;
+}
+
+interface TaskTagGroupValue {
+	tag: string;
+	value: string;
+	count: number;
+}
+
+interface TaskTagGroup {
+	key: string | null;
+	values: TaskTagGroupValue[];
 }
 
 interface BuildSummary {
@@ -726,6 +745,7 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 
 	const priority = frontmatter.priority ?? null;
 	const tags = dedupeStrings(frontmatter.tags ?? []);
+	const tagDetails = tags.map((tag) => parseTaskTag(tag));
 
 	const bodyFormat = inferBodyFormat(parsedTask.extension, parsedTask.body);
 	const bodyExcerpt = buildBodyExcerpt(parsedTask.body, 280);
@@ -746,6 +766,7 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 		status,
 		priority,
 		tags,
+		tagDetails,
 		parentId: null,
 		parentKey: null,
 		parentSource: 'none',
@@ -879,6 +900,36 @@ function dedupeStrings(values: string[]): string[] {
 	}
 
 	return dedupedValues;
+}
+
+function parseTaskTag(tag: string): TaskTag {
+	//
+	const separatorIndex = tag.indexOf(':');
+
+	if (separatorIndex <= 0 || separatorIndex === tag.length - 1) {
+		return {
+			tag,
+			key: null,
+			value: tag,
+		};
+	}
+
+	const key = tag.slice(0, separatorIndex).trim();
+	const value = tag.slice(separatorIndex + 1).trim();
+
+	if (key.length === 0 || value.length === 0) {
+		return {
+			tag,
+			key: null,
+			value: tag,
+		};
+	}
+
+	return {
+		tag,
+		key,
+		value,
+	};
 }
 
 function buildIdToKeysMap(tasks: TaskRecord[]): Map<string, string[]> {
@@ -1082,6 +1133,7 @@ function toTaskSummary(task: TaskRecord): TaskSummary {
 		status: task.status,
 		priority: task.priority,
 		tags: task.tags,
+		tagDetails: task.tagDetails,
 		parentId: task.parentId,
 		parentKey: task.parentKey,
 		parentSource: task.parentSource,
@@ -1126,6 +1178,7 @@ interface TaskLookupPayload {
 	idToKeys: Record<string, string[]>;
 	statusToKeys: Record<string, string[]>;
 	tagToKeys: Record<string, string[]>;
+	tagGroups: TaskTagGroup[];
 }
 
 function buildLookupPayload(tasks: TaskRecord[], idToKeys: Map<string, string[]>): TaskLookupPayload {
@@ -1154,7 +1207,89 @@ function buildLookupPayload(tasks: TaskRecord[], idToKeys: Map<string, string[]>
 		idToKeys: mapToSortedRecord(idToKeys),
 		statusToKeys: mapToSortedRecord(statusToKeys),
 		tagToKeys: mapToSortedRecord(tagToKeys),
+		tagGroups: buildTagGroups(tasks),
 	};
+}
+
+interface TagGroupAccumulator {
+	key: string | null;
+	valuesByTag: Map<string, TaskTagGroupValue>;
+}
+
+function buildTagGroups(tasks: TaskRecord[]): TaskTagGroup[] {
+	//
+	const groupsByKey = new Map<string, TagGroupAccumulator>();
+
+	for (const task of tasks) {
+		for (const tagDetail of task.tagDetails) {
+			const lookupKey = getTagGroupLookupKey(tagDetail.key);
+			const existingGroup = groupsByKey.get(lookupKey);
+			const group = existingGroup ?? {
+				key: tagDetail.key,
+				valuesByTag: new Map<string, TaskTagGroupValue>(),
+			};
+
+			if (!existingGroup) {
+				groupsByKey.set(lookupKey, group);
+			}
+
+			const existingValue = group.valuesByTag.get(tagDetail.tag);
+
+			if (existingValue) {
+				existingValue.count += 1;
+				continue;
+			}
+
+			group.valuesByTag.set(tagDetail.tag, {
+				tag: tagDetail.tag,
+				value: tagDetail.value,
+				count: 1,
+			});
+		}
+	}
+
+	return Array.from(groupsByKey.values())
+		.sort((left, right) => compareTagGroupKeys(left.key, right.key))
+		.map((group) => ({
+			key: group.key,
+			values: Array.from(group.valuesByTag.values()).sort(compareTagGroupValues),
+		}));
+}
+
+function getTagGroupLookupKey(key: string | null): string {
+	//
+	return key ?? '';
+}
+
+function compareTagGroupKeys(left: string | null, right: string | null): number {
+	//
+	const leftRank = getTagGroupRank(left);
+	const rightRank = getTagGroupRank(right);
+
+	if (leftRank !== rightRank) return leftRank - rightRank;
+	if (left === right) return 0;
+	if (left === null) return -1;
+	if (right === null) return 1;
+
+	return left.localeCompare(right);
+}
+
+function getTagGroupRank(key: string | null): number {
+	//
+	if (key === null) return 0;
+	if (key === 'source') return 1;
+	if (key === 'ticktick-list') return 2;
+	if (key === 'ticktick-status') return 3;
+
+	return 100;
+}
+
+function compareTagGroupValues(left: TaskTagGroupValue, right: TaskTagGroupValue): number {
+	//
+	if (left.count !== right.count) return right.count - left.count;
+	if (left.value !== right.value) return left.value.localeCompare(right.value);
+
+	return left.tag.localeCompare(right.tag);
 }
 
 function addLookupValue(valuesMap: Map<string, string[]>, key: string, value: string): void {

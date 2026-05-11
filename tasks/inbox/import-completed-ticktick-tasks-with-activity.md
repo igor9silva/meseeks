@@ -15,5 +15,6 @@ Source: Organizer/TickTick migration planning
 Important constraints:
 
 - Preserve TickTick task IDs, list/project, completion timestamps, status, priority, tags, checklist state, attachments, and task activity/history. EVERY BIT OF INFO MATTERS.
+- Tasks already migrated to git have a `Migrated into git: <ISO timestamp>` in the body. Do not re-import them. There were also marked with "Won't do" (status=-1).
 - Decide whether imported completed history belongs in `private/tasks/completed/`, a source-batch folder, or another reviewed archival shape before importing.
 - Do not mutate TickTick while importing.
