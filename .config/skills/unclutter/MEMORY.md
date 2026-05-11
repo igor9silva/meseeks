@@ -1,6 +1,6 @@
 # Unclutter Memory
 
-Durable decisions for future Unclutter runs. Keep this short. Do not keep dated run logs by default.
+Durable decisions for future Unclutter passes. Keep this short; this is the persistent history.
 
 ## Decisions
 
