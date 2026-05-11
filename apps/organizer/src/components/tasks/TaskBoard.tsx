@@ -7,6 +7,7 @@ import {
 	CircleDot,
 	Inbox,
 	Layers,
+	Lightbulb,
 	Lock,
 	Plus,
 	Search,
@@ -631,6 +632,7 @@ function findFacetCount(entries: ExplorerFacets['statuses'], value: string): num
 function renderStatusIcon(status: string) {
 	//
 	if (status === 'inbox') return <Inbox className="size-3.5" />;
+	if (status === 'ideas') return <Lightbulb className="size-3.5" />;
 	if (status === 'active') return <CircleDot className="size-3.5" />;
 	if (status === 'backlog') return <Archive className="size-3.5" />;
 	if (status === 'references') return <Layers className="size-3.5" />;

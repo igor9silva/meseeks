@@ -23,6 +23,7 @@ Pick the root before the bucket:
 Use only these buckets:
 
 - `inbox/` for unplanned captures.
+- `ideas/` for side projects, product ideas, use cases, and things worth trying.
 - `active/` for work happening now or committed next.
 - `backlog/` for valid work we might do later.
 - `references/` for searchable context, not completable tasks.
@@ -82,7 +83,7 @@ Plain folders without `_index.*` are topic folders, not tasks.
 
 Before finishing:
 
-- Path uses the right root and one of the five buckets.
+- Path uses the right root and one of the task buckets.
 - `references/` files are written as context, not fake tasks.
 - Imported/source-backed files preserve source metadata.
 - Public/private ambiguity was resolved by Igor.

@@ -14,6 +14,7 @@ Raw TickTick and phone captures default to `private/tasks/inbox/`. Move them pub
 Use these top-level buckets:
 
 - `inbox/` for unplanned captures.
+- `ideas/` for side projects, product ideas, use cases, and things worth trying.
 - `active/` for work we are doing now or committed to doing next.
 - `backlog/` for valid work we might do later.
 - `references/` for searchable context that is not a completable task.
@@ -75,7 +76,7 @@ Plan in batches. Do not perfect one capture while the rest of the inbox rots.
 
 For each inbox item:
 
-1. Move it to `active/`, `backlog/`, `references/`, or `completed/`.
+1. Move it to `ideas/`, `active/`, `backlog/`, `references/`, or `completed/`.
 2. Delete it if we decided not to do it.
 3. Split it if it mixes public work with private source material.
 
@@ -88,7 +89,7 @@ Mixed task example:
 
 References are searchable context, not promises to act.
 
-Use `references/` for research notes, source dumps, prompts, transcripts, saved links, and examples that may inform future work. If a reference creates work, write a separate task in `inbox/`, `active/`, or `backlog/` and link back to the reference.
+Use `references/` for research notes, source dumps, prompts, transcripts, saved links, and examples that may inform future work. If a reference creates work, write a separate task in `inbox/`, `ideas/`, `active/`, or `backlog/` and link back to the reference.
 
 ## Completed Or Deleted
 

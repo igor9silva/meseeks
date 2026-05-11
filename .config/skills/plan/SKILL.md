@@ -32,7 +32,7 @@ Produce a plan covering:
 - title and short slug
 - tags, reusing nearby/root tags before inventing new ones
 - root: `tasks/` for public product/repo work, `private/tasks/` for sensitive, personal, raw, or unreviewed captures
-- bucket: `active/`, `backlog/`, `references/`, `completed/`, or delete
+- bucket: `ideas/`, `active/`, `backlog/`, `references/`, `completed/`, or delete
 - structure: single file, parent `_index.*`, child task, reference note, split, merge, or delete
 - source metadata preservation: URLs, TickTick IDs, capture text, transcript pointers, import notes, dates, or raw source blocks
 
