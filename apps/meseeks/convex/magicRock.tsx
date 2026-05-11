@@ -46,7 +46,8 @@ const audioContentTypeSchema = z
 	.optional();
 
 const promptContextSchema = z.string().trim().max(2000).optional();
-const dictionarySchema = z.array(z.string().trim().min(1).max(80)).max(80).optional();
+const dictionarySchema = z.array(z.string().trim().min(1).max(80)).max(100).optional();
+const sdpSchema = z.string().trim().min(1).max(100_000);
 
 const languageSchema = z
 	.string()
@@ -57,25 +58,7 @@ const languageSchema = z
 	.optional();
 
 const vadModeSchema = z.enum(['server', 'semantic']).optional();
-const latencyModeSchema = z.enum(['fast', 'balanced', 'accurate']).optional();
-
-const realtimeSessionSchema = z
-	.object({
-		id: z.string().optional(),
-		value: z.string().optional(),
-		expires_at: z.number().optional(),
-		session: z.object({ id: z.string().optional() }).passthrough().optional(),
-		client_secret: z
-			.union([
-				z.string(),
-				z.object({
-					value: z.string(),
-					expires_at: z.number().optional(),
-				}),
-			])
-			.optional(),
-	})
-	.passthrough();
+const latencySchema = z.enum(['fast', 'balanced', 'accurate']).optional();
 
 export const transcribe = action({
 	args: {
@@ -129,15 +112,16 @@ export const transcribe = action({
 	},
 });
 
-export const createRealtimeTranscriptionSession = action({
+export const createRealtimeTranscriptionCall = action({
 	args: {
+		sdp: sdpSchema,
 		promptContext: promptContextSchema,
 		dictionary: dictionarySchema,
 		language: languageSchema,
 		vadMode: vadModeSchema,
-		latencyMode: latencyModeSchema,
+		latency: latencySchema,
 	},
-	handler: async (ctx, { promptContext, dictionary, language, vadMode, latencyMode }) => {
+	handler: async (ctx, { sdp, promptContext, dictionary, language, vadMode, latency }) => {
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) throw new Error('Unauthorized');
 
@@ -150,49 +134,39 @@ export const createRealtimeTranscriptionSession = action({
 						prompt: buildPrompt({ promptContext, dictionary }),
 						...(language ? { language } : {}),
 					},
-					turn_detection: buildTurnDetection(vadMode, latencyMode),
-					noise_reduction: {
-						type: 'near_field',
-					},
+					turn_detection: buildTurnDetection(vadMode, latency),
 				},
 			},
 			include: ['item.input_audio_transcription.logprobs'],
 		};
 
-		const response = await fetch(`${baseUrl}/realtime/client_secrets`, {
+		const formData = new FormData();
+		formData.set('sdp', new Blob([sdp], { type: 'application/sdp' }), 'offer.sdp');
+		formData.set('session', new Blob([JSON.stringify(session)], { type: 'application/json' }), 'session.json');
+
+		const response = await fetch(`${baseUrl}/realtime/calls`, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
-				'Content-Type': 'application/json',
 				'OpenAI-Safety-Identifier': await getSafetyIdentifier(identity.subject),
 			},
-			body: JSON.stringify({ session }),
+			body: formData,
 		});
 
-		const json = await response.json();
+		const answerSdp = await response.text();
 
 		if (!response.ok) {
-			console.error('OpenAI realtime transcription session failed:', { status: response.status, error: json });
-			throw new Error(`Realtime transcription session failed: ${response.status}`);
+			console.error('OpenAI realtime transcription call failed:', { status: response.status, error: answerSdp });
+			throw new Error(`Realtime transcription call failed: ${response.status}`);
 		}
 
-		const result = realtimeSessionSchema.parse(json);
-		const clientSecret =
-			typeof result.client_secret === 'string'
-				? result.client_secret
-				: (result.client_secret?.value ?? result.value);
-
-		if (!clientSecret) throw new Error('Realtime transcription session did not return a client secret');
-
-		return {
-			clientSecret,
-			expiresAt:
-				typeof result.client_secret === 'string'
-					? result.expires_at
-					: (result.client_secret?.expires_at ?? result.expires_at),
+		console.debug('OpenAI realtime transcription call created', {
 			model: realtimeModel,
-			sessionId: result.session?.id ?? result.id,
-		};
+			dictionaryCount: buildDictionary({ promptContext, dictionary }).length,
+			callLocation: response.headers.get('Location'),
+		});
+
+		return answerSdp;
 	},
 });
 
@@ -212,11 +186,11 @@ function buildDictionary({ promptContext, dictionary }: { promptContext?: string
 	return dedupe([...baseDictionary, ...(dictionary ?? []), ...extractPromptDictionary(promptContext)]).slice(0, 100);
 }
 
-function buildTurnDetection(vadMode?: 'server' | 'semantic', latencyMode: 'fast' | 'balanced' | 'accurate' = 'fast') {
+function buildTurnDetection(vadMode?: 'server' | 'semantic', latency: 'fast' | 'balanced' | 'accurate' = 'fast') {
 	if (vadMode === 'semantic') {
 		return {
 			type: 'semantic_vad',
-			eagerness: latencyMode === 'accurate' ? 'low' : latencyMode === 'balanced' ? 'medium' : 'high',
+			eagerness: latency === 'accurate' ? 'low' : latency === 'balanced' ? 'medium' : 'high',
 		};
 	}
 
@@ -224,7 +198,7 @@ function buildTurnDetection(vadMode?: 'server' | 'semantic', latencyMode: 'fast'
 		type: 'server_vad',
 		threshold: 0.5,
 		prefix_padding_ms: 300,
-		silence_duration_ms: latencyMode === 'accurate' ? 1200 : latencyMode === 'balanced' ? 700 : 350,
+		silence_duration_ms: latency === 'accurate' ? 1200 : latency === 'balanced' ? 700 : 350,
 	};
 }
 
@@ -254,16 +228,5 @@ function extractPromptDictionary(promptContext?: string) {
 }
 
 function dedupe(values: string[]) {
-	const seen = new Set<string>();
-	const result: string[] = [];
-
-	for (const value of values) {
-		const term = value.trim();
-		const key = term.toLowerCase();
-		if (!term || seen.has(key)) continue;
-		seen.add(key);
-		result.push(term);
-	}
-
-	return result;
+	return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }

@@ -30,20 +30,23 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	const canRequestIteration = isMessageEmpty && !isBlocked && !isTaskActing && queue.length === 0;
 
 	const voicePromptContext = useMemo(() => {
-		return [task.title ? `Task: ${task.title}` : null, message ? `Draft: ${message}` : null]
+		return [
+			task.title ? `Task: ${task.title}` : null, //
+			message ? `Draft: ${message}` : null,
+		]
 			.filter(Boolean)
 			.join('\n');
 	}, [message, task.title]);
 
-	const dictionary = useMemo(() => {
-		return [
+	const voiceDictionary = useMemo(() => {
+		return dedupe([
 			'Meseeks',
 			'Convex',
 			'TanStack',
 			'TypeScript',
-			...(task.title ? extractTerms(task.title) : []),
-			...(message ? extractTerms(message) : []),
-		];
+			...(task.title ? extractDictionaryTerms(task.title) : []),
+			...(message ? extractDictionaryTerms(message) : []),
+		]);
 	}, [message, task.title]);
 
 	const handleAct = async () => {
@@ -110,7 +113,7 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 			onEnqueue={handleEnqueueMessage}
 			onStop={handleStop}
 			promptContext={voicePromptContext}
-			dictionary={dictionary}
+			dictionary={voiceDictionary}
 			className={className}
 			strips={<StripContainer task={task} />}
 			leadingControls={
@@ -133,9 +136,12 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 	);
 }
 
-function extractTerms(value: string) {
-	return Array.from(
-		value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g),
-		(match) => match[0],
-	).slice(0, 24);
+function extractDictionaryTerms(value: string) {
+	return Array.from(value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g), (match) => match[0])
+		.filter((term) => term.length > 1)
+		.slice(0, 40);
+}
+
+function dedupe(values: string[]) {
+	return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }

@@ -3,20 +3,19 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from 'convex/_generated/api';
 
-export type DictationStatus = 'idle' | 'connecting' | 'streaming' | 'finalizing';
-export type DictationTransport = 'idle' | 'webrtc' | 'fallback';
-export type DictationVadMode = 'server' | 'semantic';
-export type DictationLatencyMode = 'fast' | 'balanced' | 'accurate';
+export type ComposerTranscriptStatus = 'idle' | 'connecting' | 'streaming' | 'finalizing';
+export type ComposerTranscriptTransport = 'idle' | 'webrtc' | 'fallback';
+export type ComposerVadMode = 'server' | 'semantic';
+export type ComposerVoiceLatency = 'fast' | 'balanced' | 'accurate';
 
-export type DictationTurn = {
+export type ComposerVoiceTurn = {
 	itemId: string;
 	previousItemId?: string | null;
 	text: string;
 	finalText?: string;
 	status: 'streaming' | 'final';
-	startedAt: number;
-	updatedAt: number;
 	confidence?: number;
+	updatedAt: number;
 };
 
 type RealtimeEvent = {
@@ -30,31 +29,30 @@ type RealtimeEvent = {
 	error?: unknown;
 };
 
-type UseRealtimeDictationProps = {
+type UseComposerTranscriptionProps = {
 	promptContext?: string;
 	dictionary?: string[];
 	language?: string;
-	vadMode: DictationVadMode;
-	latencyMode: DictationLatencyMode;
-	onTranscript: (text: string, turns: DictationTurn[]) => void;
-	onComplete: (text: string, turns: DictationTurn[]) => void;
+	vadMode: ComposerVadMode;
+	latency: ComposerVoiceLatency;
+	onTranscript: (text: string, turns: ComposerVoiceTurn[]) => void;
+	onComplete: (text: string, turns: ComposerVoiceTurn[]) => void;
 	onCancel: () => void;
 };
 
-const realtimeCallsUrl = 'https://api.openai.com/v1/realtime/calls';
-const realtimeFinishWaitMs = 1500;
+const realtimeFinishWaitMs = 1200;
 
-export function useRealtimeDictation({
+export function useComposerTranscription({
 	promptContext,
 	dictionary,
 	language,
 	vadMode,
-	latencyMode,
+	latency,
 	onTranscript,
 	onComplete,
 	onCancel,
-}: UseRealtimeDictationProps) {
-	const createRealtimeSession = useAction(api.magicRock.createRealtimeTranscriptionSession);
+}: UseComposerTranscriptionProps) {
+	const createRealtimeCall = useAction(api.magicRock.createRealtimeTranscriptionCall);
 	const transcribeAction = useAction(api.magicRock.transcribe);
 
 	const streamRef = useRef<MediaStream | null>(null);
@@ -66,63 +64,57 @@ export function useRealtimeDictation({
 	const timerRef = useRef<number | null>(null);
 	const startedAtRef = useRef<number | null>(null);
 	const chunksRef = useRef<Blob[]>([]);
-	const turnsRef = useRef<Map<string, DictationTurn>>(new Map());
+	const turnsRef = useRef<Map<string, ComposerVoiceTurn>>(new Map());
 	const turnOrderRef = useRef<string[]>([]);
 	const transcriptRef = useRef('');
-	const statusRef = useRef<DictationStatus>('idle');
+	const statusRef = useRef<ComposerTranscriptStatus>('idle');
 	const realtimeFailedRef = useRef(false);
 	const canceledRef = useRef(false);
 	const isFinishingRef = useRef(false);
 
-	const [status, setStatus] = useState<DictationStatus>('idle');
-	const [transport, setTransport] = useState<DictationTransport>('idle');
-	const [turns, setTurns] = useState<DictationTurn[]>([]);
-	const [activeText, setActiveText] = useState('');
+	const [status, setStatus] = useState<ComposerTranscriptStatus>('idle');
+	const [transport, setTransport] = useState<ComposerTranscriptTransport>('idle');
+	const [turns, setTurns] = useState<ComposerVoiceTurn[]>([]);
+	const [liveText, setLiveText] = useState('');
 	const [inputLevel, setInputLevel] = useState(0);
 	const [elapsedMs, setElapsedMs] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 
-	const updateStatus = useCallback((nextStatus: DictationStatus) => {
+	const updateStatus = useCallback((nextStatus: ComposerTranscriptStatus) => {
 		statusRef.current = nextStatus;
 		setStatus(nextStatus);
 	}, []);
 
 	const orderedTurns = useCallback(() => {
-		const ids = orderTurnIds(turnsRef.current, turnOrderRef.current);
-		return ids.flatMap((itemId) => {
+		return orderTurnIds(turnsRef.current, turnOrderRef.current).flatMap((itemId) => {
 			const turn = turnsRef.current.get(itemId);
 			return turn ? [turn] : [];
 		});
 	}, []);
 
 	const emitTranscript = useCallback(() => {
-		const ordered = orderedTurns();
-		const text = ordered
+		const nextTurns = orderedTurns();
+		const text = nextTurns
 			.map((turn) => (turn.finalText ?? turn.text).trim())
 			.filter(Boolean)
 			.join(' ')
 			.trim();
 
 		transcriptRef.current = text;
-		setTurns(ordered);
-		setActiveText(text);
-
-		if (text) {
-			onTranscript(text, ordered);
-		}
+		setTurns(nextTurns);
+		setLiveText(text);
+		if (text) onTranscript(text, nextTurns);
 	}, [onTranscript, orderedTurns]);
 
 	const ensureTurn = useCallback((itemId: string) => {
 		const existing = turnsRef.current.get(itemId);
 		if (existing) return existing;
 
-		const now = Date.now();
-		const turn: DictationTurn = {
+		const turn: ComposerVoiceTurn = {
 			itemId,
 			text: '',
 			status: 'streaming',
-			startedAt: now,
-			updatedAt: now,
+			updatedAt: Date.now(),
 		};
 		turnsRef.current.set(itemId, turn);
 		turnOrderRef.current.push(itemId);
@@ -131,19 +123,17 @@ export function useRealtimeDictation({
 
 	const handleRealtimeEvent = useCallback(
 		(event: RealtimeEvent) => {
-			if (canceledRef.current) return;
-
 			if (event.type === 'input_audio_buffer.committed' && event.item_id) {
 				const turn = ensureTurn(event.item_id);
 				turn.previousItemId = event.previous_item_id;
 				turn.updatedAt = Date.now();
-				setTurns(orderedTurns());
 				return;
 			}
 
 			if (event.type === 'conversation.item.input_audio_transcription.delta' && event.item_id && event.delta) {
 				const turn = ensureTurn(event.item_id);
 				turn.text += event.delta;
+				turn.status = 'streaming';
 				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
@@ -153,8 +143,8 @@ export function useRealtimeDictation({
 				const turn = ensureTurn(event.item_id);
 				turn.finalText = event.transcript ?? turn.text;
 				turn.status = 'final';
-				turn.updatedAt = Date.now();
 				turn.confidence = estimateConfidence(event.logprobs);
+				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
 			}
@@ -162,6 +152,7 @@ export function useRealtimeDictation({
 			if (event.type === 'transcript.text.delta' && event.delta) {
 				const turn = ensureTurn('transcript.text');
 				turn.text += event.delta;
+				turn.status = 'streaming';
 				turn.updatedAt = Date.now();
 				emitTranscript();
 				return;
@@ -179,24 +170,23 @@ export function useRealtimeDictation({
 			if (event.type === 'error') {
 				realtimeFailedRef.current = true;
 				setTransport('fallback');
-				setError('Realtime stream failed; buffered fallback is armed.');
+				setError(
+					readRealtimeError(event.error) ??
+						'Realtime stream failed. Buffered transcription will finish on stop.',
+				);
 				console.error('Realtime transcription error:', event.error ?? event);
 			}
 		},
-		[emitTranscript, ensureTurn, orderedTurns],
+		[emitTranscript, ensureTurn],
 	);
 
 	const closeRealtime = useCallback(() => {
 		const dataChannel = dataChannelRef.current;
-		if (dataChannel && dataChannel.readyState !== 'closed') {
-			dataChannel.close();
-		}
+		if (dataChannel && dataChannel.readyState !== 'closed') dataChannel.close();
 		dataChannelRef.current = null;
 
 		const peerConnection = peerConnectionRef.current;
-		if (peerConnection) {
-			peerConnection.close();
-		}
+		if (peerConnection) peerConnection.close();
 		peerConnectionRef.current = null;
 	}, []);
 
@@ -210,7 +200,7 @@ export function useRealtimeDictation({
 		turnOrderRef.current = [];
 		transcriptRef.current = '';
 		setTurns([]);
-		setActiveText('');
+		setLiveText('');
 	}, []);
 
 	const stopMeter = useCallback(() => {
@@ -222,10 +212,7 @@ export function useRealtimeDictation({
 		const audioContext = audioContextRef.current;
 		audioContextRef.current = null;
 		setInputLevel(0);
-
-		if (audioContext) {
-			void audioContext.close().catch(() => {});
-		}
+		if (audioContext) void audioContext.close().catch(() => {});
 	}, []);
 
 	const startMeter = useCallback(
@@ -284,14 +271,6 @@ export function useRealtimeDictation({
 
 	const startRealtime = useCallback(
 		async (stream: MediaStream) => {
-			const session = await createRealtimeSession({
-				...(promptContext ? { promptContext } : {}),
-				...(dictionary?.length ? { dictionary } : {}),
-				...(language ? { language } : {}),
-				vadMode,
-				latencyMode,
-			});
-
 			const peerConnection = new RTCPeerConnection();
 			peerConnectionRef.current = peerConnection;
 
@@ -320,7 +299,7 @@ export function useRealtimeDictation({
 				if (canceledRef.current || isFinishingRef.current) return;
 				realtimeFailedRef.current = true;
 				setTransport('fallback');
-				setError('Realtime data channel failed; buffered fallback is armed.');
+				setError('Realtime data channel failed. Buffered transcription will finish on stop.');
 				console.error('Realtime transcription data channel error:', event);
 			});
 
@@ -329,43 +308,28 @@ export function useRealtimeDictation({
 				if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
 					realtimeFailedRef.current = true;
 					setTransport('fallback');
-					setError('Realtime connection dropped; buffered fallback is armed.');
+					setError('Realtime connection dropped. Buffered transcription will finish on stop.');
 				}
 			});
 
 			const offer = await peerConnection.createOffer();
 			await peerConnection.setLocalDescription(offer);
 
-			const response = await fetch(realtimeCallsUrl, {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${session.clientSecret}`,
-					'Content-Type': 'application/sdp',
-				},
-				body: offer.sdp ?? '',
+			const answerSdp = await createRealtimeCall({
+				sdp: offer.sdp ?? '',
+				...(promptContext ? { promptContext } : {}),
+				...(dictionary?.length ? { dictionary } : {}),
+				...(language ? { language } : {}),
+				vadMode,
+				latency,
 			});
-
-			if (!response.ok) {
-				realtimeFailedRef.current = true;
-				setTransport('fallback');
-				throw new Error(`Realtime transcription call failed: ${response.status}`);
-			}
 
 			await peerConnection.setRemoteDescription({
 				type: 'answer',
-				sdp: await response.text(),
+				sdp: answerSdp,
 			});
 		},
-		[
-			createRealtimeSession,
-			dictionary,
-			handleRealtimeEvent,
-			language,
-			latencyMode,
-			promptContext,
-			updateStatus,
-			vadMode,
-		],
+		[createRealtimeCall, dictionary, handleRealtimeEvent, language, latency, promptContext, updateStatus, vadMode],
 	);
 
 	const finish = useCallback(
@@ -377,10 +341,7 @@ export function useRealtimeDictation({
 			stopMeter();
 
 			try {
-				if (!realtimeFailedRef.current) {
-					await wait(realtimeFinishWaitMs);
-				}
-
+				if (!realtimeFailedRef.current) await wait(realtimeFinishWaitMs);
 				if (canceledRef.current) return;
 
 				const realtimeTranscript = transcriptRef.current.trim();
@@ -486,7 +447,10 @@ export function useRealtimeDictation({
 			void startRealtime(stream).catch((startError) => {
 				realtimeFailedRef.current = true;
 				setTransport('fallback');
-				setError('Realtime unavailable; buffered fallback is armed.');
+				setError(
+					readRealtimeError(startError) ??
+						'Realtime unavailable. Buffered transcription will finish on stop.',
+				);
 				updateStatus('streaming');
 				console.error('Realtime transcription unavailable:', startError);
 			});
@@ -539,17 +503,15 @@ export function useRealtimeDictation({
 		onCancel();
 
 		const mediaRecorder = mediaRecorderRef.current;
-		if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-			mediaRecorder.stop();
-		}
+		if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 
 		closeRealtime();
 		stopMeter();
 		stopStream();
 		stopTimer();
 		resetTranscript();
-		setTransport('idle');
 		setError(null);
+		setTransport('idle');
 		updateStatus('idle');
 	}, [closeRealtime, onCancel, resetTranscript, stopMeter, stopStream, stopTimer, updateStatus]);
 
@@ -567,7 +529,7 @@ export function useRealtimeDictation({
 		status,
 		transport,
 		turns,
-		activeText,
+		liveText,
 		inputLevel,
 		elapsedMs,
 		error,
@@ -587,13 +549,11 @@ function createMediaRecorder(stream: MediaStream) {
 	return new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
 }
 
-function orderTurnIds(turns: Map<string, DictationTurn>, fallbackOrder: string[]) {
+function orderTurnIds(turns: Map<string, ComposerVoiceTurn>, fallbackOrder: string[]) {
 	const nextByPrevious = new Map<string | null, string>();
 
 	for (const turn of turns.values()) {
-		if (turn.previousItemId !== undefined) {
-			nextByPrevious.set(turn.previousItemId, turn.itemId);
-		}
+		if (turn.previousItemId !== undefined) nextByPrevious.set(turn.previousItemId, turn.itemId);
 	}
 
 	const ordered: string[] = [];
@@ -614,11 +574,21 @@ function orderTurnIds(turns: Map<string, DictationTurn>, fallbackOrder: string[]
 }
 
 function estimateConfidence(logprobs?: Array<{ logprob?: number }>) {
-	const values = logprobs?.flatMap((item) => (typeof item.logprob === 'number' ? [item.logprob] : []));
-	if (!values?.length) return undefined;
+	if (!logprobs?.length) return undefined;
 
-	const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+	const usable = logprobs.map((entry) => entry.logprob).filter((value): value is number => typeof value === 'number');
+	if (!usable.length) return undefined;
+
+	const average = usable.reduce((sum, value) => sum + value, 0) / usable.length;
 	return Math.max(0, Math.min(1, Math.exp(average)));
+}
+
+function readRealtimeError(error: unknown) {
+	if (!error) return null;
+	if (error instanceof Error) return error.message;
+	if (typeof error === 'string') return error;
+	if (typeof error === 'object' && 'message' in error && typeof error.message === 'string') return error.message;
+	return null;
 }
 
 function wait(ms: number) {

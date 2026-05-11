@@ -1,20 +1,17 @@
-export type VoiceInsertMode = 'insert' | 'replace' | 'append';
+export type VoiceTextMode = 'insert' | 'replace' | 'append';
 
 export type VoiceTextAnchor = {
 	value: string;
 	selectionStart: number;
 	selectionEnd: number;
-	mode: VoiceInsertMode;
+	mode: VoiceTextMode;
 };
 
 export function getVoiceTextAnchor(
 	textarea: HTMLTextAreaElement | null,
 	value: string,
-	mode: VoiceInsertMode,
+	mode: VoiceTextMode = 'insert',
 ): VoiceTextAnchor {
-	const selectionStart = textarea?.selectionStart ?? value.length;
-	const selectionEnd = textarea?.selectionEnd ?? value.length;
-
 	if (mode === 'append') {
 		return {
 			value,
@@ -24,34 +21,25 @@ export function getVoiceTextAnchor(
 		};
 	}
 
-	if (mode === 'replace' && selectionStart === selectionEnd) {
-		return {
-			value,
-			selectionStart: 0,
-			selectionEnd: value.length,
-			mode,
-		};
-	}
-
 	return {
 		value,
-		selectionStart,
-		selectionEnd,
+		selectionStart: textarea?.selectionStart ?? value.length,
+		selectionEnd:
+			mode === 'replace' ? (textarea?.selectionEnd ?? value.length) : (textarea?.selectionStart ?? value.length),
 		mode,
 	};
 }
 
-export function insertVoiceText(anchor: VoiceTextAnchor, transcript: string) {
+export function applyVoiceText(anchor: VoiceTextAnchor, transcript: string) {
 	const text = transcript.trim();
 	if (!text) return anchor.value;
 
+	if (anchor.mode === 'append') {
+		return appendVoiceText(anchor.value, text);
+	}
+
 	const before = anchor.value.slice(0, anchor.selectionStart);
 	const after = anchor.value.slice(anchor.selectionEnd);
-
-	if (anchor.mode === 'append') {
-		const blockGap = before.trim().length > 0 && !before.endsWith('\n') ? '\n' : '';
-		return `${before}${blockGap}${text}`;
-	}
 
 	const beforeGap = before && !/\s$/.test(before) ? ' ' : '';
 	const afterGap = after && !/^\s/.test(after) ? ' ' : '';
@@ -60,8 +48,20 @@ export function insertVoiceText(anchor: VoiceTextAnchor, transcript: string) {
 }
 
 export function parseDictionaryTerms(value: string) {
-	return value
-		.split(/[\n,]/)
-		.map((term) => term.trim())
-		.filter(Boolean);
+	return dedupe(
+		value
+			.split(/[\n,]/)
+			.map((term) => term.trim())
+			.filter((term) => term.length > 0),
+	).slice(0, 60);
+}
+
+function appendVoiceText(value: string, text: string) {
+	const trimmed = value.trimEnd();
+	if (!trimmed) return text;
+	return `${trimmed}\n\n${text}`;
+}
+
+function dedupe(values: string[]) {
+	return Array.from(new Set(values));
 }

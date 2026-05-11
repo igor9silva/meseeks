@@ -63,6 +63,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 
 	const placeholder = useMemo(() => PLACEHOLDERS[0] ?? "What's happening?", []);
 	const isMessageEmpty = message.trim().length === 0;
+	const voiceDictionary = useMemo(() => extractDictionaryTerms(message), [message]);
 
 	const handleSubmit = () => {
 		if (isAdding) return;
@@ -121,7 +122,7 @@ export function QuickSeekContent({ className }: { className?: string }) {
 				onSubmit={handleSubmit}
 				placeholder={placeholder}
 				promptContext={message ? `Draft: ${message}` : undefined}
-				dictionary={message ? extractTerms(message) : undefined}
+				dictionary={voiceDictionary}
 				className="mx-0 mb-0 p-4"
 				textareaClassName="min-h-20"
 				leadingControls={
@@ -163,9 +164,8 @@ function getIntelligenceForBudget(budget: number) {
 	throw new Error(`Invalid intelligence progression setup for budget ${budget}`);
 }
 
-function extractTerms(value: string) {
-	return Array.from(
-		value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g),
-		(match) => match[0],
-	).slice(0, 24);
+function extractDictionaryTerms(value: string) {
+	return Array.from(value.matchAll(/\b[A-Z][A-Za-z0-9]*(?:[.-][A-Za-z0-9]+)*\b|[A-Z]{2,}\b/g), (match) => match[0])
+		.filter((term) => term.length > 1)
+		.slice(0, 40);
 }
