@@ -11,7 +11,6 @@ import {
 	Plus,
 	Search,
 	Settings2,
-	Tag,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -21,6 +20,7 @@ import {
 	type TaskSource,
 } from '~/lib/explorerSearchParams';
 import { formatTaskBucketLabel, isTaskBucket, taskBuckets } from '~/lib/taskBuckets';
+import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals } from './taskExplorerTypes';
 import { formatSourceLabel, getTaskFilename, taskSourceOptions } from './taskExplorerUtils';
 
@@ -41,8 +41,7 @@ export function TaskBoard({
 	onCreateTaskOpen,
 	onSourceToggle,
 	onStatusToggle,
-	onTagToggle,
-	onExcludedTagToggle,
+	onTagFilterCycle,
 	onRootsOnlyToggle,
 	onSortChange,
 	onVisibleBoardStatusToggle,
@@ -64,8 +63,7 @@ export function TaskBoard({
 	onCreateTaskOpen: () => void;
 	onSourceToggle: (source: TaskSource) => void;
 	onStatusToggle: (status: string) => void;
-	onTagToggle: (tag: string) => void;
-	onExcludedTagToggle: (tag: string) => void;
+	onTagFilterCycle: (tag: string) => void;
 	onRootsOnlyToggle: () => void;
 	onSortChange: (sort: ExplorerSort) => void;
 	onVisibleBoardStatusToggle: (status: string) => void;
@@ -78,7 +76,7 @@ export function TaskBoard({
 	const boardStatuses = buildBoardStatuses(visibleTasks, visibleBoardStatuses, hasSearch);
 	const columnSettingStatuses = buildColumnSettingStatuses(statusFacetEntries, visibleBoardStatuses);
 	const tasksByStatus = groupTasksByStatus(visibleTasks, boardStatuses);
-	const tagEntries = buildTagEntries(facets?.tags ?? [], queryInput.tags.concat(queryInput.excludedTags));
+	const tagGroups = buildTagGroups(facets?.tagGroups ?? [], queryInput.tags.concat(queryInput.excludedTags));
 	const offBucketEntries = statusFacetEntries.filter((entry) => !isTaskBucket(entry.value));
 	const hiddenOffBucketCount = offBucketEntries.reduce((total, entry) => {
 		if (queryInput.statuses.includes(entry.value)) return total;
@@ -255,22 +253,17 @@ export function TaskBoard({
 						) : null}
 					</div>
 
-					{tagEntries.length > 0 ? (
-						<div className="grid gap-2 lg:grid-cols-2">
-							<TagFilterGroup
-								label="Include"
-								entries={tagEntries}
-								selectedTags={queryInput.tags}
-								onTagToggle={onTagToggle}
-								variant="include"
-							/>
-							<TagFilterGroup
-								label="Exclude"
-								entries={tagEntries}
-								selectedTags={queryInput.excludedTags}
-								onTagToggle={onExcludedTagToggle}
-								variant="exclude"
-							/>
+					{tagGroups.length > 0 ? (
+						<div className="max-h-52 space-y-2 overflow-auto">
+							{tagGroups.map((group) => (
+								<TagFilterGroup
+									key={getTagGroupLookupKey(group.key)}
+									group={group}
+									includedTags={queryInput.tags}
+									excludedTags={queryInput.excludedTags}
+									onTagFilterCycle={onTagFilterCycle}
+								/>
+							))}
 						</div>
 					) : null}
 				</div>
@@ -362,40 +355,40 @@ function StatusFilterButton({
 }
 
 function TagFilterGroup({
-	label,
-	entries,
-	selectedTags,
-	onTagToggle,
-	variant,
+	group,
+	includedTags,
+	excludedTags,
+	onTagFilterCycle,
 }: {
-	label: string;
-	entries: ExplorerFacets['tags'];
-	selectedTags: string[];
-	onTagToggle: (tag: string) => void;
-	variant: 'include' | 'exclude';
+	group: ExplorerFacets['tagGroups'][number];
+	includedTags: string[];
+	excludedTags: string[];
+	onTagFilterCycle: (tag: string) => void;
 }) {
 	//
 	return (
 		<div className="flex min-w-0 items-start gap-2">
-			<div className="flex h-7 shrink-0 items-center gap-1 text-xs text-muted-foreground">
-				<Tag className="size-3" />
-				{label}
+			<div className="flex h-7 w-28 shrink-0 items-center text-xs text-muted-foreground">
+				{formatTagGroupLabel(group.key)}
 			</div>
 			<div className="flex max-h-40 flex-1 flex-wrap gap-1 overflow-auto">
-				{entries.slice(0, 48).map((entry) => {
-					const isSelected = selectedTags.includes(entry.value);
+				{group.entries.map((entry) => {
+					const isIncluded = includedTags.includes(entry.tag);
+					const isExcluded = excludedTags.includes(entry.tag);
 
 					return (
 						<button
-							key={entry.value}
+							key={entry.tag}
 							type="button"
-							onClick={() => onTagToggle(entry.value)}
+							aria-pressed={isIncluded || isExcluded}
+							title={entry.tag}
+							onClick={() => onTagFilterCycle(entry.tag)}
 							className={cn(
 								'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-xs transition-colors',
-								isSelected && variant === 'include'
+								isIncluded
 									? 'border-emerald-400/70 bg-emerald-400/15 text-emerald-100'
 									: 'border-border/80 bg-background text-foreground/80 hover:border-foreground/40 hover:text-foreground',
-								isSelected && variant === 'exclude' && 'border-red-400/70 bg-red-400/15 text-red-100',
+								isExcluded && 'border-red-400/70 bg-red-400/15 text-red-100',
 							)}
 						>
 							{entry.value}
@@ -577,23 +570,57 @@ function groupTasksByStatus(tasks: ExplorerTask[], statuses: string[]): Map<stri
 	return tasksByStatus;
 }
 
-function buildTagEntries(facetEntries: ExplorerFacets['tags'], pinnedTags: string[]): ExplorerFacets['tags'] {
+function buildTagGroups(facetGroups: ExplorerFacets['tagGroups'], pinnedTags: string[]): ExplorerFacets['tagGroups'] {
 	//
-	const entryByValue = new Map<string, ExplorerFacets['tags'][number]>();
+	const groupsByKey = new Map<string, ExplorerFacets['tagGroups'][number]>();
 
-	for (const entry of facetEntries) {
-		entryByValue.set(entry.value, entry);
+	for (const group of facetGroups) {
+		groupsByKey.set(getTagGroupLookupKey(group.key), {
+			key: group.key,
+			entries: group.entries.slice(),
+		});
 	}
 
 	for (const tag of pinnedTags) {
-		if (entryByValue.has(tag)) continue;
-		entryByValue.set(tag, { value: tag, count: 0 });
+		const parsedTag = parseTaskTag(tag);
+		const lookupKey = getTagGroupLookupKey(parsedTag.key);
+		const existingGroup = groupsByKey.get(lookupKey);
+		const group = existingGroup ?? {
+			key: parsedTag.key,
+			entries: [],
+		};
+
+		if (!existingGroup) {
+			groupsByKey.set(lookupKey, group);
+		}
+
+		if (group.entries.some((entry) => entry.tag === parsedTag.tag)) continue;
+
+		group.entries.push({
+			tag: parsedTag.tag,
+			key: parsedTag.key,
+			value: parsedTag.value,
+			count: 0,
+		});
 	}
 
-	return Array.from(entryByValue.values()).sort((left, right) => {
-		if (left.count !== right.count) return right.count - left.count;
-		return left.value.localeCompare(right.value);
-	});
+	return Array.from(groupsByKey.values())
+		.sort((left, right) => compareTagGroupKeys(left.key, right.key))
+		.map((group) => ({
+			key: group.key,
+			entries: group.entries.sort(compareTagFacetEntries),
+		}));
+}
+
+function compareTagFacetEntries(
+	left: ExplorerFacets['tagGroups'][number]['entries'][number],
+	right: ExplorerFacets['tagGroups'][number]['entries'][number],
+): number {
+	//
+	if (left.count !== right.count) return right.count - left.count;
+	if (left.value !== right.value) return left.value.localeCompare(right.value);
+
+	return left.tag.localeCompare(right.tag);
 }
 
 function findFacetCount(entries: ExplorerFacets['statuses'], value: string): number {

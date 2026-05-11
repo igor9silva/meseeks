@@ -7,6 +7,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
 import { formatTaskBucketLabel } from '~/lib/taskBuckets';
+import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import {
 	markTaskDone,
 	moveTask,
@@ -131,6 +132,7 @@ function TaskDetailContent({
 		return statusOptions.filter((statusOption) => statusOption !== task.status);
 	}, [statusOptions, task.status]);
 	const systemTags = useMemo(() => dedupeStrings(task.tags.concat(tagOptions)), [tagOptions, task.tags]);
+	const systemTagGroups = useMemo(() => buildSystemTagGroups(systemTags), [systemTags]);
 	const normalizedRenameFilename = useMemo(() => createTaskRenameFilename(renameDraft), [renameDraft]);
 	const markTaskDoneMutation = useMutation({
 		mutationFn: () => markTaskDoneServer({ data: { taskKey: task.key } }),
@@ -575,31 +577,39 @@ function TaskDetailContent({
 					<TimestampButton label="Updated" value={task.updated} onCopy={handleTimestampCopy} />
 				</div>
 
-				<div className="mt-3 space-y-2">
-					<div className="flex max-h-28 flex-wrap gap-1 overflow-auto">
-						{systemTags.map((tag) => {
-							const isSelected = task.tags.includes(tag);
+				<div className="mt-3 max-h-36 space-y-2 overflow-auto">
+					{systemTagGroups.map((group) => (
+						<div key={getTagGroupLookupKey(group.key)} className="flex min-w-0 items-start gap-2">
+							<div className="flex h-6 w-28 shrink-0 items-center text-xs text-muted-foreground">
+								{formatTagGroupLabel(group.key)}
+							</div>
+							<div className="flex min-w-0 flex-1 flex-wrap gap-1">
+								{group.entries.map((entry) => {
+									const isSelected = task.tags.includes(entry.tag);
 
-							return (
-								<button
-									key={tag}
-									type="button"
-									onClick={() => handleTagToggle(tag)}
-									disabled={updateTaskTagsMutation.isPending}
-									className={`rounded border px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-50 ${
-										isSelected
-											? `${getTagClassName(tag)} border-foreground/30`
-											: 'border-border/80 bg-background text-foreground/70 hover:border-foreground/40 hover:text-foreground'
-									}`}
-								>
-									#{tag}
-								</button>
-							);
-						})}
-						{systemTags.length === 0 ? (
-							<div className="text-xs text-muted-foreground">No system tags yet.</div>
-						) : null}
-					</div>
+									return (
+										<button
+											key={entry.tag}
+											type="button"
+											title={entry.tag}
+											onClick={() => handleTagToggle(entry.tag)}
+											disabled={updateTaskTagsMutation.isPending}
+											className={`rounded border px-1.5 py-0.5 text-xs transition-colors disabled:pointer-events-none disabled:opacity-50 ${
+												isSelected
+													? `${getTagClassName(entry.tag)} border-foreground/30`
+													: 'border-border/80 bg-background text-foreground/70 hover:border-foreground/40 hover:text-foreground'
+											}`}
+										>
+											#{entry.value}
+										</button>
+									);
+								})}
+							</div>
+						</div>
+					))}
+					{systemTags.length === 0 ? (
+						<div className="text-xs text-muted-foreground">No system tags yet.</div>
+					) : null}
 				</div>
 
 				{markTaskDoneMutation.error ? (
@@ -685,6 +695,57 @@ function TimestampButton({
 			<div className="mt-0.5 truncate font-medium text-foreground">{formatTaskTimestamp(value)}</div>
 		</button>
 	);
+}
+
+interface SystemTagGroup {
+	key: string | null;
+	entries: Array<{
+		tag: string;
+		value: string;
+	}>;
+}
+
+function buildSystemTagGroups(tags: string[]): SystemTagGroup[] {
+	//
+	const groupsByKey = new Map<string, SystemTagGroup>();
+
+	for (const tag of tags) {
+		const parsedTag = parseTaskTag(tag);
+		const lookupKey = getTagGroupLookupKey(parsedTag.key);
+		const existingGroup = groupsByKey.get(lookupKey);
+		const group = existingGroup ?? {
+			key: parsedTag.key,
+			entries: [],
+		};
+
+		if (!existingGroup) {
+			groupsByKey.set(lookupKey, group);
+		}
+
+		if (group.entries.some((entry) => entry.tag === parsedTag.tag)) continue;
+
+		group.entries.push({
+			tag: parsedTag.tag,
+			value: parsedTag.value,
+		});
+	}
+
+	return Array.from(groupsByKey.values())
+		.sort((left, right) => compareTagGroupKeys(left.key, right.key))
+		.map((group) => ({
+			key: group.key,
+			entries: group.entries.sort(compareSystemTagEntries),
+		}));
+}
+
+function compareSystemTagEntries(
+	left: SystemTagGroup['entries'][number],
+	right: SystemTagGroup['entries'][number],
+): number {
+	//
+	if (left.value !== right.value) return left.value.localeCompare(right.value);
+
+	return left.tag.localeCompare(right.tag);
 }
 
 function useHoldAction(action: () => void, isDisabled: boolean) {

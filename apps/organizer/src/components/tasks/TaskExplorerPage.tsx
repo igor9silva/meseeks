@@ -170,31 +170,32 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		updateQueryInput({ ...queryInput, statuses: nextStatuses });
 	};
 
-	const toggleTag = (tag: string) => {
-		const hasTag = queryInput.tags.includes(tag);
-		const nextTags = hasTag ? queryInput.tags.filter((entry) => entry !== tag) : queryInput.tags.concat(tag);
-		const nextExcludedTags = hasTag
-			? queryInput.excludedTags
-			: queryInput.excludedTags.filter((entry) => entry !== tag);
+	const cycleTagFilter = (tag: string) => {
+		const isIncluded = queryInput.tags.includes(tag);
+		const isExcluded = queryInput.excludedTags.includes(tag);
+
+		if (isIncluded) {
+			const nextExcludedTags = isExcluded ? queryInput.excludedTags : queryInput.excludedTags.concat(tag);
+
+			updateQueryInput({
+				...queryInput,
+				tags: queryInput.tags.filter((entry) => entry !== tag),
+				excludedTags: nextExcludedTags,
+			});
+			return;
+		}
+
+		if (isExcluded) {
+			updateQueryInput({
+				...queryInput,
+				excludedTags: queryInput.excludedTags.filter((entry) => entry !== tag),
+			});
+			return;
+		}
 
 		updateQueryInput({
 			...queryInput,
-			tags: nextTags,
-			excludedTags: nextExcludedTags,
-		});
-	};
-
-	const toggleExcludedTag = (tag: string) => {
-		const hasExcludedTag = queryInput.excludedTags.includes(tag);
-		const nextExcludedTags = hasExcludedTag
-			? queryInput.excludedTags.filter((entry) => entry !== tag)
-			: queryInput.excludedTags.concat(tag);
-		const nextTags = hasExcludedTag ? queryInput.tags : queryInput.tags.filter((entry) => entry !== tag);
-
-		updateQueryInput({
-			...queryInput,
-			tags: nextTags,
-			excludedTags: nextExcludedTags,
+			tags: queryInput.tags.concat(tag),
 		});
 	};
 
@@ -271,8 +272,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			onCreateTaskOpen={handleCreateTaskOpen}
 			onSourceToggle={toggleSource}
 			onStatusToggle={toggleStatus}
-			onTagToggle={toggleTag}
-			onExcludedTagToggle={toggleExcludedTag}
+			onTagFilterCycle={cycleTagFilter}
 			onRootsOnlyToggle={toggleRootsOnly}
 			onSortChange={updateSort}
 			onVisibleBoardStatusToggle={toggleVisibleBoardStatus}

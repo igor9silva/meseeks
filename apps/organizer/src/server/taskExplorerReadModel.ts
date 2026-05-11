@@ -2,16 +2,30 @@ import type { ExplorerQuery } from '~/server/taskExplorerSchemas';
 import type { SnapshotResult } from '~/server/taskIndexRepository';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
 import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
+import { compareTagGroupKeys, parseTaskTag } from '~/lib/taskTags';
 
 type FacetEntry = {
 	value: string;
 	count: number;
 };
 
+type TagFacetEntry = {
+	tag: string;
+	key: string | null;
+	value: string;
+	count: number;
+};
+
+type TagFacetGroup = {
+	key: string | null;
+	entries: TagFacetEntry[];
+};
+
 type ExplorerFacets = {
 	sources: FacetEntry[];
 	statuses: FacetEntry[];
 	tags: FacetEntry[];
+	tagGroups: TagFacetGroup[];
 };
 
 function dedupeStrings(values: string[]): string[] {
@@ -168,11 +182,95 @@ function mapCountEntries(counts: Map<string, number>, sort: 'alpha' | 'count_the
 	});
 }
 
+type TagCountEntry = {
+	tag: string;
+	key: string | null;
+	value: string;
+	count: number;
+};
+
+function getTaskTagDetails(task: TaskSummary) {
+	//
+	if (task.tagDetails.length > 0) return task.tagDetails;
+
+	return task.tags.map((tag) => parseTaskTag(tag));
+}
+
+function addTagCount(counts: Map<string, TagCountEntry>, tagDetail: TaskSummary['tagDetails'][number]): void {
+	//
+	const existingEntry = counts.get(tagDetail.tag);
+
+	if (existingEntry) {
+		existingEntry.count += 1;
+		return;
+	}
+
+	counts.set(tagDetail.tag, {
+		tag: tagDetail.tag,
+		key: tagDetail.key,
+		value: tagDetail.value,
+		count: 1,
+	});
+}
+
+function mapTagCountEntries(counts: Map<string, TagCountEntry>): FacetEntry[] {
+	//
+	return Array.from(counts.values())
+		.map((entry) => ({
+			value: entry.tag,
+			count: entry.count,
+		}))
+		.sort((left, right) => {
+			if (left.count !== right.count) return right.count - left.count;
+			return left.value.localeCompare(right.value);
+		});
+}
+
+function buildTagFacetGroups(counts: Map<string, TagCountEntry>): TagFacetGroup[] {
+	//
+	const groupsByKey = new Map<string, TagFacetGroup>();
+
+	for (const entry of counts.values()) {
+		const lookupKey = entry.key ?? '';
+		const existingGroup = groupsByKey.get(lookupKey);
+		const group = existingGroup ?? {
+			key: entry.key,
+			entries: [],
+		};
+
+		if (!existingGroup) {
+			groupsByKey.set(lookupKey, group);
+		}
+
+		group.entries.push({
+			tag: entry.tag,
+			key: entry.key,
+			value: entry.value,
+			count: entry.count,
+		});
+	}
+
+	return Array.from(groupsByKey.values())
+		.sort((left, right) => compareTagGroupKeys(left.key, right.key))
+		.map((group) => ({
+			key: group.key,
+			entries: group.entries.sort(compareTagFacetEntries),
+		}));
+}
+
+function compareTagFacetEntries(left: TagFacetEntry, right: TagFacetEntry): number {
+	//
+	if (left.count !== right.count) return right.count - left.count;
+	if (left.value !== right.value) return left.value.localeCompare(right.value);
+
+	return left.tag.localeCompare(right.tag);
+}
+
 function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: string[]): ExplorerFacets {
 	//
 	const sourceCounts = new Map<string, number>();
 	const statusCounts = new Map<string, number>();
-	const tagCounts = new Map<string, number>();
+	const tagCounts = new Map<string, TagCountEntry>();
 
 	for (const task of tasks) {
 		if (
@@ -208,8 +306,8 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 				includeSearch: true,
 			})
 		) {
-			for (const tag of task.tags) {
-				tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+			for (const tagDetail of getTaskTagDetails(task)) {
+				addTagCount(tagCounts, tagDetail);
 			}
 		}
 	}
@@ -217,7 +315,8 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 	return {
 		sources: mapCountEntries(sourceCounts, 'alpha'),
 		statuses: mapCountEntries(statusCounts, 'alpha'),
-		tags: mapCountEntries(tagCounts, 'count_then_alpha'),
+		tags: mapTagCountEntries(tagCounts),
+		tagGroups: buildTagFacetGroups(tagCounts),
 	};
 }
 
@@ -266,6 +365,7 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 				sources: [],
 				statuses: [],
 				tags: [],
+				tagGroups: [],
 			},
 			totals: {
 				all: 0,
