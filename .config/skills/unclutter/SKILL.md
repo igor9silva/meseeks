@@ -19,6 +19,8 @@ Run `git status --short` before doing anything.
 
 Read `tasks/README.md` before editing task files. Use that contract for roots, buckets, references, source metadata, deletion semantics, and private/public safety.
 
+Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
+
 ## What To Fix
 
 Be broad and practical. Look for anything that makes the task system harder to trust or scan:
@@ -73,6 +75,8 @@ Treat `_index.*` as the folder's parent task or collection by default. Flatten o
 ## After Editing
 
 Run the task index build when task files changed and the task scope allows it.
+
+Update `.config/skills/unclutter/MEMORY.md` with durable decisions, corrected mappings, recurring skip reasons, or settled Igor preferences that future Unclutter runs should know.
 
 Report back in chat with:
 
