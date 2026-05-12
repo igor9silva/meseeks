@@ -20,7 +20,7 @@ Use these top-level buckets:
 - `references/` for searchable context that is not a completable task.
 - `completed/` for achieved work only.
 
-Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `intelligence`, or `billing`.
+Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, or `billing`. Use `intelligence` only for AI model/model-provider support tasks.
 
 Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
 
