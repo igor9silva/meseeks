@@ -577,8 +577,8 @@ function getPriorityClassName(priority: string): string {
 	//
 	if (priority === 'critical') return 'bg-red-400/20 text-red-100';
 	if (priority === 'high') return 'bg-orange-400/20 text-orange-100';
-	if (priority === 'medium') return 'bg-sky-400/20 text-sky-100';
-	if (priority === 'low') return 'bg-zinc-500/30 text-zinc-100';
+	if (priority === 'medium') return 'bg-yellow-400/20 text-yellow-100';
+	if (priority === 'low') return 'bg-blue-400/20 text-blue-100';
 
 	return 'bg-muted text-muted-foreground';
 }
@@ -587,8 +587,8 @@ function getPriorityBorderClassName(priority: string | null): string {
 	//
 	if (priority === 'critical') return 'border-l-red-400';
 	if (priority === 'high') return 'border-l-orange-400';
-	if (priority === 'medium') return 'border-l-sky-400';
-	if (priority === 'low') return 'border-l-zinc-500';
+	if (priority === 'medium') return 'border-l-yellow-400';
+	if (priority === 'low') return 'border-l-blue-400';
 
 	return 'border-l-transparent';
 }
