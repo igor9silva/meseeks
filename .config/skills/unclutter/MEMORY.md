@@ -13,13 +13,17 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - `ticktick-status:use-case` maps to the `ideas/` bucket.
 - `ticktick-status:user-interface` stays in `inbox/` for triage.
 - The root side-project directory is `ideas/`, not `side/`.
-- Deepsec scanner output can stay public for now because Meseeks has no users yet.
+- DeepSec scan material belongs to the public high-priority security/accountability backlog effort, not `references/`.
 - Keep nested folders with `_index.*` when they are real parent tasks or reference collections.
 - Flatten grouping-only folders when tags or Organizer filters carry the organization.
 - Reactor v1 is the main critical path. It includes the new core execution engine plus the broader v1/public-beta shift: pricing/accountability, branding, and product readiness.
 - Current/v0 implementation references can live as children of a parent task when they are source material for that parent.
 - Before deciding an implementation task is stale, read the current code path named by the task.
 - Security/accountability findings can be grouped as deferred follow-ups when Reactor v1 is expected to replace the old mechanism. Keep details visible; do not force patches into old Reactor paths unless Igor asks.
+- `private/tasks/active/migrate-ticktick/` is the canonical parent for the current task-system organization plus TickTick migration effort. Keep useful organize reports/import receipts under it instead of root `organize.md` / `organize/*`.
+- Completed TickTick task import belongs under the private TickTick migration parent and must preserve activity/history before importing.
+- `tasks/backlog/mdx-agent-skills.mdx` is a low-priority public idea, not active work.
+- Grok 4.2 and Grok 4.3 support are separate public low-priority intelligence tasks; do not merge them.
 
 ## Current State Notes
 
