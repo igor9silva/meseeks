@@ -1,6 +1,6 @@
 ---
 title: Enforce ownership checks for schedule cancellation paths
-priority: medium
+priority: high
 tags: [security]
 ---
 
@@ -20,11 +20,18 @@ Ensure only the schedule owner (or same task owner) can cancel a schedule throug
 - [ ] Confirm task-status cleanup still works for valid cancellations.
 
 ## Progress Log
+### 2026-05-12
+- Split back out as a standalone public security task. Source scans moved to references.
+
 ### 2026-05-11
-- Moved under the security/accountability follow-up parent. This may become stale if Reactor v1 replaces today's schedule mechanics with triggers, but the ownership invariant should survive.
+- This may become stale if Reactor v1 replaces today's schedule mechanics with triggers, but the ownership invariant should survive.
 
 ### 2026-02-09
 - Task created from Convex security audit finding.
 
 ## Notes
 Primary files: `convex/skills/builtIn/cancelSchedule.ts`, `convex/schedules/private.ts`, `convex/schedules/public.ts`.
+
+Sources:
+- [Security findings audit](../references/security-findings-audit.md)
+- [DeepSec vulnerability scan](../references/deepsec-vulnerability-scan.md)

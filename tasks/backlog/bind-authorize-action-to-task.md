@@ -20,6 +20,9 @@ Guarantee the authorize flow is task-scoped and cannot mutate actions from other
 - [ ] Review related mutation paths that accept both task and action IDs.
 
 ## Progress Log
+### 2026-05-12
+- Split back out as a standalone public security task. Keep visible until Reactor v1 either replaces this path or preserves the invariant directly.
+
 ### 2026-05-11
 - Current code still appears to have this gap: `apps/meseeks/convex/action.private.ts::authorizeAction` loads by `actionId` and patches without checking `action.taskId === taskId`.
 - Keep as a visible security/accountability follow-up and fold the invariant into Reactor v1 if the old authorization path is replaced.

@@ -20,11 +20,17 @@ Protect transcription endpoints with strict limits and predictable failure behav
 - [ ] Add observability counters/logs for rejected vs accepted requests.
 
 ## Progress Log
+### 2026-05-12
+- Split back out as a standalone public security task. Source scan moved to references.
+
 ### 2026-05-11
-- Moved under the security/accountability follow-up parent. This is a real abuse/accounting concern, but not a pre-Reactor-v1 focus while Meseeks has no users.
+- This is a real abuse/accounting concern, but not a pre-Reactor-v1 focus while Meseeks has no users.
 
 ### 2026-02-09
 - Task created from Convex security audit finding.
 
 ## Notes
 Primary files: `convex/magicRock/public.ts`, plus new reusable rate-limit helper.
+
+Source:
+- [DeepSec vulnerability scan](../references/deepsec-vulnerability-scan.md)

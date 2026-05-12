@@ -13,13 +13,14 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - `ticktick-status:use-case` maps to the `ideas/` bucket.
 - `ticktick-status:user-interface` stays in `inbox/` for triage.
 - The root side-project directory is `ideas/`, not `side/`.
-- DeepSec scan material belongs to the public high-priority security/accountability backlog effort, not `references/`.
+- DeepSec and scanner reports belong in public `references/`; concrete tasks created from them should be standalone public tasks that link back to the reference.
 - Keep nested folders with `_index.*` when they are real parent tasks or reference collections.
 - Flatten grouping-only folders when tags or Organizer filters carry the organization.
 - Reactor v1 is the main critical path. It includes the new core execution engine plus the broader v1/public-beta shift: pricing/accountability, branding, and product readiness.
 - Current/v0 implementation references can live as children of a parent task when they are source material for that parent.
 - Before deciding an implementation task is stale, read the current code path named by the task.
-- Security/accountability findings can be grouped as deferred follow-ups when Reactor v1 is expected to replace the old mechanism. Keep details visible; do not force patches into old Reactor paths unless Igor asks.
+- Do not group security/accountability findings just to keep them together. Split them into standalone public tasks with clear tags and priority.
+- Use the `legacy` tag for pre-Reactor-v1 work that is still useful context but likely becomes obsolete when Reactor v1 replaces the current architecture.
 - `private/tasks/active/migrate-ticktick/` is the canonical parent for the current task-system organization plus TickTick migration effort. Keep useful organize reports/import receipts under it instead of root `organize.md` / `organize/*`.
 - Completed TickTick task import belongs under the private TickTick migration parent and must preserve activity/history before importing.
 - `tasks/backlog/mdx-agent-skills.mdx` is a low-priority public idea, not active work.

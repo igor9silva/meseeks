@@ -1,7 +1,7 @@
 ---
 title: Harden billing and lifecycle behavior
 priority: high
-tags: [debt, billing, security]
+tags: [debt, billing, security, legacy]
 ---
 
 # Billing and lifecycle
@@ -49,6 +49,9 @@ Make billing and lifecycle paths explicit, idempotent, reversible, auditable, an
   - logging should keep Sentry severity semantics already in use (`info`/`warn`/`error`) while avoiding false urgent noise
 
 ## Progress Log
+### 2026-05-12
+- Marked `legacy`: this tracks pre-Reactor-v1 architecture flaws that are still worth preserving until v1 replaces or revalidates them.
+
 ### 2026-02-09
 - Security version of this task created from Convex security audit finding
 
