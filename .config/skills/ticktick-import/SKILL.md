@@ -130,7 +130,7 @@ Current behavior:
 - tags every imported file with `source:ticktick` and `ticktick-list:<list>`
 - tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`
 - treats TickTick priority `0` as unset and omits local `priority`; maps TickTick `1`, `3`, and `5` to `low`, `medium`, and `high`
-- embeds child task rows under their open parent instead of creating duplicate standalone files
+- imports TickTick child task rows as real local subtasks under the parent task folder
 - skips already imported TickTick task IDs unless `--overwrite` is passed
 - copies TickTick attachments into the imported task folder as `attachments/*`
 - writes tasks with attachments as `_index.md` task folders, so the task key stays stable while attachments live inside the task

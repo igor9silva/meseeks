@@ -21,6 +21,8 @@ Read `tasks/README.md` before editing task files. Use that contract for roots, b
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
 
+For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
+
 ## What To Fix
 
 Be broad and practical. Look for anything that makes the task system harder to trust or scan:

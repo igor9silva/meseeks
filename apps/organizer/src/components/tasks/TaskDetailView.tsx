@@ -34,6 +34,17 @@ import {
 
 const HOLD_ACTION_DELAY_MS = 550;
 
+function getDirectoryPath(filePath: string | null): string | null {
+	//
+	if (!filePath) return null;
+
+	const normalizedPath = filePath.replaceAll('\\', '/');
+	const lastSeparatorIndex = normalizedPath.lastIndexOf('/');
+	if (lastSeparatorIndex <= 0) return null;
+
+	return normalizedPath.slice(0, lastSeparatorIndex);
+}
+
 export function TaskDetailView({
 	detail,
 	statusOptions,
@@ -113,6 +124,7 @@ function TaskDetailContent({
 	const cursorFileHref = toCursorFileHref(task.absolutePath);
 	const codexPlanHref = toCodexPlanHref(task);
 	const codexSeekHref = toCodexSeekHref(task);
+	const taskAssetBasePath = useMemo(() => getDirectoryPath(task.absolutePath), [task.absolutePath]);
 	const canMarkDone = task.status !== 'completed';
 	const currentFilename = useMemo(() => getTaskFilename(task.relativePath), [task.relativePath]);
 	const currentFileBasename = useMemo(() => getTaskFileBasename(task.relativePath), [task.relativePath]);
@@ -655,7 +667,7 @@ function TaskDetailContent({
 					{renderRelation('Children', detail.relations.children)}
 				</div>
 
-				<Mdx text={task.body} className="text-sm" />
+				<Mdx text={task.body} className="text-sm" assetBasePath={taskAssetBasePath} />
 
 				{task.warnings.length > 0 && (
 					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
