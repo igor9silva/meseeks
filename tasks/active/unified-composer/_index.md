@@ -126,3 +126,4 @@ These duplicate/imported tasks were merged into this parent so the task list has
 - `698fbd72098551067f63bb61`: ActionComposer should have strong Cmd+Z support.
 - `68af5511ce28d16b1eaa453f`: A queue action system like Cursor.
 - `67efb8802deb1172d7d5f392`: Cmd+. to switch skill/loop.
+- `6883d09a5387110238b3435b`: Show detailed context usage in the Composer. Original capture was a context-usage UI reference; attachment preserved at [context-usage-reference-38b34366.png](attachments/context-usage-reference-38b34366.png).
