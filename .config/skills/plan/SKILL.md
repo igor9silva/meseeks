@@ -14,6 +14,7 @@ Make a task clear enough to act on. For raw inbox captures, also turn them into 
 3. Read the target task file in full.
 4. Read the parent `_index.*` chain from root to the target folder when present.
 5. Inspect source metadata, sibling files, nearby duplicate candidates, reused tags, and repo context relevant to the task.
+6. If the task is only links or mostly links, expand those links before planning. Use repo scraping skills/scripts for supported sources, and otherwise fetch, browse, or search enough to capture the page/post content. Preserve the original links and scraped source details in the task before trying to infer intent.
 
 Nearby candidates means search both public and private task roots when available for title words, source URLs, TickTick IDs, slugs, transcript names, and distinctive quoted text.
 

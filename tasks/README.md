@@ -20,7 +20,7 @@ Use these top-level buckets:
 - `references/` for searchable context that is not a completable task.
 - `completed/` for achieved work only.
 
-Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `legacy`, or `billing`. Use `intelligence` only for AI model/model-provider support tasks. Use `legacy` for pre-Reactor-v1 work kept as context until v1 replaces or revalidates it.
+Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `legacy`, or `billing`. Use `intelligence` only for AI model/model-provider support tasks. Use `skill` for skills/integrations we want to add to Meseeks. Use `demand` for public demand signals that validate Meseeks. Use `legacy` for pre-Reactor-v1 work kept as context until v1 replaces or revalidates it.
 
 Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
 
