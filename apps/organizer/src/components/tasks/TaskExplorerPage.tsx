@@ -13,10 +13,8 @@ import {
 	type ExplorerSort,
 	parseExplorerQuery,
 	serializeCsv,
-	splitCsv,
 	type TaskSource,
 } from '~/lib/explorerSearchParams';
-import { defaultVisibleTaskBuckets } from '~/lib/taskBuckets';
 import { getExplorerSnapshot, getTaskDetail } from '~/server/taskExplorer';
 import type { CreateTaskDefaults, TaskCreatedResult } from './taskExplorerTypes';
 import { dedupeStrings, defaultStatusOptions, getCreateTaskDefaults, SEARCH_DEBOUNCE_MS } from './taskExplorerUtils';
@@ -141,11 +139,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		const indexedStatuses = explorerQuery.data?.statusOptions ?? [];
 		return dedupeStrings(defaultStatusOptions.concat(queryInput.statuses, indexedStatuses));
 	}, [explorerQuery.data?.statusOptions, queryInput.statuses]);
-	const visibleBoardStatuses = useMemo(() => {
-		const parsedColumns = splitCsv(search.columns);
-		if (parsedColumns.length === 0) return Array.from(defaultVisibleTaskBuckets);
-		return parsedColumns;
-	}, [search.columns]);
 	const shouldShowTaskNotFound =
 		!isCreatingTask &&
 		selectedTaskKey !== null &&
@@ -213,23 +206,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		});
 	};
 
-	const toggleVisibleBoardStatus = (status: string) => {
-		let nextStatuses: string[];
-
-		if (visibleBoardStatuses.includes(status)) {
-			if (visibleBoardStatuses.length === 1) return;
-			nextStatuses = visibleBoardStatuses.filter((entry) => entry !== status);
-		} else {
-			nextStatuses = visibleBoardStatuses.concat(status);
-		}
-
-		updateSearch({
-			columns: areStringArraysEqual(nextStatuses, defaultVisibleTaskBuckets)
-				? undefined
-				: serializeCsv(nextStatuses),
-		});
-	};
-
 	const handleCreateTaskOpen = () => {
 		setCreateTaskDefaults(getCreateTaskDefaults());
 		if (selectedTaskKey !== null) {
@@ -267,7 +243,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			totals={explorerQuery.data?.totals}
 			isPending={explorerQuery.isPending}
 			searchInputId={searchInputId}
-			visibleBoardStatuses={visibleBoardStatuses}
 			onSearchDraftChange={setSearchDraft}
 			onCreateTaskOpen={handleCreateTaskOpen}
 			onSourceToggle={toggleSource}
@@ -275,7 +250,6 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			onTagFilterCycle={cycleTagFilter}
 			onRootsOnlyToggle={toggleRootsOnly}
 			onSortChange={updateSort}
-			onVisibleBoardStatusToggle={toggleVisibleBoardStatus}
 			onTaskSelect={() => setCreateTaskDefaults(null)}
 		/>
 	);
@@ -359,15 +333,4 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			)}
 		</div>
 	);
-}
-
-function areStringArraysEqual(left: string[], right: readonly string[]): boolean {
-	//
-	if (left.length !== right.length) return false;
-
-	for (let index = 0; index < left.length; index += 1) {
-		if (left[index] !== right[index]) return false;
-	}
-
-	return true;
 }

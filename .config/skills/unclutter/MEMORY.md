@@ -24,6 +24,10 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - Completed TickTick task import belongs under the private TickTick migration parent and must preserve activity/history before importing.
 - `tasks/backlog/mdx-agent-skills.mdx` is a low-priority public idea, not active work.
 - Grok 4.2 and Grok 4.3 support are separate public low-priority intelligence tasks; do not merge them.
+- Imported aggregation parents with no real body should be removed after their children are classified.
+- Useful image-only UI imports can become references when they are design inspiration; kill outdated UI references.
+- Reactor v1 must preserve synchronous actions and multiple tool-call / multi-action execution as first-class behavior.
+- Empty imported shells that only point at Reactor v1 concepts should be folded into Reactor v1 and deleted.
 
 ## Current State Notes
 

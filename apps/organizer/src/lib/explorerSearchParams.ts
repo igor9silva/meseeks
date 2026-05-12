@@ -9,7 +9,6 @@ export const explorerRouteSearchSchema = z.object({
 	q: z.string().optional(),
 	sources: z.string().optional(),
 	statuses: z.string().optional(),
-	columns: z.string().optional(),
 	tags: z.string().optional(),
 	excludedTags: z.string().optional(),
 	rootsOnly: z.string().optional(),

@@ -11,9 +11,7 @@ import {
 	Lock,
 	Plus,
 	Search,
-	Settings2,
 } from 'lucide-react';
-import { useState } from 'react';
 import {
 	type ExplorerQueryInput,
 	type ExplorerSort,
@@ -37,7 +35,6 @@ export function TaskBoard({
 	totals,
 	isPending,
 	searchInputId,
-	visibleBoardStatuses,
 	onSearchDraftChange,
 	onCreateTaskOpen,
 	onSourceToggle,
@@ -45,7 +42,6 @@ export function TaskBoard({
 	onTagFilterCycle,
 	onRootsOnlyToggle,
 	onSortChange,
-	onVisibleBoardStatusToggle,
 	onTaskSelect,
 }: {
 	className?: string;
@@ -59,7 +55,6 @@ export function TaskBoard({
 	totals: ExplorerTotals | undefined;
 	isPending: boolean;
 	searchInputId: string;
-	visibleBoardStatuses: string[];
 	onSearchDraftChange: (value: string) => void;
 	onCreateTaskOpen: () => void;
 	onSourceToggle: (source: TaskSource) => void;
@@ -67,15 +62,11 @@ export function TaskBoard({
 	onTagFilterCycle: (tag: string) => void;
 	onRootsOnlyToggle: () => void;
 	onSortChange: (sort: ExplorerSort) => void;
-	onVisibleBoardStatusToggle: (status: string) => void;
 	onTaskSelect: () => void;
 }) {
 	//
-	const [isColumnSettingsOpen, setIsColumnSettingsOpen] = useState(false);
 	const statusFacetEntries = facets?.statuses ?? [];
-	const hasSearch = queryInput.q.trim().length > 0;
-	const boardStatuses = buildBoardStatuses(visibleTasks, visibleBoardStatuses, hasSearch);
-	const columnSettingStatuses = buildColumnSettingStatuses(statusFacetEntries, visibleBoardStatuses);
+	const boardStatuses = buildBoardStatuses(queryInput.statuses);
 	const tasksByStatus = groupTasksByStatus(visibleTasks, boardStatuses);
 	const tagGroups = buildTagGroups(facets?.tagGroups ?? [], queryInput.tags.concat(queryInput.excludedTags));
 	const offBucketEntries = statusFacetEntries.filter((entry) => !isTaskBucket(entry.value));
@@ -184,46 +175,6 @@ export function TaskBoard({
 							<option value="recency">recency</option>
 							<option value="title">title</option>
 						</select>
-
-						<div className="relative">
-							<Button
-								type="button"
-								size="sm"
-								variant="outline"
-								aria-expanded={isColumnSettingsOpen}
-								onClick={() => setIsColumnSettingsOpen(!isColumnSettingsOpen)}
-								className="h-8 rounded-md"
-							>
-								<Settings2 className="size-4" />
-								Columns
-							</Button>
-							{isColumnSettingsOpen ? (
-								<div className="absolute right-0 z-50 mt-1 w-56 rounded-md border border-border/80 bg-popover p-2 text-sm shadow-md">
-									<div className="space-y-1">
-										{columnSettingStatuses.map((status) => (
-											<label
-												key={status}
-												className="flex h-8 cursor-pointer items-center gap-2 rounded-sm px-2 hover:bg-accent hover:text-accent-foreground"
-											>
-												<input
-													type="checkbox"
-													checked={visibleBoardStatuses.includes(status)}
-													onChange={() => onVisibleBoardStatusToggle(status)}
-													className="size-3.5"
-												/>
-												<span className="flex min-w-0 flex-1 items-center gap-2">
-													{renderStatusIcon(status)}
-													<span className="truncate">{formatTaskBucketLabel(status)}</span>
-												</span>
-												<span className="text-xs tabular-nums text-muted-foreground">
-													{findFacetCount(statusFacetEntries, status)}
-												</span>
-											</label>
-										))}
-									</div>
-								</div>
-							) : null}
-						</div>
 					</div>
 				</div>
 
@@ -514,37 +465,18 @@ function TaskRow({
 	);
 }
 
-function buildBoardStatuses(tasks: ExplorerTask[], visibleStatuses: string[], hasSearch: boolean): string[] {
+function buildBoardStatuses(selectedStatuses: string[]): string[] {
 	//
 	const statuses: string[] = [];
 
-	for (const status of visibleStatuses) {
+	for (const bucket of taskBuckets) {
+		if (!selectedStatuses.includes(bucket)) continue;
+		statuses.push(bucket);
+	}
+
+	for (const status of selectedStatuses) {
 		if (statuses.includes(status)) continue;
 		statuses.push(status);
-	}
-
-	if (!hasSearch) return statuses;
-
-	for (const task of tasks) {
-		if (statuses.includes(task.status)) continue;
-		statuses.push(task.status);
-	}
-
-	return statuses;
-}
-
-function buildColumnSettingStatuses(facetEntries: ExplorerFacets['statuses'], visibleStatuses: string[]): string[] {
-	//
-	const statuses: string[] = Array.from(taskBuckets);
-
-	for (const status of visibleStatuses) {
-		if (statuses.includes(status)) continue;
-		statuses.push(status);
-	}
-
-	for (const entry of facetEntries) {
-		if (statuses.includes(entry.value)) continue;
-		statuses.push(entry.value);
 	}
 
 	return statuses;
