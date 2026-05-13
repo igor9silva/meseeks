@@ -19,15 +19,21 @@ import { getExplorerSnapshot, getTaskDetail } from '~/server/taskExplorer';
 import type { CreateTaskDefaults, TaskCreatedResult } from './taskExplorerTypes';
 import { dedupeStrings, defaultStatusOptions, getCreateTaskDefaults, SEARCH_DEBOUNCE_MS } from './taskExplorerUtils';
 
+const DEFAULT_BOARD_WIDTH_PERCENT = 66;
+const EXPANDED_DETAIL_BOARD_WIDTH_PERCENT = 35;
+
 export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	//
 	const navigate = useNavigate({ from: '/' });
 	const searchInputId = useId();
 	const queryInput = useMemo(() => parseExplorerQuery(search), [search]);
 	const selectedTaskKey = search.taskKey ?? null;
+	const isInspectorExpanded = search.detail === 'expanded';
 	const [searchDraft, setSearchDraft] = useState(queryInput.q);
 	const [createTaskDefaults, setCreateTaskDefaults] = useState<CreateTaskDefaults | null>(null);
-	const [boardWidthPercent, setBoardWidthPercent] = useState(66);
+	const [boardWidthPercent, setBoardWidthPercent] = useState(() =>
+		isInspectorExpanded ? EXPANDED_DETAIL_BOARD_WIDTH_PERCENT : DEFAULT_BOARD_WIDTH_PERCENT,
+	);
 	const lastCommittedSearchRef = useRef(queryInput.q);
 	const getExplorerSnapshotServer = useServerFn(getExplorerSnapshot);
 	const getTaskDetailServer = useServerFn(getTaskDetail);
@@ -36,7 +42,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	const { getPanelSize, handleDragging, handleLayout } = useResizablePanelGroup({
 		getValue: getBoardWidthPercent,
 		setValue: setBoardWidthPercent,
-		defaultValue: 66,
+		defaultValue: DEFAULT_BOARD_WIDTH_PERCENT,
 	});
 
 	const explorerQuery = useQuery({
@@ -130,6 +136,10 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		if (selectedTaskKey === null) return;
 		setCreateTaskDefaults(null);
 	}, [selectedTaskKey]);
+
+	useEffect(() => {
+		setBoardWidthPercent(isInspectorExpanded ? EXPANDED_DETAIL_BOARD_WIDTH_PERCENT : DEFAULT_BOARD_WIDTH_PERCENT);
+	}, [isInspectorExpanded]);
 
 	const health = explorerQuery.data?.health;
 	const shouldShowIndexUnavailable = explorerQuery.isFetched && health !== undefined && !health.isReady;
@@ -228,8 +238,14 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			taskKey: result.taskKey,
 		});
 	};
+	const toggleInspectorExpanded = () => {
+		const nextIsExpanded = !isInspectorExpanded;
+		setBoardWidthPercent(nextIsExpanded ? EXPANDED_DETAIL_BOARD_WIDTH_PERCENT : DEFAULT_BOARD_WIDTH_PERCENT);
+		updateSearch({ detail: nextIsExpanded ? 'expanded' : undefined });
+	};
 	const shouldShowInspector = isCreatingTask || selectedTaskKey !== null;
-	const preferredBoardWidthPercent = getPanelSize() ?? 66;
+	const shouldShowExpandedInspector = shouldShowInspector && isInspectorExpanded;
+	const preferredBoardWidthPercent = getPanelSize() ?? DEFAULT_BOARD_WIDTH_PERCENT;
 	const taskBoard = (
 		<TaskBoard
 			className="h-full"
@@ -275,8 +291,10 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			{!isCreatingTask && taskDetailQuery.data?.task && (
 				<TaskDetailView
 					detail={taskDetailQuery.data}
+					isInspectorExpanded={isInspectorExpanded}
 					statusOptions={statusOptions}
 					tagOptions={explorerQuery.data?.tagOptions ?? []}
+					onInspectorExpandedToggle={toggleInspectorExpanded}
 					onNavigateTask={(taskKey) => updateSearch({ taskKey })}
 					onTaskMoved={(newTaskKey, status) => {
 						updateSearch({
@@ -297,8 +315,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 
 	return (
 		<div className="h-screen bg-background p-3 text-foreground">
-			{shouldShowInspector ? (
+			{shouldShowExpandedInspector ? (
+				inspectorPanel
+			) : shouldShowInspector ? (
 				<ResizablePanelGroup
+					key={isInspectorExpanded ? 'organizer-expanded-detail' : 'organizer-default-detail'}
 					direction="horizontal"
 					onLayout={handleLayout}
 					className="h-full min-h-0 overflow-hidden"

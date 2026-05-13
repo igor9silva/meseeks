@@ -11,6 +11,7 @@ export const explorerRouteSearchSchema = z.object({
 	statuses: z.string().optional(),
 	tags: z.string().optional(),
 	excludedTags: z.string().optional(),
+	detail: z.string().optional(),
 	rootsOnly: z.string().optional(),
 	sort: explorerSortSchema.optional(),
 	taskKey: z.string().optional(),

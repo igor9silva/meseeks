@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, Crosshair, ListChecks, Trash2, X } from 'lucide-react';
+import { Check, Crosshair, ListChecks, Maximize2, Minimize2, Trash2, X } from 'lucide-react';
 import type { FormEvent, MouseEvent, PointerEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
@@ -47,8 +47,10 @@ function getDirectoryPath(filePath: string | null): string | null {
 
 export function TaskDetailView({
 	detail,
+	isInspectorExpanded,
 	statusOptions,
 	tagOptions,
+	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
 	onTaskRenamed,
@@ -56,8 +58,10 @@ export function TaskDetailView({
 	onTaskTrashed,
 }: {
 	detail: TaskDetailResult;
+	isInspectorExpanded: boolean;
 	statusOptions: string[];
 	tagOptions: string[];
+	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
 	onTaskRenamed: (taskKey: string) => void;
@@ -72,8 +76,10 @@ export function TaskDetailView({
 			key={detail.task.key}
 			detail={detail}
 			task={detail.task}
+			isInspectorExpanded={isInspectorExpanded}
 			statusOptions={statusOptions}
 			tagOptions={tagOptions}
+			onInspectorExpandedToggle={onInspectorExpandedToggle}
 			onNavigateTask={onNavigateTask}
 			onTaskMoved={onTaskMoved}
 			onTaskRenamed={onTaskRenamed}
@@ -86,8 +92,10 @@ export function TaskDetailView({
 function TaskDetailContent({
 	detail,
 	task,
+	isInspectorExpanded,
 	statusOptions,
 	tagOptions,
+	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
 	onTaskRenamed,
@@ -96,8 +104,10 @@ function TaskDetailContent({
 }: {
 	detail: TaskDetailResult;
 	task: TaskDetailTask;
+	isInspectorExpanded: boolean;
 	statusOptions: string[];
 	tagOptions: string[];
+	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
 	onTaskRenamed: (taskKey: string) => void;
@@ -514,6 +524,16 @@ function TaskDetailContent({
 					</div>
 
 					<div className="flex shrink-0 flex-wrap justify-end gap-2">
+						<Button
+							type="button"
+							size="icon-sm"
+							variant="ghost"
+							aria-label={isInspectorExpanded ? 'Collapse detail panel' : 'Expand detail panel'}
+							title={isInspectorExpanded ? 'Collapse detail panel' : 'Expand detail panel'}
+							onClick={onInspectorExpandedToggle}
+						>
+							{isInspectorExpanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+						</Button>
 						<Button
 							type="button"
 							size="icon-sm"
