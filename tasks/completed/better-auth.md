@@ -6,7 +6,6 @@ tags: [auth]
 
 # Finish Better Auth Migration
 
-## Context
 We are migrating platform sign-in from Convex Auth to Better Auth inside Convex.
 
 The stock Better Auth + Convex React bridge is not acceptable for this app as-is. It adds startup auth HTTP requests (`/api/auth/get-session` and `/api/auth/convex/token`) that conflict with the old Convex Auth behavior and make the app feel slower.

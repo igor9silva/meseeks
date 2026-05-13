@@ -3,8 +3,6 @@ title: "Gmail skill"
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, skill]
 ---
 
-## Context
-
 Add Gmail as a Meseeks skill/integration.
 
 Original capture grouped this with Google Calendar, Google Contacts, and Google Drive because ChatGPT was getting those integrations.

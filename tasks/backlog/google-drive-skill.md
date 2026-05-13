@@ -3,8 +3,6 @@ title: "Google Drive skill"
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, skill]
 ---
 
-## Context
-
 Add Google Drive as a Meseeks skill/integration.
 
 Original capture grouped this with Google Calendar, Google Contacts, and Gmail because ChatGPT was getting those integrations.

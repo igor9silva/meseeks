@@ -6,7 +6,6 @@ tags: [security]
 
 # Enforce ownership checks for moveTask
 
-## Context
 `apps/meseeks/convex/tasks.private.ts::moveTask` currently patches `parentId` for the supplied `taskId` without checking task ownership, destination ownership, self-parenting, or cycles. Skill-facing callers can pass task IDs, so the internal mutation must enforce the ownership boundary instead of trusting the caller.
 
 ## Objective

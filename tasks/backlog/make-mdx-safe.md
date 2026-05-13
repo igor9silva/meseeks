@@ -6,8 +6,6 @@ tags: [security]
 
 # Make MDX Safe
 
-## Context
-
 Meseeks renders user/model-generated Markdown and MDX in multiple places. That is useful, but unsafe rendering can become a prompt-injection, data-exfiltration, or stored-XSS surface.
 
 The old private task said we could turn MDX off and use plain Markdown until we have a safe rendering model. The later markdown sanitizer reference reinforces the same point: generated Markdown may need sanitization before it is rendered by another system, and Markdown-to-Markdown sanitization is brittle because parsers disagree.

@@ -6,7 +6,6 @@ tags: [debt]
 
 # Lazy-load code highlighting
 
-## Context
 Production builds emit many Shiki language chunks such as `objective-cpp`, `wolfram`, `wasm`, `cpp`, and `emacs-lisp` because `packages/ui/src/code-block.tsx` statically imports `codeToHtml` from `shiki`. The shared code block is used by MDX rendering and Analyze action panels, so Shiki is reachable from the client bundle even when code blocks are not central to the current page.
 
 The product still needs broad language support. Narrow Shiki bundles, `shiki/bundle/web`, server-side highlighting, and removing syntax highlighting are not acceptable directions for this task.

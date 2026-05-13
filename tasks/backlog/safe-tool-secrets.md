@@ -4,8 +4,6 @@ priority: low
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, security, skill]
 ---
 
-## Context
-
 Create a safer way to store API keys and sensitive data used by skills/tools.
 
 Related:

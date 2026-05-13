@@ -6,7 +6,6 @@ tags: [debt]
 
 # Harden Analyze Sandbox Contract
 
-## Context
 `analyze()` currently treats Daytona's response as plain text. That hides the execution contract: Python exceptions can come back as `HTTP 200`, tracebacks include base64 wrapper noise, and the next loop often sees output without the code that produced it. The result is a messy auto-fix path: broken code can look like a successful action, and debugging depends on UI/debug state instead of durable action details.
 
 ## Objective

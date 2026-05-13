@@ -8,8 +8,6 @@ consider Vite+, see: https://x.com/branchseer/status/2032464454747893976?s=20
 
 # Reorganize repository into Bun monorepo
 
-## Context
-
 The CI/tooling drift is a repository-structure problem, not just a script problem. Root-level commands currently traverse mixed projects with different constraints (main app, organizer, proof-of-concepts), which forces brittle exclusions and creates noisy failures.
 
 The durable fix is to make workspace boundaries explicit through a proper monorepo layout with `apps/` for runnable apps and `packages/` for libraries, experiments, and placeholders.

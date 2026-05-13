@@ -6,7 +6,6 @@ tags: [security]
 
 # Prevent global skill secret exfiltration via getSkillDetails
 
-## Context
 The security audit found that `convex/skills/builtIn/getSkillDetails.ts` returns serialized full skill documents. `convex/skills/private.ts::_findOne` resolves global `isPro` skills first, so hard-skill configs with secret headers can be exposed in model or user-visible responses.
 
 ## Objective

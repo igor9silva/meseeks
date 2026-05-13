@@ -6,7 +6,6 @@ tags: [security]
 
 # Bind authorize(actionId) to the provided taskId
 
-## Context
 Public `authorize` checks ownership for the provided `taskId`, but internal `_authorize` updates by `actionId` without verifying `action.taskId === taskId`. This mismatch can allow unauthorized action approval if IDs are guessed or leaked.
 
 ## Objective

@@ -6,8 +6,6 @@ tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, ux]
 
 # Public Feedback Board
 
-## Context
-
 We have the X/Twitter handle `@fuckyoumeseeks` for public feedback.
 
 The idea is to add a flag/control to the feedback dialog so feedback can optionally be posted publicly from that handle, with enough context to point back to the current Meseeks page/task/action. Internal feedback remains the default; public posting should be explicit.

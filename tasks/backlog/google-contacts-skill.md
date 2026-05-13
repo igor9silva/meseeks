@@ -3,8 +3,6 @@ title: "Google Contacts skill"
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, skill]
 ---
 
-## Context
-
 Add Google Contacts as a Meseeks skill/integration.
 
 Original capture grouped this with Google Calendar, Google Drive, and Gmail because ChatGPT was getting those integrations.

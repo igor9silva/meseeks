@@ -6,7 +6,6 @@ tags: [debt]
 
 # Build Agent Regression Test Harness
 
-## Context
 Meseeks does not yet have a dedicated system for regression tests that exercise agent behavior across tool responses, conversation state, and final assistant-visible output. That makes it too easy for prompt/tool fixes to regress silently.
 
 A concrete failure exposed the gap: `twitter_search` can return at most 20 results per page and may include a `continuation_token` when more results exist. A prior task claimed it had compiled every tweet from a date range even though broad `twitter_search` calls hit the 20-result page limit and still had continuation tokens.

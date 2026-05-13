@@ -4,8 +4,6 @@ priority: high
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, scraped, security]
 ---
 
-## Context
-
 https://x.com/karpathy/status/1934651657444528277
 
 https://x.com/simonw/status/1909955640107430226

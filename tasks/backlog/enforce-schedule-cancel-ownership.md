@@ -6,7 +6,6 @@ tags: [security]
 
 # Enforce ownership checks for schedule cancellation paths
 
-## Context
 Built-in `cancelSchedule` forwards arbitrary `scheduleId` into `internal.schedules.private._cancel`, and `_cancel` deletes schedules without validating ownership. If a foreign ID is discovered, cross-tenant cancellation is possible.
 
 ## Objective

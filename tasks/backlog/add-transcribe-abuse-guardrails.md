@@ -6,7 +6,6 @@ tags: [security]
 
 # Add abuse guardrails for transcribe action
 
-## Context
 `convex/magicRock/public.ts::transcribe` accepts arbitrary audio buffers and calls external paid APIs without payload-size limits or rate limiting. This increases cost and abuse risk.
 
 ## Objective

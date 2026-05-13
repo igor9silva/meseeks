@@ -3,8 +3,6 @@ title: "ChatGPT unverified connector security reference"
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, security]
 ---
 
-## Context
-
 Reference for how ChatGPT handles security around Apps/connectors and warns about unverified connectors.
 
 This is not a Meseeks implementation task by itself. Use it as product/security context when designing Meseeks app or skill integration trust boundaries.

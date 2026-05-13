@@ -6,7 +6,6 @@ tags: [debt]
 
 # Upgrade app schemas to native Zod 4 and remove Zodex
 
-## Context
 The current schema stack is split across `zod/v3`, `convex-helpers/server/zod3`, `better-auth` on Zod 4, and `zodex` for schema serialization. That split already caused SSR/runtime breakage in production, including Nitro resolving a Zod 4 runtime while parts of the app still composed Zod 3 schemas.
 
 One possible interim mitigation is to keep importing `zod/v3` while moving `package.json` to Zod 4. That was tested, but it is still a compatibility shim and did not hold cleanly across this repo's package boundaries.

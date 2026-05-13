@@ -6,7 +6,6 @@ tags: [auth, security]
 
 # Resolve stale email allowlist policy
 
-## Context
 The old security audit said the email/domain allowlist gate was effectively disabled. Current code has drifted: the old `isEmailAllowed` path is gone and `private/tasks/completed/remove-email-allowlist.md` says removing allowlist behavior was intentional, but the env schema still requires `ALLOWED_DOMAINS` and `ALLOWED_EMAILS`, and `users.ts` still comments that allowlist logic is centralized in `getCurrentUser`.
 
 ## Objective

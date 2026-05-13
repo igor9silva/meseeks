@@ -6,7 +6,6 @@ tags: [auth]
 
 # Browser account switcher
 
-## Context
 Meseeks currently assumes one active platform account per browser session.
 
 The auth client only exposes a single sign-in path and a reload-based sign-out flow in `lib/auth-client.ts`. The custom Convex bridge in `src/components/ConvexAuthProvider.tsx` reads one `convex_jwt` cookie and treats it as the single source of truth for auth state. App data also resolves through one current app user in `convex/users.private.ts`, and most product behavior fans out from that owner-scoped identity.

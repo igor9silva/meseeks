@@ -3,8 +3,6 @@ title: "Add security policy"
 tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, security]
 ---
 
-## Context
-
 Add a repository security policy.
 
 Source: https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository
