@@ -32,7 +32,10 @@ This path reads TickTick's local macOS data and, when needed, uses the native ap
 
 Scripts:
 
+- `scripts/import-project-tasks.ts`
 - `scripts/import-links.ts`
+- `scripts/mark-meseeks-migrated.ts`
+- `scripts/mark-references-migrated.ts`
 - `scripts/reshape-links.ts`
 - `scripts/create-reference-ticktick-tasks.ts`
 
@@ -110,6 +113,30 @@ Current behavior:
 - does not preserve custom subfolder placement for newly created files; it only avoids touching existing moved files
 - for existing tasks under `--skip-existing`, it does not rescrape or rewrite
 
+### Import Meseeks and References projects
+
+Reads open, non-deletion-flagged tasks from TickTick's local macOS database and writes local task files without touching TickTick.
+
+```bash
+bun scripts/import-project-tasks.ts \
+  --import-date 2026-05-11 \
+  --summary-file organize/ticktick-import-2026-05-11.json
+```
+
+Current behavior:
+
+- imports Meseeks into `private/tasks/inbox`
+- imports References into `private/tasks/references`
+- tags every imported file with `source:ticktick` and `ticktick-list:<list>`
+- tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`
+- treats TickTick priority `0` as unset and omits local `priority`; maps TickTick `1`, `3`, and `5` to `low`, `medium`, and `high`
+- imports TickTick child task rows as real local subtasks under the parent task folder
+- skips already imported TickTick task IDs unless `--overwrite` is passed
+- copies TickTick attachments into the imported task folder as `attachments/*`
+- writes tasks with attachments as `_index.md` task folders, so the task key stays stable while attachments live inside the task
+- falls back to the local TickTick attachment cache when `ZLOCALFILEPATH` is empty
+- records missing local attachment files in the task payload instead of pretending they imported
+
 ### Reshape imported link files
 
 Rewrites already-imported link files into the flat format used now:
@@ -151,6 +178,46 @@ Implementation note:
   - cookie `t=...` from the app cookie store
   - `X-Device` from the active user in the local DB
 - this is the right compromise when the public Open API token is unavailable
+
+### Mark imported `References` tasks migrated in TickTick
+
+Marks open TickTick `References` tasks that already exist under `private/tasks/references` as TickTick `won't do` and appends a migration note to their content.
+
+```bash
+bun scripts/mark-references-migrated.ts \
+  --apply \
+  --timestamp 2026-05-11T15:05:44Z \
+  --summary-file /tmp/ticktick-references-migrated.json
+```
+
+Current behavior:
+
+- dry-runs by default unless `--apply` is passed
+- only targets open TickTick rows whose task ID appears in imported local files
+- writes through TickTick's private API instead of mutating SQLite
+- preserves title, content, description, and priority while setting status to TickTick `won't do`
+- appends or replaces `Migrated into git: <ISO timestamp>` in TickTick content
+
+### Mark imported Meseeks tasks migrated in TickTick
+
+Marks open TickTick Meseeks tasks already imported into git as TickTick `won't do`, with stricter preflight checks and private backups.
+
+```bash
+bun scripts/mark-meseeks-migrated.ts \
+  --apply \
+  --timestamp 2026-05-11T15:41:44Z \
+  --backup-dir private/tasks/.ticktick-migration-backups/meseeks-2026-05-11T15-41-44Z
+```
+
+Current behavior:
+
+- dry-runs by default unless `--apply` is passed
+- only targets open Meseeks rows, never completed rows
+- refuses to apply if any open TickTick row is missing from local imports
+- refuses to apply if TickTick attachment metadata is missing locally or imported attachment files are missing on disk
+- refuses to apply when open rows have comments, reminders, or checklist items that need explicit review
+- writes API-before, update payload, API-after, preflight, and summary files into the private backup directory
+- verifies every target through TickTick API after the write
 
 ## Configuration
 

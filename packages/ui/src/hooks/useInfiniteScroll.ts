@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useLayoutEffect, type RefObject } from 'react';
 
 interface UseInfiniteScrollProps {
 	loadMore: (numItems: number) => void;

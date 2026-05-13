@@ -10,16 +10,16 @@
 	"quoteProps": "consistent",
 	"sortImports": false,
 	"sortPackageJson": false,
-	"overrides": [
-		{
-			"files": ["**/*.md", "**/*.mdx"],
-			"options": {
-				"useTabs": true,
-				"tabWidth": 2,
-				"proseWrap": "preserve"
-			}
-		}
-	],
+	// "overrides": [
+	// 	{
+	// 		"files": ["**/*.md", "**/*.mdx"],
+	// 		"options": {
+	// 			"useTabs": true,
+	// 			"tabWidth": 4,
+	// 			"proseWrap": "preserve"
+	// 		}
+	// 	}
+	// ],
 	"ignorePatterns": [
 		"private/**",
 		"prototypes/**",
@@ -36,6 +36,8 @@
 		"**/data/**",
 		"**/routeTree.gen.ts",
 		"**/convex/_generated/**",
-		"**/_generated/**"
+		"**/_generated/**",
+		"**/*.md",
+		"**/*.mdx"
 	]
 }

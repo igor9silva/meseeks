@@ -9,8 +9,11 @@ import {
 	unlinkSync,
 	writeFileSync,
 } from 'node:fs';
-import { dirname, join, posix } from 'node:path';
+import { homedir } from 'node:os';
+import { basename, dirname, extname, join, posix } from 'node:path';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
+import type { CreateTaskInput as ParsedCreateTaskInput } from '~/server/taskExplorerSchemas';
+import { normalizeTaskFilenameSlug, normalizeTaskRenameFilenameSlug } from '~/lib/taskFilename';
 import { findRepoRoot } from '~/server/repoRoot';
 
 function getTaskRoot(taskSource: TaskSummary['taskSource']): string {
@@ -96,7 +99,11 @@ export interface RenameTaskResult {
 	newTaskKey: string;
 }
 
-type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
+export interface TrashTaskResult {
+	trashedPath: string;
+}
+
+type TaskPriority = ParsedCreateTaskInput['priority'];
 type TagMutationAction = 'add' | 'remove';
 
 interface FrontmatterSection {
@@ -129,6 +136,14 @@ export interface UpdateTaskTagsInput {
 
 export interface UpdateTaskTagsResult {
 	tags: string[];
+}
+
+export interface UpdateTaskPriorityInput {
+	priority: TaskPriority;
+}
+
+export interface UpdateTaskPriorityResult {
+	priority: TaskPriority;
 }
 
 export interface UpdateTaskTitleInput {
@@ -184,9 +199,11 @@ function normalizeTaskTag(tag: string): string {
 		.replace(/[\s_]+/g, '-')
 		.replace(/-+/g, '-')
 		.replace(/^-+|-+$/g, '');
+	const tagSegmentPattern = '[a-z0-9]+(?:-[a-z0-9]+)*';
+	const tagPattern = new RegExp(`^${tagSegmentPattern}(?::${tagSegmentPattern})?$`);
 
-	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedTag)) {
-		throw new Error('tag must use letters, numbers, or hyphens');
+	if (!tagPattern.test(normalizedTag)) {
+		throw new Error('tag must use letters, numbers, hyphens, or one namespace colon');
 	}
 
 	return normalizedTag;
@@ -219,14 +236,31 @@ function normalizeTaskTitle(title: string): string {
 	return normalizedTitle;
 }
 
-function slugifyTaskFilename(value: string): string {
+function createTitleFromBody(body: string): string {
 	//
-	const slug = value
-		.toLowerCase()
-		.replace(/'/g, '')
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '');
+	const line = body
+		.split('\n')
+		.map((entry) => entry.trim())
+		.find((entry) => entry.length > 0);
+
+	if (!line) return 'Untitled task';
+
+	const title = line
+		.replace(/^#{1,6}\s+/, '')
+		.replace(/^[-*]\s+\[[ xX]\]\s+/, '')
+		.replace(/^[-*]\s+/, '')
+		.replace(/\s+/g, ' ')
+		.trim();
+
+	if (title.length === 0) return 'Untitled task';
+	if (!/[a-z0-9]/i.test(title)) return 'Untitled task';
+	if (title.length <= 120) return title;
+	return title.slice(0, 120).trim();
+}
+
+function normalizeTaskFilenameValue(value: string): string {
+	//
+	const slug = normalizeTaskFilenameSlug(value);
 
 	if (slug.length === 0) {
 		throw new Error('filename must include at least one letter or number');
@@ -235,26 +269,22 @@ function slugifyTaskFilename(value: string): string {
 	return slug;
 }
 
-function stripKnownTaskFileExtension(filename: string): string {
-	//
-	return filename.trim().replace(/\.(?:mdx|md|txt)$/i, '');
-}
-
 function normalizeTaskFilename(filename: string, fallbackTitle: string): string {
 	//
 	const rawFilename = filename.trim().length > 0 ? filename : fallbackTitle;
-	const withoutExtension = stripKnownTaskFileExtension(rawFilename);
 
-	return slugifyTaskFilename(withoutExtension);
+	return normalizeTaskFilenameValue(rawFilename);
 }
 
 function normalizeRenameTaskFilename(filename: string): string {
 	//
-	const withoutExtension = stripKnownTaskFileExtension(filename);
-	const trimmedFilename = withoutExtension.trim();
+	const normalizedFilename = normalizeTaskRenameFilenameSlug(filename);
 
-	if (trimmedFilename === '_index') return trimmedFilename;
-	return slugifyTaskFilename(withoutExtension);
+	if (normalizedFilename.length === 0) {
+		throw new Error('filename must include at least one letter or number');
+	}
+
+	return normalizedFilename;
 }
 
 function doesTaskKeyPathExist(taskRoot: string, relativePathBase: string): boolean {
@@ -326,6 +356,25 @@ function replaceTaskFilenameSegment(relativePath: string, filename: string): str
 
 	if (directoryName === '.') return nextFilename;
 	return posix.join(directoryName, nextFilename);
+}
+
+function createSystemTrashPath(sourceAbsolutePath: string): string {
+	//
+	const trashRoot = join(homedir(), '.Trash');
+	const originalFilename = basename(sourceAbsolutePath);
+	const extension = extname(originalFilename);
+	const filenameStem = originalFilename.slice(0, originalFilename.length - extension.length);
+
+	mkdirSync(trashRoot, { recursive: true });
+
+	for (let attempt = 0; attempt <= 1000; attempt += 1) {
+		const candidateFilename = attempt === 0 ? originalFilename : `${filenameStem}-${attempt}${extension}`;
+		const candidatePath = join(trashRoot, candidateFilename);
+
+		if (!existsSync(candidatePath)) return candidatePath;
+	}
+
+	throw new Error('could not find an available filename in system Trash');
 }
 
 function renderFrontmatterString(value: string): string {
@@ -416,6 +465,11 @@ function renderTagsFrontmatterLine(tags: string[]): string {
 	return `tags: [${tags.join(', ')}]`;
 }
 
+function renderPriorityFrontmatterLine(priority: TaskPriority): string {
+	//
+	return `priority: ${priority}`;
+}
+
 function upsertFrontmatterLine(rawFrontmatter: string, key: string, nextLine: string): string {
 	//
 	const lines = rawFrontmatter.split('\n');
@@ -448,6 +502,11 @@ function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
 	return upsertFrontmatterLine(rawFrontmatter, 'tags', tagsLine);
 }
 
+function upsertPriorityFrontmatter(rawFrontmatter: string, priority: TaskPriority): string {
+	//
+	return upsertFrontmatterLine(rawFrontmatter, 'priority', renderPriorityFrontmatterLine(priority));
+}
+
 function upsertTitleFrontmatter(rawFrontmatter: string, title: string): string {
 	//
 	const titleLine = `title: ${renderFrontmatterString(title)}`;
@@ -464,6 +523,19 @@ function renderFileContentWithTags(fileContent: string, tags: string[]): string 
 	}
 
 	const nextRawFrontmatter = upsertTagsFrontmatter(frontmatterSection.rawFrontmatter, tags);
+
+	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
+}
+
+function renderFileContentWithPriority(fileContent: string, priority: TaskPriority): string {
+	//
+	const frontmatterSection = extractFrontmatterSection(fileContent);
+
+	if (frontmatterSection === null) {
+		return `---\n${renderPriorityFrontmatterLine(priority)}\n---\n\n${fileContent.replace(/^\uFEFF/, '')}`;
+	}
+
+	const nextRawFrontmatter = upsertPriorityFrontmatter(frontmatterSection.rawFrontmatter, priority);
 
 	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
 }
@@ -554,6 +626,30 @@ export function moveTask(task: TaskSummary, input: MoveTaskInput): MoveTaskResul
 	};
 }
 
+export function trashTask(task: TaskSummary): TrashTaskResult {
+	//
+	const taskRoot = getTaskRoot(task.taskSource);
+	const sourceAbsolutePath = join(taskRoot, task.relativePath);
+	const destinationAbsolutePath = createSystemTrashPath(sourceAbsolutePath);
+
+	if (!existsSync(sourceAbsolutePath)) {
+		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	}
+
+	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		throw error;
+	}
+
+	return {
+		trashedPath: destinationAbsolutePath,
+	};
+}
+
 export function renameTask(task: TaskSummary, input: RenameTaskInput): RenameTaskResult {
 	//
 	const filename = normalizeRenameTaskFilename(input.filename);
@@ -598,7 +694,7 @@ export function renameTask(task: TaskSummary, input: RenameTaskInput): RenameTas
 
 export function createTask(input: CreateTaskInput): CreateTaskResult {
 	//
-	const title = normalizeTaskTitle(input.title);
+	const title = normalizeTaskTitle(input.title.length > 0 ? input.title : createTitleFromBody(input.body));
 	const status = normalizeTaskStatus(input.status);
 	const tags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
 	const filename = normalizeTaskFilename(input.filename, title);
@@ -667,6 +763,34 @@ export function updateTaskTags(task: TaskSummary, input: UpdateTaskTagsInput): U
 	return {
 		tags: nextTags,
 	};
+}
+
+export function updateTaskPriority(task: TaskSummary, input: UpdateTaskPriorityInput): UpdateTaskPriorityResult {
+	//
+	const taskRoot = getTaskRoot(task.taskSource);
+	const absolutePath = join(taskRoot, task.relativePath);
+
+	if (!existsSync(absolutePath)) {
+		throw new Error(`task file no longer exists at ${absolutePath}`);
+	}
+
+	if (input.priority === task.priority) {
+		return { priority: input.priority };
+	}
+
+	const originalContent = readFileSync(absolutePath, 'utf-8');
+	const nextContent = renderFileContentWithPriority(originalContent, input.priority);
+
+	writeFileSync(absolutePath, nextContent, 'utf-8');
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		writeFileSync(absolutePath, originalContent, 'utf-8');
+		throw error;
+	}
+
+	return { priority: input.priority };
 }
 
 export function updateTaskTitle(task: TaskSummary, input: UpdateTaskTitleInput): UpdateTaskTitleResult {

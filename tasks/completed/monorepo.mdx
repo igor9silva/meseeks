@@ -24,7 +24,7 @@ Reorganize this repository into a Bun-first monorepo where each package has expl
 
 ## Subtasks
 
--   [x] Define and approve target monorepo layout with `apps/` for runnable apps and `packages/` for libraries/prototypes.
+-   [x] Define and approve target monorepo layout with `apps/` for runnable apps and `packages/` for libraries/side projects.
 -   [x] Move current projects into package boundaries (main app, organizer, check-verse, macOS shell, compiler POC, and reactor placeholder).
 -   [x] Introduce Bun workspace configuration and per-package scripts for package-local checks.
 -   [x] Replace root "scan everything" commands with orchestrated Bun workspace commands.
@@ -46,8 +46,8 @@ Reorganize this repository into a Bun-first monorepo where each package has expl
 
 -   Migrated repo to Bun workspaces with root `apps/*` and `packages/*` globs.
 -   Moved the main app and Convex runtime into `apps/meseeks`, with Vercel config colocated there.
--   Moved Organizer into `apps/` and unrelated experiments into `prototypes/`.
--   Moved compiler POC into `prototypes/safe-mdx-compiler`.
+-   Moved Organizer into `apps/` and unrelated experiments into `side/`.
+-   Moved compiler POC into `side/safe-mdx-compiler`.
 -   Collapsed nested lockfiles into the root `bun.lockb`.
 -   Verified workspace checks for active apps. Prototype checks are explicit, not part of broad workspace checks.
 -   `workspace:lint` still exposes existing app ESLint debt; Prettier and Organizer lint pass.
@@ -58,10 +58,10 @@ Implemented package map:
 
 -   `apps/meseeks` for the main Meseeks web app and Convex runtime code
 -   `apps/organizer` for the organizer app
--   `prototypes/check-verse` for Check Verse
--   `prototypes/mecode-mvp` for the macOS Electrobun shell prototype
--   `prototypes/safe-mdx-compiler` for the compiler proof-of-concept
--   `prototypes/browser-poc` for the Electron browser experiment
+-   `side/check-verse` for Check Verse
+-   `side/mecode-mvp` for the macOS Electrobun shell prototype
+-   `side/safe-mdx-compiler` for the compiler proof-of-concept
+-   `side/browser-poc` for the Electron browser experiment
 
 Acceptance criteria:
 

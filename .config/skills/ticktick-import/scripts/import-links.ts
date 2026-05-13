@@ -314,7 +314,16 @@ function mapTickTickPriority(priority: number) {
 	//
 	if (priority >= 5) return 'high'
 	if (priority >= 3) return 'medium'
-	return 'low'
+	if (priority >= 1) return 'low'
+	return null
+}
+
+function renderPriorityFrontmatter(priority: number) {
+	//
+	const localPriority = mapTickTickPriority(priority)
+	if (!localPriority) return ''
+
+	return `priority: ${localPriority}\n`
 }
 
 function mapTickTickStatus(status: number) {
@@ -565,8 +574,7 @@ function renderTaskFile(
 
 	return `---
 title: ${JSON.stringify(task.title)}
-priority: ${mapTickTickPriority(task.priority)}
-tags: []
+${renderPriorityFrontmatter(task.priority)}tags: []
 ---
 
 ${originalLink}

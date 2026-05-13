@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
 
 export const explorerSortSchema = z.enum(['priority_then_recency', 'recency', 'title']);
 
@@ -10,6 +11,7 @@ export const explorerRouteSearchSchema = z.object({
 	statuses: z.string().optional(),
 	tags: z.string().optional(),
 	excludedTags: z.string().optional(),
+	detail: z.string().optional(),
 	rootsOnly: z.string().optional(),
 	sort: explorerSortSchema.optional(),
 	taskKey: z.string().optional(),
@@ -60,6 +62,9 @@ function dedupeStrings<T extends string>(values: T[]): T[] {
 
 export function parseSources(value: string | undefined): TaskSource[] {
 	//
+	if (value === undefined) return ['public', 'private'];
+	if (value.trim().length === 0) return [];
+
 	const parsed: TaskSource[] = [];
 
 	for (const entry of splitCsv(value)) {
@@ -70,14 +75,15 @@ export function parseSources(value: string | undefined): TaskSource[] {
 
 	const deduped = dedupeStrings(parsed);
 
-	if (deduped.length === 0) return ['public', 'private'];
 	return deduped;
 }
 
 export function parseStatuses(value: string | undefined): string[] {
 	//
+	if (value === undefined) return getDefaultTaskBuckets();
+	if (value.trim().length === 0) return [];
+
 	const statuses = dedupeStrings(splitCsv(value));
-	if (statuses.length === 0) return ['active', 'backlog', 'inbox'];
 	return statuses;
 }
 

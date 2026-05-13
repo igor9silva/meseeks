@@ -1,20 +1,39 @@
+---
+title: Reactor v1
+priority: critical
+tags: [reactor]
+---
+
+This is the main v1 task.
+
+Meseeks v0 has been the exploration phase. Meseeks v1 is the first public-beta shape: new core execution engine, new pricing/accountability model, clearer branding, and a product surface that can support real users. The new Reactor is the gating piece. Most of the current reorganization exists so this work can be seen, planned, and executed cleanly.
+
 different implementations per provider?
 like GPT specific?
+
 ---
+
 # Reactor
 
 The engine. The platform.
 
-Note: start from existing active/action-execution-model.md
+Use the current execution references in this folder as source material:
+
+- [Current action execution model](action-execution-model.md)
+- [Action execution flows](action-execution-flow.md)
+
+They describe v0/current behavior and may be stale as implementation changes. Keep useful details, but v1 should define the new core instead of preserving accidental current constraints.
 
 - files
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
+- we must support synchronous actions
+- we must support multiple tool-call
 - safe secrets
 - paralell execution
 	- per depth?
 	- it should be able to have long-running stuff, like Codex
-	- we could have like a "timeout trigger" 
+	- we could have like a "timeout trigger"
 - testable as a unit
 - more robust authorization
 	- support for OAuth, OIDC and other auth types
@@ -44,6 +63,8 @@ Note: start from existing active/action-execution-model.md
 	- estimated cost should be "max theoretical cost"
 		- based on maxOutputTokens, fixed costs, and so on
 		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
+	- properly account reasoning tokens
+	- variable hard-skill costs
 - multi-provider
 	- code sandbox
 	- LLM/AI
@@ -73,18 +94,17 @@ Note: start from existing active/action-execution-model.md
 
 ## Current Issues
 
-- Failed to persist initial action details for m973c5rz0br28x3v4t8vtqq2k982tb2c:' [Error: Uncaught Error: Action detail already exists\n    at handler (../../convex/action/details.private.ts:28:54
+- Failed to persist initial action details for m973c5rz0br28x3v4t8vtqq2k982tb2c:' [Error: Uncaught Error: Action detail already exists\n at handler (../../convex/action/details.private.ts:28:54
 - Write conflicts
 - I should be able to "discard" a closed task? Or Resolve if discarded?
 	- should I rename those to "Archive" / "Complete" or smth?
 - Compose() should be renamed to build()
 	- and it should default to being a soft skill loop as a sub task!
-		>call build()
-		>build() starts a subtask with Build loop
-		>say("Working on it, will keep you posted.")
+		> call build()
+		> build() starts a subtask with Build loop
+		> say("Working on it, will keep you posted.")
 - we really need BYOK for the transparency
 - consider using an Agent kit such as Pi or AI SDK or OpenAI Agents SDK
-
 
 ## Architectural Ideas
 
@@ -116,28 +136,27 @@ Chapter 2: multiplayer
 Pahse 3: 
 
 meta/microsoft:
+
 - spot market opportunity
 - build dark pattern software around it
 - burn money to monopolize that industry
 - work as hard as possible to LOCK YOU IN
-- 
 
----
+> China and US get unimaginably rich
+> US starts buying poorest countries
+> they do great
+> small countries start to sell off to US
+> a big chunk of that income flows to the new economy (distributed, decentralized, open source, etc)
+> China starts expanding too
+> new econ is already >15% of the global GDP
 
->China and US get unimaginably rich
->US starts buying poorest countries
->they do great
->small countries start to sell off to US
->a big chunk of that income flows to the new economy (distributed, decentralized, open source, etc)
->China starts expanding too
->new econ is already >15% of the global GDP
+> US, China and new econ.
 
->US, China and new econ.
+> US and China is all that left, weirdly distributed
 
->US and China is all that left, weirdly distributed
 	x Europe? North Korea? The arabs?
->all extreme shit (religions, centralized states, )
 
+> all extreme shit (religions, centralized states, )
 
->our take into AI is like owning a car
-	>you OWN it, you do whatever the F you want with it, and you're responsible for the outcomes
+> our take into AI is like owning a car
+> you OWN it, you do whatever the F you want with it, and you're responsible for the outcomes

@@ -1,6 +1,14 @@
+---
+title: Current Action Execution Model
+priority: low
+tags: [reactor]
+---
+
 # Current Action Execution Model (Implementation Notes)
 
 This document describes the current, shipping execution model exactly as implemented in the codebase. It is a factual map of today’s behavior and is anchored to specific files and functions.
+
+This is a Reactor v1 source reference. It describes the current/v0 implementation and may be stale as the new Reactor replaces the old path.
 
 ## Scope
 

@@ -1,1 +1,0 @@
-I'd like to share other actions like `say`, similarly to how we do for render.

@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, type RefObject } from 'react';
 
 type KeyCombination = {
 	//

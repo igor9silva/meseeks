@@ -1,19 +1,32 @@
 import type { ExplorerQuery } from '~/server/taskExplorerSchemas';
 import type { SnapshotResult } from '~/server/taskIndexRepository';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
+import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
+import { compareTagGroupKeys, parseTaskTag } from '~/lib/taskTags';
 
 type FacetEntry = {
 	value: string;
 	count: number;
 };
 
+type TagFacetEntry = {
+	tag: string;
+	key: string | null;
+	value: string;
+	count: number;
+};
+
+type TagFacetGroup = {
+	key: string | null;
+	entries: TagFacetEntry[];
+};
+
 type ExplorerFacets = {
 	sources: FacetEntry[];
 	statuses: FacetEntry[];
 	tags: FacetEntry[];
+	tagGroups: TagFacetGroup[];
 };
-
-const defaultSources: ExplorerQuery['sources'] = ['public', 'private'];
 
 function dedupeStrings(values: string[]): string[] {
 	//
@@ -33,9 +46,8 @@ function dedupeStrings(values: string[]): string[] {
 
 function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 	//
-	const normalizedSources = input.sources.length > 0 ? input.sources : defaultSources;
-	const normalizedStatuses =
-		input.statuses.length > 0 ? dedupeStrings(input.statuses) : ['active', 'backlog', 'inbox'];
+	const normalizedSources = input.sources.length > 0 ? input.sources : [];
+	const normalizedStatuses = dedupeStrings(input.statuses);
 	const normalizedTags = dedupeStrings(input.tags);
 	const normalizedExcludedTags = dedupeStrings(input.excludedTags);
 
@@ -170,11 +182,95 @@ function mapCountEntries(counts: Map<string, number>, sort: 'alpha' | 'count_the
 	});
 }
 
+type TagCountEntry = {
+	tag: string;
+	key: string | null;
+	value: string;
+	count: number;
+};
+
+function getTaskTagDetails(task: TaskSummary) {
+	//
+	if (task.tagDetails.length > 0) return task.tagDetails;
+
+	return task.tags.map((tag) => parseTaskTag(tag));
+}
+
+function addTagCount(counts: Map<string, TagCountEntry>, tagDetail: TaskSummary['tagDetails'][number]): void {
+	//
+	const existingEntry = counts.get(tagDetail.tag);
+
+	if (existingEntry) {
+		existingEntry.count += 1;
+		return;
+	}
+
+	counts.set(tagDetail.tag, {
+		tag: tagDetail.tag,
+		key: tagDetail.key,
+		value: tagDetail.value,
+		count: 1,
+	});
+}
+
+function mapTagCountEntries(counts: Map<string, TagCountEntry>): FacetEntry[] {
+	//
+	return Array.from(counts.values())
+		.map((entry) => ({
+			value: entry.tag,
+			count: entry.count,
+		}))
+		.sort((left, right) => {
+			if (left.count !== right.count) return right.count - left.count;
+			return left.value.localeCompare(right.value);
+		});
+}
+
+function buildTagFacetGroups(counts: Map<string, TagCountEntry>): TagFacetGroup[] {
+	//
+	const groupsByKey = new Map<string, TagFacetGroup>();
+
+	for (const entry of counts.values()) {
+		const lookupKey = entry.key ?? '';
+		const existingGroup = groupsByKey.get(lookupKey);
+		const group = existingGroup ?? {
+			key: entry.key,
+			entries: [],
+		};
+
+		if (!existingGroup) {
+			groupsByKey.set(lookupKey, group);
+		}
+
+		group.entries.push({
+			tag: entry.tag,
+			key: entry.key,
+			value: entry.value,
+			count: entry.count,
+		});
+	}
+
+	return Array.from(groupsByKey.values())
+		.sort((left, right) => compareTagGroupKeys(left.key, right.key))
+		.map((group) => ({
+			key: group.key,
+			entries: group.entries.sort(compareTagFacetEntries),
+		}));
+}
+
+function compareTagFacetEntries(left: TagFacetEntry, right: TagFacetEntry): number {
+	//
+	if (left.count !== right.count) return right.count - left.count;
+	if (left.value !== right.value) return left.value.localeCompare(right.value);
+
+	return left.tag.localeCompare(right.tag);
+}
+
 function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: string[]): ExplorerFacets {
 	//
 	const sourceCounts = new Map<string, number>();
 	const statusCounts = new Map<string, number>();
-	const tagCounts = new Map<string, number>();
+	const tagCounts = new Map<string, TagCountEntry>();
 
 	for (const task of tasks) {
 		if (
@@ -210,8 +306,8 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 				includeSearch: true,
 			})
 		) {
-			for (const tag of task.tags) {
-				tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+			for (const tagDetail of getTaskTagDetails(task)) {
+				addTagCount(tagCounts, tagDetail);
 			}
 		}
 	}
@@ -219,19 +315,33 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 	return {
 		sources: mapCountEntries(sourceCounts, 'alpha'),
 		statuses: mapCountEntries(statusCounts, 'alpha'),
-		tags: mapCountEntries(tagCounts, 'count_then_alpha'),
+		tags: mapTagCountEntries(tagCounts),
+		tagGroups: buildTagFacetGroups(tagCounts),
 	};
 }
 
 function buildStatusOptions(tasks: TaskSummary[]): string[] {
 	//
-	const statuses = new Set<string>();
+	const statuses = new Set<string>(getDefaultTaskBuckets());
 
 	for (const task of tasks) {
 		statuses.add(task.status);
 	}
 
 	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
+}
+
+function buildTagOptions(tasks: TaskSummary[]): string[] {
+	//
+	const tags = new Set<string>();
+
+	for (const task of tasks) {
+		for (const tag of task.tags) {
+			tags.add(tag);
+		}
+	}
+
+	return Array.from(tags).sort((left, right) => left.localeCompare(right));
 }
 
 export function createTaskLookup(tasks: TaskSummary[]): Map<string, TaskSummary> {
@@ -255,12 +365,14 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 				sources: [],
 				statuses: [],
 				tags: [],
+				tagGroups: [],
 			},
 			totals: {
 				all: 0,
 				visible: 0,
 			},
 			statusOptions: [],
+			tagOptions: [],
 			query: normalizeQueryInput(input),
 		};
 	}
@@ -325,6 +437,7 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 			visible: tasks.length,
 		},
 		statusOptions: buildStatusOptions(snapshotResult.snapshot.meta.tasks),
+		tagOptions: buildTagOptions(snapshotResult.snapshot.meta.tasks),
 		query: normalizedQuery,
 	};
 }

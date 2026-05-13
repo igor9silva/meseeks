@@ -6,6 +6,7 @@ import {
 	detailQuerySchema,
 	explorerQuerySchema,
 	moveTaskInputSchema,
+	priorityMutationSchema,
 	renameTaskInputSchema,
 	tagMutationSchema,
 	titleMutationSchema,
@@ -17,6 +18,8 @@ import {
 	markTaskDone as markTaskDoneInFilesystem,
 	moveTask as moveTaskInFilesystem,
 	renameTask as renameTaskInFilesystem,
+	trashTask as trashTaskInFilesystem,
+	updateTaskPriority as updateTaskPriorityInFilesystem,
 	updateTaskTags as updateTaskTagsInFilesystem,
 	updateTaskTitle as updateTaskTitleInFilesystem,
 } from '~/server/taskMutationRepository';
@@ -116,6 +119,30 @@ export const moveTask = createServerFn({ method: 'POST' })
 		};
 	});
 
+export const trashTask = createServerFn({ method: 'POST' })
+	.inputValidator((input: unknown) => detailQuerySchema.parse(input))
+	.handler(({ data }) => {
+		const snapshotResult = readTaskIndexSnapshot();
+
+		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+			throw new Error('task indexes are unavailable');
+		}
+
+		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+		const task = taskByKey.get(data.taskKey) ?? null;
+
+		if (!task) {
+			throw new Error('task not found');
+		}
+
+		const result = trashTaskInFilesystem(task);
+
+		return {
+			oldTaskKey: data.taskKey,
+			trashedPath: result.trashedPath,
+		};
+	});
+
 export const renameTask = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => renameTaskInputSchema.parse(input))
 	.handler(({ data }) => {
@@ -167,6 +194,32 @@ export const updateTaskTags = createServerFn({ method: 'POST' })
 		return {
 			taskKey: data.taskKey,
 			tags: result.tags,
+		};
+	});
+
+export const updateTaskPriority = createServerFn({ method: 'POST' })
+	.inputValidator((input: unknown) => priorityMutationSchema.parse(input))
+	.handler(({ data }) => {
+		const snapshotResult = readTaskIndexSnapshot();
+
+		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+			throw new Error('task indexes are unavailable');
+		}
+
+		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+		const task = taskByKey.get(data.taskKey) ?? null;
+
+		if (!task) {
+			throw new Error('task not found');
+		}
+
+		const result = updateTaskPriorityInFilesystem(task, {
+			priority: data.priority,
+		});
+
+		return {
+			taskKey: data.taskKey,
+			priority: result.priority,
 		};
 	});
 

@@ -2,6 +2,23 @@ import { z } from 'zod';
 
 const taskSourceSchema = z.enum(['public', 'private']);
 
+const taskTagSchema = z.object({
+	tag: z.string().min(1),
+	key: z.string().min(1).nullable(),
+	value: z.string().min(1),
+});
+
+const taskTagGroupValueSchema = z.object({
+	tag: z.string().min(1),
+	value: z.string().min(1),
+	count: z.number(),
+});
+
+const taskTagGroupSchema = z.object({
+	key: z.string().min(1).nullable(),
+	values: z.array(taskTagGroupValueSchema),
+});
+
 const warningEntrySchema = z.object({
 	taskKey: z.string().min(1),
 	relativePath: z.string().min(1),
@@ -15,8 +32,10 @@ const taskSummarySchema = z
 		id: z.string().min(1),
 		title: z.string().min(1),
 		status: z.string().min(1),
+		bucket: z.string().min(1),
 		priority: z.string().min(1).nullable(),
 		tags: z.array(z.string()),
+		tagDetails: z.array(taskTagSchema).optional().default([]),
 		parentId: z.string().nullable(),
 		parentKey: z.string().nullable(),
 		parentSource: z.string().min(1),
@@ -58,6 +77,7 @@ export const tasksLookupSchema = z
 		idToKeys: z.record(z.string(), z.array(z.string())),
 		statusToKeys: z.record(z.string(), z.array(z.string())),
 		tagToKeys: z.record(z.string(), z.array(z.string())),
+		tagGroups: z.array(taskTagGroupSchema).optional().default([]),
 	})
 	.passthrough();
 
@@ -68,6 +88,7 @@ const graphNodeSchema = z
 		id: z.string().min(1),
 		title: z.string().min(1),
 		status: z.string().min(1),
+		bucket: z.string().min(1),
 		parentId: z.string().nullable(),
 		parentKey: z.string().nullable(),
 		relativePath: z.string().min(1),

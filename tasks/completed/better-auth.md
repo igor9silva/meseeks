@@ -1,7 +1,7 @@
 ---
 title: Finish Better Auth Migration
 priority: high
-tags: []
+tags: [auth]
 ---
 
 # Finish Better Auth Migration

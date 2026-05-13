@@ -1,6 +1,14 @@
+---
+title: Action Execution Flows
+priority: low
+tags: [reactor]
+---
+
 # Action Execution Flows (UI -> Backend)
 
 This file is flow-only: UI entry points, data flow, and backend execution paths as they exist today.
+
+This is a Reactor v1 source reference. It describes the current/v0 implementation and may be stale as the new Reactor replaces the old path.
 
 ## UI Composer -> act() (existing task)
 
@@ -171,4 +179,3 @@ sequenceDiagram
     CT-->>P: result.reactions (first toolCall only)
     P->>RS: persist + enqueue reactions
 ```
-
