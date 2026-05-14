@@ -43,6 +43,11 @@ export const moveTaskInputSchema = z.object({
 	status: z.string().trim().min(1).max(64),
 });
 
+export const updateTaskSourceInputSchema = z.object({
+	taskKey: z.string().min(1),
+	taskSource: taskSourceSchema,
+});
+
 export const renameTaskInputSchema = z.object({
 	taskKey: z.string().min(1),
 	filename: z.string().trim().min(1).max(180),

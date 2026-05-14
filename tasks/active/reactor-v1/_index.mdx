@@ -39,6 +39,8 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - more robust authorization
 	- support for OAuth, OIDC and other auth types
 	- specific controls per skills (like search authorizes per domain)
+	- authorization triggers for action execution
+		- trigger authorization from runtime conditions like `contextLength > X`, `executionTime > 60 * 1000`, or `domain is whitelisted`
 - native CoT support?
 	- sort of like a multi-reaction action? simply that?
 	- 5.4 reasons, becomes a subaction. if it call tools, then it becomes a subaction. etc.

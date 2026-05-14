@@ -6,6 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
+import type { TaskSource } from '~/lib/explorerSearchParams';
 import { formatTaskBucketLabel } from '~/lib/taskBuckets';
 import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import {
@@ -14,6 +15,7 @@ import {
 	renameTask,
 	trashTask,
 	updateTaskPriority,
+	updateTaskSource,
 	updateTaskTags,
 	updateTaskTitle,
 } from '~/server/taskExplorer';
@@ -26,8 +28,10 @@ import {
 	getTaskDisplayFilename,
 	getTaskFileBasename,
 	getTaskFilename,
+	parseTaskSource,
 	parseTaskPriority,
 	taskPriorityOptions,
+	taskSourceOptions,
 	toCodexPlanHref,
 	toCodexSeekHref,
 	toCursorFileHref,
@@ -55,6 +59,7 @@ export function TaskDetailView({
 	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
+	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
@@ -66,6 +71,7 @@ export function TaskDetailView({
 	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
+	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
@@ -84,6 +90,7 @@ export function TaskDetailView({
 			onInspectorExpandedToggle={onInspectorExpandedToggle}
 			onNavigateTask={onNavigateTask}
 			onTaskMoved={onTaskMoved}
+			onTaskSourceChanged={onTaskSourceChanged}
 			onTaskRenamed={onTaskRenamed}
 			onTaskCompleted={onTaskCompleted}
 			onTaskTrashed={onTaskTrashed}
@@ -100,6 +107,7 @@ function TaskDetailContent({
 	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
+	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
@@ -112,6 +120,7 @@ function TaskDetailContent({
 	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
+	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
@@ -119,6 +128,7 @@ function TaskDetailContent({
 	//
 	const bucketInputId = useId();
 	const priorityInputId = useId();
+	const sourceInputId = useId();
 	const renameFilenameInputId = useId();
 	const titleInputId = useId();
 	const filePathCopyResetTimeoutRef = useRef<number | null>(null);
@@ -130,6 +140,7 @@ function TaskDetailContent({
 	const renameTaskServer = useServerFn(renameTask);
 	const trashTaskServer = useServerFn(trashTask);
 	const updateTaskPriorityServer = useServerFn(updateTaskPriority);
+	const updateTaskSourceServer = useServerFn(updateTaskSource);
 	const updateTaskTagsServer = useServerFn(updateTaskTags);
 	const updateTaskTitleServer = useServerFn(updateTaskTitle);
 	const relatedTasks = detail.relatedTasks ?? [];
@@ -191,6 +202,17 @@ function TaskDetailContent({
 			]);
 
 			onTaskMoved(result.newTaskKey, result.status);
+		},
+	});
+	const updateTaskSourceMutation = useMutation({
+		mutationFn: (taskSource: TaskSource) => updateTaskSourceServer({ data: { taskKey: task.key, taskSource } }),
+		onSuccess: async (result) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
+			]);
+
+			onTaskSourceChanged(result.newTaskKey, result.taskSource);
 		},
 	});
 	const renameTaskMutation = useMutation({
@@ -271,6 +293,15 @@ function TaskDetailContent({
 		if (status === task.status) return;
 
 		moveTaskMutation.mutate(status);
+	};
+
+	const handleSourceChange = (value: string) => {
+		const parsedSource = parseTaskSource(value);
+
+		if (parsedSource === null) return;
+		if (parsedSource === task.taskSource) return;
+
+		updateTaskSourceMutation.mutate(parsedSource);
 	};
 
 	const handleTimestampCopy = async (value: string) => {
@@ -360,6 +391,7 @@ function TaskDetailContent({
 		renameTaskMutation.isPending ||
 		trashTaskMutation.isPending ||
 		updateTaskPriorityMutation.isPending ||
+		updateTaskSourceMutation.isPending ||
 		updateTaskTitleMutation.isPending;
 	const titleHoldAction = useHoldAction(handleTitleEditStart, isTaskFileMutationPending || isEditingTitle);
 	const filenameHoldAction = useHoldAction(handleRenameStart, isTaskFileMutationPending || isRenamingFile);
@@ -666,10 +698,22 @@ function TaskDetailContent({
 						</select>
 					</div>
 					<div className="min-w-24">
-						<div className="text-muted-foreground">Visibility</div>
-						<div className="mt-0.5 truncate font-medium text-foreground">
-							{formatSourceLabel(task.taskSource)}
-						</div>
+						<label className="text-muted-foreground" htmlFor={sourceInputId}>
+							Visibility
+						</label>
+						<select
+							id={sourceInputId}
+							value={task.taskSource}
+							onChange={(event) => handleSourceChange(event.currentTarget.value)}
+							disabled={updateTaskSourceMutation.isPending}
+							className="mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50"
+						>
+							{taskSourceOptions.map((sourceOption) => (
+								<option key={sourceOption} value={sourceOption}>
+									{formatSourceLabel(sourceOption)}
+								</option>
+							))}
+						</select>
 					</div>
 					<TimestampButton label="Created" value={task.created} onCopy={handleTimestampCopy} />
 					<TimestampButton label="Updated" value={task.updated} onCopy={handleTimestampCopy} />
@@ -743,6 +787,11 @@ function TaskDetailContent({
 				{updateTaskPriorityMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
 						{getMutationErrorMessage(updateTaskPriorityMutation.error, 'failed to update task priority')}
+					</div>
+				) : null}
+				{updateTaskSourceMutation.error ? (
+					<div className="mt-2 text-sm text-destructive">
+						{getMutationErrorMessage(updateTaskSourceMutation.error, 'failed to update task visibility')}
 					</div>
 				) : null}
 			</header>

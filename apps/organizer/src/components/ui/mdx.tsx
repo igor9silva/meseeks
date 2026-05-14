@@ -1,4 +1,4 @@
-import { Children, Component, isValidElement, type ReactNode, useEffect, useId, useState } from 'react';
+import { Children, Component, isValidElement, type ReactNode, useEffect, useId, useMemo, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
@@ -199,6 +199,42 @@ function resolveTaskAssetUrl(value: string | undefined, assetBasePath: string | 
 	return toViteFileUrl(joinFilePath(assetBasePath, value));
 }
 
+function rewriteRawMdxAssetTag(tag: string, assetBasePath: string | null | undefined): string {
+	//
+	return tag.replace(/\b(src|href|poster)=(["'])([^"']+)\2/g, (match, attributeName, quote, value) => {
+		if (typeof value !== 'string') return match;
+
+		const resolvedValue = resolveTaskAssetUrl(value, assetBasePath);
+		if (!resolvedValue) return match;
+
+		return `${attributeName}=${quote}${resolvedValue}${quote}`;
+	});
+}
+
+function rewriteRawMdxAssetUrls(text: string, assetBasePath: string | null | undefined): string {
+	//
+	if (!assetBasePath) return text;
+
+	const lines = text.split('\n');
+	let isInCodeBlock = false;
+
+	return lines
+		.map((line) => {
+			const trimmed = line.trimStart();
+			if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+				isInCodeBlock = !isInCodeBlock;
+				return line;
+			}
+
+			if (isInCodeBlock) return line;
+
+			return line.replace(/<(a|audio|img|source|video)\b[^>]*>/gi, (tag) =>
+				rewriteRawMdxAssetTag(tag, assetBasePath),
+			);
+		})
+		.join('\n');
+}
+
 function MermaidBlock({ source }: { source: string }) {
 	//
 	const blockId = useId();
@@ -326,6 +362,16 @@ function createMdxComponents(
 				className="my-4 h-auto max-w-full rounded-md border border-border"
 			/>
 		),
+		video: ({ children, src }) => (
+			<video
+				controls
+				src={resolveTaskAssetUrl(src, assetBasePath)}
+				className="my-4 max-h-[40rem] w-full rounded-md border border-border bg-black"
+			>
+				{children}
+			</video>
+		),
+		source: ({ src }) => <source src={resolveTaskAssetUrl(src, assetBasePath)} />,
 		strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
 		em: ({ children }) => <em className="italic text-foreground/95">{children}</em>,
 		del: ({ children }) => <del className="line-through text-muted-foreground">{children}</del>,
@@ -360,7 +406,8 @@ export function Mdx({
 	assetBasePath?: string | null;
 }) {
 	//
-	const { component, error, isPending } = useMDX(text);
+	const compiledText = useMemo(() => rewriteRawMdxAssetUrls(text, assetBasePath), [assetBasePath, text]);
+	const { component, error, isPending } = useMDX(compiledText);
 	const mdxComponents = createMdxComponents(assetBasePath);
 
 	if (isPending) {

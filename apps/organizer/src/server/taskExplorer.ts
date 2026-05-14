@@ -10,6 +10,7 @@ import {
 	renameTaskInputSchema,
 	tagMutationSchema,
 	titleMutationSchema,
+	updateTaskSourceInputSchema,
 } from '~/server/taskExplorerSchemas';
 import { readTaskIndexSnapshot } from '~/server/taskIndexRepository';
 import {
@@ -20,6 +21,7 @@ import {
 	renameTask as renameTaskInFilesystem,
 	trashTask as trashTaskInFilesystem,
 	updateTaskPriority as updateTaskPriorityInFilesystem,
+	updateTaskSource as updateTaskSourceInFilesystem,
 	updateTaskTags as updateTaskTagsInFilesystem,
 	updateTaskTitle as updateTaskTitleInFilesystem,
 } from '~/server/taskMutationRepository';
@@ -140,6 +142,34 @@ export const trashTask = createServerFn({ method: 'POST' })
 		return {
 			oldTaskKey: data.taskKey,
 			trashedPath: result.trashedPath,
+		};
+	});
+
+export const updateTaskSource = createServerFn({ method: 'POST' })
+	.inputValidator((input: unknown) => updateTaskSourceInputSchema.parse(input))
+	.handler(({ data }) => {
+		const snapshotResult = readTaskIndexSnapshot();
+
+		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+			throw new Error('task indexes are unavailable');
+		}
+
+		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+		const task = taskByKey.get(data.taskKey) ?? null;
+
+		if (!task) {
+			throw new Error('task not found');
+		}
+
+		const result = updateTaskSourceInFilesystem(task, {
+			taskSource: data.taskSource,
+		});
+
+		return {
+			oldTaskKey: data.taskKey,
+			newTaskKey: result.newTaskKey,
+			newRelativePath: result.newRelativePath,
+			taskSource: result.taskSource,
 		};
 	});
 
