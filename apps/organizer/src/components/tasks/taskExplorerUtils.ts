@@ -1,5 +1,6 @@
 import type { TaskSource } from '~/lib/explorerSearchParams';
 import {
+	getTaskDisplayFilename,
 	getTaskFileBasename,
 	getTaskFilename,
 	normalizeTaskFilenameSlug,
@@ -79,7 +80,7 @@ export function createTaskRenameFilename(value: string): string {
 	return normalizeTaskRenameFilenameSlug(value);
 }
 
-export { getTaskFileBasename, getTaskFilename };
+export { getTaskDisplayFilename, getTaskFileBasename, getTaskFilename };
 
 export function getMutationErrorMessage(error: unknown, fallback: string): string {
 	//

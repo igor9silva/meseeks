@@ -1,6 +1,9 @@
 {
 	"$schema": "../../node_modules/convex/schemas/convex.schema.json",
 	"typescriptCompiler": "tsgo",
+	"aiFiles": {
+		"enabled": false
+	},
 	"node": {
 		"externalPackages": ["@babel/core", "@babel/preset-react"],
 		"nodeVersion": "24"

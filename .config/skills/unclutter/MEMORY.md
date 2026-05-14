@@ -36,10 +36,13 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - Useful image-only UI imports can become references when they are design inspiration; kill outdated UI references.
 - Reactor v1 must preserve synchronous actions and multiple tool-call / multi-action execution as first-class behavior.
 - Empty imported shells that only point at Reactor v1 concepts should be folded into Reactor v1 and deleted.
+- Versioning, persisted diffs, and core execution posture notes belong in Reactor v1 unless they are already concrete implementation tasks.
 - When moving private tasks public, review for private account data, local paths, and sensitive source material. Igor's public email and ChatGPT share URLs are fine by themselves; judge the content, not the URL shape.
 - Add a prominent disclaimer to any reviewed task that still needs sensitive material kept in public.
 - Third-party UI/product references can be public references with no priority and no tags when the reference itself is the only useful artifact.
+- When merging captures into an existing task, put the useful content in the natural body location. Avoid "merged source notes" blocks unless provenance itself is the useful content.
 - User onboarding decisions belong inside the Pro GTM/v1 task unless there is a concrete implementation task.
+- Do not wrap task bodies in a default `## Context` heading. Start directly with the content unless a section heading adds real structure.
 
 ## Current State Notes
 

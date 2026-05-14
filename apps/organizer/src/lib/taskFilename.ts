@@ -41,6 +41,18 @@ export function getTaskFilename(relativePath: string): string {
 	return pathSegments[pathSegments.length - 1] ?? relativePath;
 }
 
+export function getTaskDisplayFilename(relativePath: string): string {
+	//
+	const pathSegments = relativePath.split('/').filter((segment) => segment.length > 0);
+	const filename = pathSegments[pathSegments.length - 1] ?? relativePath;
+
+	if (/^_index\.(?:mdx|md|txt)$/i.test(filename)) {
+		return pathSegments[pathSegments.length - 2] ?? filename;
+	}
+
+	return filename;
+}
+
 function truncateTaskFilenameSlug(slug: string): string {
 	//
 	if (slug.length <= TASK_FILENAME_MAX_LENGTH) return slug;
