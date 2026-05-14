@@ -41,6 +41,7 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - Add a prominent disclaimer to any reviewed task that still needs sensitive material kept in public.
 - Third-party UI/product references can be public references with no priority and no tags when the reference itself is the only useful artifact.
 - When merging captures into an existing task, put the useful content in the natural body location. Avoid "merged source notes" blocks unless provenance itself is the useful content.
+- Use `brainstorm` for captures Igor wants to keep in private inbox for later ideation. Do not move or rewrite those during mechanical cleanup.
 - User onboarding decisions belong inside the Pro GTM/v1 task unless there is a concrete implementation task.
 - Do not wrap task bodies in a default `## Context` heading. Start directly with the content unless a section heading adds real structure.
 
