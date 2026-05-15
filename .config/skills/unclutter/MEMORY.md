@@ -47,11 +47,13 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - Link-only tasks should be expanded before review. Keep the original link, add local context, and replace URL-only titles with semantic titles. Do not replace titles with hashtags or delete the link.
 - For `to-read` tasks, the link is often the task. Expand enough for local search and a semantic title, but do not over-organize or remove them from the to-read flow unless Igor explicitly reviews that item.
 - During broad inbox classification/review, skip `funding` and `to-read` groups unless Igor explicitly asks to review them.
+- During broad inbox classification/review, skip `vfs` tasks unless Igor explicitly asks. They are virtual-filesystem/Reactor filesystem alternatives or related material for later.
 - Use `brainstorm` for captures Igor wants to keep in private inbox for later ideation. Do not move or rewrite those during mechanical cleanup.
 - User onboarding decisions belong inside the Pro GTM/v1 task unless there is a concrete implementation task.
 - Do not wrap task bodies in a default `## Context` heading. Start directly with the content unless a section heading adds real structure.
 - Names should be context-based and should not repeat the bucket. A file in `references/` does not need "reference" in its title; a task in `ideas/` does not need to say it is an idea unless that is the actual name.
 - When renaming or broadening a task, update the filesystem slug/folder too. Do not leave stale slugs from the old narrower task.
+- Prefer named Markdown links like `[CDP Wallets](https://...)` in task prose instead of bare full URLs. Bare URLs are only fine when the raw URL itself is the content being preserved.
 - Keep `WebSquare` as a likely name/vision for the Feeds idea. Feeds are user-owned streams that can follow people, organizations, topics, repos, sites, or personal data sources, with AI filters and code filters.
 - Demand signals are references by default. Use the `demand` tag and choose public/private based on sensitivity, not on whether the source URL is public. Demand references, and most references in general, should stay raw: preserve the original market signal, source text, links, media, and metadata. Do not rewrite references into the model's interpretation unless Igor explicitly asks for synthesis.
 - Pro GTM is the aggregation target for launch, mission, positioning, pricing, public docs, SEO, onboarding, and category-language notes. Keep the anger against vendor lock-in explicit; it is part of the mission, not noise.

@@ -3,11 +3,11 @@ title: Grok UX notes
 tags: [ux, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
 ---
 
-UX reference from Grok.com for forking or starting a new thread on the same page.
+UX notes from Grok.com.
 
 The interaction pattern is a "new thread from here" affordance: keep the current chat intact, but let the user branch into a fresh parallel thread without losing their place
 
-![Grok thread forking UX](attachments/g1jfzota8aain-h.jpg)
+![Grok UX](attachments/g1jfzota8aain-h.jpg)
 
 ## Additional Notes
 
