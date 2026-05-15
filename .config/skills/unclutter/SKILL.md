@@ -25,6 +25,19 @@ When Igor corrects an organizing decision, treat the correction as training data
 
 For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
 
+## Learning From Review Batches
+
+When Igor reviews tasks one by one, treat each decision as a labeled example for future Unclutter runs.
+
+Do both jobs:
+
+1. Apply the current disposition exactly. If Igor says `delete`, delete. If he says `done`, move to `completed/` in the same root. If he says `public tech ref`, move to public `references/` with `tech`. If he says `flat into X`, move the content into X and delete the source. No need to keep `# Source` or `# TickTick source` blocks (they'll be git history anyway).
+2. Extract the reusable reasoning behind the decision and update `.config/skills/unclutter/MEMORY.md` when it should help future autonomous Unclutter passes make the same call without Igor.
+
+Do not confuse those jobs. The current task should not grow extra files, extra prose, visibility changes, or speculative structure just because Igor explained why he chose a destination. The explanation is training data for future inference, not permission to overwork the current item.
+
+Write memory as decision heuristics, not as one-off transcripts. A good memory entry helps answer "what would Igor do with a similar task later?"
+
 ## What To Fix
 
 Be broad and practical. Look for anything that makes the task system harder to trust or scan:
@@ -47,7 +60,7 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - link-only tasks whose title is still just a URL or a meaningless import label
 - image/video attachments that were left behind or not rendered after a merge
 
-Use judgment. The point is uncluttering, not satisfying a tiny checklist.
+Use judgment, but do not override an explicit disposition Igor already gave for a specific task.
 
 ## Tag Hygiene
 
