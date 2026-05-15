@@ -52,6 +52,8 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `scraped` marks captures expanded from a link or raw source.
 - `tech` marks technical references broadly. It does not mean the reference must stay raw.
 - `ux` marks interface/design/product-experience material. It can coexist with `tech` for technical references that shape UI feel, such as smooth corners, animations, layout helpers, or component collections.
+- `customization` marks references/tasks for user-driven app customization: selecting parts of the running UI, annotating elements, and letting AI change appearance or behavior directly.
+- `bi-render` marks references/tasks for rendering one conceptual component/action/task toward both humans and AI/model context.
 - `demand` marks market-demand signals. Demand references usually stay raw because the signal itself is the artifact.
 - `intelligence` is only for AI model/model-provider support tasks.
 - `skill` is for skills/integrations we want to add to Meseeks.
@@ -76,6 +78,8 @@ Use Reactor v1 for:
 - ETH deposits into user/task wallets, not checkout-style payments
 - filesystem/runtime primitives, virtual filesystem alternatives, and local provider mechanics when they are core execution architecture
 - `searchWeb` taking multiple queries at once
+- live UI customization, when users select runtime UI/components and ask AI to change appearance or behavior
+- bi-rendering, when components/actions/skills render for both human UI and AI/model context
 
 Do not keep empty shells that only restate a Reactor concept. Fold the exact useful line into Reactor and delete the shell.
 

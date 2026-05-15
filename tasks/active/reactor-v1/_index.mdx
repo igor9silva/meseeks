@@ -58,6 +58,15 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- pro/searchWeb@0.1.0
 - version everything: tasks, skills, ...
 	- `updateInstructions()` should compute and persist a git-style diff at write-time, then render that diff to humans and future AI context instead of only saying that a title/body changed
+- live UI customization
+	- Meseeks should let users select a running UI/component and ask the AI to change its appearance or behavior: bigger, smaller, different color, rounder, different interaction, etc.
+	- MDX/component rendering should make the app surface directly customizable at runtime
+	- reference: [Agentation](../../references/agentation.md)
+- bi-rendering
+	- important components/actions/skills should be able to render for humans and for AI
+	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
+	- this overlaps with [JSX for AI](../../backlog/jsx-for-ai.mdx), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
+	- references: [JSX prompts in practice](../../references/jsx-prompts-in-practice.md), [jsx-prompts](../../references/jsx-prompts.md), [Priompt](../../references/priompt.md), [mdx-prompt](../../references/mdx-prompt.md)
 - `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
 - sharing skills
 	- at least some basic importing/exporting support
