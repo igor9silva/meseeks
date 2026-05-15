@@ -21,6 +21,8 @@ Read `tasks/README.md` before editing task files. Use that contract for roots, b
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
 
+When Igor corrects an organizing decision, treat the correction as training data. If the correction is likely to recur, update `.config/skills/unclutter/MEMORY.md` in the same pass instead of relying on chat history.
+
 For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
 
 ## What To Fix
@@ -42,6 +44,8 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - completed tasks that were not actually completed
 - rejected work sitting in `completed/` instead of being deleted
 - source-backed tasks missing traceability
+- link-only tasks whose title is still just a URL or a meaningless import label
+- image/video attachments that were left behind or not rendered after a merge
 
 Use judgment. The point is uncluttering, not satisfying a tiny checklist.
 
@@ -73,6 +77,8 @@ When a task mixes public work with private context, split it: public actionable 
 When something is rejected but has useful context, keep the context as a reference and remove the task shell.
 
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
+
+When flattening or merging imports, move the useful content, links, and attachments into the target task. Do not preserve generic `Source`, `TickTick source`, raw JSON, or "merged source note" blocks unless provenance itself is the useful content. Git history is enough for routine import provenance.
 
 ## After Editing
 
