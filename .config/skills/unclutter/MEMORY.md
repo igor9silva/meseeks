@@ -43,6 +43,7 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - When merging captures into an existing task, put the useful content in the natural body location. Avoid "merged source notes" blocks unless provenance itself is the useful content.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Keep useful links, media, quotes, and decisions in the target body; routine provenance lives in git history.
 - When flattening tasks with attachments, copy or move the actual attachment into the target task's attachment area and update the body so images/videos render from the target. Do not leave important media orphaned in a deleted source task.
+- Tasks with local attachments should usually be folder tasks: `task-slug/_index.md` plus `task-slug/attachments/*`. Do not create `task-slug.md` beside a sibling `task-slug/attachments/` folder.
 - Link-only tasks should be expanded before review. Keep the original link, add local context, and replace URL-only titles with semantic titles. Do not replace titles with hashtags or delete the link.
 - For `to-read` tasks, the link is often the task. Expand enough for local search and a semantic title, but do not over-organize or remove them from the to-read flow unless Igor explicitly reviews that item.
 - During broad inbox classification/review, skip `funding` and `to-read` groups unless Igor explicitly asks to review them.
@@ -50,12 +51,14 @@ Durable decisions for future Unclutter passes. Keep this short; this is the pers
 - User onboarding decisions belong inside the Pro GTM/v1 task unless there is a concrete implementation task.
 - Do not wrap task bodies in a default `## Context` heading. Start directly with the content unless a section heading adds real structure.
 - Names should be context-based and should not repeat the bucket. A file in `references/` does not need "reference" in its title; a task in `ideas/` does not need to say it is an idea unless that is the actual name.
+- When renaming or broadening a task, update the filesystem slug/folder too. Do not leave stale slugs from the old narrower task.
 - Keep `WebSquare` as a likely name/vision for the Feeds idea. Feeds are user-owned streams that can follow people, organizations, topics, repos, sites, or personal data sources, with AI filters and code filters.
 - Demand signals are references by default. Use the `demand` tag and choose public/private based on sensitivity, not on whether the source URL is public. Demand references, and most references in general, should stay raw: preserve the original market signal, source text, links, media, and metadata. Do not rewrite references into the model's interpretation unless Igor explicitly asks for synthesis.
 - Pro GTM is the aggregation target for launch, mission, positioning, pricing, public docs, SEO, onboarding, and category-language notes. Keep the anger against vendor lock-in explicit; it is part of the mission, not noise.
 - Pricing direction for Pro GTM: simple fixed markup on deposits, with 2% as the working example; the wallet should pay for models, sandboxes, storage, skills, providers, and future human work.
 - Reactor v1 is the aggregation target for ETH deposits, wallet/accounting mechanics, authorization triggers, domain allowlists, versioning, persisted diffs, and core execution semantics.
 - ETH work should be framed as deposits into the user/task wallet, not checkout-style payments. CDP Wallets are a candidate implementation path.
+- When Igor says something is a `ref for <existing topic/task>`, mention or link it in that existing task. Do not create a standalone reference file unless the source itself needs to stay independently browsable.
 - Ideas like human-as-a-service belong in `ideas/` unless they become concrete product work. Research existing similar products before writing them as novel greenfield concepts.
 - After every collaborative review batch, remove reviewed items from the classification/control document and update this memory with any reusable correction before moving on.
 
