@@ -91,6 +91,7 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
 ## Notes
 - Do not treat this as a blind vendor swap. Bad instrumentation is the first bug.
 - At minimum, `@vercel/analytics` must be removed in this scope.
+- Axiom supports monitoring AI SDK directly: https://x.com/njpatel/status/1970217382955360417
 - If PostHog feature flags or experiments are added, do it only after the analytics/replay/error baseline is stable. Do not turn this into a kitchen-sink rollout on day one.
 - Preserve rejected assumptions from this planning pass:
   - self-hosted PostHog is not the current plan

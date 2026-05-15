@@ -89,6 +89,8 @@ When a task mixes public work with private context, split it: public actionable 
 
 When something is rejected but has useful context, keep the context as a reference and remove the task shell.
 
+After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. Move it to the best bucket and ask if the bucket is unclear.
+
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
 
 When flattening or merging imports, move the useful content, links, and attachments into the target task. Do not preserve generic `Source`, `TickTick source`, raw JSON, or "merged source note" blocks unless provenance itself is the useful content. Git history is enough for routine import provenance.

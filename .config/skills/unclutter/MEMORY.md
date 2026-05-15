@@ -28,6 +28,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
 - `ideas/` is for product ideas, side projects, use cases, and things to try. `ticktick-status:use-case` maps here.
 - `inbox/` is for untriaged capture. `ticktick-status:user-interface` stays inbox until reviewed.
+- Once an inbox task has been reviewed, it should almost never remain in inbox. Move it to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
 - `active/` is for work being pursued now. Do not leave stale active tasks around once they are done or deferred.
 - Grouping-only folders should be flattened when tags and Organizer filters carry the organization better.
 - Keep folder tasks with `_index.*` when the folder is a real parent task, a real reference collection, or owns real subtasks/attachments.
@@ -36,6 +37,8 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 
 - Raw TickTick, phone, personal, and ambiguous captures default private until reviewed.
 - Meseeks product/repo work should become public when it is safe and useful for the main monorepo.
+- Product ideas, names, and positioning captures are not automatically private. Decide from the content and Igor's disposition, not from the fact that they are early ideas.
+- If Igor says a private reviewed item can be public, move it into `tasks/` after checking the content and attachments for obvious sensitive material.
 - Moving private material public requires a content review. Watch for account data, local paths, private business context, credentials, personal notes, or sensitive screenshots.
 - Igor's email and ChatGPT share URLs are not sensitive by themselves. Judge the content behind them, not the URL shape.
 - If a task mixes public work with private context, split it: public task in `tasks/`, private source/reference in `private/tasks/`.
@@ -48,6 +51,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `source:*` is for where a task came from. `source:ticktick`, `source:safari-reading-list`, etc.
 - `scraped` marks captures expanded from a link or raw source.
 - `tech` marks technical references broadly. It does not mean the reference must stay raw.
+- `ux` marks interface/design/product-experience material. It can coexist with `tech` for technical references that shape UI feel, such as smooth corners, animations, layout helpers, or component collections.
 - `demand` marks market-demand signals. Demand references usually stay raw because the signal itself is the artifact.
 - `intelligence` is only for AI model/model-provider support tasks.
 - `skill` is for skills/integrations we want to add to Meseeks.
@@ -103,8 +107,9 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 
 - References are for source/context that should be searchable but is not itself completable.
 - Public technical material usually belongs in `tasks/references/` with `tech`.
+- ChatGPT/OpenAI product-behavior, metadata, prompt-injection, and leaked-system-prompt captures are public `tech` references unless the captured content itself exposes Igor/private data.
 - Raw vs synthesized depends on the source. Keep demand references raw. For technical references, preserve the useful source and add synthesis only when it helps future work.
-- UI/UX inspiration from third-party products can become public references with `ux` when it is design material.
+- UI/UX inspiration from third-party products, component libraries, plugins, and visual polish techniques can become public references with `ux` when it is design material.
 - If a reference is just there to support an existing task, link it from that task instead of creating a standalone file.
 - Prefer named Markdown links in prose: `[CDP Wallets](https://...)`. Bare URLs are fine when preserving a raw source list or the URL itself is the artifact.
 - Names should not repeat context. A task in `references/` does not need "reference" in the title.
@@ -116,6 +121,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - For `to-read`, the link is often the task. Expand enough for search and title clarity, but do not over-organize it unless that specific item is reviewed.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Git history carries routine provenance.
 - Preserve useful links, media, quotes, screenshots, and decisions in the target task body.
+- Preserve Igor's short original keywords/intent when converting imports into references; they often explain why the source mattered better than the scraped summary does.
 - If important attachments/media move into a target task, move the actual file too and update the Markdown so it renders.
 - Tasks with local attachments should usually be folder tasks: `slug/_index.md` plus `slug/attachments/*`.
 - TickTick child rows that are real subtasks should become real local subtasks under the parent folder, not only rendered checklist text.
