@@ -80,6 +80,8 @@ Use Reactor v1 for:
 - `searchWeb` taking multiple queries at once
 - live UI customization, when users select runtime UI/components and ask AI to change appearance or behavior
 - bi-rendering, when components/actions/skills render for both human UI and AI/model context
+- external task interfaces: task-owned incoming/outgoing email addresses, HTTP endpoints, webhooks, WebSocket streams, and integration-specific event surfaces; incoming events become task messages/actions, then triggers/reactions decide what happens
+- small prompt-architecture notes, such as redesigning skills to prompt with XML tags, belong in Reactor instead of separate imported shells
 
 Do not keep empty shells that only restate a Reactor concept. Fold the exact useful line into Reactor and delete the shell.
 
@@ -96,6 +98,7 @@ Use Pro GTM for:
 - onboarding and risk/terms acceptance when framed as go-to-market/product readiness
 - "why Meseeks", category language such as Pro/Web4, and data/UI splitting apart
 - launch video ideas, "one exceptional thing" MVP notes, and public messaging insights
+- pre-marketing repo/company readiness, such as migrating the repository to a GitHub org
 
 Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding shards unless the work is independently actionable now.
 
@@ -113,7 +116,10 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - Public technical material usually belongs in `tasks/references/` with `tech`.
 - ChatGPT/OpenAI product-behavior, metadata, prompt-injection, and leaked-system-prompt captures are public `tech` references unless the captured content itself exposes Igor/private data.
 - Raw vs synthesized depends on the source. Keep demand references raw. For technical references, preserve the useful source and add synthesis only when it helps future work.
+- Prompt/system/memory references need concrete section examples, wording patterns, and metadata shape. A high-level summary alone loses the value.
+- Library references need implementation-shape details: package names/ecosystem, language/runtime, framework bindings, core capabilities, and why the library matters to Meseeks.
 - UI/UX inspiration from third-party products, component libraries, plugins, and visual polish techniques can become public references with `ux` when it is design material.
+- Open-source alternatives and libraries that inspire native app or launcher behavior can stay as public `tech` references while also being linked from the product task they inform.
 - If a reference is just there to support an existing task, link it from that task instead of creating a standalone file.
 - Prefer named Markdown links in prose: `[CDP Wallets](https://...)`. Bare URLs are fine when preserving a raw source list or the URL itself is the artifact.
 - Names should not repeat context. A task in `references/` does not need "reference" in the title.

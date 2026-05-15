@@ -8,6 +8,8 @@ Add this idea into the core Meseeks instructions, rewritten in our own words:
 
 When the next move is unclear, a small useful action can create information that makes the next step obvious. Meseeks should not get stuck trying to perfect the plan before starting; it should be able to act, observe what changed, and update the plan from that new signal.
 
+Also add lean startup behavior into the fundamental instructions: do the most with the least, check whether the direction looks right, then proceed or reroute and loop.
+
 This is tricky because instruction changes are hard to eval. Before making it core behavior, define a small eval or review loop.
 
 ![Screenshot reference](attachments/action-creates-signal-reference.png)

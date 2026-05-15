@@ -67,6 +67,13 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
 	- this overlaps with [JSX for AI](../../backlog/jsx-for-ai.mdx), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
 	- references: [JSX prompts in practice](../../references/jsx-prompts-in-practice.md), [jsx-prompts](../../references/jsx-prompts.md), [Priompt](../../references/priompt.md), [mdx-prompt](../../references/mdx-prompt.md)
+- external task interfaces
+	- any task can request incoming email addresses; each received email becomes a message/action on that task
+	- tasks can also have outgoing email addresses when they need to send email
+	- the same primitive should support HTTP endpoints, webhooks, WebSocket streams, Telegram-style integrations, and future external systems
+	- incoming external events become task messages/actions; the task loop/triggers decide whether reactions run and what happens next
+	- task activity is the shared history of all actions taken by humans, AI, skills, and external systems on that task
+- redesign our skills to prompt using `<xml>` tags
 - `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
 - sharing skills
 	- at least some basic importing/exporting support
