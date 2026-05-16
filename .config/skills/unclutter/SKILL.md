@@ -21,7 +21,22 @@ Read `tasks/README.md` before editing task files. Use that contract for roots, b
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
 
+When Igor corrects an organizing decision, treat the correction as training data. If the correction is likely to recur, update `.config/skills/unclutter/MEMORY.md` in the same pass instead of relying on chat history.
+
 For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
+
+## Learning From Review Batches
+
+When Igor reviews tasks one by one, treat each decision as a labeled example for future Unclutter runs.
+
+Do both jobs:
+
+1. Apply the current disposition exactly. If Igor says `delete`, delete. If he says `done`, move to `completed/` in the same root. If he says `public tech ref`, move to public `references/` with `tech`. If he says `flat into X`, move the content into X and delete the source. No need to keep `# Source` or `# TickTick source` blocks (they'll be git history anyway).
+2. Extract the reusable reasoning behind the decision and update `.config/skills/unclutter/MEMORY.md` when it should help future autonomous Unclutter passes make the same call without Igor.
+
+Do not confuse those jobs. The current task should not grow extra files, extra prose, visibility changes, or speculative structure just because Igor explained why he chose a destination. The explanation is training data for future inference, not permission to overwork the current item.
+
+Write memory as decision heuristics, not as one-off transcripts. A good memory entry helps answer "what would Igor do with a similar task later?"
 
 ## What To Fix
 
@@ -42,8 +57,10 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - completed tasks that were not actually completed
 - rejected work sitting in `completed/` instead of being deleted
 - source-backed tasks missing traceability
+- link-only tasks whose title is still just a URL or a meaningless import label
+- image/video attachments that were left behind or not rendered after a merge
 
-Use judgment. The point is uncluttering, not satisfying a tiny checklist.
+Use judgment, but do not override an explicit disposition Igor already gave for a specific task.
 
 ## Tag Hygiene
 
@@ -72,7 +89,11 @@ When a task mixes public work with private context, split it: public actionable 
 
 When something is rejected but has useful context, keep the context as a reference and remove the task shell.
 
+After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. Move it to the best bucket and ask if the bucket is unclear.
+
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
+
+When flattening or merging imports, move the useful content, links, and attachments into the target task. Do not preserve generic `Source`, `TickTick source`, raw JSON, or "merged source note" blocks unless provenance itself is the useful content. Git history is enough for routine import provenance.
 
 ## After Editing
 

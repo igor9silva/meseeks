@@ -39,6 +39,11 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - Quick actions, pinned tasks, skill/loop switching, and skill selection.
 - Composer undo behavior.
 - Visual references for richer Composer controls.
+- Detailed context usage: show a polished breakdown of what is consuming the context window, how much remains, and enough detail to make pruning or energy decisions obvious.
+
+![Context usage reference](attachments/context-usage-reference-38b34366.png)
+
+![Context usage reference](attachments/context-usage-reference-12a858d8.jpg)
 
 ## Original notes
 
@@ -126,4 +131,3 @@ These duplicate/imported tasks were merged into this parent so the task list has
 - `698fbd72098551067f63bb61`: ActionComposer should have strong Cmd+Z support.
 - `68af5511ce28d16b1eaa453f`: A queue action system like Cursor.
 - `67efb8802deb1172d7d5f392`: Cmd+. to switch skill/loop.
-- `6883d09a5387110238b3435b`: Show detailed context usage in the Composer. Original capture was a context-usage UI reference; attachment preserved at [context-usage-reference-38b34366.png](attachments/context-usage-reference-38b34366.png).

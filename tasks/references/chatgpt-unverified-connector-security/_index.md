@@ -41,7 +41,7 @@ This is not a Meseeks implementation task by itself. Use it as product/security 
     "columnId": "66b9091be0871102361203fc",
     "columnName": "Inbox",
     "title": "security chatgpt",
-    "content": "this is for `Apps`.\nThey allow devs to use \"unverified\" connectors.\n![image](69f0b621a3ab9102ba622480/9ce0613b-e7fc-4ced-9c75-8dfa48aa4adc.png)\n",
+    "content": "this is for `Apps`.\nThey allow devs to use \"unverified\" connectors.\n![image](attachments/ba622480-9ce0613b-e7fc-4ced-9c75-8dfa48aa4adc.png)\n",
     "description": "",
     "notionBlockString": "",
     "status": 0,

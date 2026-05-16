@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, Crosshair, ListChecks, Maximize2, Minimize2, Trash2, X } from 'lucide-react';
+import { Check, Copy, Crosshair, ListChecks, Maximize2, Minimize2, Trash2, X } from 'lucide-react';
 import type { FormEvent, MouseEvent, PointerEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
+import type { TaskSource } from '~/lib/explorerSearchParams';
 import { formatTaskBucketLabel } from '~/lib/taskBuckets';
 import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import {
@@ -14,6 +15,7 @@ import {
 	renameTask,
 	trashTask,
 	updateTaskPriority,
+	updateTaskSource,
 	updateTaskTags,
 	updateTaskTitle,
 } from '~/server/taskExplorer';
@@ -23,16 +25,20 @@ import {
 	dedupeStrings,
 	formatSourceLabel,
 	getMutationErrorMessage,
+	getTaskDisplayFilename,
 	getTaskFileBasename,
 	getTaskFilename,
+	parseTaskSource,
 	parseTaskPriority,
 	taskPriorityOptions,
+	taskSourceOptions,
 	toCodexPlanHref,
 	toCodexSeekHref,
 	toCursorFileHref,
 } from './taskExplorerUtils';
 
 const HOLD_ACTION_DELAY_MS = 550;
+const COPY_FEEDBACK_MS = 1500;
 
 function getDirectoryPath(filePath: string | null): string | null {
 	//
@@ -53,6 +59,7 @@ export function TaskDetailView({
 	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
+	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
@@ -64,6 +71,7 @@ export function TaskDetailView({
 	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
+	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
@@ -82,6 +90,7 @@ export function TaskDetailView({
 			onInspectorExpandedToggle={onInspectorExpandedToggle}
 			onNavigateTask={onNavigateTask}
 			onTaskMoved={onTaskMoved}
+			onTaskSourceChanged={onTaskSourceChanged}
 			onTaskRenamed={onTaskRenamed}
 			onTaskCompleted={onTaskCompleted}
 			onTaskTrashed={onTaskTrashed}
@@ -98,6 +107,7 @@ function TaskDetailContent({
 	onInspectorExpandedToggle,
 	onNavigateTask,
 	onTaskMoved,
+	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
@@ -110,6 +120,7 @@ function TaskDetailContent({
 	onInspectorExpandedToggle: () => void;
 	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
+	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
@@ -117,8 +128,10 @@ function TaskDetailContent({
 	//
 	const bucketInputId = useId();
 	const priorityInputId = useId();
+	const sourceInputId = useId();
 	const renameFilenameInputId = useId();
 	const titleInputId = useId();
+	const filePathCopyResetTimeoutRef = useRef<number | null>(null);
 	const renameFilenameInputRef = useRef<HTMLInputElement>(null);
 	const titleInputRef = useRef<HTMLInputElement>(null);
 	const queryClient = useQueryClient();
@@ -127,6 +140,7 @@ function TaskDetailContent({
 	const renameTaskServer = useServerFn(renameTask);
 	const trashTaskServer = useServerFn(trashTask);
 	const updateTaskPriorityServer = useServerFn(updateTaskPriority);
+	const updateTaskSourceServer = useServerFn(updateTaskSource);
 	const updateTaskTagsServer = useServerFn(updateTaskTags);
 	const updateTaskTitleServer = useServerFn(updateTaskTitle);
 	const relatedTasks = detail.relatedTasks ?? [];
@@ -135,9 +149,13 @@ function TaskDetailContent({
 	const codexPlanHref = toCodexPlanHref(task);
 	const codexSeekHref = toCodexSeekHref(task);
 	const taskAssetBasePath = useMemo(() => getDirectoryPath(task.absolutePath), [task.absolutePath]);
+	const taskFileRelativePath =
+		task.taskSource === 'private' ? `private/tasks/${task.relativePath}` : `tasks/${task.relativePath}`;
 	const canMarkDone = task.status !== 'completed';
+	const displayFilename = useMemo(() => getTaskDisplayFilename(task.relativePath), [task.relativePath]);
 	const currentFilename = useMemo(() => getTaskFilename(task.relativePath), [task.relativePath]);
 	const currentFileBasename = useMemo(() => getTaskFileBasename(task.relativePath), [task.relativePath]);
+	const [isFilePathCopied, setIsFilePathCopied] = useState(false);
 	const [isRenamingFile, setIsRenamingFile] = useState(false);
 	const [renameDraft, setRenameDraft] = useState('');
 	const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -150,6 +168,14 @@ function TaskDetailContent({
 	useEffect(() => {
 		if (isEditingTitle) titleInputRef.current?.focus();
 	}, [isEditingTitle]);
+
+	useEffect(() => {
+		return () => {
+			if (filePathCopyResetTimeoutRef.current === null) return;
+			window.clearTimeout(filePathCopyResetTimeoutRef.current);
+		};
+	}, []);
+
 	const moveStatusOptions = useMemo(() => {
 		return statusOptions.filter((statusOption) => statusOption !== task.status);
 	}, [statusOptions, task.status]);
@@ -176,6 +202,17 @@ function TaskDetailContent({
 			]);
 
 			onTaskMoved(result.newTaskKey, result.status);
+		},
+	});
+	const updateTaskSourceMutation = useMutation({
+		mutationFn: (taskSource: TaskSource) => updateTaskSourceServer({ data: { taskKey: task.key, taskSource } }),
+		onSuccess: async (result) => {
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
+				queryClient.invalidateQueries({ queryKey: ['task-detail'] }),
+			]);
+
+			onTaskSourceChanged(result.newTaskKey, result.taskSource);
 		},
 	});
 	const renameTaskMutation = useMutation({
@@ -258,9 +295,38 @@ function TaskDetailContent({
 		moveTaskMutation.mutate(status);
 	};
 
+	const handleSourceChange = (value: string) => {
+		const parsedSource = parseTaskSource(value);
+
+		if (parsedSource === null) return;
+		if (parsedSource === task.taskSource) return;
+
+		updateTaskSourceMutation.mutate(parsedSource);
+	};
+
 	const handleTimestampCopy = async (value: string) => {
 		if (!navigator.clipboard) return;
 		await navigator.clipboard.writeText(value);
+	};
+
+	const handleFilePathCopy = async () => {
+		if (!navigator.clipboard) return;
+
+		try {
+			await navigator.clipboard.writeText(taskFileRelativePath);
+		} catch {
+			return;
+		}
+
+		if (filePathCopyResetTimeoutRef.current !== null) {
+			window.clearTimeout(filePathCopyResetTimeoutRef.current);
+		}
+
+		setIsFilePathCopied(true);
+		filePathCopyResetTimeoutRef.current = window.setTimeout(() => {
+			setIsFilePathCopied(false);
+			filePathCopyResetTimeoutRef.current = null;
+		}, COPY_FEEDBACK_MS);
 	};
 
 	const handleRenameStart = () => {
@@ -325,6 +391,7 @@ function TaskDetailContent({
 		renameTaskMutation.isPending ||
 		trashTaskMutation.isPending ||
 		updateTaskPriorityMutation.isPending ||
+		updateTaskSourceMutation.isPending ||
 		updateTaskTitleMutation.isPending;
 	const titleHoldAction = useHoldAction(handleTitleEditStart, isTaskFileMutationPending || isEditingTitle);
 	const filenameHoldAction = useHoldAction(handleRenameStart, isTaskFileMutationPending || isRenamingFile);
@@ -491,34 +558,65 @@ function TaskDetailContent({
 										<X className="size-3" />
 									</Button>
 								</form>
-							) : cursorFileHref ? (
-								<a
-									href={cursorFileHref}
-									target="_blank"
-									rel="noopener"
-									onPointerDown={filenameHoldAction.handlePointerDown}
-									onPointerUp={filenameHoldAction.handlePointerEnd}
-									onPointerLeave={filenameHoldAction.handlePointerEnd}
-									onPointerCancel={filenameHoldAction.handlePointerEnd}
-									onClick={handleFilenameClick}
-									title="Click to open. Hold to rename."
-									className="block w-full min-w-0 break-all text-foreground/80 underline underline-offset-4 hover:text-foreground"
-								>
-									{currentFilename}
-								</a>
 							) : (
-								<button
-									type="button"
-									onPointerDown={filenameHoldAction.handlePointerDown}
-									onPointerUp={filenameHoldAction.handlePointerEnd}
-									onPointerLeave={filenameHoldAction.handlePointerEnd}
-									onPointerCancel={filenameHoldAction.handlePointerEnd}
-									disabled={isTaskFileMutationPending}
-									title="Hold to rename file"
-									className="block w-full min-w-0 break-all text-left text-foreground/80 hover:text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline"
-								>
-									{currentFilename}
-								</button>
+								<div className="flex max-w-full min-w-0 items-start gap-1">
+									{cursorFileHref ? (
+										<a
+											href={cursorFileHref}
+											target="_blank"
+											rel="noopener"
+											onPointerDown={filenameHoldAction.handlePointerDown}
+											onPointerUp={filenameHoldAction.handlePointerEnd}
+											onPointerLeave={filenameHoldAction.handlePointerEnd}
+											onPointerCancel={filenameHoldAction.handlePointerEnd}
+											onClick={handleFilenameClick}
+											title="Click to open. Hold to rename."
+											className="min-w-0 break-all text-foreground/80 underline underline-offset-4 hover:text-foreground"
+										>
+											{displayFilename}
+										</a>
+									) : (
+										<button
+											type="button"
+											onPointerDown={filenameHoldAction.handlePointerDown}
+											onPointerUp={filenameHoldAction.handlePointerEnd}
+											onPointerLeave={filenameHoldAction.handlePointerEnd}
+											onPointerCancel={filenameHoldAction.handlePointerEnd}
+											disabled={isTaskFileMutationPending}
+											title="Hold to rename file"
+											className="min-w-0 break-all text-left text-foreground/80 hover:text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline"
+										>
+											{displayFilename}
+										</button>
+									)}
+									<Button
+										type="button"
+										size="icon-xs"
+										variant="outline"
+										aria-label={isFilePathCopied ? 'Copied' : 'Copy relative file path'}
+										title={`Copy ${taskFileRelativePath}`}
+										disabled={isFilePathCopied}
+										onClick={() => {
+											void handleFilePathCopy();
+										}}
+										className="relative -mt-0.5 disabled:opacity-100"
+									>
+										<div
+											className={`transition-all ${
+												isFilePathCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+											}`}
+										>
+											<Check className="size-3 stroke-emerald-500" aria-hidden="true" />
+										</div>
+										<div
+											className={`absolute transition-all ${
+												isFilePathCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
+											}`}
+										>
+											<Copy className="size-3" aria-hidden="true" />
+										</div>
+									</Button>
+								</div>
 							)}
 						</div>
 					</div>
@@ -600,10 +698,22 @@ function TaskDetailContent({
 						</select>
 					</div>
 					<div className="min-w-24">
-						<div className="text-muted-foreground">Visibility</div>
-						<div className="mt-0.5 truncate font-medium text-foreground">
-							{formatSourceLabel(task.taskSource)}
-						</div>
+						<label className="text-muted-foreground" htmlFor={sourceInputId}>
+							Visibility
+						</label>
+						<select
+							id={sourceInputId}
+							value={task.taskSource}
+							onChange={(event) => handleSourceChange(event.currentTarget.value)}
+							disabled={updateTaskSourceMutation.isPending}
+							className="mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50"
+						>
+							{taskSourceOptions.map((sourceOption) => (
+								<option key={sourceOption} value={sourceOption}>
+									{formatSourceLabel(sourceOption)}
+								</option>
+							))}
+						</select>
 					</div>
 					<TimestampButton label="Created" value={task.created} onCopy={handleTimestampCopy} />
 					<TimestampButton label="Updated" value={task.updated} onCopy={handleTimestampCopy} />
@@ -677,6 +787,11 @@ function TaskDetailContent({
 				{updateTaskPriorityMutation.error ? (
 					<div className="mt-2 text-sm text-destructive">
 						{getMutationErrorMessage(updateTaskPriorityMutation.error, 'failed to update task priority')}
+					</div>
+				) : null}
+				{updateTaskSourceMutation.error ? (
+					<div className="mt-2 text-sm text-destructive">
+						{getMutationErrorMessage(updateTaskSourceMutation.error, 'failed to update task visibility')}
 					</div>
 				) : null}
 			</header>

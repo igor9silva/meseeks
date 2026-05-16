@@ -69,6 +69,7 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
   - in either case, stop the current dev-noise and handled-error spam
   - enforce severity semantics across Sentry/logs: `debug` for debug sessions, `info` for default visible logs, `warning` for admin notification, and `error` for urgent admin notification
   - add non-paging counters for unexpected-but-handled anomalies, such as tool calls present with finish reason `stop`
+  - if Sentry stays, use the TanStack Start integration docs as the implementation reference: https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/
 - [ ] Update user-facing/privacy documentation:
   - replace Vercel Analytics references in `public/static/privacy-policy.md`
   - document the actual PostHog data policy shipped in code
@@ -90,6 +91,7 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
 ## Notes
 - Do not treat this as a blind vendor swap. Bad instrumentation is the first bug.
 - At minimum, `@vercel/analytics` must be removed in this scope.
+- Axiom supports monitoring AI SDK directly: https://x.com/njpatel/status/1970217382955360417
 - If PostHog feature flags or experiments are added, do it only after the analytics/replay/error baseline is stable. Do not turn this into a kitchen-sink rollout on day one.
 - Preserve rejected assumptions from this planning pass:
   - self-hosted PostHog is not the current plan

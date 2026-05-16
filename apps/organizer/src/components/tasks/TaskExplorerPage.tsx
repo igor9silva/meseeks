@@ -301,6 +301,16 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 							taskKey: queryInput.statuses.includes(status) ? newTaskKey : undefined,
 						});
 					}}
+					onTaskSourceChanged={(newTaskKey, taskSource) => {
+						const nextSources = queryInput.sources.includes(taskSource)
+							? queryInput.sources
+							: queryInput.sources.concat(taskSource);
+
+						updateSearch({
+							sources: serializeCsv(nextSources),
+							taskKey: newTaskKey,
+						});
+					}}
 					onTaskRenamed={(newTaskKey) => updateSearch({ taskKey: newTaskKey })}
 					onTaskCompleted={(newTaskKey) => {
 						updateSearch({

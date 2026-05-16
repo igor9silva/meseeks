@@ -364,6 +364,11 @@ One file per hook in `src/hooks/`.
 - If the requested change, cleanup, check, or task is already satisfied, say so and stop. Do not invent adjacent work just to make a diff.
   - bad: user asks to add a rule that already exists, and the assistant rewrites nearby rules anyway
   - good: verify the rule exists, report where it lives, and leave the tree untouched
+- In classification or cleanup work, treat explicit per-item user decisions as labeled examples: execute the requested move/delete/fold exactly now, and capture reusable reasoning in the relevant skill memory when it should improve future autonomous cleanup. Do not reinterpret the immediate command into broader cleanup.
+  - bad: user says `delete stale`, and the assistant creates or preserves a reference because the content looked interesting
+  - good: delete it
+  - bad: user says `done` on a private task, and the assistant promotes it to public `completed/` with a "Done already" note
+  - good: move it to private `completed/` and leave the body alone
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit

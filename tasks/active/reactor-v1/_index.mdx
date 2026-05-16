@@ -27,6 +27,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - files
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
+- learning
 - we must support synchronous actions
 - we must support multiple tool-call
 - safe secrets
@@ -38,6 +39,8 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - more robust authorization
 	- support for OAuth, OIDC and other auth types
 	- specific controls per skills (like search authorizes per domain)
+	- authorization triggers for action execution
+		- trigger authorization from runtime conditions like `contextLength > X`, `executionTime > 60 * 1000`, or `domain is whitelisted`
 - native CoT support?
 	- sort of like a multi-reaction action? simply that?
 	- 5.4 reasons, becomes a subaction. if it call tools, then it becomes a subaction. etc.
@@ -53,6 +56,25 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- innate/say@0.1.0
 		- core/say@0.1.0
 		- pro/searchWeb@0.1.0
+- version everything: tasks, skills, ...
+	- `updateInstructions()` should compute and persist a git-style diff at write-time, then render that diff to humans and future AI context instead of only saying that a title/body changed
+- live UI customization
+	- Meseeks should let users select a running UI/component and ask the AI to change its appearance or behavior: bigger, smaller, different color, rounder, different interaction, etc.
+	- MDX/component rendering should make the app surface directly customizable at runtime
+	- reference: [Agentation](../../references/agentation.md)
+- bi-rendering
+	- important components/actions/skills should be able to render for humans and for AI
+	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
+	- this overlaps with [JSX for AI](../../backlog/jsx-for-ai.mdx), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
+	- references: [JSX prompts in practice](../../references/jsx-prompts-in-practice.md), [jsx-prompts](../../references/jsx-prompts.md), [Priompt](../../references/priompt.md), [mdx-prompt](../../references/mdx-prompt.md)
+- external task interfaces
+	- any task can request incoming email addresses; each received email becomes a message/action on that task
+	- tasks can also have outgoing email addresses when they need to send email
+	- the same primitive should support HTTP endpoints, webhooks, WebSocket streams, Telegram-style integrations, and future external systems
+	- incoming external events become task messages/actions; the task loop/triggers decide whether reactions run and what happens next
+	- task activity is the shared history of all actions taken by humans, AI, skills, and external systems on that task
+- redesign our skills to prompt using `<xml>` tags
+- `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
 - sharing skills
 	- at least some basic importing/exporting support
 - subtasks
@@ -63,6 +85,10 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- estimated cost should be "max theoretical cost"
 		- based on maxOutputTokens, fixed costs, and so on
 		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
+	- the model should see the cost of each skill and preemptively suggest other paths that could require more energy
+	- done() could have a mandatory confidence: 0-100 field (so we could trigger a continue)
+	- doubleCheck() starting from X energy
+		- when a done() call is made, run a doubleCheck() to accept/reject it
 	- properly account reasoning tokens
 	- variable hard-skill costs
 - multi-provider
@@ -72,6 +98,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- 💡 we could support "provider credits", like what we have with Daytona
 		- this could also be very useful for accounting!
 		- so we need "provider" as a primitive, and trace usage to it
+- ETH deposits
+	- simplest possible version: accept ETH deposits into the user/task wallet, not checkout-style payments
+	- wallet balance then pays for models, sandboxes, storage, skills, and external providers through the same accounting layer
+	- [CDP Wallets](https://www.coinbase.com/en-pt/developer-platform/discover/launches/cdp-wallets-launch)
+	- [Coinbase Onramp API](https://x.com/coinbasedev/status/1942617509112213740?s=12&t=fpfVVVXvGdro5tlVeroG9A)
 - notifications
 	- time-sensitive
 - support for sync/pre-executed action
@@ -82,6 +113,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - branching
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
+- searchWeb could take multiple queries at once
 - multi-player
 	- fix authorization from the beginning
 - root task should be "Igor's life"

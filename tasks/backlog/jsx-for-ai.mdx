@@ -89,12 +89,16 @@ This evidence supports a semantic renderer:
 
 Relevant prior research:
 
-- Priompt: https://github.com/anysphere/priompt
+- [JSX prompts in practice](../references/jsx-prompts-in-practice.md)
+  - Small signal that JSX prompt construction is useful in real product work.
+- [jsx-prompts](../references/jsx-prompts.md)
+  - Useful for the structured-data-to-Markdown part of AI rendering.
+- [Priompt](../references/priompt.md)
   - JSX prompt tree, priorities, fallbacks, token budgeting, message components, source maps.
   - Useful ideas to borrow, but do not adopt wholesale before proving a smaller local runtime.
   - Best idea to copy: prompt/context as a tree that can be pruned intentionally under a token budget.
   - Warning to preserve: adding priorities everywhere becomes an anti-pattern and can hurt prompt cache stability.
-- mdx-prompt: https://github.com/edspencer/mdx-prompt
+- [mdx-prompt](../references/mdx-prompt.md)
   - Useful for the prompt-definition plus orchestrator pattern.
   - Not a fit for Convex action history because it uses MDX/React-style rendering and weaker dynamic data typing.
 - react-prompt-kit: https://github.com/chatbotkit/react-prompt-kit

@@ -21,7 +21,7 @@ import {
 import { formatTaskBucketLabel, isTaskBucket, taskBuckets } from '~/lib/taskBuckets';
 import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals } from './taskExplorerTypes';
-import { formatSourceLabel, getTaskFilename, taskSourceOptions } from './taskExplorerUtils';
+import { formatSourceLabel, getTaskDisplayFilename, taskSourceOptions } from './taskExplorerUtils';
 
 export function TaskBoard({
 	className,
@@ -440,7 +440,7 @@ function TaskRow({
 			</div>
 
 			<div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-				<span className="break-all text-foreground/85">{getTaskFilename(task.relativePath)}</span>
+				<span className="break-all text-foreground/85">{getTaskDisplayFilename(task.relativePath)}</span>
 				<span>{formatTaskDate(task.fileMtimeMs)}</span>
 				{task.priority ? (
 					<span className={cn('rounded px-1', getPriorityClassName(task.priority))}>{task.priority}</span>

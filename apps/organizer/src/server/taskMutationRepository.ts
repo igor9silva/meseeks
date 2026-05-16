@@ -90,6 +90,16 @@ export interface MoveTaskResult {
 	status: string;
 }
 
+export interface UpdateTaskSourceInput {
+	taskSource: TaskSummary['taskSource'];
+}
+
+export interface UpdateTaskSourceResult {
+	newRelativePath: string;
+	newTaskKey: string;
+	taskSource: TaskSummary['taskSource'];
+}
+
 export interface RenameTaskInput {
 	filename: string;
 }
@@ -623,6 +633,51 @@ export function moveTask(task: TaskSummary, input: MoveTaskInput): MoveTaskResul
 		newRelativePath,
 		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
 		status,
+	};
+}
+
+export function updateTaskSource(task: TaskSummary, input: UpdateTaskSourceInput): UpdateTaskSourceResult {
+	//
+	if (input.taskSource === task.taskSource) {
+		return {
+			newRelativePath: task.relativePath,
+			newTaskKey: task.key,
+			taskSource: task.taskSource,
+		};
+	}
+
+	const sourceTaskRoot = getTaskRoot(task.taskSource);
+	const destinationTaskRoot = getTaskRoot(input.taskSource);
+	const sourceAbsolutePath = join(sourceTaskRoot, task.relativePath);
+	const destinationAbsolutePath = join(destinationTaskRoot, task.relativePath);
+	const destinationPathKey = createTaskPathKey(task.relativePath);
+
+	if (!existsSync(sourceAbsolutePath)) {
+		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	}
+
+	if (existsSync(destinationAbsolutePath)) {
+		throw new Error(`task already exists at ${destinationAbsolutePath}`);
+	}
+
+	if (doesTaskKeyPathFileExist(destinationTaskRoot, destinationPathKey)) {
+		throw new Error('task key already exists in that visibility');
+	}
+
+	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
+	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+
+	try {
+		runTaskIndexBuild();
+	} catch (error) {
+		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		throw error;
+	}
+
+	return {
+		newRelativePath: task.relativePath,
+		newTaskKey: createTaskKey(task.relativePath, input.taskSource),
+		taskSource: input.taskSource,
 	};
 }
 
