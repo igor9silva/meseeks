@@ -57,6 +57,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- innate/say@0.1.0
 		- core/say@0.1.0
 		- pro/searchWeb@0.1.0
+	- managed intelligence aliases/wrappers
+		- simpler picker names such as `@pro/efficient` instead of exposing the exact current model, provider, version, and reasoning mode
+		- aliases act like managed symlinks: `@pro/efficient` can point to Kimi K2.5 today, then K2.6 or another better fit tomorrow
+		- aliases can be owned by orgs, e.g. `@pro/efficient`, `@openai/GPT:latest`, `@xai/Grok-fast:latest`
+		- users should be able to pin exact models when they care, but default UX should prefer stable capability names
 - version everything: tasks, skills, ...
 	- `updateInstructions()` should compute and persist a git-style diff at write-time, then render that diff to humans and future AI context instead of only saying that a title/body changed
 - live UI customization
@@ -78,6 +83,14 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
 - sharing skills
 	- at least some basic importing/exporting support
+	- skill marketplace/subscriptions
+		- people can offer skills they have evolved over time
+		- installed skill instructions are probably public/inspectable after install
+		- because skills keep evolving, users can subscribe to a source and be notified when an update is available; their Pro can update for them when policy allows
+		- skills can be free or paid
+		- skill authors can proxy API keys and charge usage, with or without markup (or make it free)
+		- first-party `@pro` skills can proxy services like Tavily so customers get useful defaults out of the box; if we charge exactly provider cost, the accounting still goes through energy
+		- third-party skills may add markup for risk, scarcity, service quality, or business model reasons
 - subtasks
 	- I should be able to create and move freely, controlling reactions
 - keep "magic rock" naming for fun

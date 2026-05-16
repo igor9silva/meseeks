@@ -84,6 +84,8 @@ Use Reactor v1 for:
 - live UI customization, when users select runtime UI/components and ask AI to change appearance or behavior
 - bi-rendering, when components/actions/skills render for both human UI and AI/model context
 - external task interfaces: task-owned incoming/outgoing email addresses, HTTP endpoints, webhooks, WebSocket streams, and integration-specific event surfaces; incoming events become task messages/actions, then triggers/reactions decide what happens
+- managed intelligence aliases/wrappers, such as `@pro/efficient`, when the point is stable capability names backed by movable model/provider/version targets
+- skill marketplace, subscriptions, provider API-key proxying, and markup/accounting mechanics when they affect skill execution, updates, or energy flow
 - small prompt-architecture notes, such as redesigning skills to prompt with XML tags, belong in Reactor instead of separate imported shells
 
 Do not keep empty shells that only restate a Reactor concept. Fold the exact useful line into Reactor and delete the shell.
@@ -103,6 +105,9 @@ Use Pro GTM for:
 - launch video ideas, "one exceptional thing" MVP notes, and public messaging insights
 - pre-marketing repo/company readiness, such as migrating the repository to a GitHub org
 - user-data ownership and monetization, especially the idea that users can decide what data to sell and get paid directly
+- skill marketplace/economy story: people can offer evolved skills, charge for usage or subscriptions, and earn from useful work
+- data/UI split, anti-lock-in anger, and the idea that open user-owned data plus generated/adapted UI weakens closed-app moats
+- broad category narrative that Meseeks/Pro can grow into many internet use cases because goal-to-software work converges toward user-owned context, reusable skills, traces, budgets, and finished work
 
 Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding shards unless the work is independently actionable now.
 
@@ -169,6 +174,8 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - Loop designs belong in public backlog with `loop` when they are reusable Meseeks behavior and do not contain private personal context.
 - Public tech references from Vercel MCP adapter, Gemini system prompt, Pliny prompt injection, browser automation CLI, etc. should be references with `tech`.
 - Skill backlog examples: WhatsApp skillset, Serper search, Exa/search provider skill, public-profile lookup. Default public backlog low unless specified.
+- Stale model-release/news captures should be deleted when Igor says they are not relevant anymore. Do not salvage them as `intelligence` references unless he says the model/source still matters.
+- If an MVP is already shipped but unmanaged, such as `/translate`, move the original task to completed when Igor says so; do not keep a duplicate backlog skill shell for full Reactor authorization/billing integration.
 - `WebSquare` remains meaningful in the Feeds idea; preserve the full WebSquare content when organizing that task.
 - Feeds are user-owned streams that can follow people, organizations, topics, repos, sites, or personal sources, with AI and code filters.
 
