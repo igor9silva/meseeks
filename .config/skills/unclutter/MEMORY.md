@@ -7,6 +7,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - Read `tasks/README.md` before changing tasks.
 - Run `git status --short` before editing. If the tree is dirty, ask before continuing.
 - Never stage, commit, amend, reset, or otherwise mutate Git review state.
+- Raw calibration examples live in `.config/skills/unclutter/examples/feedback/`. Use them as labeled examples when a task resembles a past correction.
 - Collaborative review batches are calibration data. Apply Igor's disposition exactly, then extract the reusable reason into this memory when it helps future autonomous passes.
 - Do not turn Igor's explanation into extra work on the current item. If he says `delete`, delete. If he says `public tech ref`, move it to public references with `tech`. If he says `done`, move it to `completed/` in the same root. The explanation trains the next pass.
 - Do not overfit every comment into a global rule. Keep heuristics that would classify a similar task later; skip one-off trivia.
@@ -27,8 +28,8 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `completed/` is history for achieved work only. Touch it rarely.
 - Rejected, obsolete, or "won't do" work should be deleted, not moved to completed.
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
-- `ideas/` is for product ideas, side projects, use cases, and things to try. `ticktick-status:use-case` maps here.
-- `inbox/` is for untriaged capture. `ticktick-status:user-interface` stays inbox until reviewed.
+- `ideas/` is for product ideas, side projects, use cases, and things to try. In reviewed TickTick Meseeks imports, Igor often moves original use-case column items here, while keeping `ticktick-status:*` only as provenance.
+- `inbox/` is for untriaged capture. In reviewed TickTick Meseeks imports, original user-interface column items often stay inbox until reviewed, while keeping `ticktick-status:*` only as provenance.
 - Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
 - `active/` is for work being pursued now. Do not leave stale active tasks around once they are done or deferred.
 - Grouping-only folders should be flattened when tags and Organizer filters carry the organization better.
@@ -47,23 +48,8 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 
 ## Tags
 
-- Tags should be short, reusable, and useful in Organizer. Avoid vendor/model/one-off tags unless they are source namespaces such as `source:ticktick`.
-- Preserve TickTick traceability: `source:ticktick`, `ticktick-list:*`, and `ticktick-status:*` when known.
-- `source:*` is for where a task came from. `source:ticktick`, `source:safari-reading-list`, etc.
-- `scraped` marks captures expanded from a link or raw source.
-- `tech` marks technical references broadly. It does not mean the reference must stay raw.
-- `ux` marks interface/design/product-experience material. It can coexist with `tech` for technical references that shape UI feel, such as smooth corners, animations, layout helpers, or component collections.
-- `customization` marks references/tasks for user-driven app customization: selecting parts of the running UI, annotating elements, and letting AI change appearance or behavior directly.
-- `bi-render` marks references/tasks for rendering one conceptual component/action/task toward both humans and AI/model context.
-- `demand` marks market-demand signals. Demand references usually stay raw because the signal itself is the artifact.
-- `intelligence` is only for AI model/model-provider support tasks.
-- `skill` is for skills/integrations we want to add to Meseeks.
-- `loop` is a sibling of `skill` for reusable loop behaviors we want Meseeks/Pro to support, such as answer drafting loops, discussion loops, fact-check loops, or seek-like execution loops.
-- `legacy` is for pre-Reactor-v1 work kept as useful context until Reactor v1 supersedes or revalidates it.
-- `brainstorm` is for private inbox idea captures to revisit later. Will usually be split into a public idea task later.
-- `transparency` marks tasks about exposing public proof, metrics, traces, or other accountability surfaces.
-- `vfs` is virtual filesystem/Reactor filesystem material; skip it during broad inbox classification unless Igor asks.
-- Do not add tags that repeat the title, bucket, source label, or one imported task's accidental wording.
+- `tasks/TAGS.md` is the canonical tag registry. Do not maintain a second registry in this memory file.
+- Keep memory entries here only when they explain how Igor classified a specific kind of task beyond the canonical tag meaning.
 
 ## Reactor V1
 
@@ -79,6 +65,7 @@ Use Reactor v1 for:
 - energy/cost/budget behavior, skill costs, provider credits, and per-task accounting
 - authorization triggers, domain allowlists, and action safety gates
 - ETH deposits into user/task wallets, not checkout-style payments
+- x402/prepaid-payment support when it affects task/API budget and wallet accounting
 - filesystem/runtime primitives, virtual filesystem alternatives, and local provider mechanics when they are core execution architecture
 - `searchWeb` taking multiple queries at once
 - live UI customization, when users select runtime UI/components and ask AI to change appearance or behavior
@@ -128,6 +115,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - Prompt/system/memory references need concrete section examples, wording patterns, and metadata shape. A high-level summary alone loses the value.
 - Library references need implementation-shape details: package names/ecosystem, language/runtime, framework bindings, core capabilities, and why the library matters to Meseeks.
 - UI/UX inspiration from third-party products, component libraries, plugins, and visual polish techniques can become public references with `ux` when it is design material.
+- Menu/context-menu icon guidance is a public `ux` reference when it is design material. If the image carries the point, embed the actual image.
 - Open-source alternatives and libraries that inspire native app or launcher behavior can stay as public `tech` references while also being linked from the product task they inform.
 - If a reference is just there to support an existing task, link it from that task instead of creating a standalone file.
 - Prefer named Markdown links in prose: `[CDP Wallets](https://...)`. Bare URLs are fine when preserving a raw source list or the URL itself is the artifact.
@@ -144,6 +132,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - If important attachments/media move into a target task, move the actual file too and update the Markdown so it renders.
 - Tasks with local attachments should usually be folder tasks: `slug/_index.md` plus `slug/attachments/*`.
 - TickTick child rows that are real subtasks should become real local subtasks under the parent folder, not only rendered checklist text.
+- When a parent import is only a grouping shell and Igor wants to review the children together, merge the child contents into the parent `_index.*` with simple separators, remove child TickTick metadata blocks, delete the child files, and keep the parent visible for review.
 
 ## Merge And Rewrite Style
 
@@ -157,10 +146,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 
 ## Skip During Broad Classification
 
-- Skip `funding` unless Igor asks.
-- Skip `to-read` unless Igor asks.
-- Skip `vfs` unless Igor asks.
-- Leave `brainstorm` items private inbox for a later idea review.
+Follow the skip list in `tasks/TAGS.md`.
 
 ## Learned Examples
 
@@ -170,6 +156,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - CDP Wallets is also a candidate link under ETH deposits; keep it as a named link, not a paragraph of invented justification.
 - `Context URL now GA in Gemini API` belongs under the scraping task as another scraping option.
 - Local model provider vision belongs in the macOS app/provider task: the app itself is the provider, not a background daemon.
+- A browser extension can be a separate public low-priority backlog idea when Igor distinguishes it from the macOS app/browser direction.
 - Human-as-a-Service is an idea task; external examples can be links inside it.
 - Loop designs belong in public backlog with `loop` when they are reusable Meseeks behavior and do not contain private personal context.
 - Public tech references from Vercel MCP adapter, Gemini system prompt, Pliny prompt injection, browser automation CLI, etc. should be references with `tech`.

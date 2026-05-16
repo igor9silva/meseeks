@@ -22,9 +22,9 @@ Use these top-level buckets:
 
 Private `to-read` items are a saved-reading queue. Keep them together in `private/tasks/inbox/` with the `to-read` tag unless Igor explicitly asks to classify or move that specific item. Do not turn a personal reading item into `references/`, `backlog/`, or `demand` just because the article could inspire product thinking.
 
-Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `legacy`, or `billing`. Use `intelligence` only for AI model/model-provider support tasks. Use `skill` for skills/integrations we want to add to Meseeks. Use `demand` for public demand signals that validate Meseeks. Use `customization` for user-driven app customization. Use `bi-render` for systems that render the same component/task/action toward humans and AI. Use `legacy` for pre-Reactor-v1 work kept as context until v1 replaces or revalidates it.
+Use [TAGS.md](TAGS.md) as the canonical tag registry.
 
-Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
+Nested folders are for tasks that need real subtasks, attachments, source/import batches, or reference collections with colocated assets. They are not a substitute for tags.
 
 Flatten grouping-only folders once tags or UI filters can carry the organization. Keep a nested folder when the folder itself is part of the task shape: a parent task with real child tasks, an import/source batch that needs shared provenance, or a reference collection that needs colocated assets.
 
@@ -59,7 +59,7 @@ Use structure when it helps. Skip it when it is ceremony.
 
 ## Source Metadata
 
-Imported tasks must preserve where they came from. Keep TickTick IDs, source URLs, capture text, tweet URLs, transcript references, or import notes close to the relevant content.
+Imported tasks must preserve every possible bit of source information: TickTick IDs, source URLs, capture text, tweet URLs, transcript references, timestamps, board/list state, raw exported data, attachments, and import notes.
 
 Example:
 
@@ -73,6 +73,8 @@ Captured: 2026-05-10
 For scraped links, keep the source URL even if the body has been summarized. For transcript-backed tasks, put the real synthesis in the main body and keep source quotes or transcript pointers where they help verify the interpretation.
 
 For saved-reading backups, put the readable page content first and the `## Source` block last. The point is quick reading and local backup; provenance should not bury the article body.
+
+After imported source material has been committed once, organizing and uncluttering passes may remove routine raw source blocks or JSON when they no longer help the task. Git history is the durable import backup.
 
 ## Inbox Planning
 

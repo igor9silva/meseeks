@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { buildExplorerSnapshot, buildTaskDetail, createTaskLookup } from '~/server/taskExplorerReadModel';
 import {
 	type CreateTaskInput,
+	type DetailQuery,
 	createTaskInputSchema,
 	detailQuerySchema,
 	explorerQuerySchema,
@@ -12,52 +13,65 @@ import {
 	titleMutationSchema,
 	updateTaskSourceInputSchema,
 } from '~/server/taskExplorerSchemas';
-import { readTaskIndexSnapshot } from '~/server/taskIndexRepository';
-import {
-	createTask as createTaskInFilesystem,
-	listTaskStatuses as listTaskStatusesInFilesystem,
-	markTaskDone as markTaskDoneInFilesystem,
-	moveTask as moveTaskInFilesystem,
-	renameTask as renameTaskInFilesystem,
-	trashTask as trashTaskInFilesystem,
-	updateTaskPriority as updateTaskPriorityInFilesystem,
-	updateTaskSource as updateTaskSourceInFilesystem,
-	updateTaskTags as updateTaskTagsInFilesystem,
-	updateTaskTitle as updateTaskTitleInFilesystem,
-} from '~/server/taskMutationRepository';
 
 export type { CreateTaskInput } from '~/server/taskExplorerSchemas';
 
-function mergeStatusOptions(statusOptions: string[]): string[] {
+async function readTaskIndexSnapshot() {
 	//
+	const repository = await import('~/server/taskIndexRepository');
+	return repository.readTaskIndexSnapshot();
+}
+
+async function mergeStatusOptions(statusOptions: string[]): Promise<string[]> {
+	//
+	const repository = await import('~/server/taskMutationRepository');
 	const statuses = new Set<string>();
 
-	for (const status of statusOptions.concat(listTaskStatusesInFilesystem())) {
+	for (const status of statusOptions.concat(repository.listTaskStatuses())) {
 		statuses.add(status);
 	}
 
 	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
 }
 
+async function findTaskByKey(input: DetailQuery) {
+	//
+	const snapshotResult = await readTaskIndexSnapshot();
+
+	if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
+		throw new Error('task indexes are unavailable');
+	}
+
+	const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+	const task = taskByKey.get(input.taskKey) ?? null;
+
+	if (!task) {
+		throw new Error('task not found');
+	}
+
+	return task;
+}
+
 export const getExplorerSnapshot = createServerFn({ method: 'GET' })
 	.inputValidator((input: unknown) => explorerQuerySchema.parse(input))
-	.handler(({ data }) => {
-		const snapshot = buildExplorerSnapshot(readTaskIndexSnapshot(), data);
+	.handler(async ({ data }) => {
+		const snapshot = buildExplorerSnapshot(await readTaskIndexSnapshot(), data);
 
 		return {
 			...snapshot,
-			statusOptions: mergeStatusOptions(snapshot.statusOptions),
+			statusOptions: await mergeStatusOptions(snapshot.statusOptions),
 		};
 	});
 
 export const getTaskDetail = createServerFn({ method: 'GET' })
 	.inputValidator((input: unknown) => detailQuerySchema.parse(input))
-	.handler(({ data }) => buildTaskDetail(readTaskIndexSnapshot(), data.taskKey));
+	.handler(async ({ data }) => buildTaskDetail(await readTaskIndexSnapshot(), data.taskKey));
 
 export const createTask = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => createTaskInputSchema.parse(input))
-	.handler(({ data }: { data: CreateTaskInput }) => {
-		const result = createTaskInFilesystem(data);
+	.handler(async ({ data }: { data: CreateTaskInput }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const result = repository.createTask(data);
 
 		return {
 			absolutePath: result.absolutePath,
@@ -70,21 +84,10 @@ export const createTask = createServerFn({ method: 'POST' })
 
 export const markTaskDone = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => detailQuerySchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = markTaskDoneInFilesystem(task);
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.markTaskDone(task);
 
 		return {
 			oldTaskKey: data.taskKey,
@@ -95,21 +98,10 @@ export const markTaskDone = createServerFn({ method: 'POST' })
 
 export const moveTask = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => moveTaskInputSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = moveTaskInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.moveTask(task, {
 			status: data.status,
 		});
 
@@ -123,21 +115,10 @@ export const moveTask = createServerFn({ method: 'POST' })
 
 export const trashTask = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => detailQuerySchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = trashTaskInFilesystem(task);
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.trashTask(task);
 
 		return {
 			oldTaskKey: data.taskKey,
@@ -147,21 +128,10 @@ export const trashTask = createServerFn({ method: 'POST' })
 
 export const updateTaskSource = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => updateTaskSourceInputSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = updateTaskSourceInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.updateTaskSource(task, {
 			taskSource: data.taskSource,
 		});
 
@@ -175,21 +145,10 @@ export const updateTaskSource = createServerFn({ method: 'POST' })
 
 export const renameTask = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => renameTaskInputSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = renameTaskInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.renameTask(task, {
 			filename: data.filename,
 		});
 
@@ -202,21 +161,10 @@ export const renameTask = createServerFn({ method: 'POST' })
 
 export const updateTaskTags = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => tagMutationSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = updateTaskTagsInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.updateTaskTags(task, {
 			action: data.action,
 			tag: data.tag,
 		});
@@ -229,21 +177,10 @@ export const updateTaskTags = createServerFn({ method: 'POST' })
 
 export const updateTaskPriority = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => priorityMutationSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = updateTaskPriorityInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.updateTaskPriority(task, {
 			priority: data.priority,
 		});
 
@@ -255,21 +192,10 @@ export const updateTaskPriority = createServerFn({ method: 'POST' })
 
 export const updateTaskTitle = createServerFn({ method: 'POST' })
 	.inputValidator((input: unknown) => titleMutationSchema.parse(input))
-	.handler(({ data }) => {
-		const snapshotResult = readTaskIndexSnapshot();
-
-		if (!snapshotResult.health.isReady || snapshotResult.snapshot === null) {
-			throw new Error('task indexes are unavailable');
-		}
-
-		const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
-		const task = taskByKey.get(data.taskKey) ?? null;
-
-		if (!task) {
-			throw new Error('task not found');
-		}
-
-		const result = updateTaskTitleInFilesystem(task, {
+	.handler(async ({ data }) => {
+		const repository = await import('~/server/taskMutationRepository');
+		const task = await findTaskByKey(data);
+		const result = repository.updateTaskTitle(task, {
 			title: data.title,
 		});
 

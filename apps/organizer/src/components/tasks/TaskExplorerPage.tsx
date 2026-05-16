@@ -16,13 +16,23 @@ import {
 	type TaskSource,
 } from '~/lib/explorerSearchParams';
 import { getExplorerSnapshot, getTaskDetail } from '~/server/taskExplorer';
-import type { CreateTaskDefaults, TaskCreatedResult } from './taskExplorerTypes';
+import type { CreateTaskDefaults, ExplorerSnapshotResult, TaskCreatedResult, TaskDetailResult } from './taskExplorerTypes';
 import { dedupeStrings, defaultStatusOptions, getCreateTaskDefaults, SEARCH_DEBOUNCE_MS } from './taskExplorerUtils';
 
 const DEFAULT_BOARD_WIDTH_PERCENT = 66;
 const EXPANDED_DETAIL_BOARD_WIDTH_PERCENT = 35;
 
-export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
+export function TaskExplorerPage({
+	search,
+	initialSnapshot,
+	initialTaskDetail,
+	initialTaskDetailKey,
+}: {
+	search: ExplorerRouteSearch;
+	initialSnapshot?: ExplorerSnapshotResult;
+	initialTaskDetail?: TaskDetailResult | null;
+	initialTaskDetailKey?: string | null;
+}) {
 	//
 	const navigate = useNavigate({ from: '/' });
 	const searchInputId = useId();
@@ -48,10 +58,13 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 	const explorerQuery = useQuery({
 		queryKey: ['tasks-explorer', queryInput],
 		queryFn: () => getExplorerSnapshotServer({ data: queryInput }),
+		initialData: initialSnapshot,
 		placeholderData: (previousData) => previousData,
 		refetchInterval: 2000,
 	});
 
+	const routeTaskDetail =
+		selectedTaskKey !== null && initialTaskDetailKey === selectedTaskKey ? (initialTaskDetail ?? undefined) : undefined;
 	const taskDetailQuery = useQuery({
 		queryKey: ['task-detail', selectedTaskKey],
 		enabled: Boolean(selectedTaskKey) && !isCreatingTask,
@@ -59,8 +72,11 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			if (!selectedTaskKey) throw new Error('missing task key');
 			return getTaskDetailServer({ data: { taskKey: selectedTaskKey } });
 		},
+		initialData: routeTaskDetail,
 		refetchInterval: 2000,
 	});
+	const taskDetailData = taskDetailQuery.data ?? routeTaskDetail;
+	const isTaskDetailPending = routeTaskDetail === undefined && taskDetailQuery.isPending;
 
 	const updateSearch = useCallback(
 		(partial: Partial<ExplorerRouteSearch>) => {
@@ -123,14 +139,14 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 			return;
 		}
 
-		const selectedTitle = taskDetailQuery.data?.task?.title;
+		const selectedTitle = taskDetailData?.task?.title;
 		if (!selectedTitle) {
 			document.title = appTitle;
 			return;
 		}
 
 		document.title = selectedTitle;
-	}, [isCreatingTask, selectedTaskKey, taskDetailQuery.data?.task?.title]);
+	}, [isCreatingTask, selectedTaskKey, taskDetailData?.task?.title]);
 
 	useEffect(() => {
 		if (selectedTaskKey === null) return;
@@ -150,10 +166,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 		return dedupeStrings(defaultStatusOptions.concat(queryInput.statuses, indexedStatuses));
 	}, [explorerQuery.data?.statusOptions, queryInput.statuses]);
 	const shouldShowTaskNotFound =
-		!isCreatingTask &&
-		selectedTaskKey !== null &&
-		!taskDetailQuery.isPending &&
-		taskDetailQuery.data?.task === null;
+		!isCreatingTask && selectedTaskKey !== null && !isTaskDetailPending && taskDetailData?.task === null;
 
 	const toggleSource = (source: TaskSource) => {
 		const hasSource = queryInput.sources.includes(source);
@@ -280,7 +293,7 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 				/>
 			)}
 
-			{!isCreatingTask && selectedTaskKey !== null && taskDetailQuery.isPending && (
+			{!isCreatingTask && selectedTaskKey !== null && isTaskDetailPending && (
 				<div className="p-4 text-sm text-muted-foreground">Loading task detail...</div>
 			)}
 
@@ -288,9 +301,9 @@ export function TaskExplorerPage({ search }: { search: ExplorerRouteSearch }) {
 				<div className="p-4 text-sm text-muted-foreground">Task not found in generated indexes.</div>
 			)}
 
-			{!isCreatingTask && taskDetailQuery.data?.task && (
+			{!isCreatingTask && taskDetailData?.task && (
 				<TaskDetailView
-					detail={taskDetailQuery.data}
+					detail={taskDetailData}
 					isInspectorExpanded={isInspectorExpanded}
 					statusOptions={statusOptions}
 					tagOptions={explorerQuery.data?.tagOptions ?? []}

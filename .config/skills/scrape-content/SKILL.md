@@ -72,6 +72,8 @@ https://x.com/user/status/456
 
 Default output directory is `./scraped` relative to cwd. Override with `--output-dir`.
 
+When scraped content is saved into `tasks/` or `private/tasks/`, follow `tasks/README.md` for placement and `tasks/TAGS.md` for tag semantics.
+
 For saved-reading or archive-style task files, the scraped page body comes first and the `## Source` block goes last. Do not replace a content backup with `Summary` / `Key Points` unless the user asked for analysis. Use a short semantic filename and preserve the original URL plus canonical URL when available.
 
 Each tweet produces a `{tweetId}.md` file with this structure:

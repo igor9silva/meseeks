@@ -9,7 +9,7 @@ Create the smallest useful task file. Default shape is title plus plain body. Ad
 
 ## Read First
 
-Read `tasks/README.md` before creating or moving task files. If the requested task is a subtask, also read the nearest parent `_index.*`.
+Read `tasks/README.md` before creating or moving task files. Read `tasks/TAGS.md` before adding or changing tags. If the requested task is a subtask, also read the nearest parent `_index.*`.
 
 ## Placement
 
@@ -29,7 +29,7 @@ Use only these buckets:
 - `references/` for searchable context, not completable tasks.
 - `completed/` for achieved work only.
 
-Private `to-read` files are a saved-reading queue. Keep them in `private/tasks/inbox/` with `to-read` unless Igor asks to classify that item. Do not add tags like `demand` or move them to `references/` just because the page content overlaps with Meseeks.
+Private `to-read` files follow `tasks/TAGS.md`: they are a saved-reading queue, not automatic product references.
 
 Decided-not-to-do tasks should be deleted. Do not move rejected ideas to `completed/`.
 
@@ -61,7 +61,7 @@ Omit fields you do not need. Do not add derived metadata such as `id`, `status`,
 
 ## Source-Backed Tasks
 
-For imported or source-backed tasks, preserve source metadata close to the body:
+For imported or source-backed tasks, follow `tasks/TAGS.md`: the first import should preserve every possible bit of source information.
 
 ```md
 Source: TickTick Inbox
@@ -70,7 +70,7 @@ URL: https://example.com/source
 Captured: 2026-05-10
 ```
 
-Keep raw source text, transcript pointers, URLs, or import notes when they matter. If a file mixes public work with private raw material, split it into a public task and a private reference.
+Keep raw source text, transcript pointers, URLs, import notes, timestamps, IDs, attachments, and raw exported data when importing. If a file mixes public work with private raw material, split it into a public task and a private reference.
 
 For saved-reading backups, the body should be the captured page content, not a `Summary` / `Key Points` analysis unless Igor asked for analysis. Keep the filename short and put `## Source` at the very end.
 
@@ -81,7 +81,7 @@ Filesystem shape defines parentage:
 - `<root>/<bucket>/<task-slug>/_index.mdx` for the parent.
 - `<root>/<bucket>/<task-slug>/<child-slug>.mdx` for a child.
 
-Plain folders without `_index.*` are topic folders, not tasks.
+Use folder tasks when the task needs attachments, real subtasks, or colocated reference/source files. Otherwise prefer a single file. Plain folders without `_index.*` are organizational/source folders, not tasks.
 
 ## Final Check
 

@@ -200,9 +200,10 @@ Rules and skills change future behavior. Tasks track concrete follow-up work. `l
 Before touching any task file:
 
 1. Read `tasks/README.md`.
-2. If touching a subtask, read the parent `_index.*` chain.
-3. Prefer updating an existing relevant task over creating a duplicate.
-4. If creating or materially reshaping a task, follow `.config/skills/create-task/SKILL.md`.
+2. If touching task tags, read `tasks/TAGS.md`.
+3. If touching a subtask, read the parent `_index.*` chain.
+4. Prefer updating an existing relevant task over creating a duplicate.
+5. If creating or materially reshaping a task, follow `.config/skills/create-task/SKILL.md`.
 
 ### When to update an existing task
 

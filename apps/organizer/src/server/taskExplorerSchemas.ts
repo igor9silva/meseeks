@@ -64,4 +64,5 @@ export const createTaskInputSchema = z.object({
 });
 
 export type ExplorerQuery = z.infer<typeof explorerQuerySchema>;
+export type DetailQuery = z.infer<typeof detailQuerySchema>;
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;

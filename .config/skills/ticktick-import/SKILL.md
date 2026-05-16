@@ -127,8 +127,8 @@ Current behavior:
 
 - imports Meseeks into `private/tasks/inbox`
 - imports References into `private/tasks/references`
-- tags every imported file with `source:ticktick` and `ticktick-list:<list>`
-- tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`
+- tags every imported file with `source:ticktick` and `ticktick-list:<list>` using the source namespace rules in `tasks/TAGS.md`
+- tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`; this is source metadata, not the current filesystem bucket
 - treats TickTick priority `0` as unset and omits local `priority`; maps TickTick `1`, `3`, and `5` to `low`, `medium`, and `high`
 - imports TickTick child task rows as real local subtasks under the parent task folder
 - skips already imported TickTick task IDs unless `--overwrite` is passed
@@ -136,6 +136,7 @@ Current behavior:
 - writes tasks with attachments as `_index.md` task folders, so the task key stays stable while attachments live inside the task
 - falls back to the local TickTick attachment cache when `ZLOCALFILEPATH` is empty
 - records missing local attachment files in the task payload instead of pretending they imported
+- preserves every possible bit of imported source information; later organizing/uncluttering can remove unused raw import debris after the import snapshot has been committed
 
 ### Reshape imported link files
 

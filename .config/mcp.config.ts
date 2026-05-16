@@ -56,10 +56,10 @@ export const mcpConfig: MCPConfig = {
 			description: 'Convex MCP server pinned to the production deployment for logs and read-only debugging',
 		},
 		Playwright: {
-			name: 'Playwright',
+			name: 'Playwright', // Codex native browser-use is blocked in EU, playright is a fallback
 			command: 'bunx',
 			args: ['-y', '@playwright/mcp@latest'],
-			enabled: false,
+			enabled: true,
 			description: 'Playwright MCP server for browser automation',
 		},
 		// Add more MCP servers here as needed:
