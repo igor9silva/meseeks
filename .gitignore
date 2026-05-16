@@ -34,5 +34,5 @@ dist/
 # Sentry Config File
 .env.sentry-build-plugin
 
-## Task indexes
+# Task indexes
 tasks/.generated/

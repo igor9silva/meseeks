@@ -21,6 +21,18 @@ import { dedupeStrings, defaultStatusOptions, getCreateTaskDefaults, SEARCH_DEBO
 
 const DEFAULT_BOARD_WIDTH_PERCENT = 66;
 const EXPANDED_DETAIL_BOARD_WIDTH_PERCENT = 35;
+const PRIVATE_VISIBILITY_STORAGE_KEY = 'organizer.shouldBlurPrivateTasks';
+
+function readShouldBlurPrivateTasks(): boolean {
+	//
+	if (typeof window === 'undefined') return false;
+	return window.localStorage.getItem(PRIVATE_VISIBILITY_STORAGE_KEY) === 'true';
+}
+
+function writeShouldBlurPrivateTasks(value: boolean): void {
+	//
+	window.localStorage.setItem(PRIVATE_VISIBILITY_STORAGE_KEY, value ? 'true' : 'false');
+}
 
 export function TaskExplorerPage({
 	search,
@@ -41,6 +53,7 @@ export function TaskExplorerPage({
 	const isInspectorExpanded = search.detail === 'expanded';
 	const [searchDraft, setSearchDraft] = useState(queryInput.q);
 	const [createTaskDefaults, setCreateTaskDefaults] = useState<CreateTaskDefaults | null>(null);
+	const [shouldBlurPrivateTasks, setShouldBlurPrivateTasks] = useState(false);
 	const [boardWidthPercent, setBoardWidthPercent] = useState(() =>
 		isInspectorExpanded ? EXPANDED_DETAIL_BOARD_WIDTH_PERCENT : DEFAULT_BOARD_WIDTH_PERCENT,
 	);
@@ -157,6 +170,10 @@ export function TaskExplorerPage({
 		setBoardWidthPercent(isInspectorExpanded ? EXPANDED_DETAIL_BOARD_WIDTH_PERCENT : DEFAULT_BOARD_WIDTH_PERCENT);
 	}, [isInspectorExpanded]);
 
+	useEffect(() => {
+		setShouldBlurPrivateTasks(readShouldBlurPrivateTasks());
+	}, []);
+
 	const health = explorerQuery.data?.health;
 	const shouldShowIndexUnavailable = explorerQuery.isFetched && health !== undefined && !health.isReady;
 	const visibleTasks = explorerQuery.data?.tasks ?? [];
@@ -229,6 +246,14 @@ export function TaskExplorerPage({
 		});
 	};
 
+	const togglePrivateBlur = () => {
+		setShouldBlurPrivateTasks((currentValue) => {
+			const nextValue = !currentValue;
+			writeShouldBlurPrivateTasks(nextValue);
+			return nextValue;
+		});
+	};
+
 	const handleCreateTaskOpen = () => {
 		setCreateTaskDefaults(getCreateTaskDefaults());
 		if (selectedTaskKey !== null) {
@@ -271,9 +296,11 @@ export function TaskExplorerPage({
 			facets={facets}
 			totals={explorerQuery.data?.totals}
 			isPending={explorerQuery.isPending}
+			shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 			searchInputId={searchInputId}
 			onSearchDraftChange={setSearchDraft}
 			onCreateTaskOpen={handleCreateTaskOpen}
+			onPrivateBlurToggle={togglePrivateBlur}
 			onSourceToggle={toggleSource}
 			onStatusToggle={toggleStatus}
 			onTagFilterCycle={cycleTagFilter}
@@ -305,8 +332,10 @@ export function TaskExplorerPage({
 				<TaskDetailView
 					detail={taskDetailData}
 					isInspectorExpanded={isInspectorExpanded}
+					shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 					statusOptions={statusOptions}
 					tagOptions={explorerQuery.data?.tagOptions ?? []}
+					onPrivateBlurToggle={togglePrivateBlur}
 					onInspectorExpandedToggle={toggleInspectorExpanded}
 					onNavigateTask={(taskKey) => updateSearch({ taskKey })}
 					onTaskMoved={(newTaskKey, status) => {

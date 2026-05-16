@@ -5,6 +5,8 @@ import {
 	Archive,
 	CheckCircle2,
 	CircleDot,
+	Eye,
+	EyeOff,
 	Inbox,
 	Layers,
 	Lightbulb,
@@ -34,9 +36,11 @@ export function TaskBoard({
 	facets,
 	totals,
 	isPending,
+	shouldBlurPrivateTasks,
 	searchInputId,
 	onSearchDraftChange,
 	onCreateTaskOpen,
+	onPrivateBlurToggle,
 	onSourceToggle,
 	onStatusToggle,
 	onTagFilterCycle,
@@ -54,9 +58,11 @@ export function TaskBoard({
 	facets: ExplorerFacets | undefined;
 	totals: ExplorerTotals | undefined;
 	isPending: boolean;
+	shouldBlurPrivateTasks: boolean;
 	searchInputId: string;
 	onSearchDraftChange: (value: string) => void;
 	onCreateTaskOpen: () => void;
+	onPrivateBlurToggle: () => void;
 	onSourceToggle: (source: TaskSource) => void;
 	onStatusToggle: (status: string) => void;
 	onTagFilterCycle: (tag: string) => void;
@@ -110,6 +116,18 @@ export function TaskBoard({
 								tags
 							</Link>
 						</nav>
+						<Button
+							type="button"
+							size="action"
+							variant={shouldBlurPrivateTasks ? 'secondary' : 'ghost'}
+							aria-pressed={shouldBlurPrivateTasks}
+							aria-label={shouldBlurPrivateTasks ? 'Show private task content' : 'Blur private task content'}
+							title={shouldBlurPrivateTasks ? 'Show private task content' : 'Blur private task content'}
+							onClick={onPrivateBlurToggle}
+							className="rounded-md"
+						>
+							{shouldBlurPrivateTasks ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+						</Button>
 						<Button type="button" size="sm" onClick={onCreateTaskOpen} className="rounded-md">
 							<Plus className="size-4" />
 							New
@@ -158,6 +176,7 @@ export function TaskBoard({
 								source={source}
 								count={findFacetCount(facets?.sources ?? [], source)}
 								isSelected={queryInput.sources.includes(source)}
+								shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 								onClick={() => onSourceToggle(source)}
 							/>
 						))}
@@ -244,6 +263,7 @@ export function TaskBoard({
 							status={status}
 							tasks={tasksByStatus.get(status) ?? []}
 							selectedTaskKey={selectedTaskKey}
+							shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 							onTaskSelect={onTaskSelect}
 						/>
 					))}
@@ -257,14 +277,18 @@ function SourceFilterButton({
 	source,
 	count,
 	isSelected,
+	shouldBlurPrivateTasks,
 	onClick,
 }: {
 	source: TaskSource;
 	count: number;
 	isSelected: boolean;
+	shouldBlurPrivateTasks: boolean;
 	onClick: () => void;
 }) {
 	//
+	const shouldBlurCount = shouldBlurPrivateTasks && source === 'private';
+
 	return (
 		<button
 			type="button"
@@ -279,7 +303,7 @@ function SourceFilterButton({
 		>
 			{source === 'private' ? <Lock className="size-3" /> : <Layers className="size-3" />}
 			{formatSourceLabel(source)}
-			<span className="tabular-nums opacity-70">{count}</span>
+			<span className={cn('tabular-nums opacity-70', getPrivateBlurClassName(shouldBlurCount))}>{count}</span>
 		</button>
 	);
 }
@@ -367,11 +391,13 @@ function BucketColumn({
 	status,
 	tasks,
 	selectedTaskKey,
+	shouldBlurPrivateTasks,
 	onTaskSelect,
 }: {
 	status: string;
 	tasks: ExplorerTask[];
 	selectedTaskKey: string | null;
+	shouldBlurPrivateTasks: boolean;
 	onTaskSelect: () => void;
 }) {
 	//
@@ -401,6 +427,7 @@ function BucketColumn({
 						key={task.key}
 						task={task}
 						isSelected={selectedTaskKey === task.key}
+						shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 						onTaskSelect={onTaskSelect}
 					/>
 				))}
@@ -412,13 +439,17 @@ function BucketColumn({
 function TaskRow({
 	task,
 	isSelected,
+	shouldBlurPrivateTasks,
 	onTaskSelect,
 }: {
 	task: ExplorerTask;
 	isSelected: boolean;
+	shouldBlurPrivateTasks: boolean;
 	onTaskSelect: () => void;
 }) {
 	//
+	const shouldBlurTask = shouldBlurPrivateTasks && task.taskSource === 'private';
+
 	return (
 		<Link
 			from="/"
@@ -435,7 +466,32 @@ function TaskRow({
 			)}
 		>
 			<div className="flex items-start justify-between gap-2">
-				<div className="min-w-0 break-all text-sm font-medium leading-5 text-foreground">{task.title}</div>
+				<div className={cn('min-w-0 flex-1', getPrivateBlurClassName(shouldBlurTask))}>
+					<div className="min-w-0 break-all text-sm font-medium leading-5 text-foreground">{task.title}</div>
+
+					<div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+						<span className="break-all text-foreground/85">{getTaskDisplayFilename(task.relativePath)}</span>
+						<span>{formatTaskDate(task.fileMtimeMs)}</span>
+						{task.priority ? (
+							<span className={cn('rounded px-1', getPriorityClassName(task.priority))}>{task.priority}</span>
+						) : null}
+					</div>
+
+					{task.tags.length > 0 ? (
+						<div className="mt-2 flex flex-wrap gap-1">
+							{task.tags.slice(0, 5).map((tag) => (
+								<span key={tag} className={cn('rounded px-1.5 py-0.5 text-xs', getTagClassName(tag))}>
+									{tag}
+								</span>
+							))}
+							{task.tags.length > 5 ? (
+								<span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+									+{task.tags.length - 5}
+								</span>
+							) : null}
+						</div>
+					) : null}
+				</div>
 				<div className="flex shrink-0 items-center gap-1">
 					{task.warningCount > 0 ? (
 						<AlertTriangle
@@ -448,31 +504,13 @@ function TaskRow({
 					) : null}
 				</div>
 			</div>
-
-			<div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-				<span className="break-all text-foreground/85">{getTaskDisplayFilename(task.relativePath)}</span>
-				<span>{formatTaskDate(task.fileMtimeMs)}</span>
-				{task.priority ? (
-					<span className={cn('rounded px-1', getPriorityClassName(task.priority))}>{task.priority}</span>
-				) : null}
-			</div>
-
-			{task.tags.length > 0 ? (
-				<div className="mt-2 flex flex-wrap gap-1">
-					{task.tags.slice(0, 5).map((tag) => (
-						<span key={tag} className={cn('rounded px-1.5 py-0.5 text-xs', getTagClassName(tag))}>
-							{tag}
-						</span>
-					))}
-					{task.tags.length > 5 ? (
-						<span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-							+{task.tags.length - 5}
-						</span>
-					) : null}
-				</div>
-			) : null}
 		</Link>
 	);
+}
+
+function getPrivateBlurClassName(shouldBlur: boolean): string {
+	//
+	return shouldBlur ? 'select-none blur-xs' : '';
 }
 
 function buildBoardStatuses(selectedStatuses: string[]): string[] {
