@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="icon"
+			href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2311110f'/%3E%3Cpath d='M15 45h34l-5-24-8 6-4-13-4 13-8-6-5 24z' fill='%23d89952'/%3E%3Cpath d='M23 45h18v7H23z' fill='%23767d71'/%3E%3C/svg%3E"
+		/>
+		<title>Primate Warfare Prototype</title>
+	</head>
+	<body>
+		<div id="app">
+			<header class="topbar">
+				<div>
+					<p class="eyebrow">primate warfare mvp</p>
+					<h1>Primate model viewer</h1>
+				</div>
+			</header>
+
+			<main class="prototype-shell">
+				<section class="stage" aria-label="Selected low-poly primate">
+					<canvas id="scene-canvas"></canvas>
+					<img id="render-preview" class="render-preview" alt="" aria-hidden="true" />
+				</section>
+
+				<aside class="inspector" aria-label="Selected model details">
+					<section class="readout">
+						<p id="selected-role">Assault frame</p>
+						<h2 id="selected-name">Chimp</h2>
+						<p id="selected-notes"></p>
+					</section>
+
+					<section class="controls-panel" aria-label="Viewer controls">
+						<label class="control">
+							<span>Pose</span>
+							<select id="pose-select">
+								<option value="relaxed">Relaxed carry</option>
+								<option value="aim">Aim down sight</option>
+								<option value="tpose">T-pose rig check</option>
+							</select>
+						</label>
+						<label class="control">
+							<span>Motion</span>
+							<select id="animation-select">
+								<option value="idle">Idle</option>
+								<option value="walk">Patrol</option>
+								<option value="run">Sprint</option>
+								<option value="aim">Aim/fire loop</option>
+							</select>
+						</label>
+						<div class="control">
+							<span>Zoom</span>
+							<div class="zoom-controls">
+								<button id="zoom-out" type="button" aria-label="Zoom out">-</button>
+								<input id="zoom-range" type="range" min="0.72" max="2.15" step="0.01" value="0.94" />
+								<button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+								<button id="reset-view" type="button">Reset</button>
+							</div>
+						</div>
+					</section>
+
+					<section class="stat-grid">
+						<div>
+							<span>Triangles</span>
+							<strong id="triangle-count">0</strong>
+						</div>
+						<div>
+							<span>Draw calls</span>
+							<strong id="draw-call-count">0</strong>
+						</div>
+						<div>
+							<span>Rig parts</span>
+							<strong id="part-count">0</strong>
+						</div>
+						<div>
+							<span>Render</span>
+							<strong id="render-health">Waiting</strong>
+						</div>
+					</section>
+
+					<section>
+						<div class="section-heading">
+							<h2>Squad</h2>
+						</div>
+						<div id="species-buttons" class="species-buttons"></div>
+					</section>
+				</aside>
+			</main>
+		</div>
+		<script type="module" src="/src/main.ts?v=prototype-19"></script>
+	</body>
+</html>
