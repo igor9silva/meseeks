@@ -15,6 +15,7 @@ Make a task clear enough to act on. For raw inbox captures, also turn them into 
 4. Read the parent `_index.*` chain from root to the target folder when present.
 5. Inspect source metadata, sibling files, nearby duplicate candidates, reused tags, and repo context relevant to the task.
 6. If the task is only links or mostly links, expand those links before planning. Use repo scraping skills/scripts for supported sources, and otherwise fetch, browse, or search enough to capture the page/post content. Preserve the original links and scraped source details in the task before trying to infer intent.
+7. If the task is tagged `to-read`, treat that as a private saved-reading queue signal, not as an invite to classify the page as product work.
 
 Nearby candidates means search both public and private task roots when available for title words, source URLs, TickTick IDs, slugs, transcript names, and distinctive quoted text.
 
@@ -61,8 +62,9 @@ When applying:
 2. Keep frontmatter minimal and compatible with `tasks/README.md`.
 3. Update source links or backlinks when splitting/merging.
 4. Preserve the raw source in private references when public output must be cleaned.
-5. Run `bun run tasks:build` only when task files changed and the current scope allows it.
-6. Report changed files, deleted files, and any skipped build.
+5. Uuse a short semantic filename, put readable page content before metadata, and keep `Source` as the very last section.
+6. Run `bun run tasks:build` only when task files changed and the current scope allows it.
+7. Report changed files, deleted files, and any skipped build.
 
 ## Output
 

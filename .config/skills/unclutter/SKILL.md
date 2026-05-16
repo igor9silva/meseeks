@@ -31,7 +31,7 @@ When Igor reviews tasks one by one, treat each decision as a labeled example for
 
 Do both jobs:
 
-1. Apply the current disposition exactly. If Igor says `delete`, delete. If he says `done`, move to `completed/` in the same root. If he says `public tech ref`, move to public `references/` with `tech`. If he says `flat into X`, move the content into X and delete the source. No need to keep `# Source` or `# TickTick source` blocks (they'll be git history anyway).
+1. Apply the current disposition exactly. If Igor says `delete`, delete. If he says `done`, move to `completed/` in the same root. If he says `public tech ref`, move to public `references/` with `tech`. If he says `to-read` or "just something to read", keep it in private inbox with `to-read`. If he says `flat into X`, move the content into X and delete the source. No need to keep `# Source` or `# TickTick source` blocks (they'll be git history anyway).
 2. Extract the reusable reasoning behind the decision and update `.config/skills/unclutter/MEMORY.md` when it should help future autonomous Unclutter passes make the same call without Igor.
 
 Do not confuse those jobs. The current task should not grow extra files, extra prose, visibility changes, or speculative structure just because Igor explained why he chose a destination. The explanation is training data for future inference, not permission to overwork the current item.
@@ -89,7 +89,7 @@ When a task mixes public work with private context, split it: public actionable 
 
 When something is rejected but has useful context, keep the context as a reference and remove the task shell.
 
-After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. Move it to the best bucket and ask if the bucket is unclear.
+After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. `to-read` is one of those explicit exceptions when Igor says it is just something to read. Move other reviewed items to the best bucket and ask if the bucket is unclear.
 
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
 

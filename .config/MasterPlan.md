@@ -369,6 +369,9 @@ One file per hook in `src/hooks/`.
   - good: delete it
   - bad: user says `done` on a private task, and the assistant promotes it to public `completed/` with a "Done already" note
   - good: move it to private `completed/` and leave the body alone
+- In task-system work, preserve explicit bucket/tag semantics instead of inferring a "better" taxonomy from the content.
+  - bad: user says a link is just `to-read`, and the assistant moves it to `references/` or adds `demand` because the article mentions a relevant market trend
+  - good: keep it in the private `to-read` queue and only improve title/source/content backup in place
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit

@@ -20,6 +20,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `ref for <existing topic/task>`: add a named link or compact note to that existing task, then delete the source unless the source must remain independently browsable.
 - `flat`, `fold`, `merge`: move the smallest useful content/link/media into X in the natural place, then delete the source.
 - `brainstorm`: keep private inbox, add `brainstorm`, and otherwise leave it alone for later review.
+- `to-read`: keep private inbox with `to-read` unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
 
 ## Bucket Heuristics
 
@@ -28,7 +29,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
 - `ideas/` is for product ideas, side projects, use cases, and things to try. `ticktick-status:use-case` maps here.
 - `inbox/` is for untriaged capture. `ticktick-status:user-interface` stays inbox until reviewed.
-- Once an inbox task has been reviewed, it should almost never remain in inbox. Move it to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
+- Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
 - `active/` is for work being pursued now. Do not leave stale active tasks around once they are done or deferred.
 - Grouping-only folders should be flattened when tags and Organizer filters carry the organization better.
 - Keep folder tasks with `_index.*` when the folder is a real parent task, a real reference collection, or owns real subtasks/attachments.
@@ -128,7 +129,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 
 - Expand or scrape link-only tasks before planning/review. Keep the original link, add local context, and give the task a semantic title.
 - Do not replace semantic titles with hashtags or delete the original link.
-- For `to-read`, the link is often the task. Expand enough for search and title clarity, but do not over-organize it unless that specific item is reviewed.
+- For `to-read`, the link/page backup is often the task. Expand into readable markdown for local backup when useful, keep `## Source` last, and do not over-organize it into `references/`, `backlog`, or `demand` unless Igor asks.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Git history carries routine provenance.
 - Preserve useful links, media, quotes, screenshots, and decisions in the target task body.
 - Preserve Igor's short original keywords/intent when converting imports into references; they often explain why the source mattered better than the scraped summary does.

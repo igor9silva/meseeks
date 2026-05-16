@@ -38,6 +38,7 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - Optional reaction suppression so Composer can behave like a regular task app.
 - Quick actions, pinned tasks, skill/loop switching, and skill selection.
 - Composer undo behavior.
+- Launcher pasted-resource matching: if I paste an existing resource path like `/task/kh71mzvz3bb7d42nyzadxx7v89845ea2`, the Launcher should recognize it as a task, load the task details inline, and navigate there on Enter/Return.
 - Visual references for richer Composer controls.
 - Detailed context usage: show a polished breakdown of what is consuming the context window, how much remains, and enough detail to make pruning or energy decisions obvious.
 

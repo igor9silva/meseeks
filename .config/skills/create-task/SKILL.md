@@ -29,6 +29,8 @@ Use only these buckets:
 - `references/` for searchable context, not completable tasks.
 - `completed/` for achieved work only.
 
+Private `to-read` files are a saved-reading queue. Keep them in `private/tasks/inbox/` with `to-read` unless Igor asks to classify that item. Do not add tags like `demand` or move them to `references/` just because the page content overlaps with Meseeks.
+
 Decided-not-to-do tasks should be deleted. Do not move rejected ideas to `completed/`.
 
 ## File Shape
@@ -69,6 +71,8 @@ Captured: 2026-05-10
 ```
 
 Keep raw source text, transcript pointers, URLs, or import notes when they matter. If a file mixes public work with private raw material, split it into a public task and a private reference.
+
+For saved-reading backups, the body should be the captured page content, not a `Summary` / `Key Points` analysis unless Igor asked for analysis. Keep the filename short and put `## Source` at the very end.
 
 ## Subtasks
 
