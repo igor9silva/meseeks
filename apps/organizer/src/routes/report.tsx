@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
@@ -178,7 +178,7 @@ function ReportShell({ title, children }: { title: string; children: ReactNode }
 
 function BucketFlow({ report }: { report: TaskReport }) {
 	//
-	const lifecycleBuckets = ['inbox', 'backlog', 'active', 'completed'];
+	const lifecycleBuckets = ['inbox', 'backlog', 'active'];
 	const holdingBuckets = ['ideas', 'references'];
 	const bucketByName = new Map(report.buckets.map((bucket) => [bucket.bucket, bucket]));
 	const maxLifecycleCount = Math.max(
@@ -190,7 +190,7 @@ function BucketFlow({ report }: { report: TaskReport }) {
 		<div className="space-y-5">
 			<div>
 				<SectionHeading title="Lifecycle funnel" />
-				<div className="grid gap-3 lg:grid-cols-4">
+				<div className="grid gap-3 lg:grid-cols-3">
 					{lifecycleBuckets.map((bucket, index) => {
 						const row = bucketByName.get(bucket);
 						if (!row) return null;
@@ -267,28 +267,49 @@ function BucketFlow({ report }: { report: TaskReport }) {
 
 function PriorityTable({ report }: { report: TaskReport }) {
 	//
+	const [sort, setSort] = useState<PrioritySort>({
+		key: 'total',
+		direction: 'desc',
+	});
 	const priorityBuckets = report.priorities[0]?.buckets ?? [];
+	const rows = sortPriorityRows(report.priorities, sort);
 
 	return (
 		<Table>
 			<thead>
 				<tr>
-					<Th>Priority</Th>
-					<Th align="right">Total</Th>
+					<SortableTh
+						label="Priority"
+						sortKey="priority"
+						sort={sort}
+						onSort={setSort}
+					/>
+					<SortableTh
+						label="Total"
+						sortKey="total"
+						sort={sort}
+						onSort={setSort}
+						align="right"
+					/>
 					{priorityBuckets.map((row) => (
-						<Th key={row.label} align="right">
-							{formatTaskBucketLabel(row.label)}
-						</Th>
+						<SortableTh
+							key={row.label}
+							label={formatTaskBucketLabel(row.label)}
+							sortKey={`bucket:${row.label}`}
+							sort={sort}
+							onSort={setSort}
+							align="right"
+						/>
 					))}
 				</tr>
 			</thead>
 			<tbody>
-				{report.priorities.map((row) => (
+				{rows.map((row) => (
 					<tr key={row.priority}>
 						<Td>
 							<div className="flex items-center gap-2">
 								<span className={`size-2 rounded-full ${priorityDotClassName(row.priority)}`} />
-								<span>{row.priority}</span>
+								<PriorityPill priority={row.priority} />
 							</div>
 						</Td>
 						<Td align="right">{formatNumber(row.total)}</Td>
@@ -307,17 +328,17 @@ function PriorityTable({ report }: { report: TaskReport }) {
 function SourceSummary({ report }: { report: TaskReport }) {
 	//
 	return (
-		<div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
-			<PieChart rows={report.sourceTags} />
+		<div className="space-y-4">
 			<div>
 				<SectionHeading title="Source tags" />
 				<CountBars rows={report.sourceTags} total={report.totals.tasks} />
 			</div>
+			<SourceChart rows={report.sourceTags} />
 		</div>
 	);
 }
 
-function PieChart({ rows }: { rows: CountRow[] }) {
+function SourceChart({ rows }: { rows: CountRow[] }) {
 	//
 	const total = rows.reduce((sum, row) => sum + row.count, 0);
 	const colors = ['#22d3ee', '#a78bfa', '#f59e0b', '#34d399', '#f472b6'];
@@ -330,21 +351,22 @@ function PieChart({ rows }: { rows: CountRow[] }) {
 	});
 
 	return (
-		<div className="flex items-center gap-5 rounded border border-border bg-card p-4">
+		<div className="grid min-h-96 grid-cols-[minmax(16rem,0.8fr)_minmax(14rem,1fr)] items-center gap-8 rounded border border-border bg-card p-6">
 			<div
-				className="grid size-40 shrink-0 place-items-center rounded-full"
+				className="mx-auto grid aspect-square w-full max-w-96 place-items-center rounded-full"
 				style={{ background: `conic-gradient(${segments.join(', ')})` }}
 			>
-				<div className="grid size-20 place-items-center rounded-full bg-card text-sm font-medium tabular-nums">
+				<div className="grid size-36 place-items-center rounded-full bg-card text-2xl font-semibold tabular-nums">
 					{formatNumber(total)}
 				</div>
 			</div>
-			<div className="min-w-0 space-y-2">
+			<div className="min-w-0 space-y-3">
 				{rows.map((row, index) => (
-					<div key={row.label} className="flex items-center gap-2 text-sm">
-						<span className="size-2 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
+					<div key={row.label} className="grid grid-cols-[1rem_minmax(0,1fr)_4rem_5rem] items-center gap-2 text-sm">
+						<span className="size-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
 						<span className="truncate">{row.label}</span>
-						<span className="ml-auto text-muted-foreground">{formatPercent(row.count, total)}</span>
+						<span className="text-right tabular-nums text-foreground">{formatPercent(row.count, total)}</span>
+						<span className="text-right tabular-nums text-muted-foreground">{formatNumber(row.count)}</span>
 					</div>
 				))}
 			</div>
@@ -374,7 +396,7 @@ function SubtaskSummary({ report }: { report: TaskReport }) {
 			</div>
 			<div>
 				<SectionHeading title="Largest parent tasks" detail="by child count" />
-				<TaskTable rows={report.subtasks.topParents} showBucket compact />
+				<TaskTable rows={report.subtasks.topParents} showBucket compact showWarnings={false} />
 			</div>
 		</div>
 	);
@@ -402,8 +424,24 @@ function CountBars({ rows, total }: { rows: CountRow[]; total: number }) {
 	);
 }
 
-function TaskTable({ rows, showBucket = false, compact = false }: { rows: TaskReportRow[]; showBucket?: boolean; compact?: boolean }) {
+function TaskTable({
+	rows,
+	showBucket = false,
+	compact = false,
+	showWarnings = true,
+}: {
+	rows: TaskReportRow[];
+	showBucket?: boolean;
+	compact?: boolean;
+	showWarnings?: boolean;
+}) {
 	//
+	const [sort, setSort] = useState<TaskSort>({
+		key: 'title',
+		direction: 'asc',
+	});
+	const sortedRows = sortTaskRows(rows, sort);
+
 	if (rows.length === 0) {
 		return <div className="rounded border border-border bg-card p-4 text-sm text-muted-foreground">No tasks.</div>;
 	}
@@ -412,17 +450,19 @@ function TaskTable({ rows, showBucket = false, compact = false }: { rows: TaskRe
 		<Table>
 			<thead>
 				<tr>
-					<Th>Task</Th>
-					{showBucket ? <Th>Bucket</Th> : null}
-					<Th>Source</Th>
-					<Th>Priority</Th>
-					<Th align="right">Words</Th>
-					<Th align="right">Children</Th>
-					<Th align="right">Warnings</Th>
+					<SortableTh label="Task" sortKey="title" sort={sort} onSort={setSort} />
+					{showBucket ? <SortableTh label="Bucket" sortKey="bucket" sort={sort} onSort={setSort} /> : null}
+					<SortableTh label="Source" sortKey="source" sort={sort} onSort={setSort} />
+					<SortableTh label="Priority" sortKey="priority" sort={sort} onSort={setSort} />
+					<SortableTh label="Words" sortKey="words" sort={sort} onSort={setSort} align="right" />
+					<SortableTh label="Children" sortKey="children" sort={sort} onSort={setSort} align="right" />
+					{showWarnings ? (
+						<SortableTh label="Warnings" sortKey="warnings" sort={sort} onSort={setSort} align="right" />
+					) : null}
 				</tr>
 			</thead>
 			<tbody>
-				{rows.map((row) => (
+				{sortedRows.map((row) => (
 					<tr key={row.key}>
 						<Td>
 							<a href={taskHref(row.key)} className="font-medium text-cyan-300 hover:text-cyan-200">
@@ -441,10 +481,12 @@ function TaskTable({ rows, showBucket = false, compact = false }: { rows: TaskRe
 						</Td>
 						{showBucket ? <Td>{formatTaskBucketLabel(row.bucket)}</Td> : null}
 						<Td>{row.source}</Td>
-						<Td>{row.priority}</Td>
+						<Td>
+							<PriorityPill priority={row.priority} />
+						</Td>
 						<Td align="right">{formatNumber(row.words)}</Td>
 						<Td align="right">{formatNumber(row.childCount)}</Td>
-						<Td align="right">{formatNumber(row.warningCount)}</Td>
+						{showWarnings ? <Td align="right">{formatNumber(row.warningCount)}</Td> : null}
 					</tr>
 				))}
 			</tbody>
@@ -498,14 +540,49 @@ function Table({ children }: { children: ReactNode }) {
 	);
 }
 
-function Th({ children, align = 'left' }: { children: ReactNode; align?: 'left' | 'right' }) {
+function SortableTh<TSort extends SortState>({
+	label,
+	sortKey,
+	sort,
+	onSort,
+	align = 'left',
+}: {
+	label: string;
+	sortKey: TSort['key'];
+	sort: TSort;
+	onSort: (sort: TSort) => void;
+	align?: 'left' | 'right';
+}) {
 	//
-	return <th className={`border-b border-border bg-zinc-900 px-3 py-2 font-medium text-muted-foreground ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</th>;
+	const isActive = sort.key === sortKey;
+	const indicator = isActive && sort.direction === 'asc' ? '↑' : isActive ? '↓' : '';
+
+	return (
+		<th className={`border-b border-border bg-zinc-900 px-3 py-2 font-medium text-muted-foreground ${align === 'right' ? 'text-right' : 'text-left'}`}>
+			<button
+				type="button"
+				onClick={() => onSort(nextSort(sort, sortKey))}
+				className={`inline-flex items-center gap-1 rounded text-left hover:text-foreground ${align === 'right' ? 'justify-end' : ''}`}
+			>
+				<span>{label}</span>
+				<span className="w-3 text-xs">{indicator}</span>
+			</button>
+		</th>
+	);
 }
 
 function Td({ children, align = 'left' }: { children: ReactNode; align?: 'left' | 'right' }) {
 	//
 	return <td className={`border-b border-border px-3 py-2 align-top last:border-b-0 ${align === 'right' ? 'text-right tabular-nums' : 'text-left'}`}>{children}</td>;
+}
+
+function PriorityPill({ priority }: { priority: string }) {
+	//
+	return (
+		<span className={`inline-flex rounded px-1.5 py-0.5 text-xs font-medium ${priorityClassName(priority)}`}>
+			{priority}
+		</span>
+	);
 }
 
 function taskHref(taskKey: string) {
@@ -545,4 +622,109 @@ function priorityDotClassName(priority: string) {
 	if (priority === 'medium') return 'bg-yellow-400';
 	if (priority === 'low') return 'bg-blue-400';
 	return 'bg-zinc-500';
+}
+
+function priorityClassName(priority: string) {
+	//
+	if (priority === 'critical') return 'bg-red-400/20 text-red-100';
+	if (priority === 'high') return 'bg-orange-400/20 text-orange-100';
+	if (priority === 'medium') return 'bg-yellow-400/20 text-yellow-100';
+	if (priority === 'low') return 'bg-blue-400/20 text-blue-100';
+
+	return 'bg-zinc-500/30 text-zinc-100';
+}
+
+type SortDirection = 'asc' | 'desc';
+
+interface SortState {
+	key: string;
+	direction: SortDirection;
+}
+
+interface PrioritySort extends SortState {
+	key: string;
+}
+
+interface TaskSort extends SortState {
+	key: 'title' | 'bucket' | 'source' | 'priority' | 'words' | 'children' | 'warnings';
+}
+
+function nextSort<TSort extends SortState>(current: TSort, key: TSort['key']): TSort {
+	//
+	const direction = current.key === key && current.direction === 'desc' ? 'asc' : 'desc';
+
+	return {
+		...current,
+		key,
+		direction,
+	};
+}
+
+function sortPriorityRows(rows: TaskReport['priorities'], sort: PrioritySort) {
+	//
+	return rows.slice().sort((left, right) => compareValues(
+		getPriorityRowValue(left, sort.key),
+		getPriorityRowValue(right, sort.key),
+		sort.direction,
+	));
+}
+
+function getPriorityRowValue(row: TaskReport['priorities'][number], key: string) {
+	//
+	if (key === 'priority') return priorityRank(row.priority);
+	if (key === 'total') return row.total;
+	if (key.startsWith('bucket:')) return getCount(row.buckets, key.slice('bucket:'.length));
+
+	return 0;
+}
+
+function sortTaskRows(rows: TaskReportRow[], sort: TaskSort) {
+	//
+	return rows.slice().sort((left, right) => compareValues(
+		getTaskRowValue(left, sort.key),
+		getTaskRowValue(right, sort.key),
+		sort.direction,
+	));
+}
+
+function getTaskRowValue(row: TaskReportRow, key: TaskSort['key']) {
+	//
+	if (key === 'title') return row.title;
+	if (key === 'bucket') return row.bucket;
+	if (key === 'source') return row.source;
+	if (key === 'priority') return priorityRank(row.priority);
+	if (key === 'words') return row.words;
+	if (key === 'children') return row.childCount;
+	if (key === 'warnings') return row.warningCount;
+
+	return '';
+}
+
+function compareValues(left: string | number, right: string | number, direction: SortDirection) {
+	//
+	let result = 0;
+
+	if (typeof left === 'number' && typeof right === 'number') {
+		result = left - right;
+	} else {
+		result = String(left).localeCompare(String(right));
+	}
+
+	if (direction === 'desc') return result * -1;
+	return result;
+}
+
+function getCount(rows: CountRow[], label: string) {
+	//
+	return rows.find((row) => row.label === label)?.count ?? 0;
+}
+
+function priorityRank(priority: string) {
+	//
+	if (priority === 'critical') return 4;
+	if (priority === 'high') return 3;
+	if (priority === 'medium') return 2;
+	if (priority === 'low') return 1;
+
+	return 0;
 }

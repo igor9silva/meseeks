@@ -101,10 +101,20 @@ export function TaskBoard({
 							</span>
 						</div>
 					</div>
-					<Button type="button" size="sm" onClick={onCreateTaskOpen} className="rounded-md">
-						<Plus className="size-4" />
-						New
-					</Button>
+					<div className="flex items-center gap-2">
+						<nav className="flex items-center gap-1 text-xs text-muted-foreground">
+							<Link from="/" to="/report" className="rounded px-1.5 py-1 hover:bg-accent hover:text-foreground">
+								report
+							</Link>
+							<Link from="/" to="/tags" className="rounded px-1.5 py-1 hover:bg-accent hover:text-foreground">
+								tags
+							</Link>
+						</nav>
+						<Button type="button" size="sm" onClick={onCreateTaskOpen} className="rounded-md">
+							<Plus className="size-4" />
+							New
+						</Button>
+					</div>
 				</div>
 
 				{shouldShowIndexUnavailable ? (

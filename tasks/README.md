@@ -20,9 +20,11 @@ Use these top-level buckets:
 - `references/` for searchable context that is not a completable task.
 - `completed/` for achieved work only.
 
-Private `to-read` items are a saved-reading queue. Keep them together in `private/tasks/inbox/` with the `to-read` tag unless Igor explicitly asks to classify or move that specific item. Do not turn a personal reading item into `references/`, `backlog/`, or `demand` just because the article could inspire product thinking.
+Private saved-reading items use `human:to-read`. Keep them together in `private/tasks/inbox/` unless Igor explicitly asks to classify or move that specific item. Do not turn a personal reading item into `references/`, `backlog/`, or `demand` just because the article could inspire product thinking.
 
 Use [TAGS.md](TAGS.md) as the canonical tag registry.
+
+The registry is actionable. Cleanup passes should apply its bucket, visibility, and canonical-task constraints directly when safe.
 
 Nested folders are for tasks that need real subtasks, attachments, source/import batches, or reference collections with colocated assets. They are not a substitute for tags.
 
@@ -100,6 +102,8 @@ Use `references/` for research notes, source dumps, prompts, transcripts, saved 
 ## Completed Or Deleted
 
 `completed/` means the work happened. It is not a graveyard for ideas we rejected.
+
+Completed tasks are historical snapshots. Do not retag, rename, move, or rewrite them during cleanup unless Igor explicitly asks.
 
 If we decide not to do a task, delete the file. If the file contains useful context, move only that context to `references/` and delete the task shell.
 

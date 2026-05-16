@@ -1,7 +1,7 @@
 ---
 title: Map energy selection to confidence threshold
 priority: medium
-tags: [ux, energy, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
+tags: [ux, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
 ---
 
 The default energy selector should communicate diminishing returns as a minimum confidence threshold, not just as a budget number.

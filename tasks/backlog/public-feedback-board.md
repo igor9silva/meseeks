@@ -1,7 +1,7 @@
 ---
 title: "Public feedback board"
 priority: medium
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, ux]
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
 ---
 
 # Public Feedback Board

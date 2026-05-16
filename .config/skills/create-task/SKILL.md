@@ -29,7 +29,7 @@ Use only these buckets:
 - `references/` for searchable context, not completable tasks.
 - `completed/` for achieved work only.
 
-Private `to-read` files follow `tasks/TAGS.md`: they are a saved-reading queue, not automatic product references.
+Private saved-reading and other human-blocked files follow `tasks/TAGS.md`: use the relevant `human:*` tag.
 
 Decided-not-to-do tasks should be deleted. Do not move rejected ideas to `completed/`.
 

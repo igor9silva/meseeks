@@ -1,7 +1,7 @@
 ---
 title: Rename Budget to Energy
 priority: low
-tags: [energy, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox]
 ---
 
 Rename `Budget` to `Energy`

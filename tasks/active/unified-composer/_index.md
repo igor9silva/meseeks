@@ -1,7 +1,7 @@
 ---
 title: Iterate Composer, Launcher, and mobile navigation
 priority: medium
-tags: [ux, energy]
+tags: [ux]
 ---
 
 The current direction is intentionally exploratory. We have made progress on both Launcher and Composer, but the final shape is not settled.

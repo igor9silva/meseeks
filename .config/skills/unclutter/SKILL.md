@@ -23,8 +23,6 @@ Read `tasks/TAGS.md` before adding, removing, renaming, or interpreting tags. It
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
 
-Raw calibration examples live in `.config/skills/unclutter/examples/feedback/`. Read them when a decision smells similar to a past correction. They are not templates; they are labeled examples of what Igor was correcting.
-
 For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
 
 ## Learning From Review Batches
@@ -36,7 +34,7 @@ Apply the current disposition exactly. Mechanical feedback is mechanical:
 - `delete`, `kill`, `stale`: delete it.
 - `done`: move it to `completed/` in the same root and leave the body alone.
 - `public tech ref`: move it to public `references/` with `tech`.
-- `to-read`: keep it as a private reading queue item. In Inbox.
+- `human:to-read`: keep it as a private reading queue item in inbox.
 - `flat into X`, `fold into X`, `merge into X`: move only the useful content into X, in the natural place, then delete the source.
 
 Then extract the reusable reasoning. If it helps classify a similar future task, update `.config/skills/unclutter/MEMORY.md` in the same pass. Do not turn Igor's explanation into extra body text on the current task.
@@ -80,9 +78,15 @@ Use judgment, but do not override an explicit disposition Igor already gave for 
 
 Follow `tasks/TAGS.md`. Do not redefine tag semantics here.
 
+Treat the registry as executable cleanup guidance. If it constrains a tag to a bucket, visibility, or canonical task, fix the files that violate it instead of only noting the mismatch.
+
+Do not apply tag cleanup to `completed/`. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless Igor explicitly asks.
+
 When adding one of the broad organizational tags, scan for nearby tasks that should receive the same tag so the vocabulary stays useful instead of becoming accidental.
 
 Keep source namespace tags when they preserve import traceability. Remember that `ticktick-status:*` is source metadata from TickTick, not the current filesystem bucket.
+
+`human:*` tags mean blocked on Igor or another human. Do not auto-complete or over-organize them away during broad cleanup.
 
 ## How To Work
 
@@ -100,7 +104,7 @@ When a task mixes public work with private context, split it: public actionable 
 
 When something is rejected but Igor did not say the source is still useful, delete it. Do not salvage interesting-looking debris just because it looks interesting.
 
-After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. `to-read` is one of those explicit exceptions when Igor says it is just something to read. Move other reviewed items to the best bucket and ask if the bucket is unclear.
+After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. `human:to-read` is one of those explicit exceptions when Igor says it is just something to read. Move other reviewed items to the best bucket and ask if the bucket is unclear.
 
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
 

@@ -1,6 +1,6 @@
 ---
 title: Agentation
-tags: [tech, ux, customization, source:ticktick, ticktick-list:references, ticktick-list:meseeks, ticktick-status:user-interface]
+tags: [tech, ux, source:ticktick, ticktick-list:references, ticktick-list:meseeks, ticktick-status:user-interface]
 ---
 
 Visual feedback tool for agents. Users click UI elements, add notes, and copy Markdown/context with selectors, element paths, source paths, React component hierarchy, computed styles, feedback, and priority.

@@ -7,7 +7,6 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - Read `tasks/README.md` before changing tasks.
 - Run `git status --short` before editing. If the tree is dirty, ask before continuing.
 - Never stage, commit, amend, reset, or otherwise mutate Git review state.
-- Raw calibration examples live in `.config/skills/unclutter/examples/feedback/`. Use them as labeled examples when a task resembles a past correction.
 - Collaborative review batches are calibration data. Apply Igor's disposition exactly, then extract the reusable reason into this memory when it helps future autonomous passes.
 - Do not turn Igor's explanation into extra work on the current item. If he says `delete`, delete. If he says `public tech ref`, move it to public references with `tech`. If he says `done`, move it to `completed/` in the same root. The explanation trains the next pass.
 - Do not overfit every comment into a global rule. Keep heuristics that would classify a similar task later; skip one-off trivia.
@@ -20,17 +19,18 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `public tech ref`: move to `tasks/references/` with `tech`. Preserve the useful source/content. Do not manufacture a task around it.
 - `ref for <existing topic/task>`: add a named link or compact note to that existing task, then delete the source unless the source must remain independently browsable.
 - `flat`, `fold`, `merge`: move the smallest useful content/link/media into X in the natural place, then delete the source.
-- `brainstorm`: keep private inbox, add `brainstorm`, and otherwise leave it alone for later review.
-- `to-read`: keep private inbox with `to-read` unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
+- `human:brainstorm`: keep private inbox and otherwise leave it alone for later review.
+- `human:to-read`: keep private inbox unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
 
 ## Bucket Heuristics
 
 - `completed/` is history for achieved work only. Touch it rarely.
+- Do not retag, rename, move visibility, or move completed tasks out of `completed/` just to satisfy current taxonomy. Completed tasks are snapshots; leave them alone unless Igor explicitly asks.
 - Rejected, obsolete, or "won't do" work should be deleted, not moved to completed.
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
 - `ideas/` is for product ideas, side projects, use cases, and things to try. In reviewed TickTick Meseeks imports, Igor often moves original use-case column items here, while keeping `ticktick-status:*` only as provenance.
 - `inbox/` is for untriaged capture. In reviewed TickTick Meseeks imports, original user-interface column items often stay inbox until reviewed, while keeping `ticktick-status:*` only as provenance.
-- Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
+- Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `human:to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private bucket; if the destination is unclear, ask Igor instead of parking it in inbox.
 - `active/` is for work being pursued now. Do not leave stale active tasks around once they are done or deferred.
 - Grouping-only folders should be flattened when tags and Organizer filters carry the organization better.
 - Keep folder tasks with `_index.*` when the folder is a real parent task, a real reference collection, or owns real subtasks/attachments.
@@ -50,6 +50,9 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 
 - `tasks/TAGS.md` is the canonical tag registry. Do not maintain a second registry in this memory file.
 - Keep memory entries here only when they explain how Igor classified a specific kind of task beyond the canonical tag meaning.
+- The registry's placement guidance is actionable. Future Unclutter passes should fix bucket/visibility violations directly when the move is mechanical and safe.
+- The registry does not rewrite `completed/` history.
+- `human:*` tags are blocked on human intervention. Leave them in the registry-defined holding bucket unless Igor explicitly pulls them into review.
 
 ## Reactor V1
 
@@ -125,7 +128,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 
 - Expand or scrape link-only tasks before planning/review. Keep the original link, add local context, and give the task a semantic title.
 - Do not replace semantic titles with hashtags or delete the original link.
-- For `to-read`, the link/page backup is often the task. Expand into readable markdown for local backup when useful, keep `## Source` last, and do not over-organize it into `references/`, `backlog`, or `demand` unless Igor asks.
+- For `human:to-read`, the link/page backup is often the task. Expand into readable markdown for local backup when useful, keep `## Source` last, and do not over-organize it into `references/`, `backlog`, or `demand` unless Igor asks.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Git history carries routine provenance.
 - Preserve useful links, media, quotes, screenshots, and decisions in the target task body.
 - Preserve Igor's short original keywords/intent when converting imports into references; they often explain why the source mattered better than the scraped summary does.

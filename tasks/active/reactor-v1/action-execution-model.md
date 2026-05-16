@@ -1,7 +1,6 @@
 ---
 title: Current Action Execution Model
 priority: low
-tags: [reactor]
 ---
 
 # Current Action Execution Model (Implementation Notes)

@@ -15,7 +15,7 @@ Make a task clear enough to act on. For raw inbox captures, also turn them into 
 4. Read the parent `_index.*` chain from root to the target folder when present.
 5. Inspect source metadata, sibling files, nearby duplicate candidates, reused tags, and repo context relevant to the task.
 6. If the task is only links or mostly links, expand those links before planning. Use repo scraping skills/scripts for supported sources, and otherwise fetch, browse, or search enough to capture the page/post content. Preserve the original links and scraped source details in the task before trying to infer intent.
-7. Interpret tags through `tasks/TAGS.md`. In particular, `to-read` is a private saved-reading queue signal, not an invite to classify the page as product work.
+7. Interpret tags through `tasks/TAGS.md`. In particular, `human:to-read` is a private saved-reading queue signal, not an invite to classify the page as product work.
 
 Nearby candidates means search both public and private task roots when available for title words, source URLs, TickTick IDs, slugs, transcript names, and distinctive quoted text.
 
@@ -32,7 +32,7 @@ When Plan was invoked by Seek, stop once the task is executable and hand back th
 Produce a plan covering:
 
 - title and short slug
-- tags, following `tasks/TAGS.md` and reusing nearby/root tags before inventing new ones
+- tags, following `tasks/TAGS.md`, including retired-tag replacements and bucket/visibility constraints
 - root: `tasks/` for public product/repo work, `private/tasks/` for sensitive, personal, raw, or unreviewed captures
 - bucket: `ideas/`, `active/`, `backlog/`, `references/`, `completed/`, or delete
 - structure: single file, parent `_index.*`, child task, reference note, split, merge, or delete
@@ -46,6 +46,7 @@ Plain text is fine. Add sections only when they make the task easier to act on.
 - Ask Igor before moving private material into `tasks/`, exposing personal details, handling security-sensitive content, or deciding a gray-line public/private case.
 - Split mixed files instead of sanitizing by accident: public actionable task in `tasks/`, raw/sensitive source note in `private/tasks/references/`.
 - Follow `tasks/TAGS.md` for source provenance: first imports preserve every possible bit of source information; later organizing can remove unused raw import debris after it has been committed.
+- Follow `tasks/TAGS.md` for `human:*`: those items are blocked on human intervention and should not be auto-executed or over-organized away.
 - Use `references/` for context, saved links, transcripts, prompts, examples, and research that is not itself completable work.
 - Use `completed/` only for achieved work. Delete rejected task shells unless useful context should survive as a reference.
 - Flatten grouping-only folders when tags or UI filters can carry the organization.
