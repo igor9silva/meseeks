@@ -50,6 +50,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
 	- "every 5 rounds"
 	- "on context > X%"
+- support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
 - skill grouping!
 	- this is very important
 	- built-in stuff should be versioned btw
@@ -110,6 +111,8 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - maybe we need minimal support for TRANSactions?
 	- so actions that affects multiple tasks are visible on both?
 	- possible requirement for subtasks
+	- maybe actions involving multiple tasks or actors are "transactions"
+	- transaction is the proof: a transaction should make the cross-task/actor effect traceable wherever it matters
 - branching
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat

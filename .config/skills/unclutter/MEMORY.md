@@ -58,8 +58,10 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `demand` marks market-demand signals. Demand references usually stay raw because the signal itself is the artifact.
 - `intelligence` is only for AI model/model-provider support tasks.
 - `skill` is for skills/integrations we want to add to Meseeks.
+- `loop` is a sibling of `skill` for reusable loop behaviors we want Meseeks/Pro to support, such as answer drafting loops, discussion loops, fact-check loops, or seek-like execution loops.
 - `legacy` is for pre-Reactor-v1 work kept as useful context until Reactor v1 supersedes or revalidates it.
 - `brainstorm` is for private inbox idea captures to revisit later. Will usually be split into a public idea task later.
+- `transparency` marks tasks about exposing public proof, metrics, traces, or other accountability surfaces.
 - `vfs` is virtual filesystem/Reactor filesystem material; skip it during broad inbox classification unless Igor asks.
 - Do not add tags that repeat the title, bucket, source label, or one imported task's accidental wording.
 
@@ -100,6 +102,7 @@ Use Pro GTM for:
 - "why Meseeks", category language such as Pro/Web4, and data/UI splitting apart
 - launch video ideas, "one exceptional thing" MVP notes, and public messaging insights
 - pre-marketing repo/company readiness, such as migrating the repository to a GitHub org
+- user-data ownership and monetization, especially the idea that users can decide what data to sell and get paid directly
 
 Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding shards unless the work is independently actionable now.
 
@@ -142,6 +145,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - When merging captures into an existing task, put the useful content in the natural location. Avoid "merged source notes" sections.
 - Keep original context when it may matter. If unsure, paste original content under a compact separator rather than paraphrasing away detail.
 - Do not add boilerplate like "reference capture", "source preserved", "done already", or "examples from original task" when the bucket/history already says enough.
+- Treat Igor's relevance comments as triage guidance, not task prose. If he says something is low-relevance, lightweight, stale-ish, or minor, use that to choose bucket/priority/disposition; do not write those labels into the task body unless he explicitly asks.
 - Do not start task bodies with a default `## Context` heading. Start directly with the content unless structure genuinely helps.
 - If a rename changes the meaning, update the filesystem slug/folder too.
 - Keep task prose dense. Searchability matters, but repeated contextual labels are clutter.
@@ -162,6 +166,7 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - `Context URL now GA in Gemini API` belongs under the scraping task as another scraping option.
 - Local model provider vision belongs in the macOS app/provider task: the app itself is the provider, not a background daemon.
 - Human-as-a-Service is an idea task; external examples can be links inside it.
+- Loop designs belong in public backlog with `loop` when they are reusable Meseeks behavior and do not contain private personal context.
 - Public tech references from Vercel MCP adapter, Gemini system prompt, Pliny prompt injection, browser automation CLI, etc. should be references with `tech`.
 - Skill backlog examples: WhatsApp skillset, Serper search, Exa/search provider skill, public-profile lookup. Default public backlog low unless specified.
 - `WebSquare` remains meaningful in the Feeds idea; preserve the full WebSquare content when organizing that task.
