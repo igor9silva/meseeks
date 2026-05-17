@@ -1,30 +1,29 @@
-import { Badge, Button, Input, cn } from '@reactor/ui';
-import { Link } from '@tanstack/react-router';
+import { Badge, Input, Tabs, TabsList, TabsTrigger, cn } from '@reactor/ui';
 import {
 	AlertTriangle,
+	ArrowRight,
 	Archive,
-	CheckCircle2,
 	CircleDot,
 	Inbox,
 	Layers,
 	Lightbulb,
+	List,
 	Lock,
-	Plus,
+	Maximize2,
+	Minimize2,
 	Search,
+	SquareKanban,
 } from 'lucide-react';
-import {
-	type ExplorerQueryInput,
-	type ExplorerSort,
-	explorerSortSchema,
-	type TaskSource,
-} from '~/lib/explorerSearchParams';
-import { formatTaskBucketLabel, isTaskBucket, taskBuckets } from '~/lib/taskBuckets';
+import { type ExplorerQueryInput, type ExplorerSort, explorerSortSchema } from '~/lib/explorerSearchParams';
 import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
-import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals } from './taskExplorerTypes';
-import { formatSourceLabel, getTaskDisplayFilename, taskSourceOptions } from './taskExplorerUtils';
+import type { TaskConfig } from '~/server/taskIndexSchemas';
+import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals, TaskDetailTask } from './taskExplorerTypes';
+import { getTaskDisplayFilename } from './taskExplorerUtils';
 
 export function TaskBoard({
 	className,
+	currentTask,
+	globalView,
 	queryInput,
 	searchDraft,
 	selectedTaskKey,
@@ -34,17 +33,21 @@ export function TaskBoard({
 	facets,
 	totals,
 	isPending,
+	shouldBlurPrivateTasks,
 	searchInputId,
+	isExpanded,
 	onSearchDraftChange,
-	onCreateTaskOpen,
-	onSourceToggle,
-	onStatusToggle,
 	onTagFilterCycle,
-	onRootsOnlyToggle,
+	onDepthRangeChange,
 	onSortChange,
 	onTaskSelect,
+	onTaskOpen,
+	onViewChange,
+	onExpandedToggle,
 }: {
 	className?: string;
+	currentTask: TaskDetailTask | null;
+	globalView: TaskConfig['view'];
 	queryInput: ExplorerQueryInput;
 	searchDraft: string;
 	selectedTaskKey: string | null;
@@ -54,26 +57,23 @@ export function TaskBoard({
 	facets: ExplorerFacets | undefined;
 	totals: ExplorerTotals | undefined;
 	isPending: boolean;
+	shouldBlurPrivateTasks: boolean;
 	searchInputId: string;
+	isExpanded: boolean;
 	onSearchDraftChange: (value: string) => void;
-	onCreateTaskOpen: () => void;
-	onSourceToggle: (source: TaskSource) => void;
-	onStatusToggle: (status: string) => void;
 	onTagFilterCycle: (tag: string) => void;
-	onRootsOnlyToggle: () => void;
+	onDepthRangeChange: (minDepth: number, maxDepth: number) => void;
 	onSortChange: (sort: ExplorerSort) => void;
-	onTaskSelect: () => void;
+	onTaskSelect: (task: ExplorerTask) => void;
+	onTaskOpen: (task: ExplorerTask) => void;
+	onViewChange: (view: TaskConfig['view']) => void;
+	onExpandedToggle: () => void;
 }) {
 	//
-	const statusFacetEntries = facets?.statuses ?? [];
-	const boardStatuses = buildBoardStatuses(queryInput.statuses);
-	const tasksByStatus = groupTasksByStatus(visibleTasks, boardStatuses);
+	const config = currentTask?.config ?? createGlobalConfig(globalView);
 	const tagGroups = buildTagGroups(facets?.tagGroups ?? [], queryInput.tags.concat(queryInput.excludedTags));
-	const offBucketEntries = statusFacetEntries.filter((entry) => !isTaskBucket(entry.value));
-	const hiddenOffBucketCount = offBucketEntries.reduce((total, entry) => {
-		if (queryInput.statuses.includes(entry.value)) return total;
-		return total + entry.count;
-	}, 0);
+	const shouldRenderBoard = config.view === 'board';
+	const displayTasks = applyHiddenTags(visibleTasks, config.hiddenTags, queryInput.tags);
 
 	return (
 		<section
@@ -86,25 +86,23 @@ export function TaskBoard({
 				<div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
 					<div className="min-w-0">
 						<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-							<h1 className="text-lg font-semibold">
-								<Link
-									from="/"
-									to="/"
-									search={{}}
-									className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-								>
-									Organizer
-								</Link>
-							</h1>
+							<h2 className="text-lg font-semibold">Subtasks</h2>
 							<span className="text-xs text-muted-foreground">
 								{totals?.visible ?? 0} visible / {totals?.all ?? 0} indexed
 							</span>
 						</div>
 					</div>
-					<Button type="button" size="sm" onClick={onCreateTaskOpen} className="rounded-md">
-						<Plus className="size-4" />
-						New
-					</Button>
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							aria-label={isExpanded ? 'Collapse subtasks panel' : 'Expand subtasks panel'}
+							title={isExpanded ? 'Collapse subtasks panel' : 'Expand subtasks panel'}
+							onClick={onExpandedToggle}
+							className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border/80 bg-background text-foreground/80 hover:border-foreground/40 hover:text-foreground"
+						>
+							{isExpanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+						</button>
+					</div>
 				</div>
 
 				{shouldShowIndexUnavailable ? (
@@ -136,31 +134,19 @@ export function TaskBoard({
 							id={searchInputId}
 							value={searchDraft}
 							onChange={(event) => onSearchDraftChange(event.currentTarget.value)}
-							placeholder="Search title, id, tags, body"
+							placeholder="Search title, path, tags, body"
 							className="h-9 rounded-md pl-8"
 						/>
 					</div>
 
 					<div className="flex shrink-0 flex-wrap items-center gap-1">
-						{taskSourceOptions.map((source) => (
-							<SourceFilterButton
-								key={source}
-								source={source}
-								count={findFacetCount(facets?.sources ?? [], source)}
-								isSelected={queryInput.sources.includes(source)}
-								onClick={() => onSourceToggle(source)}
-							/>
-						))}
+						<ViewTabs currentView={config.view} onViewChange={onViewChange} />
 
-						<label className="ml-1 inline-flex h-8 items-center gap-2 rounded-md border border-border/80 bg-background px-2 text-xs text-foreground">
-							<input
-								type="checkbox"
-								checked={!queryInput.rootsOnly}
-								onChange={onRootsOnlyToggle}
-								className="size-3.5"
-							/>
-							Include subtasks
-						</label>
+						<DepthRangeControl
+							minDepth={queryInput.minDepth}
+							maxDepth={queryInput.maxDepth}
+							onDepthRangeChange={onDepthRangeChange}
+						/>
 
 						<select
 							value={queryInput.sort}
@@ -171,138 +157,160 @@ export function TaskBoard({
 							}}
 							className="h-8 rounded-md border border-input bg-background px-2 text-xs"
 						>
-							<option value="priority_then_recency">priority</option>
-							<option value="recency">recency</option>
-							<option value="title">title</option>
+							<option value="priority_then_recency">Priority</option>
+							<option value="recency">Recent</option>
+							<option value="title">Title</option>
 						</select>
 					</div>
 				</div>
 
-				<div className="space-y-2 border-t border-border/80 px-3 py-2">
-					<div className="flex flex-wrap items-center gap-1">
-						{taskBuckets.map((bucket) => (
-							<StatusFilterButton
-								key={bucket}
-								status={bucket}
-								count={findFacetCount(statusFacetEntries, bucket)}
-								isSelected={queryInput.statuses.includes(bucket)}
-								onClick={() => onStatusToggle(bucket)}
+				{tagGroups.length > 0 ? (
+					<div className="h-32 min-h-12 max-h-80 resize-y space-y-2 overflow-auto border-t border-border/80 px-3 py-2">
+						{tagGroups.map((group) => (
+							<TagFilterGroup
+								key={getTagGroupLookupKey(group.key)}
+								group={group}
+								includedTags={queryInput.tags}
+								excludedTags={queryInput.excludedTags}
+								onTagFilterCycle={onTagFilterCycle}
 							/>
 						))}
-						{offBucketEntries.map((entry) => (
-							<StatusFilterButton
-								key={entry.value}
-								status={entry.value}
-								count={entry.count}
-								isSelected={queryInput.statuses.includes(entry.value)}
-								onClick={() => onStatusToggle(entry.value)}
-							/>
-						))}
-						{hiddenOffBucketCount > 0 ? (
-							<span className="inline-flex h-8 items-center rounded-md border border-amber-500/30 px-2 text-xs text-amber-200">
-								{hiddenOffBucketCount} off-bucket hidden
-							</span>
-						) : null}
 					</div>
-
-					{tagGroups.length > 0 ? (
-						<div className="max-h-52 space-y-2 overflow-auto">
-							{tagGroups.map((group) => (
-								<TagFilterGroup
-									key={getTagGroupLookupKey(group.key)}
-									group={group}
-									includedTags={queryInput.tags}
-									excludedTags={queryInput.excludedTags}
-									onTagFilterCycle={onTagFilterCycle}
-								/>
-							))}
-						</div>
-					) : null}
-				</div>
+				) : null}
 			</header>
 
 			<div className="min-h-0 flex-1 overflow-auto">
 				{isPending ? <div className="px-3 py-4 text-sm text-muted-foreground">Loading tasks...</div> : null}
 				{!isPending && visibleTasks.length === 0 ? (
-					<div className="px-3 py-4 text-sm text-muted-foreground">No tasks match these filters.</div>
+					<div className="px-3 py-4 text-sm text-muted-foreground">
+						{totals?.directChildren === 0 ? 'This task has no subtasks.' : 'No tasks match this view.'}
+					</div>
 				) : null}
 
-				<div className="flex min-h-full min-w-0 border-t border-border/80">
-					{boardStatuses.map((status) => (
-						<BucketColumn
-							key={status}
-							status={status}
-							tasks={tasksByStatus.get(status) ?? []}
-							selectedTaskKey={selectedTaskKey}
-							onTaskSelect={onTaskSelect}
-						/>
-					))}
-				</div>
+				{shouldRenderBoard ? (
+					<BoardView
+						config={config}
+						tasks={displayTasks}
+						selectedTaskKey={selectedTaskKey}
+						shouldBlurPrivateTasks={shouldBlurPrivateTasks}
+						onTaskSelect={onTaskSelect}
+						onTaskOpen={onTaskOpen}
+					/>
+				) : (
+					<ListView
+						tasks={displayTasks}
+						selectedTaskKey={selectedTaskKey}
+						shouldBlurPrivateTasks={shouldBlurPrivateTasks}
+						onTaskSelect={onTaskSelect}
+						onTaskOpen={onTaskOpen}
+					/>
+				)}
 			</div>
 		</section>
 	);
 }
 
-function SourceFilterButton({
-	source,
-	count,
-	isSelected,
-	onClick,
+function createGlobalConfig(view: TaskConfig['view'] = 'list'): TaskConfig {
+	//
+	return {
+		view,
+		scope: 'direct',
+		columns:
+			view === 'board'
+				? [
+						{
+							id: 'backlog',
+							label: 'Backlog',
+							tag: 'status:backlog',
+						},
+						{
+							id: 'active',
+							label: 'Active',
+							tag: 'status:active',
+						},
+					]
+				: [],
+		hiddenTags: ['status:completed'],
+	};
+}
+
+function ViewTabs({
+	currentView,
+	onViewChange,
 }: {
-	source: TaskSource;
-	count: number;
-	isSelected: boolean;
-	onClick: () => void;
+	currentView: TaskConfig['view'];
+	onViewChange: (view: TaskConfig['view']) => void;
 }) {
 	//
 	return (
-		<button
-			type="button"
-			aria-pressed={isSelected}
-			onClick={onClick}
-			className={cn(
-				'inline-flex h-8 items-center gap-1 rounded-md border px-2 text-xs transition-colors',
-				isSelected
-					? 'border-foreground bg-foreground text-background'
-					: 'border-border/80 bg-background text-foreground/80 hover:border-foreground/40 hover:text-foreground',
-			)}
-		>
-			{source === 'private' ? <Lock className="size-3" /> : <Layers className="size-3" />}
-			{formatSourceLabel(source)}
-			<span className="tabular-nums opacity-70">{count}</span>
-		</button>
+		<Tabs value={currentView} onValueChange={(value) => onViewChange(value === 'board' ? 'board' : 'list')}>
+			<TabsList className="h-8 rounded-full">
+				<TabsTrigger
+					value="list"
+					className="h-6 gap-1 px-2 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+				>
+					<List className="size-3.5" />
+					List
+				</TabsTrigger>
+				<TabsTrigger
+					value="board"
+					className="h-6 gap-1 px-2 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+				>
+					<SquareKanban className="size-3.5" />
+					Board
+				</TabsTrigger>
+			</TabsList>
+		</Tabs>
 	);
 }
 
-function StatusFilterButton({
-	status,
-	count,
-	isSelected,
-	onClick,
+function DepthRangeControl({
+	minDepth,
+	maxDepth,
+	onDepthRangeChange,
 }: {
-	status: string;
-	count: number;
-	isSelected: boolean;
-	onClick: () => void;
+	minDepth: number;
+	maxDepth: number;
+	onDepthRangeChange: (minDepth: number, maxDepth: number) => void;
 }) {
 	//
+	const depthOptions = Array.from({ length: 16 }, (_, index) => index + 1);
+
 	return (
-		<button
-			type="button"
-			aria-pressed={isSelected}
-			onClick={onClick}
-			className={cn(
-				'inline-flex h-8 items-center gap-1 rounded-md border px-2 text-xs transition-colors',
-				isSelected
-					? 'border-sky-400/70 bg-sky-400/15 text-sky-100'
-					: 'border-border/80 bg-background text-foreground/80 hover:border-foreground/40 hover:text-foreground',
-				!isTaskBucket(status) && 'border-amber-500/30',
-			)}
-		>
-			{renderStatusIcon(status)}
-			{formatTaskBucketLabel(status)}
-			<span className="tabular-nums opacity-70">{count}</span>
-		</button>
+		<div className="flex h-8 items-center gap-1 rounded-md border border-input bg-background px-2 text-xs text-muted-foreground">
+			<span>Depth</span>
+			<select
+				aria-label="Minimum depth"
+				value={minDepth}
+				onChange={(event) => {
+					const nextMinDepth = Number(event.currentTarget.value);
+					onDepthRangeChange(nextMinDepth, Math.max(nextMinDepth, maxDepth));
+				}}
+				className="h-6 rounded bg-transparent text-foreground outline-none"
+			>
+				{depthOptions.map((depth) => (
+					<option key={depth} value={depth}>
+						{depth}
+					</option>
+				))}
+			</select>
+			<span className="text-muted-foreground/70">-</span>
+			<select
+				aria-label="Maximum depth"
+				value={maxDepth}
+				onChange={(event) => {
+					const nextMaxDepth = Number(event.currentTarget.value);
+					onDepthRangeChange(Math.min(minDepth, nextMaxDepth), nextMaxDepth);
+				}}
+				className="h-6 rounded bg-transparent text-foreground outline-none"
+			>
+				{depthOptions.map((depth) => (
+					<option key={depth} value={depth}>
+						{depth}
+					</option>
+				))}
+			</select>
+		</div>
 	);
 }
 
@@ -353,16 +361,93 @@ function TagFilterGroup({
 	);
 }
 
-function BucketColumn({
-	status,
+function BoardView({
+	config,
 	tasks,
 	selectedTaskKey,
+	shouldBlurPrivateTasks,
 	onTaskSelect,
+	onTaskOpen,
 }: {
-	status: string;
+	config: TaskConfig;
 	tasks: ExplorerTask[];
 	selectedTaskKey: string | null;
-	onTaskSelect: () => void;
+	shouldBlurPrivateTasks: boolean;
+	onTaskSelect: (task: ExplorerTask) => void;
+	onTaskOpen: (task: ExplorerTask) => void;
+}) {
+	//
+	const tasksByColumn = groupTasksByConfig(tasks, config);
+
+	return (
+		<div className="flex min-h-full min-w-0 border-t border-border/80">
+			{config.columns.map((column) => (
+				<TaskColumn
+					key={column.id}
+					title={column.label}
+					tasks={tasksByColumn.get(column.id) ?? []}
+					selectedTaskKey={selectedTaskKey}
+					shouldBlurPrivateTasks={shouldBlurPrivateTasks}
+					onTaskSelect={onTaskSelect}
+					onTaskOpen={onTaskOpen}
+				/>
+			))}
+			<TaskColumn
+				title="Unsorted"
+				tasks={tasksByColumn.get('unsorted') ?? []}
+				selectedTaskKey={selectedTaskKey}
+				shouldBlurPrivateTasks={shouldBlurPrivateTasks}
+				onTaskSelect={onTaskSelect}
+				onTaskOpen={onTaskOpen}
+			/>
+		</div>
+	);
+}
+
+function ListView({
+	tasks,
+	selectedTaskKey,
+	shouldBlurPrivateTasks,
+	onTaskSelect,
+	onTaskOpen,
+}: {
+	tasks: ExplorerTask[];
+	selectedTaskKey: string | null;
+	shouldBlurPrivateTasks: boolean;
+	onTaskSelect: (task: ExplorerTask) => void;
+	onTaskOpen: (task: ExplorerTask) => void;
+}) {
+	//
+	return (
+		<div className="divide-y divide-border/80 border-t border-border/80">
+			{tasks.map((task) => (
+				<TaskRow
+					key={task.key}
+					task={task}
+					isSelected={selectedTaskKey === task.key}
+					shouldBlurPrivateTasks={shouldBlurPrivateTasks}
+					onTaskSelect={onTaskSelect}
+					onTaskOpen={onTaskOpen}
+				/>
+			))}
+		</div>
+	);
+}
+
+function TaskColumn({
+	title,
+	tasks,
+	selectedTaskKey,
+	shouldBlurPrivateTasks,
+	onTaskSelect,
+	onTaskOpen,
+}: {
+	title: string;
+	tasks: ExplorerTask[];
+	selectedTaskKey: string | null;
+	shouldBlurPrivateTasks: boolean;
+	onTaskSelect: (task: ExplorerTask) => void;
+	onTaskOpen: (task: ExplorerTask) => void;
 }) {
 	//
 	return (
@@ -370,16 +455,12 @@ function BucketColumn({
 			<header className="sticky top-0 z-10 border-b border-border/80 bg-card/95 px-3 py-2">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex min-w-0 items-center gap-2">
-						{renderStatusIcon(status)}
-						<h2 className="truncate text-sm font-semibold">{formatTaskBucketLabel(status)}</h2>
+						<h2 className="truncate text-sm font-semibold">{title}</h2>
 					</div>
 					<Badge variant="outline" className="shrink-0 rounded-md px-1.5 py-0 text-xs tabular-nums">
 						{tasks.length}
 					</Badge>
 				</div>
-				{!isTaskBucket(status) ? (
-					<div className="mt-1 text-xs text-amber-200">Topic folder, not a lifecycle bucket.</div>
-				) : null}
 			</header>
 
 			<div className="divide-y divide-border/80">
@@ -391,7 +472,9 @@ function BucketColumn({
 						key={task.key}
 						task={task}
 						isSelected={selectedTaskKey === task.key}
+						shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 						onTaskSelect={onTaskSelect}
+						onTaskOpen={onTaskOpen}
 					/>
 				))}
 			</div>
@@ -402,105 +485,136 @@ function BucketColumn({
 function TaskRow({
 	task,
 	isSelected,
+	shouldBlurPrivateTasks,
 	onTaskSelect,
+	onTaskOpen,
 }: {
 	task: ExplorerTask;
 	isSelected: boolean;
-	onTaskSelect: () => void;
+	shouldBlurPrivateTasks: boolean;
+	onTaskSelect: (task: ExplorerTask) => void;
+	onTaskOpen: (task: ExplorerTask) => void;
 }) {
 	//
+	const shouldBlurTask = shouldBlurPrivateTasks && task.taskSource === 'private';
+
 	return (
-		<Link
-			from="/"
-			to="/"
-			onClick={onTaskSelect}
-			search={(previous) => ({
-				...previous,
-				taskKey: task.key,
-			})}
+		<button
+			type="button"
+			onClick={() => onTaskSelect(task)}
 			className={cn(
-				'block min-h-24 border-l-2 px-3 py-2 text-left transition-colors hover:bg-muted/60',
+				'block min-h-24 w-full cursor-pointer border-l-2 px-3 py-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
 				getPriorityBorderClassName(task.priority),
 				isSelected && 'bg-muted',
 			)}
 		>
 			<div className="flex items-start justify-between gap-2">
-				<div className="min-w-0 break-all text-sm font-medium leading-5 text-foreground">{task.title}</div>
-				<div className="flex shrink-0 items-center gap-1">
-					{task.warningCount > 0 ? (
-						<AlertTriangle
-							className="size-3.5 text-amber-300"
-							aria-label={`${task.warningCount} warnings`}
-						/>
+				<div className={cn('min-w-0 flex-1', getPrivateBlurClassName(shouldBlurTask))}>
+					<div className="flex min-w-0 items-start gap-1.5">
+						<div className="mt-0.5 shrink-0">{renderSectionIcon(task.section)}</div>
+						<div className="min-w-0 flex-1 break-words text-sm font-medium leading-5 text-foreground">
+							{task.title}
+						</div>
+						{task.warningCount > 0 ? (
+							<AlertTriangle
+								className="mt-0.5 size-3.5 shrink-0 text-amber-300"
+								aria-label={`${task.warningCount} warnings`}
+							/>
+						) : null}
+						<button
+							type="button"
+							aria-label={`Navigate into ${task.title}`}
+							title="Navigate into task"
+							onClick={(event) => {
+								event.stopPropagation();
+								onTaskOpen(task);
+							}}
+							className="-mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+						>
+							<ArrowRight className="size-5" />
+						</button>
+					</div>
+
+					<div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+						<span className="break-all text-foreground/85">
+							{getTaskDisplayFilename(task.relativePath)}
+						</span>
+						<span>{formatTaskDate(task.fileMtimeMs)}</span>
+						{task.priority ? (
+							<span className={cn('rounded px-1', getPriorityClassName(task.priority))}>
+								{task.priority}
+							</span>
+						) : null}
+					</div>
+
+					{task.tags.length > 0 ? (
+						<div className="mt-2 flex flex-wrap gap-1">
+							{task.tags.slice(0, 5).map((tag) => (
+								<span key={tag} className={cn('rounded px-1.5 py-0.5 text-xs', getTagClassName(tag))}>
+									{tag}
+								</span>
+							))}
+							{task.tags.length > 5 ? (
+								<span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+									+{task.tags.length - 5}
+								</span>
+							) : null}
+						</div>
 					) : null}
+				</div>
+				<div className="flex shrink-0 items-center gap-1">
 					{task.taskSource === 'private' ? (
 						<Lock className="size-3.5 text-muted-foreground" aria-label="Private task" />
 					) : null}
 				</div>
 			</div>
-
-			<div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-				<span className="break-all text-foreground/85">{getTaskDisplayFilename(task.relativePath)}</span>
-				<span>{formatTaskDate(task.fileMtimeMs)}</span>
-				{task.priority ? (
-					<span className={cn('rounded px-1', getPriorityClassName(task.priority))}>{task.priority}</span>
-				) : null}
-			</div>
-
-			{task.tags.length > 0 ? (
-				<div className="mt-2 flex flex-wrap gap-1">
-					{task.tags.slice(0, 5).map((tag) => (
-						<span key={tag} className={cn('rounded px-1.5 py-0.5 text-xs', getTagClassName(tag))}>
-							{tag}
-						</span>
-					))}
-					{task.tags.length > 5 ? (
-						<span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-							+{task.tags.length - 5}
-						</span>
-					) : null}
-				</div>
-			) : null}
-		</Link>
+		</button>
 	);
 }
 
-function buildBoardStatuses(selectedStatuses: string[]): string[] {
+function getPrivateBlurClassName(shouldBlur: boolean): string {
 	//
-	const statuses: string[] = [];
-
-	for (const bucket of taskBuckets) {
-		if (!selectedStatuses.includes(bucket)) continue;
-		statuses.push(bucket);
-	}
-
-	for (const status of selectedStatuses) {
-		if (statuses.includes(status)) continue;
-		statuses.push(status);
-	}
-
-	return statuses;
+	return shouldBlur ? 'select-none blur-xs' : '';
 }
 
-function groupTasksByStatus(tasks: ExplorerTask[], statuses: string[]): Map<string, ExplorerTask[]> {
+function applyHiddenTags(tasks: ExplorerTask[], hiddenTags: string[], includedTags: string[]): ExplorerTask[] {
 	//
-	const tasksByStatus = new Map<string, ExplorerTask[]>();
+	if (hiddenTags.length === 0) return tasks;
 
-	for (const status of statuses) {
-		tasksByStatus.set(status, []);
+	return tasks.filter((task) => {
+		for (const hiddenTag of hiddenTags) {
+			if (includedTags.includes(hiddenTag)) continue;
+			if (task.tags.includes(hiddenTag)) return false;
+		}
+
+		return true;
+	});
+}
+
+function groupTasksByConfig(tasks: ExplorerTask[], config: TaskConfig): Map<string, ExplorerTask[]> {
+	//
+	const tasksByColumn = new Map<string, ExplorerTask[]>();
+
+	for (const column of config.columns) {
+		tasksByColumn.set(column.id, []);
 	}
 
+	tasksByColumn.set('unsorted', []);
+
 	for (const task of tasks) {
-		const tasksForStatus = tasksByStatus.get(task.status);
-		if (tasksForStatus) {
-			tasksForStatus.push(task);
+		const matchingColumn = config.columns.find((column) => column.tag !== null && task.tags.includes(column.tag));
+		const columnId = matchingColumn?.id ?? 'unsorted';
+		const columnTasks = tasksByColumn.get(columnId);
+
+		if (!columnTasks) {
+			tasksByColumn.set(columnId, [task]);
 			continue;
 		}
 
-		tasksByStatus.set(task.status, [task]);
+		columnTasks.push(task);
 	}
 
-	return tasksByStatus;
+	return tasksByColumn;
 }
 
 function buildTagGroups(facetGroups: ExplorerFacets['tagGroups'], pinnedTags: string[]): ExplorerFacets['tagGroups'] {
@@ -556,36 +670,19 @@ function compareTagFacetEntries(
 	return left.tag.localeCompare(right.tag);
 }
 
-function findFacetCount(entries: ExplorerFacets['statuses'], value: string): number {
+function renderSectionIcon(section: string) {
 	//
-	return entries.find((entry) => entry.value === value)?.count ?? 0;
-}
+	if (section === 'inbox') return <Inbox className="size-3.5 text-muted-foreground" />;
+	if (section === 'ideas') return <Lightbulb className="size-3.5 text-muted-foreground" />;
+	if (section === 'tasks') return <CircleDot className="size-3.5 text-muted-foreground" />;
+	if (section === 'references') return <Layers className="size-3.5 text-muted-foreground" />;
 
-function renderStatusIcon(status: string) {
-	//
-	if (status === 'inbox') return <Inbox className="size-3.5" />;
-	if (status === 'ideas') return <Lightbulb className="size-3.5" />;
-	if (status === 'active') return <CircleDot className="size-3.5" />;
-	if (status === 'backlog') return <Archive className="size-3.5" />;
-	if (status === 'references') return <Layers className="size-3.5" />;
-	if (status === 'completed') return <CheckCircle2 className="size-3.5" />;
-
-	return <AlertTriangle className="size-3.5 text-amber-300" />;
-}
-
-function getPriorityClassName(priority: string): string {
-	//
-	if (priority === 'critical') return 'bg-red-400/20 text-red-100';
-	if (priority === 'high') return 'bg-orange-400/20 text-orange-100';
-	if (priority === 'medium') return 'bg-yellow-400/20 text-yellow-100';
-	if (priority === 'low') return 'bg-blue-400/20 text-blue-100';
-
-	return 'bg-muted text-muted-foreground';
+	return <Archive className="size-3.5 text-muted-foreground" />;
 }
 
 function getPriorityBorderClassName(priority: string | null): string {
 	//
-	if (priority === 'critical') return 'border-l-red-400';
+	if (priority === 'critical') return 'border-l-red-500';
 	if (priority === 'high') return 'border-l-orange-400';
 	if (priority === 'medium') return 'border-l-yellow-400';
 	if (priority === 'low') return 'border-l-blue-400';
@@ -593,25 +690,32 @@ function getPriorityBorderClassName(priority: string | null): string {
 	return 'border-l-transparent';
 }
 
-function getTagClassName(tag: string): string {
+function getPriorityClassName(priority: string): string {
 	//
-	const colorIndex = Array.from(tag).reduce((total, char) => total + char.charCodeAt(0), 0) % 6;
+	if (priority === 'critical') return 'bg-red-500/20 text-red-100';
+	if (priority === 'high') return 'bg-orange-500/20 text-orange-100';
+	if (priority === 'medium') return 'bg-yellow-500/20 text-yellow-100';
+	if (priority === 'low') return 'bg-blue-500/20 text-blue-100';
 
-	if (colorIndex === 0) return 'bg-sky-400/15 text-sky-100';
-	if (colorIndex === 1) return 'bg-emerald-400/15 text-emerald-100';
-	if (colorIndex === 2) return 'bg-violet-400/15 text-violet-100';
-	if (colorIndex === 3) return 'bg-amber-400/15 text-amber-100';
-	if (colorIndex === 4) return 'bg-rose-400/15 text-rose-100';
-
-	return 'bg-zinc-500/30 text-zinc-100';
+	return 'bg-muted text-muted-foreground';
 }
 
-function formatTaskDate(ms: number): string {
+function getTagClassName(tag: string): string {
 	//
-	if (!Number.isFinite(ms)) return 'unknown';
+	if (tag.startsWith('status:')) return 'bg-sky-500/20 text-sky-100';
+	if (tag.startsWith('source:')) return 'bg-yellow-500/20 text-yellow-100';
+	if (tag.startsWith('ticktick-')) return 'bg-violet-500/20 text-violet-100';
+	if (tag === 'security') return 'bg-red-500/20 text-red-100';
+	if (tag === 'ux') return 'bg-cyan-500/20 text-cyan-100';
+	if (tag === 'tech') return 'bg-emerald-500/20 text-emerald-100';
 
-	return new Date(ms).toLocaleDateString(undefined, {
+	return 'bg-muted text-muted-foreground';
+}
+
+function formatTaskDate(epochMs: number): string {
+	//
+	return new Intl.DateTimeFormat(undefined, {
 		month: 'short',
 		day: 'numeric',
-	});
+	}).format(new Date(epochMs));
 }

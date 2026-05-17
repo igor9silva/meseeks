@@ -11,5 +11,5 @@ function RouteComponent() {
 	//
 	const search = Route.useSearch();
 
-	return <TaskExplorerPage search={search} />;
+	return <TaskExplorerPage search={search} routePath="/" />;
 }

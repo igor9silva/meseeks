@@ -1,126 +1,110 @@
 # Tasks
 
-This folder is the public task system for Meseeks product and repo work. Use filesystem buckets as the mental model.
+This is the public root task for Meseeks product and repo work.
+
+`private/tasks/` is the private root task. It has the same shape, but it is for sensitive material, personal work, raw imports, phone captures, and unreviewed staging.
+
+## Shape
+
+Every task is a folder with exactly one `_index.md`, `_index.mdx`, or `_index.txt`.
+
+Examples:
+
+- `tasks/_index.md`
+- `tasks/tasks/reactor-v1/_index.mdx`
+- `private/tasks/inbox/raw-capture/_index.md`
+- `tasks/references/some-library/_index.md`
+
+Attachments and real subtasks live inside the owning task folder. A plain directory without `_index.*` is not a task; add `_index.*` if the directory is meaningful task hierarchy.
+
+Use task folders when the task needs attachments, real subtasks, or a colocated source/reference collection. Do not create topic folders just to group tasks; use tags and Organizer filters.
 
 ## Roots
 
-- `tasks/` is public. Put product, repo, roadmap, and implementation work here when it is safe to review in the repo.
-- `private/tasks/` is private. Put sensitive material, personal staging, raw imports, phone captures, and unreviewed source dumps there.
+- `tasks/` is public. Product, repo, roadmap, implementation work, and public references go here when safe.
+- `private/tasks/` is private. Personal, sensitive, raw, strategic, or unreviewed material starts here.
 
-Raw TickTick and phone captures default to `private/tasks/inbox/`. Move them public only after review.
+Raw TickTick, phone, browser, and reading-list captures default to `private/tasks/inbox/`. Move them public only after review.
 
-## Buckets
+## Root Children
 
-Use these top-level buckets:
+Each root has four first-class child tasks:
 
-- `inbox/` for unplanned captures.
-- `ideas/` for side projects, product ideas, use cases, and things worth trying.
-- `active/` for work we are doing now or committed to doing next.
-- `backlog/` for valid work we might do later.
-- `references/` for searchable context that is not a completable task.
-- `completed/` for achieved work only.
+- `inbox/` for raw captures pending triage.
+- `tasks/` for actionable work.
+- `references/` for searchable material that is not itself work.
+- `ideas/` for possible projects, product thoughts, use cases, side projects, and experiments.
 
-Do not create topic folders by default. Use short tags for reusable organization, like `security`, `convex`, `organizer`, `legacy`, or `billing`. Use `intelligence` only for AI model/model-provider support tasks. Use `skill` for skills/integrations we want to add to Meseeks. Use `demand` for public demand signals that validate Meseeks. Use `customization` for user-driven app customization. Use `bi-render` for systems that render the same component/task/action toward humans and AI. Use `legacy` for pre-Reactor-v1 work kept as context until v1 replaces or revalidates it.
+Inbox is temporary. Reviewed inbox items should leave inbox unless a `human:*` tag intentionally keeps them blocked there.
 
-Nested folders are for real parent tasks, source/import batches, or reference collections. They are not a substitute for tags.
+## Lifecycle
 
-Flatten grouping-only folders once tags or UI filters can carry the organization. Keep a nested folder when the folder itself is part of the task shape: a parent task with real child tasks, an import/source batch that needs shared provenance, or a reference collection that needs colocated assets.
+Filesystem path does not define lifecycle anymore.
 
-An `_index.*` file usually means the folder is the parent task or collection. Do not flatten that folder unless the index is only obsolete grouping scaffolding and Igor agreed it should be replaced by tags.
+Actionable tasks under `*/tasks/` use exactly one lifecycle tag:
 
-Example:
+- `status:backlog`
+- `status:active`
+- `status:completed`
 
-```yaml
-tags: [intelligence]
-```
+Do not add lifecycle status tags to `inbox/`, `references/`, or `ideas/` by default.
 
-Not:
+Completed tasks migrate and remain indexed, but Organizer hides `status:completed` by default. Completed tasks are history: do not rewrite, retag, rename, or move them unless Igor explicitly asks.
 
-```txt
-tasks/intelligences/agent-cpm-report.md
-```
+If we decide not to do a task, delete it. If the file contains useful context, move only that context to `references/` and delete the task shell.
 
-`intelligences` is a topic direction, not a lifecycle bucket.
+## Config
 
-## Task Shape
+Each task folder may own `_config.json`.
 
-Plain text tasks are first-class. Do not force every file into `Context`, `Objective`, `Subtasks`, `Progress`, and `Notes`.
+`_config.json` is machine-owned Organizer config, not task prose. It can define:
 
-A good task file needs enough information to act:
+- `view`: `list` or `board`
+- `scope`: currently `direct`
+- `columns`: board columns matched by tags
+- `hiddenTags`: tags hidden by default, usually `status:completed`
 
-- what should happen
-- why it matters
-- important constraints or source material
-- source metadata when imported
+Root tasks and `inbox/`, `references/`, `ideas/` use list views by default. The `tasks/` branch uses a board with `Backlog` and `Active` columns by default. Children that do not match a configured column render under `Unsorted`; nothing should disappear.
 
-Use structure when it helps. Skip it when it is ceremony.
+## Tags
+
+Use [TAGS.md](TAGS.md) as the canonical registry.
+
+Tags carry reusable organization. `status:*` carries actionable lifecycle. Source namespaces such as `source:*`, `ticktick-list:*`, and `ticktick-status:*` preserve provenance.
+
+`ticktick-status:*` is source metadata from TickTick. It is not our current lifecycle.
 
 ## Source Metadata
 
-Imported tasks must preserve where they came from. Keep TickTick IDs, source URLs, capture text, tweet URLs, transcript references, or import notes close to the relevant content.
+First imports must preserve every possible bit of source information: raw text, URLs, IDs, timestamps, board/list state, source JSON, attachments, comments, reminders, and import notes.
 
-Example:
+After imported source material has been committed once, organizing and uncluttering passes may remove routine raw source blocks or JSON when they no longer help the task. Git history is the durable import backup.
 
-```md
-Source: TickTick Inbox
-TickTick ID: 67abc...
-URL: https://x.com/...
-Captured: 2026-05-10
-```
-
-For scraped links, keep the source URL even if the body has been summarized. For transcript-backed tasks, put the real synthesis in the main body and keep source quotes or transcript pointers where they help verify the interpretation.
-
-## Inbox Planning
-
-Plan in batches. Do not perfect one capture while the rest of the inbox rots.
-
-For each inbox item:
-
-1. Move it to `ideas/`, `active/`, `backlog/`, `references/`, or `completed/`.
-2. Delete it if we decided not to do it.
-3. Split it if it mixes public work with private source material.
-
-Mixed task example:
-
-- public actionable task: `tasks/backlog/improve-link-imports.md`
-- private source note: `private/tasks/references/ticktick/link-import-capture.md`
-
-## References
-
-References are searchable context, not promises to act.
-
-Use `references/` for research notes, source dumps, prompts, transcripts, saved links, and examples that may inform future work. If a reference creates work, write a separate task in `inbox/`, `ideas/`, `active/`, or `backlog/` and link back to the reference.
-
-## Completed Or Deleted
-
-`completed/` means the work happened. It is not a graveyard for ideas we rejected.
-
-If we decide not to do a task, delete the file. If the file contains useful context, move only that context to `references/` and delete the task shell.
+For saved-reading backups, put readable page content first and source metadata last. The point is quick reading and local backup.
 
 ## Private To Public
 
 Private-to-public movement requires review.
 
-Before moving a private task into `tasks/`:
+Before moving private material into `tasks/`:
 
 - remove secrets, personal data, private account details, and raw sensitive captures
 - preserve useful source metadata
-- keep private source notes in `private/tasks/references/` when the public task should not include the raw material
+- keep raw private source notes in `private/tasks/references/` when needed
 - split mixed files instead of laundering private context into a public task
 
 Meseeks product and repo work should end up public when safe. Personal staging and raw imports can stay private.
 
-## Agent Workflow
+## Organizer Routes
 
-When working on tasks:
+Organizer follows task paths:
 
-- work in batches
-- keep filesystem bucket semantics intact
-- preserve source metadata
-- keep public and private roots separate
-- split mixed public/private files
-- delete rejected work instead of marking it completed
-- flatten grouping-only folders instead of preserving directory buckets as topics
-- run the task index build only when task files changed and the task scope allows it
+- `/` shows the global overview across public and private.
+- `/public` shows `tasks/`.
+- `/private` shows `private/tasks/`.
+- `/public/tasks/reactor-v1` shows `tasks/tasks/reactor-v1/_index.*`.
+- `/private/inbox/foo` shows `private/tasks/inbox/foo/_index.*`.
 
-Do not overfit to Organizer internals. The contract is simple: roots define safety, buckets define lifecycle, file content carries the work.
+Use `?selected=<child-slug>` for the right panel and `?detail=expanded` for expanded detail.
+
+Old `?taskKey=...` URLs are intentionally gone.

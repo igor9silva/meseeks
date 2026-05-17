@@ -367,8 +367,13 @@ One file per hook in `src/hooks/`.
 - In classification or cleanup work, treat explicit per-item user decisions as labeled examples: execute the requested move/delete/fold exactly now, and capture reusable reasoning in the relevant skill memory when it should improve future autonomous cleanup. Do not reinterpret the immediate command into broader cleanup.
   - bad: user says `delete stale`, and the assistant creates or preserves a reference because the content looked interesting
   - good: delete it
-  - bad: user says `done` on a private task, and the assistant promotes it to public `completed/` with a "Done already" note
-  - good: move it to private `completed/` and leave the body alone
+  - bad: user says `done` on a private task, and the assistant promotes it to public with a "Done already" note
+  - good: keep it private, move it under `private/tasks/tasks/`, add `status:completed`, and leave the body alone
+- In task-system work, follow `tasks/TAGS.md` for tag semantics and preserve explicit section/status/tag semantics instead of inferring a "better" taxonomy from the content.
+  - bad: user says a link is just `human:to-read`, and the assistant moves it to `references/` or adds `demand` because the article mentions a relevant market trend
+  - good: keep it in the private saved-reading queue and only improve title/source/content backup in place
+- Treat `tasks/TAGS.md` as executable cleanup guidance. Apply its section, lifecycle, visibility, and canonical-task constraints directly when the move is mechanical and safe.
+- Do not apply current tag cleanup to `status:completed` tasks. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless the user explicitly asks.
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit

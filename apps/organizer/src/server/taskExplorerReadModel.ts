@@ -1,7 +1,7 @@
 import type { ExplorerQuery } from '~/server/taskExplorerSchemas';
 import type { SnapshotResult } from '~/server/taskIndexRepository';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
-import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
+import { ROOT_PARENT_KEY } from '~/lib/explorerSearchParams';
 import { compareTagGroupKeys, parseTaskTag } from '~/lib/taskTags';
 
 type FacetEntry = {
@@ -24,6 +24,7 @@ type TagFacetGroup = {
 type ExplorerFacets = {
 	sources: FacetEntry[];
 	statuses: FacetEntry[];
+	sections: FacetEntry[];
 	tags: FacetEntry[];
 	tagGroups: TagFacetGroup[];
 };
@@ -46,18 +47,14 @@ function dedupeStrings(values: string[]): string[] {
 
 function normalizeQueryInput(input: ExplorerQuery): ExplorerQuery {
 	//
-	const normalizedSources = input.sources.length > 0 ? input.sources : [];
-	const normalizedStatuses = dedupeStrings(input.statuses);
-	const normalizedTags = dedupeStrings(input.tags);
-	const normalizedExcludedTags = dedupeStrings(input.excludedTags);
-
 	return {
 		q: input.q.trim(),
-		sources: normalizedSources,
-		statuses: normalizedStatuses,
-		tags: normalizedTags,
-		excludedTags: normalizedExcludedTags,
-		rootsOnly: input.rootsOnly,
+		sources: input.sources.length > 0 ? input.sources : [],
+		tags: dedupeStrings(input.tags),
+		excludedTags: dedupeStrings(input.excludedTags),
+		parentKey: input.parentKey,
+		minDepth: Math.min(input.minDepth, input.maxDepth),
+		maxDepth: Math.max(input.minDepth, input.maxDepth),
 		sort: input.sort,
 	};
 }
@@ -98,12 +95,32 @@ function compareTasks(left: TaskSummary, right: TaskSummary, sort: ExplorerQuery
 	return left.title.localeCompare(right.title);
 }
 
+function compareNavigationChildren(left: TaskSummary, right: TaskSummary, parentKey: string | null): number {
+	//
+	if (parentKey === ROOT_PARENT_KEY) {
+		const leftRank = left.taskSource === 'public' ? 0 : 1;
+		const rightRank = right.taskSource === 'public' ? 0 : 1;
+		return leftRank - rightRank;
+	}
+
+	if (parentKey === null || !parentKey.endsWith(':')) return 0;
+	if (left.pathSegments.length !== 1 || right.pathSegments.length !== 1) return 0;
+
+	const order = ['inbox', 'tasks', 'references', 'ideas'];
+	const leftRank = order.indexOf(left.pathSegments[0] ?? '');
+	const rightRank = order.indexOf(right.pathSegments[0] ?? '');
+
+	if (leftRank === -1 || rightRank === -1) return 0;
+	return leftRank - rightRank;
+}
+
 function calculateSearchScore(task: TaskSummary, tokens: string[]): number {
 	//
 	if (tokens.length === 0) return 0;
 
 	const title = task.title.toLowerCase();
 	const id = task.id.toLowerCase();
+	const taskPath = task.taskPath.toLowerCase();
 	const tags = task.tags.map((tag) => tag.toLowerCase());
 	const body = task.bodySearch.toLowerCase();
 	let totalScore = 0;
@@ -111,6 +128,7 @@ function calculateSearchScore(task: TaskSummary, tokens: string[]): number {
 	for (const token of tokens) {
 		let tokenScore = 0;
 
+		if (taskPath.includes(token)) tokenScore += 650;
 		if (id.includes(token)) tokenScore += 500;
 		if (title.includes(token)) tokenScore += 350;
 		if (tags.some((tag) => tag.includes(token))) tokenScore += 200;
@@ -126,24 +144,21 @@ function matchesTaskFilters(
 	task: TaskSummary,
 	query: ExplorerQuery,
 	searchTokens: string[],
+	childKeySet: Set<string> | null,
 	options: {
 		includeSources: boolean;
-		includeStatuses: boolean;
 		includeTags: boolean;
 		includeExcludedTags: boolean;
 		includeSearch: boolean;
+		includeParent: boolean;
 	},
 ): boolean {
 	//
-	if (query.rootsOnly && task.parentKey !== null) {
+	if (options.includeParent && childKeySet !== null && !childKeySet.has(task.key)) {
 		return false;
 	}
 
 	if (options.includeSources && !query.sources.includes(task.taskSource)) {
-		return false;
-	}
-
-	if (options.includeStatuses && !query.statuses.includes(task.status)) {
 		return false;
 	}
 
@@ -266,44 +281,134 @@ function compareTagFacetEntries(left: TagFacetEntry, right: TagFacetEntry): numb
 	return left.tag.localeCompare(right.tag);
 }
 
-function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: string[]): ExplorerFacets {
+function getDirectChildKeys(snapshotResult: SnapshotResult, parentKey: string | null): string[] {
+	//
+	if (parentKey === null || snapshotResult.snapshot === null) return [];
+
+	if (parentKey === ROOT_PARENT_KEY) {
+		return snapshotResult.snapshot.meta.tasks.filter((task) => task.taskPath.length === 0).map((task) => task.key);
+	}
+
+	return snapshotResult.snapshot.graph.edges
+		.filter((edge) => edge.type === 'parent' && edge.to === parentKey && edge.resolved)
+		.map((edge) => edge.from);
+}
+
+function buildChildKeySet(
+	snapshotResult: SnapshotResult,
+	parentKey: string | null,
+	minDepth: number,
+	maxDepth: number,
+): Set<string> | null {
+	//
+	if (parentKey === null || snapshotResult.snapshot === null) return null;
+
+	const includedKeys = new Set<string>();
+	let currentKeys = getDirectChildKeys(snapshotResult, parentKey);
+	let currentDepth = 1;
+
+	while (currentDepth <= maxDepth && currentKeys.length > 0) {
+		const nextKeys: string[] = [];
+
+		for (const key of currentKeys) {
+			if (currentDepth >= minDepth) {
+				includedKeys.add(key);
+			}
+			nextKeys.push(...getDirectChildKeys(snapshotResult, key));
+		}
+
+		currentKeys = nextKeys;
+		currentDepth += 1;
+	}
+
+	return includedKeys;
+}
+
+function buildHierarchyRanks(
+	snapshotResult: SnapshotResult,
+	parentKey: string | null,
+	minDepth: number,
+	maxDepth: number,
+	sort: ExplorerQuery['sort'],
+): Map<string, number> | null {
+	//
+	if (parentKey === null || snapshotResult.snapshot === null) return null;
+
+	const taskByKey = createTaskLookup(snapshotResult.snapshot.meta.tasks);
+	const ranks = new Map<string, number>();
+	let nextRank = 0;
+
+	const visit = (currentParentKey: string, currentDepth: number) => {
+		if (currentDepth > maxDepth) return;
+
+		const childTasks = getDirectChildKeys(snapshotResult, currentParentKey)
+			.map((key) => taskByKey.get(key) ?? null)
+			.filter((task): task is TaskSummary => task !== null)
+			.sort((left, right) => {
+				const navigationComparison = compareNavigationChildren(left, right, currentParentKey);
+				if (navigationComparison !== 0) return navigationComparison;
+
+				return compareTasks(left, right, sort);
+			});
+
+		for (const task of childTasks) {
+			if (currentDepth >= minDepth) {
+				ranks.set(task.key, nextRank);
+				nextRank += 1;
+			}
+			visit(task.key, currentDepth + 1);
+		}
+	};
+
+	visit(parentKey, 1);
+	return ranks;
+}
+
+function buildFacets(
+	tasks: TaskSummary[],
+	query: ExplorerQuery,
+	searchTokens: string[],
+	childKeySet: Set<string> | null,
+): ExplorerFacets {
 	//
 	const sourceCounts = new Map<string, number>();
 	const statusCounts = new Map<string, number>();
+	const sectionCounts = new Map<string, number>();
 	const tagCounts = new Map<string, TagCountEntry>();
 
 	for (const task of tasks) {
 		if (
-			matchesTaskFilters(task, query, searchTokens, {
+			matchesTaskFilters(task, query, searchTokens, childKeySet, {
 				includeSources: false,
-				includeStatuses: true,
 				includeTags: true,
 				includeExcludedTags: true,
 				includeSearch: true,
+				includeParent: true,
 			})
 		) {
 			sourceCounts.set(task.taskSource, (sourceCounts.get(task.taskSource) ?? 0) + 1);
 		}
 
 		if (
-			matchesTaskFilters(task, query, searchTokens, {
+			matchesTaskFilters(task, query, searchTokens, childKeySet, {
 				includeSources: true,
-				includeStatuses: false,
 				includeTags: true,
 				includeExcludedTags: true,
 				includeSearch: true,
+				includeParent: true,
 			})
 		) {
 			statusCounts.set(task.status, (statusCounts.get(task.status) ?? 0) + 1);
+			sectionCounts.set(task.section, (sectionCounts.get(task.section) ?? 0) + 1);
 		}
 
 		if (
-			matchesTaskFilters(task, query, searchTokens, {
+			matchesTaskFilters(task, query, searchTokens, childKeySet, {
 				includeSources: true,
-				includeStatuses: true,
 				includeTags: false,
 				includeExcludedTags: false,
 				includeSearch: true,
+				includeParent: true,
 			})
 		) {
 			for (const tagDetail of getTaskTagDetails(task)) {
@@ -315,33 +420,10 @@ function buildFacets(tasks: TaskSummary[], query: ExplorerQuery, searchTokens: s
 	return {
 		sources: mapCountEntries(sourceCounts, 'alpha'),
 		statuses: mapCountEntries(statusCounts, 'alpha'),
+		sections: mapCountEntries(sectionCounts, 'alpha'),
 		tags: mapTagCountEntries(tagCounts),
 		tagGroups: buildTagFacetGroups(tagCounts),
 	};
-}
-
-function buildStatusOptions(tasks: TaskSummary[]): string[] {
-	//
-	const statuses = new Set<string>(getDefaultTaskBuckets());
-
-	for (const task of tasks) {
-		statuses.add(task.status);
-	}
-
-	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
-}
-
-function buildTagOptions(tasks: TaskSummary[]): string[] {
-	//
-	const tags = new Set<string>();
-
-	for (const task of tasks) {
-		for (const tag of task.tags) {
-			tags.add(tag);
-		}
-	}
-
-	return Array.from(tags).sort((left, right) => left.localeCompare(right));
 }
 
 export function createTaskLookup(tasks: TaskSummary[]): Map<string, TaskSummary> {
@@ -364,20 +446,38 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 			facets: {
 				sources: [],
 				statuses: [],
+				sections: [],
 				tags: [],
 				tagGroups: [],
 			},
 			totals: {
 				all: 0,
 				visible: 0,
+				directChildren: 0,
 			},
-			statusOptions: [],
 			tagOptions: [],
 			query: normalizeQueryInput(input),
 		};
 	}
 
 	const normalizedQuery = normalizeQueryInput(input);
+	const directChildCount = getDirectChildKeys(snapshotResult, normalizedQuery.parentKey).length;
+	const childKeySet = buildChildKeySet(
+		snapshotResult,
+		normalizedQuery.parentKey,
+		normalizedQuery.minDepth,
+		normalizedQuery.maxDepth,
+	);
+	const hierarchyRanks =
+		normalizedQuery.q.length === 0
+			? buildHierarchyRanks(
+					snapshotResult,
+					normalizedQuery.parentKey,
+					normalizedQuery.minDepth,
+					normalizedQuery.maxDepth,
+					normalizedQuery.sort,
+				)
+			: null;
 	const searchTokens = normalizedQuery.q
 		.toLowerCase()
 		.split(/\s+/)
@@ -388,12 +488,12 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 
 	for (const task of snapshotResult.snapshot.meta.tasks) {
 		if (
-			!matchesTaskFilters(task, normalizedQuery, searchTokens, {
+			!matchesTaskFilters(task, normalizedQuery, searchTokens, childKeySet, {
 				includeSources: true,
-				includeStatuses: true,
 				includeTags: true,
 				includeExcludedTags: true,
 				includeSearch: false,
+				includeParent: true,
 			})
 		) {
 			continue;
@@ -407,6 +507,16 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 	}
 
 	scoredTasks.sort((left, right) => {
+		if (hierarchyRanks !== null) {
+			const leftRank = hierarchyRanks.get(left.task.key) ?? Number.MAX_SAFE_INTEGER;
+			const rightRank = hierarchyRanks.get(right.task.key) ?? Number.MAX_SAFE_INTEGER;
+
+			if (leftRank !== rightRank) return leftRank - rightRank;
+		}
+
+		const navigationComparison = compareNavigationChildren(left.task, right.task, normalizedQuery.parentKey);
+		if (navigationComparison !== 0) return navigationComparison;
+
 		if (searchTokens.length > 0 && left.score !== right.score) {
 			return right.score - left.score;
 		}
@@ -419,10 +529,15 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 		title: task.title,
 		taskSource: task.taskSource,
 		status: task.status,
+		section: task.section,
+		taskPath: task.taskPath,
+		pathSegments: task.pathSegments,
+		config: task.config,
 		priority: task.priority,
 		tags: task.tags,
 		bodyExcerpt: task.bodyExcerpt,
 		relativePath: task.relativePath,
+		absolutePath: task.absolutePath,
 		fileMtimeMs: task.fileMtimeMs,
 		warningCount: task.warnings.length,
 		score,
@@ -431,15 +546,28 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 	return {
 		health: snapshotResult.health,
 		tasks,
-		facets: buildFacets(snapshotResult.snapshot.meta.tasks, normalizedQuery, searchTokens),
+		facets: buildFacets(snapshotResult.snapshot.meta.tasks, normalizedQuery, searchTokens, childKeySet),
 		totals: {
 			all: snapshotResult.snapshot.meta.tasks.length,
 			visible: tasks.length,
+			directChildren: directChildCount,
 		},
-		statusOptions: buildStatusOptions(snapshotResult.snapshot.meta.tasks),
 		tagOptions: buildTagOptions(snapshotResult.snapshot.meta.tasks),
 		query: normalizedQuery,
 	};
+}
+
+function buildTagOptions(tasks: TaskSummary[]): string[] {
+	//
+	const tags = new Set<string>();
+
+	for (const task of tasks) {
+		for (const tag of task.tags) {
+			tags.add(tag);
+		}
+	}
+
+	return Array.from(tags).sort((left, right) => left.localeCompare(right));
 }
 
 export function buildTaskDetail(snapshotResult: SnapshotResult, taskKey: string) {
@@ -452,6 +580,7 @@ export function buildTaskDetail(snapshotResult: SnapshotResult, taskKey: string)
 				parentKey: null,
 				children: [],
 			},
+			relatedTasks: [],
 		};
 	}
 
@@ -466,6 +595,7 @@ export function buildTaskDetail(snapshotResult: SnapshotResult, taskKey: string)
 				parentKey: null,
 				children: [],
 			},
+			relatedTasks: [],
 		};
 	}
 
@@ -493,9 +623,9 @@ export function buildTaskDetail(snapshotResult: SnapshotResult, taskKey: string)
 			title: relatedTask.title,
 			status: relatedTask.status,
 			taskSource: relatedTask.taskSource,
+			taskPath: relatedTask.taskPath,
+			section: relatedTask.section,
 		}));
-
-	const absolutePath = typeof task.absolutePath === 'string' ? task.absolutePath : null;
 
 	return {
 		health: snapshotResult.health,
@@ -508,7 +638,12 @@ export function buildTaskDetail(snapshotResult: SnapshotResult, taskKey: string)
 			taskSource: task.taskSource,
 			tags: task.tags,
 			relativePath: task.relativePath,
-			absolutePath,
+			absolutePath: task.absolutePath,
+			directoryPath: task.directoryPath,
+			taskPath: task.taskPath,
+			pathSegments: task.pathSegments,
+			section: task.section,
+			config: task.config,
 			parentId: task.parentId,
 			parentKey: task.parentKey,
 			created: task.created,

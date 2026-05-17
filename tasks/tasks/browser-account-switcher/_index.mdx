@@ -1,0 +1,54 @@
+---
+title: Add browser account switcher
+priority: high
+tags: [auth, status:backlog]
+---
+
+# Browser account switcher
+
+Meseeks currently assumes one active platform account per browser session.
+
+The auth client only exposes a single sign-in path and a reload-based sign-out flow in `lib/auth-client.ts`. The custom Convex bridge in `src/components/ConvexAuthProvider.tsx` reads one `convex_jwt` cookie and treats it as the single source of truth for auth state. App data also resolves through one current app user in `convex/users.private.ts`, and most product behavior fans out from that owner-scoped identity.
+
+The current bridge also preserves a cold-start invariant that matters here: no auth HTTP before first render on normal reloads. Rolling Better Auth sessions now come from a sparse background `/api/auth/convex/token` refresh on `visibilitychange` when the cached JWT is nearing expiry. Multi-account work must preserve both the no-startup-request behavior and the rolling-session behavior.
+
+Better Auth already supports multi-session account switching, but this repo does not currently integrate that capability. The work is to support keeping multiple platform accounts signed in on the same device and switching the app's active account cleanly without cross-account data bleed.
+
+## Objective
+Ship browser-level multi-account support so a user can sign into multiple Meseeks accounts on the same device, switch the active account from the UI, and have all owner-scoped app data follow the selected account correctly after switch and reload.
+
+## Subtasks
+- [ ] Add Better Auth multi-session support to the existing platform sign-in setup in `lib/authOptions.ts`, `lib/auth-client.ts`, and any required Convex-side auth glue without regressing the current custom Better Auth -> Convex behavior.
+- [ ] Replace the single-cookie assumptions in `src/components/ConvexAuthProvider.tsx` so the active Better Auth session and the active Convex JWT stay in sync when switching accounts.
+- [ ] Add account-management UI for signed-in users, starting in `src/components/UserMenuItem.tsx`, with at least: list signed-in accounts on this device, switch active account, add another account, and sign out only the selected account.
+- [ ] Update signed-out and auth-entry surfaces such as `src/components/AccessDenied.tsx` so adding another account and returning to the current route works predictably.
+- [ ] Verify `convex/users.private.ts` and the owner-scoped query/mutation flow still resolve the correct active app user after account switches, including the first-JWT fallback path.
+- [ ] Reset or invalidate client caches on account switch so inbox/tasks, balance, drafts, subscriptions, and other owner-scoped state do not leak between accounts.
+- [ ] Document and enforce the v1 boundary: browser account switcher only. Per-tab account isolation and provider-linking across one app user stay out of scope.
+- [ ] Add regression coverage for the critical flows: second-account sign-in, active-account switch, reload persistence, single-account sign-out, and no cross-account data bleed in visible UI state.
+
+## Progress Log
+### 2026-04-01
+- Task created
+
+### 2026-04-25
+- Clarified the current auth baseline this task must preserve: no auth HTTP before first render on normal reloads, plus sparse visibility-based Better Auth session keepalive when the cached JWT is nearing expiry.
+
+## Notes
+Related auth context:
+- `tasks/tasks/better-auth/_index.md`
+
+Primary implementation files:
+- `lib/authOptions.ts`
+- `lib/auth-client.ts`
+- `src/components/ConvexAuthProvider.tsx`
+- `src/components/UserMenuItem.tsx`
+- `src/components/AccessDenied.tsx`
+- `convex/users.private.ts`
+
+Acceptance should include:
+- two separate Google-backed Meseeks accounts can stay signed in on one browser
+- switching active account updates `users.current`-driven UI after the switch and after a full reload
+- signing out one account does not revoke every other signed-in account on the device
+- account A cannot see stale owner-scoped data from account B after switching
+- v1 explicitly does not promise different active accounts in different tabs of the same browser at the same time

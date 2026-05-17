@@ -9,7 +9,7 @@ Act on the task. Do not stop at planning unless a blocker makes execution unsafe
 
 ## Start Here
 
-1. Read `tasks/README.md`.
+1. Read `tasks/README.md`. If execution changes task tags or task placement, also read `tasks/TAGS.md`.
 2. If Organizer provided task key/source/path context, use that exact task.
 3. Read the target task file in full.
 4. Read nearby context that changes execution: parent `_index.*`, child tasks, linked references, sibling duplicates, repo files named by the task, and relevant source metadata.

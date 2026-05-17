@@ -19,7 +19,7 @@ The useful bit is the motion language: simple enough to understand at a glance, 
 
 ## Attachments
 
-- [tool-call-animation.mp4](attachments/tool-call-animation.mp4) (208,652 bytes)
+- [animation.mp4](attachments/animation.mp4) (208,652 bytes)
 
 ## TickTick source
 

@@ -1,11 +1,11 @@
 ---
 name: unclutter
-description: Unclutter the Meseeks task system by directly organizing messy tasks, references, imports, tags, buckets, duplicates, stale active work, and public/private placement. Use when the user asks to unclutter, clean up tasks, organize everything, or fix task-system clutter.
+description: Unclutter the Meseeks task system by directly organizing messy task folders, references, imports, tags, status tags, duplicates, stale active work, and public/private placement. Use when the user asks to unclutter, clean up tasks, organize everything, or fix task-system clutter.
 ---
 
 # Unclutter
 
-Organize the task system directly, then explain what changed and why.
+Organize the task system directly. Uncluttering means making the repo task system closer to what Igor would have done by hand.
 
 ## First Gate
 
@@ -17,11 +17,11 @@ Run `git status --short` before doing anything.
 
 ## Read First
 
-Read `tasks/README.md` before editing task files. Use that contract for roots, buckets, references, source metadata, deletion semantics, and private/public safety.
+Read `tasks/README.md` before editing task files. Use that contract for roots, task folders, root children, status tags, references, source metadata, deletion semantics, and private/public safety.
+
+Read `tasks/TAGS.md` before adding, removing, renaming, or interpreting tags. It is the canonical tag registry.
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
-
-When Igor corrects an organizing decision, treat the correction as training data. If the correction is likely to recur, update `.config/skills/unclutter/MEMORY.md` in the same pass instead of relying on chat history.
 
 For implementation tasks, inspect the relevant current code before deciding whether a task is stale, still valid, or should be folded into a parent task.
 
@@ -29,22 +29,26 @@ For implementation tasks, inspect the relevant current code before deciding whet
 
 When Igor reviews tasks one by one, treat each decision as a labeled example for future Unclutter runs.
 
-Do both jobs:
+Apply the current disposition exactly. Mechanical feedback is mechanical:
 
-1. Apply the current disposition exactly. If Igor says `delete`, delete. If he says `done`, move to `completed/` in the same root. If he says `public tech ref`, move to public `references/` with `tech`. If he says `flat into X`, move the content into X and delete the source. No need to keep `# Source` or `# TickTick source` blocks (they'll be git history anyway).
-2. Extract the reusable reasoning behind the decision and update `.config/skills/unclutter/MEMORY.md` when it should help future autonomous Unclutter passes make the same call without Igor.
+- `delete`, `kill`, `stale`: delete it.
+- `done`: move it under `tasks/` in the same root, add `status:completed`, and leave the body alone.
+- `public tech ref`: move it to public `references/` with `tech`.
+- `human:to-read`: keep it as a private reading queue item in inbox.
+- `flat into X`, `fold into X`, `merge into X`: move only the useful content into X, in the natural place, then delete the source.
 
-Do not confuse those jobs. The current task should not grow extra files, extra prose, visibility changes, or speculative structure just because Igor explained why he chose a destination. The explanation is training data for future inference, not permission to overwork the current item.
+Then extract the reusable reasoning. If it helps classify a similar future task, update `.config/skills/unclutter/MEMORY.md` in the same pass. Do not turn Igor's explanation into extra body text on the current task.
 
-Write memory as decision heuristics, not as one-off transcripts. A good memory entry helps answer "what would Igor do with a similar task later?"
+Do not invent modes, frameworks, or taxonomies around review feedback. The learning loop is simple: execute the item, capture the durable judgment, get better next time.
 
 ## What To Fix
 
 Be broad and practical. Look for anything that makes the task system harder to trust or scan:
 
 - duplicate tasks, duplicate imports, repeated source URLs, repeated TickTick IDs
-- invalid or vague buckets
-- stale `active/` work that is done, abandoned, or belongs elsewhere
+- invalid root child placement
+- missing, duplicated, or wrong `status:*` tags on actionable tasks
+- stale `status:active` work that is done, abandoned, or belongs elsewhere
 - references pretending to be tasks
 - tasks that should be references
 - public tasks that should be private
@@ -52,26 +56,38 @@ Be broad and practical. Look for anything that makes the task system harder to t
 - raw imports that need planning or better source metadata
 - weak titles, bad filenames, empty shells, outdated wording
 - duplicated, misspelled, or overly-specific tags that should be unified
-- grouping-only folders that should be flattened because tags or UI filters now carry that organization
+- directories without `_index.*` that should either become real task hierarchy or be flattened because tags or UI filters now carry that organization
 - nested folders with `_index.*` that must be preserved because they are real parent tasks or reference collections
 - completed tasks that were not actually completed
-- rejected work sitting in `completed/` instead of being deleted
+- rejected work sitting with `status:completed` instead of being deleted
 - source-backed tasks missing traceability
 - link-only tasks whose title is still just a URL or a meaningless import label
 - image/video attachments that were left behind or not rendered after a merge
 
 Use judgment, but do not override an explicit disposition Igor already gave for a specific task.
 
+## Style Rules
+
+- Do not write obvious context back into the task. A task with `status:completed` does not need "done already". A task in `references/` does not need "reference capture".
+- Do not write review labels into task prose. If Igor says something is "low-relevance", "stale", "small", or "just a link", use that to choose the disposition; do not paste the label into the file.
+- Do not add generic `Source`, `TickTick source`, raw JSON, "source preserved", "merged source note", or "examples from original task" blocks when merging imports. Git history carries routine provenance.
+- Preserve useful original context. If detail may matter, keep it compactly in the body or as a named link. Do not summarize away the reason the capture existed.
+- Prefer named Markdown links in prose. Bare URLs are for raw source lists or when the URL itself is the artifact.
+- Do not start every task with `## Context`. Start with the content.
+
 ## Tag Hygiene
 
-Keep tags short, reusable, and useful for organization. Do not add model names, provider names, vendor names, one-off feature names, or tags that repeat the title.
+Follow `tasks/TAGS.md`. Do not redefine tag semantics here.
 
-Prefer existing tags over creating new ones.
+Treat the registry as executable cleanup guidance. If it constrains a tag to a section, lifecycle, visibility, or canonical task, fix the files that violate it instead of only noting the mismatch.
 
-Use `source:ticktick` for every task imported from TickTick or carrying TickTick metadata.
-Use `scraped` for captures that were expanded from a link.
+Do not apply cleanup to `status:completed` tasks. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless Igor explicitly asks.
 
 When adding one of the broad organizational tags, scan for nearby tasks that should receive the same tag so the vocabulary stays useful instead of becoming accidental.
+
+Keep source namespace tags when they preserve import traceability. Remember that `ticktick-status:*` is source metadata from TickTick, not current lifecycle.
+
+`human:*` tags mean blocked on Igor or another human. Do not auto-complete or over-organize them away during broad cleanup.
 
 ## How To Work
 
@@ -85,15 +101,15 @@ Ask Igor before:
 - deleting something when the intent is not obvious
 - choosing between plausible meanings for a mixed task
 
-When a task mixes public work with private context, split it: public actionable task in `tasks/`, private source/reference note in `private/tasks/references/`.
+When a task mixes public work with private context, split it: public actionable task under `tasks/tasks/`, private source/reference note under `private/tasks/references/`.
 
-When something is rejected but has useful context, keep the context as a reference and remove the task shell.
+When something is rejected but Igor did not say the source is still useful, delete it. Do not salvage interesting-looking debris just because it looks interesting.
 
-After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. Move it to the best bucket and ask if the bucket is unclear.
+After Igor reviews an inbox item, do not leave it in inbox unless he explicitly says so. `human:to-read` is one of those explicit exceptions when Igor says it is just something to read. Move other reviewed items to the best section and ask if the destination is unclear.
 
 Treat `_index.*` as the folder's parent task or collection by default. Flatten only when the index is obsolete grouping scaffolding and Igor agreed the grouping should become tags.
 
-When flattening or merging imports, move the useful content, links, and attachments into the target task. Do not preserve generic `Source`, `TickTick source`, raw JSON, or "merged source note" blocks unless provenance itself is the useful content. Git history is enough for routine import provenance.
+When flattening or merging imports, move the useful content, links, and attachments into the target task folder. Routine raw import data can be removed after the imported snapshot has already been committed once.
 
 ## After Editing
 

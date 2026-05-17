@@ -2,39 +2,76 @@
 /**
  * task index generator
  *
- * builds normalized indexes for task documents across multiple task roots.
- * scans both public tasks (tasks/) and private tasks (private/tasks/).
- * supports mdx/markdown/plain text, optional frontmatter, and malformed files.
+ * every task is a directory containing one _index.* body file.
+ * task roots:
+ * - tasks/
+ * - private/tasks/
  *
- * usage:
- *   bun run .config/tasks/generate-task-index.ts
+ * generated indexes are consumed by apps/organizer.
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { extname, join, posix, relative, resolve } from 'node:path';
+import { basename, dirname, extname, join, posix, relative, resolve } from 'node:path';
 import { z } from 'zod/v3';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'tasks', '.generated');
-const OUTPUT_VERSION = 3;
+const OUTPUT_VERSION = 4;
 const VERBOSE = process.argv.includes('--verbose');
 
 type TaskSourceLabel = 'public' | 'private';
+type BodyFormat = 'md' | 'mdx' | 'text' | 'empty';
+type TaskSection = 'root' | 'inbox' | 'tasks' | 'references' | 'ideas' | 'other';
+type TaskView = 'list' | 'board';
 
 interface TaskSource {
 	label: TaskSourceLabel;
 	root: string;
 }
 
-const TASK_SOURCES: TaskSource[] = [
-	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
-	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
-];
+interface TaskTag {
+	tag: string;
+	key: string | null;
+	value: string;
+}
 
-const TASK_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '']);
+interface TaskConfigColumn {
+	id: string;
+	label: string;
+	tag: string | null;
+}
 
-type TaskBucket = string;
-type BodyFormat = 'md' | 'mdx' | 'text' | 'empty';
+interface TaskConfig {
+	view: TaskView;
+	scope: 'direct';
+	columns: TaskConfigColumn[];
+	hiddenTags: string[];
+}
+
+interface ParsedTaskFile {
+	key: string;
+	taskSource: TaskSourceLabel;
+	id: string;
+	taskPath: string;
+	pathSegments: string[];
+	section: TaskSection;
+	relativePath: string;
+	absolutePath: string;
+	directoryPath: string;
+	extension: string;
+	frontmatter: Record<string, FrontmatterValue>;
+	body: string;
+	rawFrontmatter: string | null;
+	hasFrontmatter: boolean;
+	fileBytes: number;
+	fileMtimeMs: number;
+	fileCtimeMs: number;
+	fileBirthtimeMs: number;
+	isEmptyFile: boolean;
+	config: TaskConfig;
+	warnings: string[];
+}
+
 type FrontmatterScalar = string | number | boolean | null;
 type FrontmatterValue = FrontmatterScalar | FrontmatterScalar[];
 
@@ -45,41 +82,6 @@ interface FrontmatterExtractionResult {
 	hasFrontmatter: boolean;
 	warnings: string[];
 }
-
-interface ParsedTaskFile {
-	key: string;
-	source: TaskSourceLabel;
-	relativePath: string;
-	absolutePath: string;
-	extension: string;
-	bucket: TaskBucket;
-	frontmatter: Record<string, FrontmatterValue>;
-	body: string;
-	rawFrontmatter: string | null;
-	hasFrontmatter: boolean;
-	fileBytes: number;
-	fileMtimeMs: number;
-	fileCtimeMs: number;
-	fileBirthtimeMs: number;
-	isEmptyFile: boolean;
-	warnings: string[];
-}
-
-const optionalStringSchema = z.preprocess((value) => normalizeOptionalString(value), z.string().min(1)).optional();
-const optionalLowerStringSchema = z
-	.preprocess((value) => normalizeOptionalLowerString(value), z.string().min(1))
-	.optional();
-const optionalStringArraySchema = z.preprocess((value) => normalizeStringArray(value), z.array(z.string())).optional();
-
-const frontmatterSchema = z
-	.object({
-		title: optionalStringSchema,
-		priority: optionalLowerStringSchema,
-		tags: optionalStringArraySchema,
-	})
-	.passthrough();
-
-type NormalizedFrontmatter = z.infer<typeof frontmatterSchema>;
 
 interface TaskRecord {
 	key: string;
@@ -107,9 +109,13 @@ interface TaskRecord {
 	bodySearch: string;
 	headingTitle: string | null;
 	extension: string;
-	bucket: TaskBucket;
 	relativePath: string;
 	absolutePath: string;
+	directoryPath: string;
+	taskPath: string;
+	pathSegments: string[];
+	section: TaskSection;
+	config: TaskConfig;
 	fileBytes: number;
 	fileMtimeMs: number;
 	fileCtimeMs: number;
@@ -141,9 +147,13 @@ interface TaskSummary {
 	bodySearch: string;
 	headingTitle: string | null;
 	extension: string;
-	bucket: TaskBucket;
 	relativePath: string;
 	absolutePath: string;
+	directoryPath: string;
+	taskPath: string;
+	pathSegments: string[];
+	section: TaskSection;
+	config: TaskConfig;
 	fileBytes: number;
 	fileMtimeMs: number;
 	fileCtimeMs: number;
@@ -159,8 +169,9 @@ interface TaskGraphNode {
 	status: string;
 	parentId: string | null;
 	parentKey: string | null;
-	bucket: TaskBucket;
+	taskPath: string;
 	relativePath: string;
+	section: TaskSection;
 }
 
 interface TaskGraphEdge {
@@ -175,12 +186,6 @@ interface TaskWarningEntry {
 	taskKey: string;
 	relativePath: string;
 	message: string;
-}
-
-interface TaskTag {
-	tag: string;
-	key: string | null;
-	value: string;
 }
 
 interface TaskTagGroupValue {
@@ -200,16 +205,59 @@ interface BuildSummary {
 	withoutFrontmatter: number;
 	emptyFiles: number;
 	bySource: Record<string, number>;
-	byBucket: Record<string, number>;
+	bySection: Record<string, number>;
 	byStatus: Record<string, number>;
 	byBodyFormat: Record<string, number>;
 	totalWarnings: number;
 }
 
-function log(message: string): void {
-	//
-	if (VERBOSE) console.info(message);
+interface TaskLookupPayload {
+	keyToPath: Record<string, string>;
+	taskPathToKey: Record<string, string>;
+	idToKeys: Record<string, string[]>;
+	statusToKeys: Record<string, string[]>;
+	tagToKeys: Record<string, string[]>;
+	tagGroups: TaskTagGroup[];
 }
+
+const TASK_SOURCES: TaskSource[] = [
+	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
+	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
+];
+
+const INDEX_EXTENSIONS = ['.md', '.mdx', '.txt'];
+const CONFIG_FILENAME = '_config.json';
+
+const optionalStringSchema = z.preprocess((value) => normalizeOptionalString(value), z.string().min(1)).optional();
+const optionalLowerStringSchema = z
+	.preprocess((value) => normalizeOptionalLowerString(value), z.string().min(1))
+	.optional();
+const optionalStringArraySchema = z.preprocess((value) => normalizeStringArray(value), z.array(z.string())).optional();
+
+const frontmatterSchema = z
+	.object({
+		title: optionalStringSchema,
+		priority: optionalLowerStringSchema,
+		tags: optionalStringArraySchema,
+	})
+	.passthrough();
+
+const taskConfigColumnSchema = z.object({
+	id: z.string().min(1),
+	label: z.string().min(1),
+	tag: z.string().min(1).nullable().optional(),
+});
+
+const taskConfigSchema = z
+	.object({
+		view: z.enum(['list', 'board']).optional(),
+		scope: z.literal('direct').optional(),
+		columns: z.array(taskConfigColumnSchema).optional(),
+		hiddenTags: z.array(z.string().min(1)).optional(),
+	})
+	.passthrough();
+
+type NormalizedFrontmatter = z.infer<typeof frontmatterSchema>;
 
 function main(): void {
 	//
@@ -223,14 +271,14 @@ function main(): void {
 			continue;
 		}
 
-		const sourceFiles = findTaskFiles(taskSource.root);
+		const sourceFiles = findTaskIndexFiles(taskSource.root);
 		const sourceParsed = sourceFiles.map((absolutePath) => parseTaskFile(absolutePath, taskSource));
 		parsedFiles.push(...sourceParsed);
 		log(`${taskSource.label}: ${sourceParsed.length} task files`);
 	}
 
 	const taskRecords = parsedFiles.map((parsedFile) => buildTaskRecord(parsedFile));
-	taskRecords.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+	taskRecords.sort((left, right) => left.key.localeCompare(right.key));
 
 	const keyToTask = new Map<string, TaskRecord>();
 
@@ -259,57 +307,56 @@ function main(): void {
 	console.info(`✓ task indexes: ${taskRecords.length} tasks, ${warnings.length} warnings`);
 }
 
-function findTaskFiles(tasksRoot: string): string[] {
+function log(message: string): void {
+	//
+	if (VERBOSE) console.info(message);
+}
+
+function findTaskIndexFiles(root: string): string[] {
 	//
 	const files: string[] = [];
-	const entries = readdirSync(tasksRoot, { withFileTypes: true });
-
-	for (const entry of entries) {
-		if (entry.name.startsWith('.')) continue;
-		if (!entry.isDirectory()) continue;
-		if (entry.name === '.generated') continue;
-
-		const statusDirectory = join(tasksRoot, entry.name);
-		collectTaskFiles(statusDirectory, files);
-	}
-
+	collectTaskIndexFiles(root, root, files);
 	files.sort((left, right) => left.localeCompare(right));
 	return files;
 }
 
-function collectTaskFiles(directoryPath: string, files: string[]): void {
+function collectTaskIndexFiles(root: string, directoryPath: string, files: string[]): void {
 	//
+	const indexFiles = findIndexFiles(directoryPath);
+
+	if (indexFiles.length > 0) {
+		files.push(indexFiles[0]);
+	}
+
 	const entries = readdirSync(directoryPath, { withFileTypes: true });
 
 	for (const entry of entries) {
-		if (entry.name.startsWith('.')) continue;
+		if (!entry.isDirectory()) continue;
+		if (shouldSkipDirectory(entry.name)) continue;
 
-		const absolutePath = join(directoryPath, entry.name);
-
-		if (entry.isDirectory()) {
-			if (entry.name === '.generated') continue;
-			collectTaskFiles(absolutePath, files);
-			continue;
-		}
-
-		if (!entry.isFile()) continue;
-		if (!isTaskFileName(entry.name)) continue;
-
-		files.push(absolutePath);
+		collectTaskIndexFiles(root, join(directoryPath, entry.name), files);
 	}
 }
 
-function isTaskFileName(fileName: string): boolean {
+function shouldSkipDirectory(name: string): boolean {
 	//
-	if (fileName.startsWith('.')) return false;
+	if (name.startsWith('.')) return true;
+	if (name === 'attachments') return true;
+	if (name === 'node_modules') return true;
+	return false;
+}
 
-	const extension = extname(fileName).toLowerCase();
+function findIndexFiles(directoryPath: string): string[] {
+	//
+	const files: string[] = [];
 
-	if (!TASK_EXTENSIONS.has(extension)) return false;
-	if (extension.length > 0) return true;
+	for (const extension of INDEX_EXTENSIONS) {
+		const candidatePath = join(directoryPath, `_index${extension}`);
+		if (!existsSync(candidatePath)) continue;
+		files.push(candidatePath);
+	}
 
-	const hasDotInside = fileName.includes('.');
-	return !hasDotInside;
+	return files;
 }
 
 function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTaskFile {
@@ -320,16 +367,31 @@ function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTask
 	const extraction = extractFrontmatter(normalizedContent);
 	const relativePath = toPosixPath(relative(taskSource.root, absolutePath));
 	const extension = extname(relativePath).toLowerCase();
-	const key = createTaskKey(relativePath, taskSource.label);
-	const bucket = inferTaskBucket(relativePath);
+	const directoryPath = toPosixPath(dirname(relativePath));
+	const taskPath = directoryPath === '.' ? '' : directoryPath;
+	const pathSegments = taskPath.length === 0 ? [] : taskPath.split('/');
+	const section = inferTaskSection(pathSegments);
+	const key = createTaskKey(taskPath, taskSource.label);
+	const id = taskPath.length === 0 ? 'root' : taskPath;
+	const configResult = readTaskConfig(taskSource.root, taskPath, section);
+	const warnings = extraction.warnings.concat(configResult.warnings);
+	const duplicateIndexFiles = findIndexFiles(dirname(absolutePath));
+
+	if (duplicateIndexFiles.length > 1) {
+		warnings.push(`multiple _index files found; using ${basename(absolutePath)}`);
+	}
 
 	return {
 		key,
-		source: taskSource.label,
+		taskSource: taskSource.label,
+		id,
+		taskPath,
+		pathSegments,
+		section,
 		relativePath,
 		absolutePath,
+		directoryPath,
 		extension,
-		bucket,
 		frontmatter: extraction.frontmatter,
 		body: extraction.body,
 		rawFrontmatter: extraction.rawFrontmatter,
@@ -339,8 +401,117 @@ function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTask
 		fileCtimeMs: fileStats.ctimeMs,
 		fileBirthtimeMs: fileStats.birthtimeMs,
 		isEmptyFile: normalizedContent.trim().length === 0,
-		warnings: extraction.warnings,
+		config: configResult.config,
+		warnings,
 	};
+}
+
+function readTaskConfig(root: string, taskPath: string, section: TaskSection): { config: TaskConfig; warnings: string[] } {
+	//
+	const defaultConfig = createDefaultTaskConfig(taskPath, section);
+	const configPath = join(root, ...taskPathSegments(taskPath), CONFIG_FILENAME);
+
+	if (!existsSync(configPath)) return { config: defaultConfig, warnings: [] };
+
+	try {
+		const parsedJson: unknown = JSON.parse(readFileSync(configPath, 'utf-8'));
+		const parsedConfig = taskConfigSchema.safeParse(parsedJson);
+
+		if (!parsedConfig.success) {
+			return {
+				config: defaultConfig,
+				warnings: [`${CONFIG_FILENAME} schema parse failed, using defaults`],
+			};
+		}
+
+		return {
+			config: {
+				view: parsedConfig.data.view ?? defaultConfig.view,
+				scope: parsedConfig.data.scope ?? defaultConfig.scope,
+				columns: normalizeConfigColumns(parsedConfig.data.columns, defaultConfig.columns),
+				hiddenTags: dedupeStrings(parsedConfig.data.hiddenTags ?? defaultConfig.hiddenTags),
+			},
+			warnings: [],
+		};
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'unknown parse failure';
+		return {
+			config: defaultConfig,
+			warnings: [`${CONFIG_FILENAME} parse failed: ${message}`],
+		};
+	}
+}
+
+function normalizeConfigColumns(
+	columns: Array<z.infer<typeof taskConfigColumnSchema>> | undefined,
+	defaultColumns: TaskConfigColumn[],
+): TaskConfigColumn[] {
+	//
+	if (columns === undefined) return defaultColumns;
+
+	return columns.map((column) => ({
+		id: column.id,
+		label: column.label,
+		tag: column.tag ?? null,
+	}));
+}
+
+function createDefaultTaskConfig(taskPath: string, section: TaskSection): TaskConfig {
+	//
+	if (taskPath === 'tasks') {
+		return {
+			view: 'board',
+			scope: 'direct',
+			columns: [
+				{ id: 'backlog', label: 'Backlog', tag: 'status:backlog' },
+				{ id: 'active', label: 'Active', tag: 'status:active' },
+			],
+			hiddenTags: ['status:completed'],
+		};
+	}
+
+	if (section === 'tasks' && taskPath.length > 'tasks'.length) {
+		return {
+			view: 'board',
+			scope: 'direct',
+			columns: [
+				{ id: 'backlog', label: 'Backlog', tag: 'status:backlog' },
+				{ id: 'active', label: 'Active', tag: 'status:active' },
+			],
+			hiddenTags: ['status:completed'],
+		};
+	}
+
+	return {
+		view: 'list',
+		scope: 'direct',
+		columns: [],
+		hiddenTags: [],
+	};
+}
+
+function taskPathSegments(taskPath: string): string[] {
+	//
+	if (taskPath.length === 0) return [];
+	return taskPath.split('/');
+}
+
+function inferTaskSection(pathSegments: string[]): TaskSection {
+	//
+	if (pathSegments.length === 0) return 'root';
+
+	const firstSegment = pathSegments[0];
+	if (firstSegment === 'inbox') return 'inbox';
+	if (firstSegment === 'tasks') return 'tasks';
+	if (firstSegment === 'references') return 'references';
+	if (firstSegment === 'ideas') return 'ideas';
+
+	return 'other';
+}
+
+function createTaskKey(taskPath: string, sourceLabel: TaskSourceLabel): string {
+	//
+	return `${sourceLabel}:${taskPath}`;
 }
 
 function normalizeLineEndings(value: string): string {
@@ -351,41 +522,6 @@ function normalizeLineEndings(value: string): string {
 function toPosixPath(filePath: string): string {
 	//
 	return filePath.split('\\').join('/');
-}
-
-function inferTaskBucket(relativePath: string): TaskBucket {
-	//
-	const segments = relativePath.split('/');
-	const firstSegment = segments[0];
-
-	if (firstSegment && firstSegment.length > 0) return firstSegment;
-
-	return 'other';
-}
-
-function createTaskKey(relativePath: string, sourceLabel: TaskSourceLabel): string {
-	//
-	const withoutExtension = stripExtension(relativePath);
-	const baseName = posix.basename(withoutExtension);
-
-	let pathKey: string;
-
-	if (baseName !== '_index') {
-		pathKey = withoutExtension;
-	} else {
-		const directoryName = posix.dirname(withoutExtension);
-		pathKey = directoryName === '.' ? '_index' : directoryName;
-	}
-
-	return `${sourceLabel}:${pathKey}`;
-}
-
-function stripExtension(relativePath: string): string {
-	//
-	const extension = extname(relativePath);
-
-	if (extension.length === 0) return relativePath;
-	return relativePath.slice(0, relativePath.length - extension.length);
 }
 
 function extractFrontmatter(content: string): FrontmatterExtractionResult {
@@ -448,12 +584,10 @@ function extractFrontmatter(content: string): FrontmatterExtractionResult {
 	};
 }
 
-interface ParsedFrontmatterBlock {
+function parseFrontmatterBlock(rawFrontmatter: string): {
 	frontmatter: Record<string, FrontmatterValue>;
 	warnings: string[];
-}
-
-function parseFrontmatterBlock(rawFrontmatter: string): ParsedFrontmatterBlock {
+} {
 	//
 	const frontmatter: Record<string, FrontmatterValue> = {};
 	const warnings: string[] = [];
@@ -511,10 +645,7 @@ function parseFrontmatterBlock(rawFrontmatter: string): ParsedFrontmatterBlock {
 		index += 1;
 	}
 
-	return {
-		frontmatter,
-		warnings,
-	};
+	return { frontmatter, warnings };
 }
 
 function stripInlineComment(rawValue: string): string {
@@ -622,75 +753,56 @@ function parseBracketList(rawValue: string): FrontmatterScalar[] | null {
 function parseScalarFrontmatterValue(rawValue: string): FrontmatterScalar {
 	//
 	const trimmedValue = rawValue.trim();
-	const lowerValue = trimmedValue.toLowerCase();
 
-	if (lowerValue === 'null' || trimmedValue === '~') return null;
-	if (lowerValue === 'true') return true;
-	if (lowerValue === 'false') return false;
+	if (trimmedValue.length === 0) return '';
+	if (trimmedValue === 'null') return null;
+	if (trimmedValue === 'true') return true;
+	if (trimmedValue === 'false') return false;
 
-	const hasNumberShape = /^-?(?:\d+|\d*\.\d+)$/.test(trimmedValue);
+	const quotedValue = parseQuotedScalar(trimmedValue);
+	if (quotedValue !== null) return quotedValue;
 
-	if (hasNumberShape) {
-		const numberValue = Number(trimmedValue);
-		if (Number.isFinite(numberValue)) return numberValue;
-	}
-
-	const isDoubleQuoted = trimmedValue.startsWith('"') && trimmedValue.endsWith('"');
-	const isSingleQuoted = trimmedValue.startsWith("'") && trimmedValue.endsWith("'");
-
-	if (isDoubleQuoted || isSingleQuoted) return unquoteString(trimmedValue);
+	const numericValue = Number(trimmedValue);
+	if (Number.isFinite(numericValue) && /^-?\d+(?:\.\d+)?$/.test(trimmedValue)) return numericValue;
 
 	return trimmedValue;
 }
 
-function unquoteString(rawValue: string): string {
+function parseQuotedScalar(value: string): string | null {
 	//
-	if (rawValue.length < 2) return rawValue;
+	if (value.length < 2) return null;
 
-	const quoteCharacter = rawValue[0];
-	const body = rawValue.slice(1, -1);
+	const quote = value[0];
+	const lastQuote = value[value.length - 1];
 
-	if (quoteCharacter === '"') {
-		return body.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-	}
+	if ((quote !== '"' && quote !== "'") || lastQuote !== quote) return null;
 
-	if (quoteCharacter === "'") {
-		return body.replace(/\\'/g, "'").replace(/\\\\/g, '\\');
-	}
+	const innerValue = value.slice(1, -1);
 
-	return body;
+	if (quote === "'") return innerValue.replace(/\\'/g, "'");
+
+	return innerValue.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
 }
 
-function normalizeOptionalString(value: unknown): unknown {
+function normalizeOptionalString(value: unknown): string | undefined {
 	//
 	const scalar = normalizeScalarString(value);
-
-	if (scalar === null) return undefined;
-	return scalar;
+	return scalar ?? undefined;
 }
 
-function normalizeOptionalLowerString(value: unknown): unknown {
+function normalizeOptionalLowerString(value: unknown): string | undefined {
 	//
 	const scalar = normalizeScalarString(value);
-
-	if (scalar === null) return undefined;
-	return scalar.toLowerCase();
+	return scalar === null ? undefined : scalar.toLowerCase();
 }
 
-function normalizeStringArray(value: unknown): unknown {
+function normalizeStringArray(value: unknown): string[] | undefined {
 	//
 	if (value === undefined || value === null) return undefined;
 
 	if (Array.isArray(value)) {
-		const values: string[] = [];
-
-		for (const item of value) {
-			const scalar = normalizeScalarString(item);
-			if (scalar === null) continue;
-			values.push(scalar);
-		}
-
-		return dedupeStrings(values);
+		const strings = value.map((item) => normalizeScalarString(item)).filter((item): item is string => item !== null);
+		return dedupeStrings(strings);
 	}
 
 	const scalar = normalizeScalarString(value);
@@ -733,33 +845,31 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 		warnings.push('frontmatter schema parse failed, using fallback defaults');
 	}
 
-	const id = buildTaskIdFromRelativePath(parsedTask.relativePath);
-
 	const headingTitle = extractHeadingTitle(parsedTask.body);
 	const declaredTitle = frontmatter.title ?? null;
-	const fallbackTitle = buildTitleFromPath(parsedTask.relativePath);
+	const fallbackTitle = buildTitleFromPath(parsedTask.taskPath);
 	const title = declaredTitle ?? headingTitle ?? fallbackTitle;
 	const titleSource = declaredTitle ? 'frontmatter' : headingTitle ? 'heading' : 'filename';
-
-	const status = parsedTask.bucket;
 
 	const priority = frontmatter.priority ?? null;
 	const tags = dedupeStrings(frontmatter.tags ?? []);
 	const tagDetails = tags.map((tag) => parseTaskTag(tag));
+	const status = resolveStatus(tags, parsedTask.section, parsedTask.taskPath, warnings);
 
 	const bodyFormat = inferBodyFormat(parsedTask.extension, parsedTask.body);
 	const bodyExcerpt = buildBodyExcerpt(parsedTask.body, 280);
 	const bodyWordCount = countWords(parsedTask.body);
 	const bodySearch = normalizeSearchText(parsedTask.body);
 
+	if (parsedTask.section === 'other') warnings.push('task path is outside inbox/tasks/references/ideas');
 	if (!parsedTask.hasFrontmatter) warnings.push('missing frontmatter');
 	if (declaredTitle === null) warnings.push('missing title in frontmatter, using heading or filename');
 	if (bodyFormat === 'empty') warnings.push('empty body');
 
 	return {
 		key: parsedTask.key,
-		taskSource: parsedTask.source,
-		id,
+		taskSource: parsedTask.taskSource,
+		id: parsedTask.id,
 		title,
 		declaredTitle,
 		titleSource,
@@ -772,7 +882,7 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 		parentSource: 'none',
 		created: toIsoTimestamp(resolveCreatedTimestampMs(parsedTask)),
 		updated: toIsoTimestamp(parsedTask.fileMtimeMs),
-		source: parsedTask.source,
+		source: parsedTask.taskSource,
 		hasFrontmatter: parsedTask.hasFrontmatter,
 		rawFrontmatter: parsedTask.rawFrontmatter,
 		bodyFormat,
@@ -782,15 +892,42 @@ function buildTaskRecord(parsedTask: ParsedTaskFile): TaskRecord {
 		bodySearch,
 		headingTitle,
 		extension: parsedTask.extension,
-		bucket: parsedTask.bucket,
 		relativePath: parsedTask.relativePath,
 		absolutePath: parsedTask.absolutePath,
+		directoryPath: parsedTask.directoryPath,
+		taskPath: parsedTask.taskPath,
+		pathSegments: parsedTask.pathSegments,
+		section: parsedTask.section,
+		config: parsedTask.config,
 		fileBytes: parsedTask.fileBytes,
 		fileMtimeMs: parsedTask.fileMtimeMs,
 		fileCtimeMs: parsedTask.fileCtimeMs,
 		isEmptyFile: parsedTask.isEmptyFile,
 		warnings,
 	};
+}
+
+function resolveStatus(tags: string[], section: TaskSection, taskPath: string, warnings: string[]): string {
+	//
+	const statusTags = tags.filter((tag) => tag.startsWith('status:'));
+
+	if (statusTags.length > 1) {
+		warnings.push(`multiple status tags found: ${statusTags.join(', ')}`);
+	}
+
+	if (section !== 'tasks' || taskPath === 'tasks') {
+		if (statusTags.length > 0) warnings.push('status tag found outside actionable tasks hierarchy');
+		return 'none';
+	}
+
+	if (statusTags.length === 0) {
+		warnings.push('actionable task is missing status tag');
+		return 'none';
+	}
+
+	const firstStatus = parseTaskTag(statusTags[0]).value;
+	if (firstStatus.length === 0) return 'none';
+	return firstStatus;
 }
 
 function extractHeadingTitle(body: string): string | null {
@@ -812,28 +949,16 @@ function extractHeadingTitle(body: string): string | null {
 	return null;
 }
 
-function buildTitleFromPath(relativePath: string): string {
+function buildTitleFromPath(taskPath: string): string {
 	//
-	const withoutExtension = stripExtension(relativePath);
-	const baseName = posix.basename(withoutExtension);
-	const normalizedName = baseName === '_index' ? posix.basename(posix.dirname(withoutExtension)) : baseName;
+	if (taskPath.length === 0) return 'root';
+
+	const normalizedName = posix.basename(taskPath);
 	const title = normalizedName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 	if (title.length > 0) return title;
 
 	return 'untitled';
-}
-
-function buildTaskIdFromRelativePath(relativePath: string): string {
-	//
-	const withoutExtension = stripExtension(relativePath);
-	const baseName = posix.basename(withoutExtension);
-
-	if (baseName !== '_index') return withoutExtension;
-
-	const directoryName = posix.dirname(withoutExtension);
-	if (directoryName === '.') return '_index';
-	return directoryName;
 }
 
 function toIsoTimestamp(epochMs: number): string {
@@ -957,7 +1082,7 @@ function resolveParentLinks(
 ): void {
 	//
 	for (const task of tasks) {
-		const parentKey = inferFilesystemParentKey(task, keyToTask);
+		const parentKey = inferFilesystemParentKey(task);
 
 		if (parentKey === null) {
 			task.parentSource = 'none';
@@ -968,6 +1093,13 @@ function resolveParentLinks(
 
 		if (!parentTask) {
 			task.parentSource = 'none';
+			graphEdges.push({
+				type: 'parent',
+				from: task.key,
+				to: null,
+				targetId: parentKey,
+				resolved: false,
+			});
 			continue;
 		}
 
@@ -985,28 +1117,14 @@ function resolveParentLinks(
 	}
 }
 
-function inferFilesystemParentKey(task: TaskRecord, keyToTask: Map<string, TaskRecord>): string | null {
+function inferFilesystemParentKey(task: TaskRecord): string | null {
 	//
-	const pathWithoutExtension = stripExtension(task.relativePath);
-	const baseName = posix.basename(pathWithoutExtension);
-	let directoryPath =
-		baseName === '_index' ? posix.dirname(pathWithoutExtension) : posix.dirname(pathWithoutExtension);
+	if (task.taskPath.length === 0) return null;
 
-	if (baseName === '_index') {
-		directoryPath = posix.dirname(directoryPath);
-	}
+	const parentTaskPath = posix.dirname(task.taskPath);
+	const normalizedParentTaskPath = parentTaskPath === '.' ? '' : parentTaskPath;
 
-	while (directoryPath !== '.' && directoryPath.length > 0) {
-		const candidateKey = `${task.taskSource}:${directoryPath}`;
-
-		if (candidateKey !== task.key && keyToTask.has(candidateKey)) {
-			return candidateKey;
-		}
-
-		directoryPath = posix.dirname(directoryPath);
-	}
-
-	return null;
+	return createTaskKey(normalizedParentTaskPath, task.taskSource);
 }
 
 function buildWarningEntries(tasks: TaskRecord[]): TaskWarningEntry[] {
@@ -1034,7 +1152,7 @@ function buildSummary(tasks: TaskRecord[], warnings: TaskWarningEntry[]): BuildS
 		withoutFrontmatter: tasks.filter((task) => !task.hasFrontmatter).length,
 		emptyFiles: tasks.filter((task) => task.isEmptyFile).length,
 		bySource: countByKey(tasks, (task) => task.taskSource),
-		byBucket: countByKey(tasks, (task) => task.bucket),
+		bySection: countByKey(tasks, (task) => task.section),
 		byStatus: countByKey(tasks, (task) => task.status),
 		byBodyFormat: countByKey(tasks, (task) => task.bodyFormat),
 		totalWarnings: warnings.length,
@@ -1086,11 +1204,16 @@ function writeOutputs(
 		key: task.key,
 		taskSource: task.taskSource,
 		relativePath: task.relativePath,
+		taskPath: task.taskPath,
 		body: task.body,
 		rawFrontmatter: task.rawFrontmatter,
 	}));
 
-	const sourcesInfo = TASK_SOURCES.map((s) => ({ label: s.label, root: s.root, exists: existsSync(s.root) }));
+	const sourcesInfo = TASK_SOURCES.map((source) => ({
+		label: source.label,
+		root: source.root,
+		exists: existsSync(source.root),
+	}));
 
 	writeJson(tasksMetaPath, {
 		version: OUTPUT_VERSION,
@@ -1147,9 +1270,13 @@ function toTaskSummary(task: TaskRecord): TaskSummary {
 		bodySearch: task.bodySearch,
 		headingTitle: task.headingTitle,
 		extension: task.extension,
-		bucket: task.bucket,
 		relativePath: task.relativePath,
 		absolutePath: task.absolutePath,
+		directoryPath: task.directoryPath,
+		taskPath: task.taskPath,
+		pathSegments: task.pathSegments,
+		section: task.section,
+		config: task.config,
 		fileBytes: task.fileBytes,
 		fileMtimeMs: task.fileMtimeMs,
 		fileCtimeMs: task.fileCtimeMs,
@@ -1168,27 +1295,22 @@ function toGraphNode(task: TaskRecord): TaskGraphNode {
 		status: task.status,
 		parentId: task.parentId,
 		parentKey: task.parentKey,
-		bucket: task.bucket,
+		taskPath: task.taskPath,
 		relativePath: task.relativePath,
+		section: task.section,
 	};
-}
-
-interface TaskLookupPayload {
-	keyToPath: Record<string, string>;
-	idToKeys: Record<string, string[]>;
-	statusToKeys: Record<string, string[]>;
-	tagToKeys: Record<string, string[]>;
-	tagGroups: TaskTagGroup[];
 }
 
 function buildLookupPayload(tasks: TaskRecord[], idToKeys: Map<string, string[]>): TaskLookupPayload {
 	//
 	const keyToPath: Record<string, string> = {};
+	const taskPathToKey: Record<string, string> = {};
 	const statusToKeys = new Map<string, string[]>();
 	const tagToKeys = new Map<string, string[]>();
 
 	for (const task of tasks) {
 		keyToPath[task.key] = task.relativePath;
+		taskPathToKey[task.key] = task.taskPath;
 		addLookupValue(statusToKeys, task.status, task.key);
 
 		for (const tag of task.tags) {
@@ -1196,19 +1318,49 @@ function buildLookupPayload(tasks: TaskRecord[], idToKeys: Map<string, string[]>
 		}
 	}
 
-	const orderedKeyToPath: Record<string, string> = {};
-
-	for (const key of Object.keys(keyToPath).sort((left, right) => left.localeCompare(right))) {
-		orderedKeyToPath[key] = keyToPath[key];
-	}
-
 	return {
-		keyToPath: orderedKeyToPath,
+		keyToPath: sortRecord(keyToPath),
+		taskPathToKey: sortRecord(taskPathToKey),
 		idToKeys: mapToSortedRecord(idToKeys),
 		statusToKeys: mapToSortedRecord(statusToKeys),
 		tagToKeys: mapToSortedRecord(tagToKeys),
 		tagGroups: buildTagGroups(tasks),
 	};
+}
+
+function addLookupValue(map: Map<string, string[]>, key: string, value: string): void {
+	//
+	const existing = map.get(key);
+
+	if (existing) {
+		existing.push(value);
+		return;
+	}
+
+	map.set(key, [value]);
+}
+
+function mapToSortedRecord(map: Map<string, string[]>): Record<string, string[]> {
+	//
+	const record: Record<string, string[]> = {};
+	const orderedKeys = Array.from(map.keys()).sort((left, right) => left.localeCompare(right));
+
+	for (const key of orderedKeys) {
+		record[key] = dedupeStrings(map.get(key) ?? []).sort((left, right) => left.localeCompare(right));
+	}
+
+	return record;
+}
+
+function sortRecord(record: Record<string, string>): Record<string, string> {
+	//
+	const sortedRecord: Record<string, string> = {};
+
+	for (const key of Object.keys(record).sort((left, right) => left.localeCompare(right))) {
+		sortedRecord[key] = record[key];
+	}
+
+	return sortedRecord;
 }
 
 interface TagGroupAccumulator {
@@ -1267,61 +1419,32 @@ function compareTagGroupKeys(left: string | null, right: string | null): number 
 	const rightRank = getTagGroupRank(right);
 
 	if (leftRank !== rightRank) return leftRank - rightRank;
-	if (left === right) return 0;
-	if (left === null) return -1;
-	if (right === null) return 1;
 
-	return left.localeCompare(right);
+	const leftLabel = left ?? '';
+	const rightLabel = right ?? '';
+	return leftLabel.localeCompare(rightLabel);
 }
 
 function getTagGroupRank(key: string | null): number {
 	//
 	if (key === null) return 0;
-	if (key === 'source') return 1;
-	if (key === 'ticktick-list') return 2;
-	if (key === 'ticktick-status') return 3;
-
-	return 100;
+	if (key === 'status') return 1;
+	if (key === 'human') return 2;
+	if (key === 'source') return 3;
+	if (key === 'ticktick-list') return 4;
+	if (key === 'ticktick-status') return 5;
+	return 10;
 }
 
 function compareTagGroupValues(left: TaskTagGroupValue, right: TaskTagGroupValue): number {
 	//
 	if (left.count !== right.count) return right.count - left.count;
-	if (left.value !== right.value) return left.value.localeCompare(right.value);
-
-	return left.tag.localeCompare(right.tag);
+	return left.value.localeCompare(right.value);
 }
 
-function addLookupValue(valuesMap: Map<string, string[]>, key: string, value: string): void {
+function writeJson(filePath: string, value: unknown): void {
 	//
-	const existingValues = valuesMap.get(key);
-
-	if (existingValues) {
-		existingValues.push(value);
-		return;
-	}
-
-	valuesMap.set(key, [value]);
-}
-
-function mapToSortedRecord(valuesMap: Map<string, string[]>): Record<string, string[]> {
-	//
-	const outputRecord: Record<string, string[]> = {};
-	const sortedKeys = Array.from(valuesMap.keys()).sort((left, right) => left.localeCompare(right));
-
-	for (const key of sortedKeys) {
-		const values = valuesMap.get(key);
-		if (!values) continue;
-
-		outputRecord[key] = dedupeStrings(values).sort((left, right) => left.localeCompare(right));
-	}
-
-	return outputRecord;
-}
-
-function writeJson(filePath: string, payload: unknown): void {
-	//
-	writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, 'utf-8');
+	writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 main();

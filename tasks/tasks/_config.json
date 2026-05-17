@@ -1,0 +1,19 @@
+{
+  "view": "board",
+  "scope": "direct",
+  "columns": [
+    {
+      "id": "backlog",
+      "label": "Backlog",
+      "tag": "status:backlog"
+    },
+    {
+      "id": "active",
+      "label": "Active",
+      "tag": "status:active"
+    }
+  ],
+  "hiddenTags": [
+    "status:completed"
+  ]
+}

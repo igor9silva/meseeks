@@ -426,16 +426,14 @@ function getTaskTitle(task: TaskRow) {
 	);
 }
 
-function buildFilePath(task: TaskRow, outputDir: string, hasAttachments: boolean) {
+function buildFilePath(task: TaskRow, outputDir: string) {
 	//
 	const title = getTaskTitle(task);
 	const slug = slugify(title) || 'ticktick-task';
 	const taskSuffix = task.entityId.slice(-8);
 	const fileSlug = `${slug}-${taskSuffix}`;
 
-	if (hasAttachments) return join(outputDir, fileSlug, '_index.md');
-
-	return join(outputDir, `${fileSlug}.md`);
+	return join(outputDir, fileSlug, '_index.md');
 }
 
 function buildChildFilePath(parentFilePath: string, task: TaskRow) {
@@ -443,7 +441,7 @@ function buildChildFilePath(parentFilePath: string, task: TaskRow) {
 	const title = getTaskTitle(task);
 	const slug = slugify(title) || 'ticktick-task';
 	const taskSuffix = task.entityId.slice(-8);
-	return join(dirname(parentFilePath), `${slug}-${taskSuffix}.md`);
+	return join(dirname(parentFilePath), `${slug}-${taskSuffix}`, '_index.md');
 }
 
 function mapTickTickPriority(priority: number) {
@@ -941,11 +939,7 @@ function importProject(database: Database, project: ProjectRow, existingTaskIds:
 
 	for (const importedTask of built.importedTasks) {
 		const existingPath = existingTaskIds.get(importedTask.task.entityId);
-		const filePath = buildFilePath(
-			importedTask.task,
-			config.outputDir,
-			importedTask.attachments.length > 0 || importedTask.children.length > 0,
-		);
+		const filePath = buildFilePath(importedTask.task, config.outputDir);
 		const shouldRewrite = args.overwrite || !existingPath;
 
 		if (existingPath && !args.overwrite) {
@@ -982,6 +976,7 @@ function importProject(database: Database, project: ProjectRow, existingTaskIds:
 			for (const child of importedTask.children) {
 				const childFilePath = buildChildFilePath(filePath, child);
 				const childFileContent = renderChildTaskFile(importedTask.task, child, config, args, attachmentImports);
+				mkdirSync(dirname(childFilePath), { recursive: true });
 				writeFileSync(childFilePath, childFileContent);
 				existingTaskIds.set(child.entityId, childFilePath);
 			}
@@ -1044,7 +1039,7 @@ function writeSummary(args: Args, projectSummaries: ProjectSummary[], importedFi
 			'Meseeks board columns are preserved as ticktick-status:<status> tags.',
 			'TickTick priority 0 is treated as no local priority; priority 1 maps to low.',
 			'Child rows with an open parent are imported as local subtasks under the parent task folder.',
-			'Tasks with attachments are written as task folders with _index.md and an attachments/ directory.',
+			'Imported tasks are written as task folders with _index.md; attachments live beside the owning task.',
 			'Attachment files are copied from the local TickTick attachment cache when present; missing local files are recorded in the task payload.',
 		],
 	};

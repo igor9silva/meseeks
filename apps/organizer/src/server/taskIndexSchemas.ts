@@ -1,11 +1,25 @@
 import { z } from 'zod';
 
 const taskSourceSchema = z.enum(['public', 'private']);
+const taskSectionSchema = z.enum(['root', 'inbox', 'tasks', 'references', 'ideas', 'other']);
 
 const taskTagSchema = z.object({
 	tag: z.string().min(1),
 	key: z.string().min(1).nullable(),
 	value: z.string().min(1),
+});
+
+const taskConfigColumnSchema = z.object({
+	id: z.string().min(1),
+	label: z.string().min(1),
+	tag: z.string().min(1).nullable(),
+});
+
+const taskConfigSchema = z.object({
+	view: z.enum(['list', 'board']),
+	scope: z.literal('direct'),
+	columns: z.array(taskConfigColumnSchema),
+	hiddenTags: z.array(z.string().min(1)),
 });
 
 const taskTagGroupValueSchema = z.object({
@@ -32,7 +46,6 @@ const taskSummarySchema = z
 		id: z.string().min(1),
 		title: z.string().min(1),
 		status: z.string().min(1),
-		bucket: z.string().min(1),
 		priority: z.string().min(1).nullable(),
 		tags: z.array(z.string()),
 		tagDetails: z.array(taskTagSchema).optional().default([]),
@@ -45,6 +58,12 @@ const taskSummarySchema = z
 		bodyExcerpt: z.string(),
 		bodySearch: z.string(),
 		relativePath: z.string().min(1),
+		absolutePath: z.string().min(1),
+		directoryPath: z.string(),
+		taskPath: z.string(),
+		pathSegments: z.array(z.string()),
+		section: taskSectionSchema,
+		config: taskConfigSchema,
 		fileMtimeMs: z.number(),
 		warnings: z.array(z.string()),
 	})
@@ -55,6 +74,7 @@ const metaSummarySchema = z
 		totalTasks: z.number(),
 		totalWarnings: z.number(),
 		bySource: z.record(z.string(), z.number()),
+		bySection: z.record(z.string(), z.number()),
 		byStatus: z.record(z.string(), z.number()),
 	})
 	.passthrough();
@@ -74,6 +94,7 @@ export const tasksLookupSchema = z
 		version: z.number(),
 		generatedAt: z.string().min(1),
 		keyToPath: z.record(z.string(), z.string()),
+		taskPathToKey: z.record(z.string(), z.string()).optional().default({}),
 		idToKeys: z.record(z.string(), z.array(z.string())),
 		statusToKeys: z.record(z.string(), z.array(z.string())),
 		tagToKeys: z.record(z.string(), z.array(z.string())),
@@ -88,10 +109,11 @@ const graphNodeSchema = z
 		id: z.string().min(1),
 		title: z.string().min(1),
 		status: z.string().min(1),
-		bucket: z.string().min(1),
 		parentId: z.string().nullable(),
 		parentKey: z.string().nullable(),
 		relativePath: z.string().min(1),
+		taskPath: z.string(),
+		section: taskSectionSchema,
 	})
 	.passthrough();
 
@@ -119,6 +141,7 @@ const contentEntrySchema = z
 		key: z.string().min(1),
 		taskSource: taskSourceSchema,
 		relativePath: z.string().min(1),
+		taskPath: z.string().optional().default(''),
 		body: z.string(),
 		rawFrontmatter: z.string().nullable(),
 	})
@@ -133,6 +156,9 @@ export const tasksContentSchema = z
 	.passthrough();
 
 export type TaskSource = z.infer<typeof taskSourceSchema>;
+export type TaskSection = z.infer<typeof taskSectionSchema>;
+export type TaskConfig = z.infer<typeof taskConfigSchema>;
+export type TaskConfigColumn = z.infer<typeof taskConfigColumnSchema>;
 export type TaskSummary = z.infer<typeof taskSummarySchema>;
 export type WarningEntry = z.infer<typeof warningEntrySchema>;
 export type TasksMeta = z.infer<typeof tasksMetaSchema>;

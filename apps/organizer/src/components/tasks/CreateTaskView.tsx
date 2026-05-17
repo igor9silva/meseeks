@@ -6,7 +6,6 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
-import { formatTaskBucketLabel } from '~/lib/taskBuckets';
 import { cn } from '~/lib/utils';
 import { type CreateTaskInput, createTask } from '~/server/taskExplorer';
 import type { CreateTaskDefaults, TaskCreatedResult } from './taskExplorerTypes';
@@ -19,14 +18,14 @@ import {
 	taskSourceOptions,
 } from './taskExplorerUtils';
 
+const createTaskStatusOptions: Array<NonNullable<CreateTaskInput['status']>> = ['backlog', 'active', 'completed'];
+
 export function CreateTaskView({
 	defaults,
-	statusOptions,
 	onCancel,
 	onTaskCreated,
 }: {
 	defaults: CreateTaskDefaults;
-	statusOptions: string[];
 	onCancel: () => void;
 	onTaskCreated: (result: TaskCreatedResult) => void;
 }) {
@@ -40,7 +39,8 @@ export function CreateTaskView({
 	const createTaskServer = useServerFn(createTask);
 	const [title, setTitle] = useState('');
 	const [taskSource, setTaskSource] = useState(defaults.taskSource);
-	const [status, setStatus] = useState(defaults.status);
+	const [parentPath, setParentPath] = useState(defaults.parentPath);
+	const [status, setStatus] = useState<CreateTaskInput['status']>(defaults.status);
 	const [priority, setPriority] = useState<CreateTaskInput['priority']>('medium');
 	const [tagDraft, setTagDraft] = useState('');
 	const [body, setBody] = useState('');
@@ -56,8 +56,8 @@ export function CreateTaskView({
 			]);
 
 			onTaskCreated({
-				status: result.status,
 				taskKey: result.newTaskKey,
+				taskPath: result.taskPath,
 				taskSource: result.taskSource,
 			});
 		},
@@ -65,8 +65,9 @@ export function CreateTaskView({
 
 	useEffect(() => {
 		setTaskSource(defaults.taskSource);
+		setParentPath(defaults.parentPath);
 		setStatus(defaults.status);
-	}, [defaults.status, defaults.taskSource]);
+	}, [defaults.parentPath, defaults.status, defaults.taskSource]);
 
 	useEffect(() => {
 		bodyTextareaRef.current?.focus();
@@ -94,11 +95,18 @@ export function CreateTaskView({
 
 		if (trimmedBody.length === 0) return;
 
+		const normalizedParentPath = parentPath.trim().replace(/^\/+|\/+$/g, '');
+		const nextStatus =
+			normalizedParentPath === 'tasks' || normalizedParentPath.startsWith('tasks/')
+				? (status ?? 'backlog')
+				: null;
+
 		createTaskMutation.mutate({
 			body: trimmedBody,
 			filename: normalizedFilename,
 			priority,
-			status,
+			parentPath: normalizedParentPath.length > 0 ? normalizedParentPath : 'inbox',
+			status: nextStatus,
 			tags: parseTagDraft(tagDraft),
 			taskSource,
 			title: trimmedTitle,
@@ -112,7 +120,7 @@ export function CreateTaskView({
 					<div>
 						<h2 className="text-xl font-semibold">New task</h2>
 						<div className="mt-1 text-xs text-muted-foreground">
-							{taskSource}:{status || 'backlog'}
+							{taskSource}/{parentPath || 'root'}
 						</div>
 					</div>
 					<Button
@@ -197,26 +205,41 @@ export function CreateTaskView({
 				</div>
 
 				<div className="space-y-2">
-					<div className="text-sm font-medium">Bucket</div>
-					<div className="flex max-h-36 flex-wrap gap-1 overflow-auto">
-						{statusOptions.map((statusOption) => (
-							<button
-								key={statusOption}
-								type="button"
-								onClick={() => setStatus(statusOption)}
-								disabled={createTaskMutation.isPending}
-								className={cn(
-									'h-8 rounded-md border px-2 text-xs transition-colors disabled:pointer-events-none disabled:opacity-50',
-									statusOption === status
-										? 'border-sky-400/70 bg-sky-400/15 text-sky-100'
-										: 'border-border text-muted-foreground hover:text-foreground',
-								)}
-							>
-								{formatTaskBucketLabel(statusOption)}
-							</button>
-						))}
-					</div>
+					<label className="text-sm font-medium" htmlFor={`${filenameInputId}-parent`}>
+						Parent path
+					</label>
+					<Input
+						id={`${filenameInputId}-parent`}
+						value={parentPath}
+						onChange={(event) => setParentPath(event.currentTarget.value)}
+						placeholder="inbox"
+						disabled={createTaskMutation.isPending}
+					/>
 				</div>
+
+				{parentPath === 'tasks' || parentPath.startsWith('tasks/') ? (
+					<div className="space-y-2">
+						<div className="text-sm font-medium">Status</div>
+						<div className="flex max-h-36 flex-wrap gap-1 overflow-auto">
+							{createTaskStatusOptions.map((statusOption) => (
+								<button
+									key={statusOption}
+									type="button"
+									onClick={() => setStatus(statusOption)}
+									disabled={createTaskMutation.isPending}
+									className={cn(
+										'h-8 rounded-md border px-2 text-xs transition-colors disabled:pointer-events-none disabled:opacity-50',
+										statusOption === status
+											? 'border-sky-400/70 bg-sky-400/15 text-sky-100'
+											: 'border-border text-muted-foreground hover:text-foreground',
+									)}
+								>
+									{statusOption}
+								</button>
+							))}
+						</div>
+					</div>
+				) : null}
 
 				<div className="space-y-2">
 					<div className="text-sm font-medium">Priority</div>

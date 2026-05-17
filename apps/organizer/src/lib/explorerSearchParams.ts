@@ -1,20 +1,23 @@
 import { z } from 'zod';
-import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
 
 export const explorerSortSchema = z.enum(['priority_then_recency', 'recency', 'title']);
 
 const taskSourceSchema = z.enum(['public', 'private']);
 
+export const ROOT_PARENT_KEY = '__task_roots__';
+
 export const explorerRouteSearchSchema = z.object({
 	q: z.string().optional(),
 	sources: z.string().optional(),
-	statuses: z.string().optional(),
 	tags: z.string().optional(),
 	excludedTags: z.string().optional(),
 	detail: z.string().optional(),
-	rootsOnly: z.string().optional(),
+	expanded: z.string().optional(),
+	depth: z.union([z.string(), z.number()]).optional(),
+	minDepth: z.union([z.string(), z.number()]).optional(),
+	maxDepth: z.union([z.string(), z.number()]).optional(),
 	sort: explorerSortSchema.optional(),
-	taskKey: z.string().optional(),
+	selected: z.string().optional(),
 });
 
 export type ExplorerRouteSearch = z.infer<typeof explorerRouteSearchSchema>;
@@ -24,16 +27,35 @@ export type TaskSource = z.infer<typeof taskSourceSchema>;
 export interface ExplorerQueryInput {
 	q: string;
 	sources: TaskSource[];
-	statuses: string[];
 	tags: string[];
 	excludedTags: string[];
-	rootsOnly: boolean;
+	parentKey: string | null;
+	minDepth: number;
+	maxDepth: number;
 	sort: ExplorerSort;
 }
 
-function parseBooleanFlag(value: string | undefined): boolean {
+function parseDepth(value: string | number | undefined): number {
 	//
-	return value === 'true';
+	if (value === undefined) return 1;
+
+	const numericValue = Number(value);
+	if (!Number.isInteger(numericValue)) return 1;
+	if (numericValue < 1) return 1;
+	if (numericValue > 16) return 16;
+
+	return numericValue;
+}
+
+function parseDepthRange(search: ExplorerRouteSearch): { minDepth: number; maxDepth: number } {
+	//
+	const parsedMinDepth = parseDepth(search.minDepth);
+	const parsedMaxDepth = parseDepth(search.maxDepth ?? search.depth);
+
+	return {
+		minDepth: Math.min(parsedMinDepth, parsedMaxDepth),
+		maxDepth: Math.max(parsedMinDepth, parsedMaxDepth),
+	};
 }
 
 export function splitCsv(value: string | undefined): string[] {
@@ -73,18 +95,7 @@ export function parseSources(value: string | undefined): TaskSource[] {
 		parsed.push(result.data);
 	}
 
-	const deduped = dedupeStrings(parsed);
-
-	return deduped;
-}
-
-export function parseStatuses(value: string | undefined): string[] {
-	//
-	if (value === undefined) return getDefaultTaskBuckets();
-	if (value.trim().length === 0) return [];
-
-	const statuses = dedupeStrings(splitCsv(value));
-	return statuses;
+	return dedupeStrings(parsed);
 }
 
 export function parseTags(value: string | undefined): string[] {
@@ -98,15 +109,18 @@ export function serializeCsv(values: string[]): string | undefined {
 	return values.join(',');
 }
 
-export function parseExplorerQuery(search: ExplorerRouteSearch): ExplorerQueryInput {
+export function parseExplorerQuery(search: ExplorerRouteSearch, parentKey: string | null): ExplorerQueryInput {
 	//
+	const depthRange = parseDepthRange(search);
+
 	return {
 		q: search.q ?? '',
-		sources: parseSources(search.sources),
-		statuses: parseStatuses(search.statuses),
+		sources: ['public', 'private'],
 		tags: parseTags(search.tags),
 		excludedTags: parseTags(search.excludedTags),
-		rootsOnly: parseBooleanFlag(search.rootsOnly),
+		parentKey,
+		minDepth: depthRange.minDepth,
+		maxDepth: depthRange.maxDepth,
 		sort: search.sort ?? 'priority_then_recency',
 	};
 }

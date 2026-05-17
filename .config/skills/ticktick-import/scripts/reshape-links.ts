@@ -4,7 +4,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { z } from 'zod'
 
-const defaultDir = resolve('private/tasks/links')
+const defaultDir = resolve('private/tasks/inbox')
 const maxImportDateLength = 10
 
 const argsSchema = z.object({

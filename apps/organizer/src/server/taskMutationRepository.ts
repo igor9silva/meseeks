@@ -1,17 +1,8 @@
 import { spawnSync } from 'node:child_process';
-import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	renameSync,
-	statSync,
-	unlinkSync,
-	writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, extname, join, posix } from 'node:path';
-import type { TaskSummary } from '~/server/taskIndexSchemas';
+import type { TaskConfig, TaskSummary } from '~/server/taskIndexSchemas';
 import type { CreateTaskInput as ParsedCreateTaskInput } from '~/server/taskExplorerSchemas';
 import { normalizeTaskFilenameSlug, normalizeTaskRenameFilenameSlug } from '~/lib/taskFilename';
 import { findRepoRoot } from '~/server/repoRoot';
@@ -27,37 +18,13 @@ function getTaskRoot(taskSource: TaskSummary['taskSource']): string {
 	return join(projectRoot, 'tasks');
 }
 
-function stripExtension(relativePath: string): string {
+function createTaskKey(taskPath: string, taskSource: TaskSummary['taskSource']): string {
 	//
-	const extension = posix.extname(relativePath);
-
-	if (extension.length === 0) return relativePath;
-	return relativePath.slice(0, relativePath.length - extension.length);
-}
-
-function createTaskKey(relativePath: string, taskSource: TaskSummary['taskSource']): string {
-	//
-	const pathKey = createTaskPathKey(relativePath);
-
-	return `${taskSource}:${pathKey}`;
-}
-
-function createTaskPathKey(relativePath: string): string {
-	//
-	const withoutExtension = stripExtension(relativePath);
-	const baseName = posix.basename(withoutExtension);
-
-	if (baseName !== '_index') {
-		return withoutExtension;
-	} else {
-		const directoryName = posix.dirname(withoutExtension);
-		return directoryName === '.' ? '_index' : directoryName;
-	}
+	return `${taskSource}:${taskPath}`;
 }
 
 function runTaskIndexBuild(): void {
 	//
-	// organizer runs from its own subdirectory, but the task indexer lives at repo root
 	const buildResult = spawnSync('bun', ['run', '.config/generate-task-index.ts'], {
 		cwd: findRepoRoot(),
 		encoding: 'utf-8',
@@ -76,16 +43,15 @@ function runTaskIndexBuild(): void {
 }
 
 export interface MarkTaskDoneResult {
-	newRelativePath: string;
 	newTaskKey: string;
-}
-
-export interface MoveTaskInput {
 	status: string;
 }
 
+export interface MoveTaskInput {
+	status: 'backlog' | 'active' | 'completed';
+}
+
 export interface MoveTaskResult {
-	newRelativePath: string;
 	newTaskKey: string;
 	status: string;
 }
@@ -95,7 +61,6 @@ export interface UpdateTaskSourceInput {
 }
 
 export interface UpdateTaskSourceResult {
-	newRelativePath: string;
 	newTaskKey: string;
 	taskSource: TaskSummary['taskSource'];
 }
@@ -105,8 +70,8 @@ export interface RenameTaskInput {
 }
 
 export interface RenameTaskResult {
-	newRelativePath: string;
 	newTaskKey: string;
+	newTaskPath: string;
 }
 
 export interface TrashTaskResult {
@@ -125,9 +90,10 @@ export interface CreateTaskInput {
 	body: string;
 	filename: string;
 	priority: TaskPriority;
-	status: string;
+	status: ParsedCreateTaskInput['status'];
 	tags: string[];
 	taskSource: TaskSummary['taskSource'];
+	parentPath: string;
 	title: string;
 }
 
@@ -135,7 +101,7 @@ export interface CreateTaskResult {
 	absolutePath: string;
 	newRelativePath: string;
 	newTaskKey: string;
-	status: string;
+	taskPath: string;
 	taskSource: TaskSummary['taskSource'];
 }
 
@@ -149,11 +115,11 @@ export interface UpdateTaskTagsResult {
 }
 
 export interface UpdateTaskPriorityInput {
-	priority: TaskPriority;
+	priority: TaskPriority | null;
 }
 
 export interface UpdateTaskPriorityResult {
-	priority: TaskPriority;
+	priority: TaskPriority | null;
 }
 
 export interface UpdateTaskTitleInput {
@@ -164,25 +130,12 @@ export interface UpdateTaskTitleResult {
 	title: string;
 }
 
-export function listTaskStatuses(): string[] {
-	//
-	const taskSources: Array<TaskSummary['taskSource']> = ['public', 'private'];
-	const statuses = new Set<string>();
+export interface UpdateTaskConfigInput {
+	config: TaskConfig;
+}
 
-	for (const taskSource of taskSources) {
-		const taskRoot = getTaskRoot(taskSource);
-		if (!existsSync(taskRoot)) continue;
-
-		const entries = readdirSync(taskRoot, { withFileTypes: true });
-
-		for (const entry of entries) {
-			if (entry.name.startsWith('.')) continue;
-			if (!entry.isDirectory()) continue;
-			statuses.add(entry.name);
-		}
-	}
-
-	return Array.from(statuses).sort((left, right) => left.localeCompare(right));
+export interface UpdateTaskConfigResult {
+	config: TaskConfig;
 }
 
 function dedupeStrings(values: string[]): string[] {
@@ -217,22 +170,6 @@ function normalizeTaskTag(tag: string): string {
 	}
 
 	return normalizedTag;
-}
-
-function normalizeTaskStatus(status: string): string {
-	//
-	const normalizedStatus = status
-		.trim()
-		.toLowerCase()
-		.replace(/[\s_]+/g, '-')
-		.replace(/-+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedStatus)) {
-		throw new Error('status must use letters, numbers, or hyphens');
-	}
-
-	return normalizedStatus;
 }
 
 function normalizeTaskTitle(title: string): string {
@@ -297,75 +234,38 @@ function normalizeRenameTaskFilename(filename: string): string {
 	return normalizedFilename;
 }
 
-function doesTaskKeyPathExist(taskRoot: string, relativePathBase: string): boolean {
+function normalizeTaskPath(path: string): string {
 	//
-	const absolutePathBase = join(taskRoot, ...relativePathBase.split('/'));
-	const taskFileCandidates = [
-		`${absolutePathBase}.mdx`,
-		`${absolutePathBase}.md`,
-		`${absolutePathBase}.txt`,
-		absolutePathBase,
-	];
-	const indexFileCandidates = [
-		join(absolutePathBase, '_index.mdx'),
-		join(absolutePathBase, '_index.md'),
-		join(absolutePathBase, '_index.txt'),
-		join(absolutePathBase, '_index'),
-	];
+	const normalized = path
+		.trim()
+		.replace(/\\/g, '/')
+		.replace(/\/+/g, '/')
+		.replace(/^\/+|\/+$/g, '');
 
-	return taskFileCandidates.concat(indexFileCandidates).some((candidatePath) => existsSync(candidatePath));
-}
+	if (normalized.length === 0) return '';
 
-function doesTaskKeyPathFileExist(taskRoot: string, relativePathBase: string): boolean {
-	//
-	const absolutePathBase = join(taskRoot, ...relativePathBase.split('/'));
-	const candidates = [
-		`${absolutePathBase}.mdx`,
-		`${absolutePathBase}.md`,
-		`${absolutePathBase}.txt`,
-		absolutePathBase,
-		join(absolutePathBase, '_index.mdx'),
-		join(absolutePathBase, '_index.md'),
-		join(absolutePathBase, '_index.txt'),
-		join(absolutePathBase, '_index'),
-	];
+	const segments = normalized.split('/');
 
-	return candidates.some((candidatePath) => {
-		if (!existsSync(candidatePath)) return false;
-		return statSync(candidatePath).isFile();
-	});
-}
-
-function createUniqueTaskRelativePath(taskRoot: string, status: string, slug: string): string {
-	//
-	for (let attempt = 1; attempt <= 1000; attempt += 1) {
-		const candidateSlug = attempt === 1 ? slug : `${slug}-${attempt}`;
-		const relativePathBase = posix.join(status, candidateSlug);
-
-		if (!doesTaskKeyPathExist(taskRoot, relativePathBase)) {
-			return `${relativePathBase}.mdx`;
+	for (const segment of segments) {
+		if (segment === '.' || segment === '..') {
+			throw new Error('task path cannot contain relative segments');
 		}
 	}
 
+	return segments.join('/');
+}
+
+function createUniqueTaskPath(taskRoot: string, parentPath: string, slug: string): string {
+	//
+	for (let attempt = 1; attempt <= 1000; attempt += 1) {
+		const candidateSlug = attempt === 1 ? slug : `${slug}-${attempt}`;
+		const candidatePath = parentPath.length === 0 ? candidateSlug : posix.join(parentPath, candidateSlug);
+		const absolutePath = join(taskRoot, ...candidatePath.split('/'));
+
+		if (!existsSync(absolutePath)) return candidatePath;
+	}
+
 	throw new Error('could not find an available task filename');
-}
-
-function replaceTaskStatusSegment(relativePath: string, status: string): string {
-	//
-	const segments = relativePath.split('/');
-	const nestedPath = segments.length > 1 ? segments.slice(1).join('/') : posix.basename(relativePath);
-
-	return posix.join(status, nestedPath);
-}
-
-function replaceTaskFilenameSegment(relativePath: string, filename: string): string {
-	//
-	const directoryName = posix.dirname(relativePath);
-	const extension = posix.extname(relativePath);
-	const nextFilename = `${filename}${extension}`;
-
-	if (directoryName === '.') return nextFilename;
-	return posix.join(directoryName, nextFilename);
 }
 
 function createSystemTrashPath(sourceAbsolutePath: string): string {
@@ -392,12 +292,22 @@ function renderFrontmatterString(value: string): string {
 	return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
-function renderTaskFrontmatter(title: string, priority: TaskPriority, tags: string[]): string {
+function renderTagsFrontmatterLine(tags: string[]): string {
+	//
+	return `tags: [${tags.join(', ')}]`;
+}
+
+function renderPriorityFrontmatterLine(priority: TaskPriority | null): string {
+	//
+	return priority === null ? 'priority: null' : `priority: ${priority}`;
+}
+
+function renderTaskFrontmatter(title: string, priority: TaskPriority | null, tags: string[]): string {
 	//
 	return [
 		'---',
 		`title: ${renderFrontmatterString(title)}`,
-		`priority: ${priority}`,
+		renderPriorityFrontmatterLine(priority),
 		renderTagsFrontmatterLine(tags),
 		'---',
 	].join('\n');
@@ -414,28 +324,15 @@ function renderCreatedTaskBody(title: string, body: string): string {
 		return `# ${title}\n\n${trimmedBody}\n`;
 	}
 
-	const today = new Date().toISOString().slice(0, 10);
-
-	return [
-		`# ${title}`,
-		'',
-		'## Context',
-		'',
-		'## Objective',
-		'',
-		'## Subtasks',
-		'- [ ] Define first step',
-		'',
-		'## Progress Log',
-		`### ${today}`,
-		'- Task created',
-		'',
-		'## Notes',
-		'',
-	].join('\n');
+	return `# ${title}\n`;
 }
 
-function renderCreatedTaskFile(input: { body: string; priority: TaskPriority; tags: string[]; title: string }): string {
+function renderCreatedTaskFile(input: {
+	body: string;
+	priority: TaskPriority | null;
+	tags: string[];
+	title: string;
+}): string {
 	//
 	return [
 		renderTaskFrontmatter(input.title, input.priority, input.tags),
@@ -470,16 +367,6 @@ function extractFrontmatterSection(fileContent: string): FrontmatterSection | nu
 	return null;
 }
 
-function renderTagsFrontmatterLine(tags: string[]): string {
-	//
-	return `tags: [${tags.join(', ')}]`;
-}
-
-function renderPriorityFrontmatterLine(priority: TaskPriority): string {
-	//
-	return `priority: ${priority}`;
-}
-
 function upsertFrontmatterLine(rawFrontmatter: string, key: string, nextLine: string): string {
 	//
 	const lines = rawFrontmatter.split('\n');
@@ -505,25 +392,6 @@ function upsertFrontmatterLine(rawFrontmatter: string, key: string, nextLine: st
 	return `${rawFrontmatter}\n${nextLine}`;
 }
 
-function upsertTagsFrontmatter(rawFrontmatter: string, tags: string[]): string {
-	//
-	const tagsLine = renderTagsFrontmatterLine(tags);
-
-	return upsertFrontmatterLine(rawFrontmatter, 'tags', tagsLine);
-}
-
-function upsertPriorityFrontmatter(rawFrontmatter: string, priority: TaskPriority): string {
-	//
-	return upsertFrontmatterLine(rawFrontmatter, 'priority', renderPriorityFrontmatterLine(priority));
-}
-
-function upsertTitleFrontmatter(rawFrontmatter: string, title: string): string {
-	//
-	const titleLine = `title: ${renderFrontmatterString(title)}`;
-
-	return upsertFrontmatterLine(rawFrontmatter, 'title', titleLine);
-}
-
 function renderFileContentWithTags(fileContent: string, tags: string[]): string {
 	//
 	const frontmatterSection = extractFrontmatterSection(fileContent);
@@ -532,12 +400,16 @@ function renderFileContentWithTags(fileContent: string, tags: string[]): string 
 		return `---\n${renderTagsFrontmatterLine(tags)}\n---\n\n${fileContent.replace(/^\uFEFF/, '')}`;
 	}
 
-	const nextRawFrontmatter = upsertTagsFrontmatter(frontmatterSection.rawFrontmatter, tags);
+	const nextRawFrontmatter = upsertFrontmatterLine(
+		frontmatterSection.rawFrontmatter,
+		'tags',
+		renderTagsFrontmatterLine(tags),
+	);
 
 	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
 }
 
-function renderFileContentWithPriority(fileContent: string, priority: TaskPriority): string {
+function renderFileContentWithPriority(fileContent: string, priority: TaskPriority | null): string {
 	//
 	const frontmatterSection = extractFrontmatterSection(fileContent);
 
@@ -545,7 +417,11 @@ function renderFileContentWithPriority(fileContent: string, priority: TaskPriori
 		return `---\n${renderPriorityFrontmatterLine(priority)}\n---\n\n${fileContent.replace(/^\uFEFF/, '')}`;
 	}
 
-	const nextRawFrontmatter = upsertPriorityFrontmatter(frontmatterSection.rawFrontmatter, priority);
+	const nextRawFrontmatter = upsertFrontmatterLine(
+		frontmatterSection.rawFrontmatter,
+		'priority',
+		renderPriorityFrontmatterLine(priority),
+	);
 
 	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
 }
@@ -558,81 +434,66 @@ function renderFileContentWithTitle(fileContent: string, title: string): string 
 		return `---\ntitle: ${renderFrontmatterString(title)}\n---\n\n${fileContent.replace(/^\uFEFF/, '')}`;
 	}
 
-	const nextRawFrontmatter = upsertTitleFrontmatter(frontmatterSection.rawFrontmatter, title);
+	const titleLine = `title: ${renderFrontmatterString(title)}`;
+	const nextRawFrontmatter = upsertFrontmatterLine(frontmatterSection.rawFrontmatter, 'title', titleLine);
 
 	return `---\n${nextRawFrontmatter}\n---\n${frontmatterSection.body}`;
 }
 
+function getTaskDirectory(task: TaskSummary): string {
+	//
+	const taskRoot = getTaskRoot(task.taskSource);
+	if (task.taskPath.length === 0) return taskRoot;
+	return join(taskRoot, ...task.taskPath.split('/'));
+}
+
+function getTaskIndexPath(task: TaskSummary): string {
+	//
+	return join(getTaskRoot(task.taskSource), task.relativePath);
+}
+
+function replaceStatusTag(tags: string[], status: string): string[] {
+	//
+	const withoutStatus = tags.filter((tag) => !tag.startsWith('status:'));
+	return dedupeStrings(withoutStatus.concat(`status:${status}`));
+}
+
 export function markTaskDone(task: TaskSummary): MarkTaskDoneResult {
 	//
-	if (task.status === 'completed' || task.relativePath.startsWith('completed/')) {
-		throw new Error('task is already completed');
-	}
-
-	const taskRoot = getTaskRoot(task.taskSource);
-	const sourceAbsolutePath = join(taskRoot, task.relativePath);
-	const newRelativePath = posix.join('completed', task.relativePath);
-	const destinationAbsolutePath = join(taskRoot, newRelativePath);
-
-	if (!existsSync(sourceAbsolutePath)) {
-		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
-	}
-
-	if (existsSync(destinationAbsolutePath)) {
-		throw new Error(`completed task already exists at ${destinationAbsolutePath}`);
-	}
-
-	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
-	renameSync(sourceAbsolutePath, destinationAbsolutePath);
-
-	try {
-		runTaskIndexBuild();
-	} catch (error) {
-		renameSync(destinationAbsolutePath, sourceAbsolutePath);
-		throw error;
-	}
-
-	return {
-		newRelativePath,
-		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
-	};
+	return moveTask(task, { status: 'completed' });
 }
 
 export function moveTask(task: TaskSummary, input: MoveTaskInput): MoveTaskResult {
 	//
-	const status = normalizeTaskStatus(input.status);
-
-	if (status === task.status) {
-		throw new Error('task is already in that status');
+	if (task.status === input.status) {
+		return {
+			newTaskKey: task.key,
+			status: input.status,
+		};
 	}
 
-	const taskRoot = getTaskRoot(task.taskSource);
-	const sourceAbsolutePath = join(taskRoot, task.relativePath);
-	const newRelativePath = replaceTaskStatusSegment(task.relativePath, status);
-	const destinationAbsolutePath = join(taskRoot, newRelativePath);
+	const absolutePath = getTaskIndexPath(task);
 
-	if (!existsSync(sourceAbsolutePath)) {
-		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	if (!existsSync(absolutePath)) {
+		throw new Error(`task file no longer exists at ${absolutePath}`);
 	}
 
-	if (existsSync(destinationAbsolutePath)) {
-		throw new Error(`task already exists at ${destinationAbsolutePath}`);
-	}
+	const originalContent = readFileSync(absolutePath, 'utf-8');
+	const nextTags = replaceStatusTag(task.tags, input.status);
+	const nextContent = renderFileContentWithTags(originalContent, nextTags);
 
-	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
-	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+	writeFileSync(absolutePath, nextContent, 'utf-8');
 
 	try {
 		runTaskIndexBuild();
 	} catch (error) {
-		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		writeFileSync(absolutePath, originalContent, 'utf-8');
 		throw error;
 	}
 
 	return {
-		newRelativePath,
-		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
-		status,
+		newTaskKey: task.key,
+		status: input.status,
 	};
 }
 
@@ -640,28 +501,25 @@ export function updateTaskSource(task: TaskSummary, input: UpdateTaskSourceInput
 	//
 	if (input.taskSource === task.taskSource) {
 		return {
-			newRelativePath: task.relativePath,
 			newTaskKey: task.key,
 			taskSource: task.taskSource,
 		};
 	}
 
-	const sourceTaskRoot = getTaskRoot(task.taskSource);
+	if (task.taskPath.length === 0) {
+		throw new Error('visibility roots cannot be moved');
+	}
+
+	const sourceAbsolutePath = getTaskDirectory(task);
 	const destinationTaskRoot = getTaskRoot(input.taskSource);
-	const sourceAbsolutePath = join(sourceTaskRoot, task.relativePath);
-	const destinationAbsolutePath = join(destinationTaskRoot, task.relativePath);
-	const destinationPathKey = createTaskPathKey(task.relativePath);
+	const destinationAbsolutePath = join(destinationTaskRoot, ...task.taskPath.split('/'));
 
 	if (!existsSync(sourceAbsolutePath)) {
-		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+		throw new Error(`task directory no longer exists at ${sourceAbsolutePath}`);
 	}
 
 	if (existsSync(destinationAbsolutePath)) {
 		throw new Error(`task already exists at ${destinationAbsolutePath}`);
-	}
-
-	if (doesTaskKeyPathFileExist(destinationTaskRoot, destinationPathKey)) {
-		throw new Error('task key already exists in that visibility');
 	}
 
 	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
@@ -675,20 +533,22 @@ export function updateTaskSource(task: TaskSummary, input: UpdateTaskSourceInput
 	}
 
 	return {
-		newRelativePath: task.relativePath,
-		newTaskKey: createTaskKey(task.relativePath, input.taskSource),
+		newTaskKey: createTaskKey(task.taskPath, input.taskSource),
 		taskSource: input.taskSource,
 	};
 }
 
 export function trashTask(task: TaskSummary): TrashTaskResult {
 	//
-	const taskRoot = getTaskRoot(task.taskSource);
-	const sourceAbsolutePath = join(taskRoot, task.relativePath);
+	if (task.taskPath.length === 0) {
+		throw new Error('visibility roots cannot be trashed');
+	}
+
+	const sourceAbsolutePath = getTaskDirectory(task);
 	const destinationAbsolutePath = createSystemTrashPath(sourceAbsolutePath);
 
 	if (!existsSync(sourceAbsolutePath)) {
-		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+		throw new Error(`task directory no longer exists at ${sourceAbsolutePath}`);
 	}
 
 	renameSync(sourceAbsolutePath, destinationAbsolutePath);
@@ -707,55 +567,58 @@ export function trashTask(task: TaskSummary): TrashTaskResult {
 
 export function renameTask(task: TaskSummary, input: RenameTaskInput): RenameTaskResult {
 	//
-	const filename = normalizeRenameTaskFilename(input.filename);
-	const taskRoot = getTaskRoot(task.taskSource);
-	const sourceAbsolutePath = join(taskRoot, task.relativePath);
-	const newRelativePath = replaceTaskFilenameSegment(task.relativePath, filename);
-	const destinationAbsolutePath = join(taskRoot, newRelativePath);
-	const sourcePathKey = createTaskPathKey(task.relativePath);
-	const destinationPathKey = createTaskPathKey(newRelativePath);
-
-	if (newRelativePath === task.relativePath) {
-		throw new Error('task file already has that name');
+	if (task.taskPath.length === 0) {
+		throw new Error('visibility roots cannot be renamed');
 	}
 
-	if (!existsSync(sourceAbsolutePath)) {
-		throw new Error(`task file no longer exists at ${sourceAbsolutePath}`);
+	const filename = normalizeRenameTaskFilename(input.filename);
+	const taskDirectory = getTaskDirectory(task);
+	const parentPath = posix.dirname(task.taskPath);
+	const normalizedParentPath = parentPath === '.' ? '' : parentPath;
+	const nextTaskPath = normalizedParentPath.length === 0 ? filename : posix.join(normalizedParentPath, filename);
+	const destinationAbsolutePath = join(getTaskRoot(task.taskSource), ...nextTaskPath.split('/'));
+
+	if (nextTaskPath === task.taskPath) {
+		throw new Error('task already has that name');
+	}
+
+	if (!existsSync(taskDirectory)) {
+		throw new Error(`task directory no longer exists at ${taskDirectory}`);
 	}
 
 	if (existsSync(destinationAbsolutePath)) {
-		throw new Error(`task file already exists at ${destinationAbsolutePath}`);
-	}
-
-	if (destinationPathKey !== sourcePathKey && doesTaskKeyPathFileExist(taskRoot, destinationPathKey)) {
-		throw new Error('task key already exists for that filename');
+		throw new Error(`task already exists at ${destinationAbsolutePath}`);
 	}
 
 	mkdirSync(dirname(destinationAbsolutePath), { recursive: true });
-	renameSync(sourceAbsolutePath, destinationAbsolutePath);
+	renameSync(taskDirectory, destinationAbsolutePath);
 
 	try {
 		runTaskIndexBuild();
 	} catch (error) {
-		renameSync(destinationAbsolutePath, sourceAbsolutePath);
+		renameSync(destinationAbsolutePath, taskDirectory);
 		throw error;
 	}
 
 	return {
-		newRelativePath,
-		newTaskKey: createTaskKey(newRelativePath, task.taskSource),
+		newTaskPath: nextTaskPath,
+		newTaskKey: createTaskKey(nextTaskPath, task.taskSource),
 	};
 }
 
 export function createTask(input: CreateTaskInput): CreateTaskResult {
 	//
 	const title = normalizeTaskTitle(input.title.length > 0 ? input.title : createTitleFromBody(input.body));
-	const status = normalizeTaskStatus(input.status);
-	const tags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
-	const filename = normalizeTaskFilename(input.filename, title);
+	const normalizedTags = dedupeStrings(input.tags.map((tag) => normalizeTaskTag(tag)));
+	const parentPath = normalizeTaskPath(input.parentPath.length > 0 ? input.parentPath : 'inbox');
 	const taskRoot = getTaskRoot(input.taskSource);
-	const newRelativePath = createUniqueTaskRelativePath(taskRoot, status, filename);
-	const absolutePath = join(taskRoot, ...newRelativePath.split('/'));
+	const filename = normalizeTaskFilename(input.filename, title);
+	const taskPath = createUniqueTaskPath(taskRoot, parentPath, filename);
+	const taskDirectory = join(taskRoot, ...taskPath.split('/'));
+	const absolutePath = join(taskDirectory, '_index.md');
+	const shouldApplyStatus = taskPath === 'tasks' || taskPath.startsWith('tasks/');
+	const tags =
+		shouldApplyStatus && input.status !== null ? replaceStatusTag(normalizedTags, input.status) : normalizedTags;
 	const fileContent = renderCreatedTaskFile({
 		body: input.body,
 		priority: input.priority,
@@ -763,29 +626,28 @@ export function createTask(input: CreateTaskInput): CreateTaskResult {
 		title,
 	});
 
-	mkdirSync(dirname(absolutePath), { recursive: true });
+	mkdirSync(taskDirectory, { recursive: true });
 	writeFileSync(absolutePath, fileContent, { encoding: 'utf-8', flag: 'wx' });
 
 	try {
 		runTaskIndexBuild();
 	} catch (error) {
-		unlinkSync(absolutePath);
+		rmSync(taskDirectory, { recursive: true, force: true });
 		throw error;
 	}
 
 	return {
 		absolutePath,
-		newRelativePath,
-		newTaskKey: createTaskKey(newRelativePath, input.taskSource),
-		status,
+		newRelativePath: posix.join(taskPath, '_index.md'),
+		newTaskKey: createTaskKey(taskPath, input.taskSource),
+		taskPath,
 		taskSource: input.taskSource,
 	};
 }
 
 export function updateTaskTags(task: TaskSummary, input: UpdateTaskTagsInput): UpdateTaskTagsResult {
 	//
-	const taskRoot = getTaskRoot(task.taskSource);
-	const absolutePath = join(taskRoot, task.relativePath);
+	const absolutePath = getTaskIndexPath(task);
 
 	if (!existsSync(absolutePath)) {
 		throw new Error(`task file no longer exists at ${absolutePath}`);
@@ -822,8 +684,7 @@ export function updateTaskTags(task: TaskSummary, input: UpdateTaskTagsInput): U
 
 export function updateTaskPriority(task: TaskSummary, input: UpdateTaskPriorityInput): UpdateTaskPriorityResult {
 	//
-	const taskRoot = getTaskRoot(task.taskSource);
-	const absolutePath = join(taskRoot, task.relativePath);
+	const absolutePath = getTaskIndexPath(task);
 
 	if (!existsSync(absolutePath)) {
 		throw new Error(`task file no longer exists at ${absolutePath}`);
@@ -851,8 +712,7 @@ export function updateTaskPriority(task: TaskSummary, input: UpdateTaskPriorityI
 export function updateTaskTitle(task: TaskSummary, input: UpdateTaskTitleInput): UpdateTaskTitleResult {
 	//
 	const title = normalizeTaskTitle(input.title);
-	const taskRoot = getTaskRoot(task.taskSource);
-	const absolutePath = join(taskRoot, task.relativePath);
+	const absolutePath = getTaskIndexPath(task);
 
 	if (!existsSync(absolutePath)) {
 		throw new Error(`task file no longer exists at ${absolutePath}`);
@@ -875,4 +735,22 @@ export function updateTaskTitle(task: TaskSummary, input: UpdateTaskTitleInput):
 	}
 
 	return { title };
+}
+
+export function updateTaskConfig(task: TaskSummary, input: UpdateTaskConfigInput): UpdateTaskConfigResult {
+	//
+	const taskDirectory = getTaskDirectory(task);
+	const configPath = join(taskDirectory, '_config.json');
+
+	if (!existsSync(taskDirectory) || !statSync(taskDirectory).isDirectory()) {
+		throw new Error(`task directory no longer exists at ${taskDirectory}`);
+	}
+
+	writeFileSync(configPath, `${JSON.stringify(input.config, null, 2)}\n`, 'utf-8');
+
+	runTaskIndexBuild();
+
+	return {
+		config: input.config,
+	};
 }

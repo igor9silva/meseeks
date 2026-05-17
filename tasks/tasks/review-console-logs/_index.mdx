@@ -1,0 +1,14 @@
+---
+title: Review console logging
+priority: medium
+tags: [observability, status:backlog]
+---
+
+Review and organize all console.* calls.
+Make sure they're standardized and consistent.
+
+They should be:
+- console.debug - for debugging information, only visible when LOG_LEVEL is set to debug
+- console.info - for general information, always visible in logs
+- console.warn - for warnings, non-breaking issues, counted and monitored as aggregated alerts
+- console.error - for errors, triggers max priority admin notification

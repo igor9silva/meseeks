@@ -1,13 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, Copy, Crosshair, ListChecks, Maximize2, Minimize2, Trash2, X } from 'lucide-react';
+import { ArrowRight, Check, Copy, Crosshair, ListChecks, Maximize2, Minimize2, Trash2, X } from 'lucide-react';
 import type { FormEvent, MouseEvent, PointerEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Mdx } from '~/components/ui/mdx';
 import type { TaskSource } from '~/lib/explorerSearchParams';
-import { formatTaskBucketLabel } from '~/lib/taskBuckets';
 import { compareTagGroupKeys, formatTagGroupLabel, getTagGroupLookupKey, parseTaskTag } from '~/lib/taskTags';
 import {
 	markTaskDone,
@@ -26,8 +25,6 @@ import {
 	formatSourceLabel,
 	getMutationErrorMessage,
 	getTaskDisplayFilename,
-	getTaskFileBasename,
-	getTaskFilename,
 	parseTaskSource,
 	parseTaskPriority,
 	taskPriorityOptions,
@@ -40,6 +37,12 @@ import {
 const HOLD_ACTION_DELAY_MS = 550;
 const COPY_FEEDBACK_MS = 1500;
 
+function getTaskPathFilename(taskPath: string): string {
+	//
+	if (taskPath.length === 0) return 'root';
+	return taskPath.split('/').at(-1) ?? 'root';
+}
+
 function getDirectoryPath(filePath: string | null): string | null {
 	//
 	if (!filePath) return null;
@@ -51,30 +54,39 @@ function getDirectoryPath(filePath: string | null): string | null {
 	return normalizedPath.slice(0, lastSeparatorIndex);
 }
 
+function isStructuralTask(task: TaskDetailTask): boolean {
+	//
+	if (task.taskPath.length === 0) return true;
+	if (task.pathSegments.length !== 1) return false;
+
+	const segment = task.pathSegments[0];
+	return segment === 'inbox' || segment === 'tasks' || segment === 'references' || segment === 'ideas';
+}
+
 export function TaskDetailView({
 	detail,
 	isInspectorExpanded,
-	statusOptions,
+	shouldBlurPrivateTasks,
 	tagOptions,
 	onInspectorExpandedToggle,
-	onNavigateTask,
 	onTaskMoved,
 	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
+	onOpenTask,
 }: {
 	detail: TaskDetailResult;
 	isInspectorExpanded: boolean;
-	statusOptions: string[];
+	shouldBlurPrivateTasks: boolean;
 	tagOptions: string[];
 	onInspectorExpandedToggle: () => void;
-	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
 	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
+	onOpenTask?: () => void;
 }) {
 	//
 	if (!detail.task) return null;
@@ -82,51 +94,48 @@ export function TaskDetailView({
 	return (
 		<TaskDetailContent
 			key={detail.task.key}
-			detail={detail}
 			task={detail.task}
 			isInspectorExpanded={isInspectorExpanded}
-			statusOptions={statusOptions}
+			shouldBlurPrivateTasks={shouldBlurPrivateTasks}
 			tagOptions={tagOptions}
 			onInspectorExpandedToggle={onInspectorExpandedToggle}
-			onNavigateTask={onNavigateTask}
 			onTaskMoved={onTaskMoved}
 			onTaskSourceChanged={onTaskSourceChanged}
 			onTaskRenamed={onTaskRenamed}
 			onTaskCompleted={onTaskCompleted}
 			onTaskTrashed={onTaskTrashed}
+			onOpenTask={onOpenTask}
 		/>
 	);
 }
 
 function TaskDetailContent({
-	detail,
 	task,
 	isInspectorExpanded,
-	statusOptions,
+	shouldBlurPrivateTasks,
 	tagOptions,
 	onInspectorExpandedToggle,
-	onNavigateTask,
 	onTaskMoved,
 	onTaskSourceChanged,
 	onTaskRenamed,
 	onTaskCompleted,
 	onTaskTrashed,
+	onOpenTask,
 }: {
-	detail: TaskDetailResult;
 	task: TaskDetailTask;
 	isInspectorExpanded: boolean;
-	statusOptions: string[];
+	shouldBlurPrivateTasks: boolean;
 	tagOptions: string[];
 	onInspectorExpandedToggle: () => void;
-	onNavigateTask: (taskKey: string) => void;
 	onTaskMoved: (taskKey: string, status: string) => void;
 	onTaskSourceChanged: (taskKey: string, taskSource: TaskSource) => void;
 	onTaskRenamed: (taskKey: string) => void;
 	onTaskCompleted: (taskKey: string) => void;
 	onTaskTrashed: (taskKey: string) => void;
+	onOpenTask?: () => void;
 }) {
 	//
-	const bucketInputId = useId();
+	const statusInputId = useId();
 	const priorityInputId = useId();
 	const sourceInputId = useId();
 	const renameFilenameInputId = useId();
@@ -143,23 +152,24 @@ function TaskDetailContent({
 	const updateTaskSourceServer = useServerFn(updateTaskSource);
 	const updateTaskTagsServer = useServerFn(updateTaskTags);
 	const updateTaskTitleServer = useServerFn(updateTaskTitle);
-	const relatedTasks = detail.relatedTasks ?? [];
-	const relatedTaskByKey = new Map(relatedTasks.map((relatedTask) => [relatedTask.key, relatedTask]));
 	const cursorFileHref = toCursorFileHref(task.absolutePath);
 	const codexPlanHref = toCodexPlanHref(task);
 	const codexSeekHref = toCodexSeekHref(task);
 	const taskAssetBasePath = useMemo(() => getDirectoryPath(task.absolutePath), [task.absolutePath]);
 	const taskFileRelativePath =
 		task.taskSource === 'private' ? `private/tasks/${task.relativePath}` : `tasks/${task.relativePath}`;
-	const canMarkDone = task.status !== 'completed';
+	const isStructural = isStructuralTask(task);
+	const canMarkDone = !isStructural && task.status !== 'completed';
 	const displayFilename = useMemo(() => getTaskDisplayFilename(task.relativePath), [task.relativePath]);
-	const currentFilename = useMemo(() => getTaskFilename(task.relativePath), [task.relativePath]);
-	const currentFileBasename = useMemo(() => getTaskFileBasename(task.relativePath), [task.relativePath]);
+	const currentFilename = useMemo(() => getTaskPathFilename(task.taskPath), [task.taskPath]);
+	const currentFileBasename = currentFilename;
 	const [isFilePathCopied, setIsFilePathCopied] = useState(false);
 	const [isRenamingFile, setIsRenamingFile] = useState(false);
 	const [renameDraft, setRenameDraft] = useState('');
 	const [isEditingTitle, setIsEditingTitle] = useState(false);
 	const [titleDraft, setTitleDraft] = useState('');
+	const shouldBlurTask = shouldBlurPrivateTasks && task.taskSource === 'private';
+	const privateBlurClassName = getPrivateBlurClassName(shouldBlurTask);
 
 	useEffect(() => {
 		if (isRenamingFile) renameFilenameInputRef.current?.focus();
@@ -177,8 +187,8 @@ function TaskDetailContent({
 	}, []);
 
 	const moveStatusOptions = useMemo(() => {
-		return statusOptions.filter((statusOption) => statusOption !== task.status);
-	}, [statusOptions, task.status]);
+		return ['backlog', 'active', 'completed'].filter((statusOption) => statusOption !== task.status);
+	}, [task.status]);
 	const systemTags = useMemo(() => dedupeStrings(task.tags.concat(tagOptions)), [tagOptions, task.tags]);
 	const systemTagGroups = useMemo(() => buildSystemTagGroups(systemTags), [systemTags]);
 	const normalizedRenameFilename = useMemo(() => createTaskRenameFilename(renameDraft), [renameDraft]);
@@ -194,7 +204,8 @@ function TaskDetailContent({
 		},
 	});
 	const moveTaskMutation = useMutation({
-		mutationFn: (status: string) => moveTaskServer({ data: { taskKey: task.key, status } }),
+		mutationFn: (status: 'backlog' | 'active' | 'completed') =>
+			moveTaskServer({ data: { taskKey: task.key, status } }),
 		onSuccess: async (result) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ['tasks-explorer'] }),
@@ -288,8 +299,8 @@ function TaskDetailContent({
 		updateTaskPriorityMutation.mutate(parsedPriority);
 	};
 
-	const handleBucketChange = (status: string) => {
-		if (status.trim().length === 0) return;
+	const handleStatusChange = (status: string) => {
+		if (status !== 'backlog' && status !== 'active' && status !== 'completed') return;
 		if (status === task.status) return;
 
 		moveTaskMutation.mutate(status);
@@ -401,34 +412,6 @@ function TaskDetailContent({
 		event.preventDefault();
 	};
 
-	const renderRelation = (label: string, keys: string[]) => {
-		if (keys.length === 0) return null;
-
-		return (
-			<div className="min-w-0 space-y-1">
-				<div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-				<div className="space-y-1">
-					{keys.map((key) => {
-						const related = relatedTaskByKey.get(key);
-						const title = related?.title ?? key;
-
-						return (
-							<button
-								key={key}
-								type="button"
-								onClick={() => onNavigateTask(key)}
-								className="block w-full max-w-full min-w-0 cursor-pointer overflow-hidden rounded-md border border-border/80 px-2 py-1 text-left text-sm hover:bg-muted"
-							>
-								<div className="min-w-0 truncate font-medium text-foreground">{title}</div>
-								<div className="truncate text-xs text-muted-foreground">{key}</div>
-							</button>
-						);
-					})}
-				</div>
-			</div>
-		);
-	};
-
 	const isRenameSubmitDisabled =
 		renameTaskMutation.isPending ||
 		renameDraft.trim().length === 0 ||
@@ -494,7 +477,7 @@ function TaskDetailContent({
 											onPointerCancel={titleHoldAction.handlePointerEnd}
 											disabled={isTaskFileMutationPending}
 											title="Hold to edit title"
-											className="inline break-all text-left text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline"
+											className={`inline break-all text-left text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline ${privateBlurClassName}`}
 										>
 											{task.title}
 										</button>
@@ -504,7 +487,7 @@ function TaskDetailContent({
 											href={codexPlanHref}
 											target="_blank"
 											rel="noopener"
-											className="inline-flex items-center gap-1 text-xs font-normal text-foreground/80 underline underline-offset-4 hover:text-foreground"
+											className={`inline-flex items-center gap-1 text-xs font-normal text-foreground/80 underline underline-offset-4 hover:text-foreground ${privateBlurClassName}`}
 										>
 											<ListChecks className="size-3.5" /> Plan
 										</a>
@@ -512,7 +495,7 @@ function TaskDetailContent({
 											href={codexSeekHref}
 											target="_blank"
 											rel="noopener"
-											className="inline-flex items-center gap-1 text-xs font-normal text-foreground/80 underline underline-offset-4 hover:text-foreground"
+											className={`inline-flex items-center gap-1 text-xs font-normal text-foreground/80 underline underline-offset-4 hover:text-foreground ${privateBlurClassName}`}
 										>
 											<Crosshair className="size-3.5" /> Seek
 										</a>
@@ -571,7 +554,7 @@ function TaskDetailContent({
 											onPointerCancel={filenameHoldAction.handlePointerEnd}
 											onClick={handleFilenameClick}
 											title="Click to open. Hold to rename."
-											className="min-w-0 break-all text-foreground/80 underline underline-offset-4 hover:text-foreground"
+											className={`min-w-0 break-all text-foreground/80 underline underline-offset-4 hover:text-foreground ${privateBlurClassName}`}
 										>
 											{displayFilename}
 										</a>
@@ -584,7 +567,7 @@ function TaskDetailContent({
 											onPointerCancel={filenameHoldAction.handlePointerEnd}
 											disabled={isTaskFileMutationPending}
 											title="Hold to rename file"
-											className="min-w-0 break-all text-left text-foreground/80 hover:text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline"
+											className={`min-w-0 break-all text-left text-foreground/80 hover:text-foreground hover:underline hover:underline-offset-4 disabled:cursor-default disabled:hover:no-underline ${privateBlurClassName}`}
 										>
 											{displayFilename}
 										</button>
@@ -622,6 +605,18 @@ function TaskDetailContent({
 					</div>
 
 					<div className="flex shrink-0 flex-wrap justify-end gap-2">
+						{onOpenTask ? (
+							<Button
+								type="button"
+								size="icon-sm"
+								variant="ghost"
+								aria-label="Navigate into task"
+								title="Navigate into task"
+								onClick={onOpenTask}
+							>
+								<ArrowRight className="size-4" />
+							</Button>
+						) : null}
 						<Button
 							type="button"
 							size="icon-sm"
@@ -632,16 +627,18 @@ function TaskDetailContent({
 						>
 							{isInspectorExpanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
 						</Button>
-						<Button
-							type="button"
-							size="icon-sm"
-							variant="destructive"
-							aria-label="Move to system Trash"
-							onClick={() => trashTaskMutation.mutate()}
-							disabled={isTaskFileMutationPending}
-						>
-							<Trash2 className="size-4" />
-						</Button>
+						{!isStructural ? (
+							<Button
+								type="button"
+								size="icon-sm"
+								variant="destructive"
+								aria-label="Move to system Trash"
+								onClick={() => trashTaskMutation.mutate()}
+								disabled={isTaskFileMutationPending}
+							>
+								<Trash2 className="size-4" />
+							</Button>
+						) : null}
 						{canMarkDone ? (
 							<Button
 								type="button"
@@ -666,8 +663,8 @@ function TaskDetailContent({
 							id={priorityInputId}
 							value={task.priority ?? ''}
 							onChange={(event) => handlePriorityChange(event.currentTarget.value)}
-							disabled={updateTaskPriorityMutation.isPending}
-							className="mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50"
+							disabled={updateTaskPriorityMutation.isPending || isStructural}
+							className={`mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50 ${privateBlurClassName}`}
 						>
 							<option value="" disabled>
 								none
@@ -680,19 +677,19 @@ function TaskDetailContent({
 						</select>
 					</div>
 					<div className="min-w-32">
-						<label className="text-muted-foreground" htmlFor={bucketInputId}>
-							Bucket
+						<label className="text-muted-foreground" htmlFor={statusInputId}>
+							Status
 						</label>
 						<select
-							id={bucketInputId}
+							id={statusInputId}
 							value={task.status}
-							onChange={(event) => handleBucketChange(event.currentTarget.value)}
-							disabled={moveTaskMutation.isPending}
-							className="mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50"
+							onChange={(event) => handleStatusChange(event.currentTarget.value)}
+							disabled={moveTaskMutation.isPending || isStructural}
+							className={`mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50 ${privateBlurClassName}`}
 						>
 							{[task.status].concat(moveStatusOptions).map((statusOption) => (
 								<option key={statusOption} value={statusOption}>
-									{formatTaskBucketLabel(statusOption)}
+									{statusOption}
 								</option>
 							))}
 						</select>
@@ -705,8 +702,8 @@ function TaskDetailContent({
 							id={sourceInputId}
 							value={task.taskSource}
 							onChange={(event) => handleSourceChange(event.currentTarget.value)}
-							disabled={updateTaskSourceMutation.isPending}
-							className="mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50"
+							disabled={updateTaskSourceMutation.isPending || isStructural}
+							className={`mt-0.5 h-7 w-full rounded-sm border border-input bg-background px-2 font-medium text-foreground disabled:opacity-50 ${privateBlurClassName}`}
 						>
 							{taskSourceOptions.map((sourceOption) => (
 								<option key={sourceOption} value={sourceOption}>
@@ -715,8 +712,18 @@ function TaskDetailContent({
 							))}
 						</select>
 					</div>
-					<TimestampButton label="Created" value={task.created} onCopy={handleTimestampCopy} />
-					<TimestampButton label="Updated" value={task.updated} onCopy={handleTimestampCopy} />
+					<TimestampButton
+						label="Created"
+						value={task.created}
+						shouldBlur={shouldBlurTask}
+						onCopy={handleTimestampCopy}
+					/>
+					<TimestampButton
+						label="Updated"
+						value={task.updated}
+						shouldBlur={shouldBlurTask}
+						onCopy={handleTimestampCopy}
+					/>
 				</div>
 
 				<div className="mt-3 max-h-36 space-y-2 overflow-auto">
@@ -725,7 +732,7 @@ function TaskDetailContent({
 							<div className="flex h-6 w-28 shrink-0 items-center text-xs text-muted-foreground">
 								{formatTagGroupLabel(group.key)}
 							</div>
-							<div className="flex min-w-0 flex-1 flex-wrap gap-1">
+							<div className={`flex min-w-0 flex-1 flex-wrap gap-1 ${privateBlurClassName}`}>
 								{group.entries.map((entry) => {
 									const isSelected = task.tags.includes(entry.tag);
 
@@ -797,15 +804,14 @@ function TaskDetailContent({
 			</header>
 
 			<div className="space-y-4 p-4">
-				<div className="space-y-4">
-					{detail.relations.parentKey && renderRelation('Parent', [detail.relations.parentKey])}
-					{renderRelation('Children', detail.relations.children)}
+				<div className={privateBlurClassName}>
+					<Mdx text={task.body} className="text-sm" assetBasePath={taskAssetBasePath} />
 				</div>
 
-				<Mdx text={task.body} className="text-sm" assetBasePath={taskAssetBasePath} />
-
 				{task.warnings.length > 0 && (
-					<details className="rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground">
+					<details
+						className={`rounded-md border border-border/60 bg-muted/20 p-2 text-xs text-muted-foreground ${privateBlurClassName}`}
+					>
 						<summary className="cursor-pointer font-medium">Warnings ({task.warnings.length})</summary>
 						<ul className="mt-2 list-disc space-y-1 pl-5">
 							{task.warnings.map((warning) => (
@@ -822,13 +828,17 @@ function TaskDetailContent({
 function TimestampButton({
 	label,
 	value,
+	shouldBlur,
 	onCopy,
 }: {
 	label: string;
 	value: string;
+	shouldBlur: boolean;
 	onCopy: (value: string) => Promise<void>;
 }) {
 	//
+	const privateBlurClassName = getPrivateBlurClassName(shouldBlur);
+
 	return (
 		<button
 			type="button"
@@ -839,9 +849,16 @@ function TimestampButton({
 			title={`Copy ${value}`}
 		>
 			<div className="text-muted-foreground">{label}</div>
-			<div className="mt-0.5 truncate font-medium text-foreground">{formatTaskTimestamp(value)}</div>
+			<div className={`mt-0.5 truncate font-medium text-foreground ${privateBlurClassName}`}>
+				{formatTaskTimestamp(value)}
+			</div>
 		</button>
 	);
+}
+
+function getPrivateBlurClassName(shouldBlur: boolean): string {
+	//
+	return shouldBlur ? 'select-none blur-xs' : '';
 }
 
 interface SystemTagGroup {

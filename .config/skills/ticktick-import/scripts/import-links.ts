@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 import { z } from 'zod'
 
@@ -9,7 +9,7 @@ import { API_KEYS } from '../../../../private/skills/config'
 import { extractTweetId, scrapeTweet, toMarkdown } from '../../scrape-content/scripts/lib'
 
 const coreDataUnixOffsetSeconds = 978307200
-const defaultOutputDir = resolve('private/tasks/links')
+const defaultOutputDir = resolve('private/tasks/inbox')
 const defaultSummaryFile = '/tmp/meseeks-links-import-summary.json'
 const defaultDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`
 const defaultTimeZone = 'Europe/Lisbon'
@@ -779,9 +779,10 @@ async function main() {
 			console.info(`[${index + 1}/${tasksToCreate.length}] scraping ${originalLink}`)
 			const scrapeResult = await scrapeLink(originalLink)
 			const fileSlug = buildFileSlug(task, originalLink)
-			const filePath = join(parsedArgs.outputDir, `${fileSlug}.mdx`)
+			const filePath = join(parsedArgs.outputDir, fileSlug, '_index.mdx')
 			const fileContent = renderTaskFile(task, currentLinksTask, originalLink, scrapeResult, parsedArgs.importDate)
 
+			mkdirSync(dirname(filePath), { recursive: true })
 			writeFileSync(filePath, fileContent, 'utf-8')
 
 			return outputSummaryRowSchema.parse({

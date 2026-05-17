@@ -1,6 +1,6 @@
 ---
 name: ticktick-import
-description: Import tasks from TickTick into the Meseeks task system, sync link buckets from TickTick Inbox, or create TickTick tasks from local link files. Use when the user asks to fetch TickTick tasks, import from TickTick, sync TickTick, pull tasks from TickTick, discover their inbox ID, or push curated local links back into TickTick.
+description: Import tasks from TickTick into the Meseeks task system, sync link groups from TickTick Inbox, or create TickTick tasks from local link files. Use when the user asks to fetch TickTick tasks, import from TickTick, sync TickTick, pull tasks from TickTick, discover their inbox ID, or push curated local links back into TickTick.
 ---
 
 # TickTick Import
@@ -84,9 +84,9 @@ It prints the inbox ID so it can be exported as:
 export TICKTICK_INBOX_ID="inbox118693896"
 ```
 
-### Import link buckets from TickTick Inbox
+### Import link groups from TickTick Inbox
 
-Reads a parent task from TickTick Inbox via the local macOS database, scrapes each child link, and writes `.mdx` files into `private/tasks/links`.
+Reads a parent task from TickTick Inbox via the local macOS database, scrapes each child link, and writes folder tasks into `private/tasks/inbox` unless `--output-dir` says otherwise.
 
 ```bash
 bun scripts/import-links.ts \
@@ -104,12 +104,13 @@ Useful flags:
 - `--summary-file <file>`: write a machine-readable summary of `created`, `kept`, and `deleted`
 - `--import-date <YYYY-MM-DD>`: stamp imports explicitly
 - `--concurrency <n>`: scrape in parallel
-- `--output-dir <dir>`: override the default `private/tasks/links`
+- `--output-dir <dir>`: override the default output directory
 
 Current behavior:
 
 - dedupes by TickTick child task id
 - scans the output directory recursively, so manually moved files under `links/*/*` still count as existing
+- creates each new import as `<slug>/_index.mdx`
 - does not preserve custom subfolder placement for newly created files; it only avoids touching existing moved files
 - for existing tasks under `--skip-existing`, it does not rescrape or rewrite
 
@@ -127,19 +128,20 @@ Current behavior:
 
 - imports Meseeks into `private/tasks/inbox`
 - imports References into `private/tasks/references`
-- tags every imported file with `source:ticktick` and `ticktick-list:<list>`
-- tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`
+- tags every imported file with `source:ticktick` and `ticktick-list:<list>` using the source namespace rules in `tasks/TAGS.md`
+- tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`; this is source metadata, not current lifecycle
 - treats TickTick priority `0` as unset and omits local `priority`; maps TickTick `1`, `3`, and `5` to `low`, `medium`, and `high`
 - imports TickTick child task rows as real local subtasks under the parent task folder
 - skips already imported TickTick task IDs unless `--overwrite` is passed
 - copies TickTick attachments into the imported task folder as `attachments/*`
-- writes tasks with attachments as `_index.md` task folders, so the task key stays stable while attachments live inside the task
+- writes every imported task as a folder with `_index.md`, so the task key stays stable and attachments live inside the task
 - falls back to the local TickTick attachment cache when `ZLOCALFILEPATH` is empty
 - records missing local attachment files in the task payload instead of pretending they imported
+- preserves every possible bit of imported source information; later organizing/uncluttering can remove unused raw import debris after the import snapshot has been committed
 
 ### Reshape imported link files
 
-Rewrites already-imported link files into the flat format used now:
+Rewrites already-imported link task files into the flat format used now:
 
 - original link
 - separator
@@ -155,7 +157,7 @@ Use this when the file shape changes but the underlying imported data should sta
 
 ### Create TickTick `References` tasks from local files
 
-Creates TickTick tasks in the `References` project from local files under `private/tasks/links/references`.
+Creates TickTick tasks in the `References` project from local reference files.
 
 ```bash
 bun scripts/create-reference-ticktick-tasks.ts \
@@ -164,7 +166,7 @@ bun scripts/create-reference-ticktick-tasks.ts \
 
 Current behavior:
 
-- reads local files from `private/tasks/links/references`
+- reads local task files from `private/tasks/references`
 - extracts the original link from the file metadata payload
 - derives a human title from the first meaningful scraped line instead of using the raw URL
 - stores the original link plus scraped body in TickTick `content`
@@ -287,7 +289,7 @@ Use:
 - The Open API token and the native app session are not interchangeable.
 - `ZTTUSER.ZACCESSTOKEN` from the local DB is not accepted by the public Open API.
 - For native writes, the working auth came from the app cookie store plus `X-Device`.
-- If the user manually reorganized `private/tasks/links`, do not flatten or “fix” their folders during sync.
+- If the user manually reorganized imported link folders, do not flatten or "fix" them during sync.
 - If a sync should only import new items, use `--skip-existing`.
 - If the user explicitly says “do not rescrape anything”, do not rescrape existing files.
 

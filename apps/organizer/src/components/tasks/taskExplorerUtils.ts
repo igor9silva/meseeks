@@ -6,13 +6,12 @@ import {
 	normalizeTaskFilenameSlug,
 	normalizeTaskRenameFilenameSlug,
 } from '~/lib/taskFilename';
-import { getDefaultTaskBuckets } from '~/lib/taskBuckets';
 import type { CreateTaskInput } from '~/server/taskExplorer';
 import type { CreateTaskDefaults, TaskDetailTask } from './taskExplorerTypes';
 
 export const taskSourceOptions: TaskSource[] = ['public', 'private'];
 export const taskPriorityOptions: Array<CreateTaskInput['priority']> = ['critical', 'high', 'medium', 'low'];
-export const defaultStatusOptions = getDefaultTaskBuckets();
+export const taskStatusOptions = ['backlog', 'active', 'completed'];
 export const SEARCH_DEBOUNCE_MS = 150;
 
 export function formatSourceLabel(source: TaskSource): string {
@@ -39,7 +38,8 @@ export function dedupeStrings(values: string[]): string[] {
 export function getCreateTaskDefaults(): CreateTaskDefaults {
 	//
 	return {
-		status: 'inbox',
+		parentPath: 'inbox',
+		status: null,
 		taskSource: 'private',
 	};
 }
@@ -99,15 +99,18 @@ export function toCursorFileHref(absolutePath: string | null): string | null {
 
 function buildTaskContextPrompt(task: TaskDetailTask, intent: string): string {
 	//
+	const taskFileRelativePath =
+		task.taskSource === 'private' ? `private/tasks/${task.relativePath}` : `tasks/${task.relativePath}`;
 	const lines = [
 		intent,
 		'',
 		'Task context:',
 		`- key: ${task.key}`,
 		`- visibility: ${task.taskSource}`,
-		`- path: ${task.relativePath}`,
+		`- path: ${task.taskSource}/${task.taskPath}`,
+		`- file: ${taskFileRelativePath}`,
 		`- title: ${task.title}`,
-		`- bucket: ${task.status}`,
+		`- status: ${task.status}`,
 		`- priority: ${task.priority ?? 'none'}`,
 		`- tags: ${task.tags.length > 0 ? task.tags.join(', ') : 'none'}`,
 	];
@@ -147,7 +150,7 @@ export function toCodexPlanHref(task: TaskDetailTask): string {
 		'prompt',
 		buildTaskContextPrompt(
 			task,
-			'Use the plan skill on this Meseeks task. Preserve source context, decide the right bucket/tags, and avoid destructive moves unless I confirm.',
+			'Use the plan skill on this Meseeks task. Preserve source context, decide the right task path/tags, and avoid destructive moves unless I confirm.',
 		),
 	);
 
