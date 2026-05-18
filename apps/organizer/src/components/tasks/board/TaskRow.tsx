@@ -11,6 +11,7 @@ import {
 } from './taskDisplay';
 import type { TaskListContext } from './taskListTypes';
 import type { ExplorerTask } from '../taskExplorerTypes';
+import { getTaskRoutePath } from '../taskExplorerRouting';
 
 export function TaskRow({
 	task,
@@ -54,23 +55,34 @@ export function TaskRow({
 
 function TaskRowTitle({ task, taskList }: { task: ExplorerTask; taskList: TaskListContext }) {
 	//
+	const taskHref = getTaskRoutePath(task);
+
 	return (
 		<div className="flex min-w-0 items-start gap-2">
 			<div className="min-w-0 flex-1 break-words text-sm font-medium leading-5 text-foreground">
 				{task.title}
 			</div>
-			<button
-				type="button"
+			<a
+				href={taskHref}
 				aria-label={`Navigate into ${task.title}`}
 				title="Navigate into task"
 				onClick={(event) => {
 					event.stopPropagation();
+
+					if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+						return;
+					}
+
+					event.preventDefault();
 					taskList.onTaskOpen(task);
+				}}
+				onAuxClick={(event) => {
+					event.stopPropagation();
 				}}
 				className="-mr-1 -mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground opacity-70 transition-colors hover:bg-accent hover:text-foreground group-hover:opacity-100"
 			>
 				<ArrowRight className="size-4" />
-			</button>
+			</a>
 		</div>
 	);
 }

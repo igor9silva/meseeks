@@ -4,6 +4,8 @@ priority: high
 tags: [ux, status:backlog, source:ticktick, ticktick-list:meseeks, ticktick-status:user-interface, class:task]
 ---
 
+- pinning tasks
+
 ideas from OpenCode:
 - double ESC to interrupt
 	* prolly rename stop() to interrupt()

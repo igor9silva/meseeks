@@ -66,7 +66,6 @@ The goal is to track fixes in a separate task without mixing with ongoing refact
 
 ## Split Tasks
 
-- [Enforce ownership checks for moveTask](../../tasks/enforce-move-task-ownership/_index.md)
 - [Enforce ownership checks for schedule cancellation paths](../../tasks/enforce-schedule-cancel-ownership/_index.md)
 - [Resolve stale email allowlist policy](../../tasks/resolve-stale-allowlist-policy/_index.md)
 - [Prevent global skill secret exfiltration via getSkillDetails](../../tasks/prevent-skill-secret-exfiltration/_index.md)

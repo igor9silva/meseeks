@@ -1,7 +1,7 @@
 ---
 title: Bi-rendering system
-priority: high
-tags: [status:backlog, class:task]
+priority: low
+tags: [class:task, status:active]
 ---
 
 Build a rendering system where the same conceptual component, action, task, or skill can render for humans in the UI and for models in AI-readable context.

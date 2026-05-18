@@ -73,7 +73,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- important components/actions/skills should be able to render for humans and for AI
 	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
 	- MDX should be able to mention task/action outputs, and those references must render into the AI-facing instructions/context
-	- this overlaps with [JSX for AI](../jsx-for-ai/_index.mdx), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
+	- this overlaps with [Bi-rendering system](../bi-rendering-system/_index.md), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
 	- references: JSX prompts in practice, [jsx-prompts](https://fables.gg/blog/introducing-jsx-prompts-build-complex-prompts-for-llms-with-jsx), [Priompt](https://github.com/anysphere/priompt), [mdx-prompt](https://github.com/edspencer/mdx-prompt)
 - external task interfaces
 	- any task can request incoming email addresses; each received email becomes a message/action on that task

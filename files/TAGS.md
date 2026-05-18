@@ -73,6 +73,7 @@ When placement says backlog, active and completed are still valid when the lifec
 | Tag | Use | Placement |
 | --- | --- | --- |
 | `auth` | Authentication, OAuth, account, login, and session work. | Actionable tasks by default. |
+| `behavior` | Improvements to existing skill instructions, agent behavior, prompts, or rules. Use this for changing how skills behave; use `skill` only for new skills/integrations we want to add. | Actionable tasks by default. |
 | `billing` | Billing and payment lifecycle work. | Actionable tasks by default. |
 | `chore` | Admin tasks Igor has to do. | Private actionable tasks. |
 | `debt` | Technical debt, refactors, cleanup, hardening, or maintenance work. | Actionable tasks by default. |

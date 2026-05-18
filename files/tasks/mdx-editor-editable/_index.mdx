@@ -1,6 +1,6 @@
 ---
 title: Add MDXEditor to app MDX editing
-priority: high
+priority: medium
 tags: [ux, status:backlog, class:task]
 ---
 
@@ -20,6 +20,9 @@ The app already stores and renders MDX-like task content:
 The component model should be practical: known safe MDX JSX components may render as actual app components in the editor; unknown, dynamic, or unsafe JSX must remain literal/source-only content so it is not dropped, normalized into invalid MDX, or executed unsafely.
 
 The `jsx live` fenced-code examples in MDXEditor docs are Sandpack/code-example behavior, not the persisted app component format. Meseeks app components should stay real MDX JSX where possible.
+
+## References
+- https://x.com/zbeyens/status/1861186574458736721?s=12&t=fpfVVVXvGdro5tlVeroG9A
 
 ## Objective
 Replace plain textarea editing for root app MDX content with a reusable Meseeks MDXEditor integration, starting with task instructions and then expanding only to other app surfaces confirmed to be MDX-editable.
