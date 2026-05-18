@@ -1,7 +1,7 @@
 ---
 title: Run a Chrome memory snapshot into Codex
-priority: medium
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+priority: low
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task, debt]
 ---
 
 Use Chrome DevTools Memory to capture a heap snapshot, then feed the exported snapshot into Codex so it can write analysis scripts and point out what is making the app sluggish.

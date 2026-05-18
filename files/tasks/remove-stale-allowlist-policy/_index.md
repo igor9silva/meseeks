@@ -1,15 +1,15 @@
 ---
-title: Resolve stale email allowlist policy
-priority: medium
-tags: [auth, security, status:backlog, class:task]
+title: Remove stale email allowlist policy
+priority: low
+tags: [status:backlog, class:task, debt]
 ---
 
-# Resolve stale email allowlist policy
+# Remove stale email allowlist policy
 
 The old security audit said the email/domain allowlist gate was effectively disabled. Current code has drifted: the old `isEmailAllowed` path is gone and `private/files/tasks/remove-email-allowlist/_index.md` says removing allowlist behavior was intentional, but the env schema still requires `ALLOWED_DOMAINS` and `ALLOWED_EMAILS`, and `users.ts` still comments that allowlist logic is centralized in `getCurrentUser`.
 
 ## Objective
-Make the auth policy honest before public beta: either remove stale allowlist config/comments completely, or reintroduce a real server-side gate if Reactor v1/public launch needs one.
+Remove stale allowlist config/comments completely.
 
 ## Subtasks
 - [ ] Decide whether Meseeks v1 should have an account allowlist at all.

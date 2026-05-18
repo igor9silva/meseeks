@@ -1,7 +1,7 @@
 ---
 title: Fix scraping
 priority: medium
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+tags: [bug, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
 ---
 
 Firecrawl costs $20/mo min.

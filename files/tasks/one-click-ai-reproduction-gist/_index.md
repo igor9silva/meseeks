@@ -1,7 +1,7 @@
 ---
 title: One-click AI reproduction gist
-priority: medium
-tags: [tech, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+priority: low
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task, ux]
 ---
 
 Add a button to the existing DevMode that generates a gist reproducing the exact AI scenario with the AI SDK.
