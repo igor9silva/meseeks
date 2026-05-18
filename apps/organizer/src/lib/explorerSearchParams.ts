@@ -5,6 +5,7 @@ export const explorerSortSchema = z.enum(['priority_then_recency', 'recency', 't
 const taskSourceSchema = z.enum(['public', 'private']);
 
 export const ROOT_PARENT_KEY = '__task_roots__';
+const defaultExcludedTags = ['status:completed'];
 
 export const explorerRouteSearchSchema = z.object({
 	q: z.string().optional(),
@@ -112,12 +113,15 @@ export function serializeCsv(values: string[]): string | undefined {
 export function parseExplorerQuery(search: ExplorerRouteSearch, parentKey: string | null): ExplorerQueryInput {
 	//
 	const depthRange = parseDepthRange(search);
+	const tags = parseTags(search.tags);
+	const parsedExcludedTags = search.excludedTags === undefined ? defaultExcludedTags : parseTags(search.excludedTags);
+	const excludedTags = parsedExcludedTags.filter((tag) => !tags.includes(tag));
 
 	return {
 		q: search.q ?? '',
 		sources: ['public', 'private'],
-		tags: parseTags(search.tags),
-		excludedTags: parseTags(search.excludedTags),
+		tags,
+		excludedTags,
 		parentKey,
 		minDepth: depthRange.minDepth,
 		maxDepth: depthRange.maxDepth,

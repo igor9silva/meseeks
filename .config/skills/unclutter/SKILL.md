@@ -17,9 +17,9 @@ Run `git status --short` before doing anything.
 
 ## Read First
 
-Read `tasks/README.md` before editing task files. Use that contract for roots, task folders, root children, status tags, references, source metadata, deletion semantics, and private/public safety.
+Read `files/README.md` before editing task files. Use that contract for roots, task folders, root children, status tags, references, source metadata, deletion semantics, and private/public safety.
 
-Read `tasks/TAGS.md` before adding, removing, renaming, or interpreting tags. It is the canonical tag registry.
+Read `files/TAGS.md` before adding, removing, renaming, or interpreting tags. It is the canonical tag registry.
 
 Read `.config/skills/unclutter/MEMORY.md` when present. Use it for durable decisions from prior Unclutter passes.
 
@@ -36,6 +36,8 @@ Apply the current disposition exactly. Mechanical feedback is mechanical:
 - `public tech ref`: move it to public `references/` with `tech`.
 - `human:to-read`: keep it as a private reading queue item in inbox.
 - `flat into X`, `fold into X`, `merge into X`: move only the useful content into X, in the natural place, then delete the source.
+- `raw`: preserve the useful source title/body verbatim while moving or merging. Routine `Source` and `TickTick source` blocks can still be removed after the imported snapshot has already been committed.
+- `rewrite`: rewrite the content as appropriate under the current task rules.
 
 Then extract the reusable reasoning. If it helps classify a similar future task, update `.config/skills/unclutter/MEMORY.md` in the same pass. Do not turn Igor's explanation into extra body text on the current task.
 
@@ -47,6 +49,7 @@ Be broad and practical. Look for anything that makes the task system harder to t
 
 - duplicate tasks, duplicate imports, repeated source URLs, repeated TickTick IDs
 - invalid root child placement
+- missing, duplicated, or wrong `class:*` tags on reviewed non-inbox files
 - missing, duplicated, or wrong `status:*` tags on actionable tasks
 - stale `status:active` work that is done, abandoned, or belongs elsewhere
 - references pretending to be tasks
@@ -72,14 +75,17 @@ Use judgment, but do not override an explicit disposition Igor already gave for 
 - Do not write review labels into task prose. If Igor says something is "low-relevance", "stale", "small", or "just a link", use that to choose the disposition; do not paste the label into the file.
 - Do not add generic `Source`, `TickTick source`, raw JSON, "source preserved", "merged source note", or "examples from original task" blocks when merging imports. Git history carries routine provenance.
 - Preserve useful original context. If detail may matter, keep it compactly in the body or as a named link. Do not summarize away the reason the capture existed.
+- Never leave an external link as the only copy of a source. Expand it in place or into its own reference task, and link to that backed-up content. If an image/video carries the point, download it when practical and transcribe or describe the useful content.
 - Prefer named Markdown links in prose. Bare URLs are for raw source lists or when the URL itself is the artifact.
 - Do not start every task with `## Context`. Start with the content.
 
 ## Tag Hygiene
 
-Follow `tasks/TAGS.md`. Do not redefine tag semantics here.
+Follow `files/TAGS.md`. Do not redefine tag semantics here.
 
 Treat the registry as executable cleanup guidance. If it constrains a tag to a section, lifecycle, visibility, or canonical task, fix the files that violate it instead of only noting the mismatch.
+
+Keep `class:*` tags in frontmatter. Use `class:task` for `tasks/`, `class:reference` for `references/`, and `class:idea` for `ideas/`. Do not add a class tag to inbox or root tasks.
 
 Do not apply cleanup to `status:completed` tasks. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless Igor explicitly asks.
 
@@ -96,12 +102,12 @@ Inspect broadly, edit directly, and keep going until the requested scope is orga
 Ask Igor before:
 
 - continuing in a dirty worktree
-- moving private material into `tasks/`
+- moving private material into public
 - exposing personal, account, security, or sensitive source material
 - deleting something when the intent is not obvious
 - choosing between plausible meanings for a mixed task
 
-When a task mixes public work with private context, split it: public actionable task under `tasks/tasks/`, private source/reference note under `private/tasks/references/`.
+When a task mixes public work with private context, split it: public actionable task under `files/tasks/`, private source/reference note under `private/files/references/`.
 
 When something is rejected but Igor did not say the source is still useful, delete it. Do not salvage interesting-looking debris just because it looks interesting.
 

@@ -65,7 +65,7 @@ Default placement:
 
 - Cross-cutting assistant behavior goes in `.config/MasterPlan.md`.
 - Workflow-specific behavior goes in `.config/skills/<skill>/SKILL.md`.
-- Concrete unresolved repo work goes in `tasks/` or `private/tasks/`.
+- Concrete unresolved repo work goes in `files/` or `private/files/`.
 
 Hard boundaries:
 
@@ -99,7 +99,7 @@ Run:
 
 ```bash
 python3 /Users/igor/.codex/skills/.system/skill-creator/scripts/quick_validate.py .config/skills/learn-from-task
-git diff -- .config/MasterPlan.md .config/skills tasks private/tasks
+git diff -- .config/MasterPlan.md .config/skills files private/files
 ```
 
 If the validator fails only because `PyYAML` is unavailable, do not install anything just for this. Use the bundled Node runtime and `yaml` package to check frontmatter instead.

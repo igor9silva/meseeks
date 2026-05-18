@@ -4,21 +4,23 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 
 ## Core Loop
 
-- Read `tasks/README.md` before changing tasks.
+- Read `files/README.md` before changing tasks.
 - Run `git status --short` before editing. If the tree is dirty, ask before continuing.
 - Never stage, commit, amend, reset, or otherwise mutate Git review state.
 - Collaborative review batches are calibration data. Apply Igor's disposition exactly, then extract the reusable reason into this memory when it helps future autonomous passes.
-- Do not turn Igor's explanation into extra work on the current item. If he says `delete`, delete. If he says `public tech ref`, move it to public references with `tech`. If he says `done`, move it under `tasks/` in the same root with `status:completed`. The explanation trains the next pass.
+- Do not turn Igor's explanation into extra work on the current item. If he says `delete`, delete. If he says `public tech ref`, move it to public references with `tech` and `class:reference`. If he says `done`, move it under `tasks/` in the same root with `class:task` and `status:completed`. The explanation trains the next pass.
 - Do not overfit every comment into a global rule. Keep heuristics that would classify a similar task later; skip one-off trivia.
 
 ## Disposition Vocabulary
 
 - `delete`, `kill`, `stale`: remove the task. Do not preserve it as completed. Do not invent a reference unless Igor explicitly says the source is still useful.
-- `done`: move under `tasks/` in the same root, add `status:completed`, and leave the body alone.
-- `public backlog <priority>`: move under `tasks/tasks/`, add `status:backlog`, set that priority, and keep the task shape minimal.
-- `public tech ref`: move to `tasks/references/` with `tech`. Preserve the useful source/content. Do not manufacture a task around it.
+- `done`: move under `tasks/` in the same root, add `class:task` and `status:completed`, and leave the body alone.
+- `public backlog <priority>`: move under `files/tasks/`, add `class:task` and `status:backlog`, set that priority, and preserve the existing title/body unless asked to rewrite. Yank "Source" blocks that were already commited.
+- `public tech ref`: move to `files/references/` with `class:reference` and `tech`. Preserve the useful source/content. Do not manufacture a task around it.
 - `ref for <existing topic/task>`: add a named link or compact note to that existing task, then delete the source unless the source must remain independently browsable.
 - `flat`, `fold`, `merge`: move the smallest useful content/link/media into X in the natural place, then delete the source.
+- `raw`: preserve the useful source title/body verbatim while moving or merging. Routine `Source` and `TickTick source` blocks can still be removed after the import snapshot has already been committed.
+- `rewrite`: rewrite the content as appropriate under current task rules.
 - `human:brainstorm`: keep private inbox and otherwise leave it alone for later review.
 - `human:to-read`: keep private inbox unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
 
@@ -29,6 +31,8 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - Rejected, obsolete, or "won't do" work should be deleted, not moved to completed.
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
 - `ideas/` is for product ideas, side projects, use cases, and things to try. In reviewed TickTick Meseeks imports, Igor often moves original use-case column items here, while keeping `ticktick-status:*` only as provenance.
+- Demand signals stay private by default. The point is to preserve raw market signal, not publish it.
+- Use cases we want to do with Meseeks stay private ideas by default unless Igor explicitly says public.
 - `inbox/` is for untriaged capture. In reviewed TickTick Meseeks imports, original user-interface column items often stay inbox until reviewed, while keeping `ticktick-status:*` only as provenance.
 - Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `human:to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private section; if the destination is unclear, ask Igor instead of parking it in inbox.
 - `status:active` is for work being pursued now. Do not leave stale active tasks around once they are done or deferred.
@@ -41,17 +45,19 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - Raw TickTick, phone, personal, and ambiguous captures default private until reviewed.
 - Meseeks product/repo work should become public when it is safe and useful for the main monorepo.
 - Product ideas, names, and positioning captures are not automatically private. Decide from the content and Igor's disposition, not from the fact that they are early ideas.
+- Tasks tagged `multi-player` stay private for now unless Igor explicitly overrides that visibility.
 - If Igor says a private reviewed item can be public, move it into the public root after checking the content and attachments for obvious sensitive material.
 - Moving private material public requires a content review. Watch for account data, local paths, private business context, credentials, personal notes, or sensitive screenshots.
 - Igor's email and ChatGPT share URLs are not sensitive by themselves. Judge the content behind them, not the URL shape.
-- If a task mixes public work with private context, split it: public task under `tasks/tasks/`, private source/reference under `private/tasks/references/`.
+- If a task mixes public work with private context, split it: public task under `files/tasks/`, private source/reference under `private/files/references/`.
 - Do not change public/private visibility when Igor gives a mechanical disposition that does not mention visibility. Example: a private task marked done stays private and gets `status:completed`.
 
 ## Tags
 
-- `tasks/TAGS.md` is the canonical tag registry. Do not maintain a second registry in this memory file.
+- `files/TAGS.md` is the canonical tag registry. Do not maintain a second registry in this memory file.
 - Keep memory entries here only when they explain how Igor classified a specific kind of task beyond the canonical tag meaning.
 - The registry's placement guidance is actionable. Future Unclutter passes should fix section/lifecycle/visibility violations directly when the move is mechanical and safe.
+- `class:*` is real frontmatter, not derived index metadata. Keep it aligned with the current section: `class:task`, `class:reference`, or `class:idea`. Inbox/root tasks have no class tag.
 - The registry does not rewrite `status:completed` history.
 - `human:*` tags are blocked on human intervention. Leave them in the registry-defined holding section unless Igor explicitly pulls them into review.
 
@@ -91,6 +97,7 @@ Use Pro GTM for:
 - public beta / v1 narrative
 - pricing, including the simple fixed markup on deposits direction
 - SEO, articles, public docs, docs pages, and launch content
+- docs strategy, including docs for both human readers and LLM readers: `llms.txt`, integration instructions, examples, constraints, and deliberate hidden/agent-facing instructions where useful
 - onboarding and risk/terms acceptance when framed as go-to-market/product readiness
 - "why Meseeks", category language such as Pro/Web4, and data/UI splitting apart
 - launch video ideas, "one exceptional thing" MVP notes, and public messaging insights
@@ -113,10 +120,11 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 ## References
 
 - References are for source/context that should be searchable but is not itself completable.
-- Public technical material usually belongs in `tasks/references/` with `tech`.
+- Public technical material usually belongs in `files/references/` with `tech`.
 - ChatGPT/OpenAI product-behavior, metadata, prompt-injection, and leaked-system-prompt captures are public `tech` references unless the captured content itself exposes Igor/private data.
 - Raw vs synthesized depends on the source. Keep demand references raw. For technical references, preserve the useful source and add synthesis only when it helps future work.
 - Prompt/system/memory references need concrete section examples, wording patterns, and metadata shape. A high-level summary alone loses the value.
+- Prompt/system leaks can be public `tech` references when they are public captures and do not expose Igor/private data. Wrap raw prompts in code fences when MDX would otherwise parse prompt tags as JSX.
 - Library references need implementation-shape details: package names/ecosystem, language/runtime, framework bindings, core capabilities, and why the library matters to Meseeks.
 - UI/UX inspiration from third-party products, component libraries, plugins, and visual polish techniques can become public references with `ux` when it is design material.
 - Menu/context-menu icon guidance is a public `ux` reference when it is design material. If the image carries the point, embed the actual image.
@@ -128,10 +136,12 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 ## Link, Media, And Import Handling
 
 - Expand or scrape link-only tasks before planning/review. Keep the original link, add local context, and give the task a semantic title.
+- In classification passes, `expand first` means make the source reviewable in place: semantic title, local text explanation, and local media when practical. Do not treat expansion alone as permission to move the task out of inbox.
 - Do not replace semantic titles with hashtags or delete the original link.
 - For `human:to-read`, the link/page backup is often the task. Expand into readable markdown for local backup when useful, keep `## Source` last, and do not over-organize it into `references/`, `backlog`, or `demand` unless Igor asks.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Git history carries routine provenance.
 - Preserve useful links, media, quotes, screenshots, and decisions in the target task body.
+- Do not leave external links as the only durable copy of a source. When folding or referencing a link, expand it in place or into a reference task. If the source is an image/video and it carries the actual point, download the media when practical and transcribe or describe the useful content.
 - Preserve Igor's short original keywords/intent when converting imports into references; they often explain why the source mattered better than the scraped summary does.
 - If important attachments/media move into a target task, move the actual file too and update the Markdown so it renders.
 - Tasks with local attachments should keep media beside `slug/_index.md`, usually in `slug/attachments/*`.
@@ -144,13 +154,18 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - Keep original context when it may matter. If unsure, paste original content under a compact separator rather than paraphrasing away detail.
 - Do not add boilerplate like "reference capture", "source preserved", "done already", or "examples from original task" when the path/status/history already says enough.
 - Treat Igor's relevance comments as triage guidance, not task prose. If he says something is low-relevance, lightweight, stale-ish, or minor, use that to choose section/priority/disposition; do not write those labels into the task body unless he explicitly asks.
+- Move/classification instructions are not rewrite instructions. Preserve the original words, title, source details, and media unless the command says `rewrite`, `expand`, `summarize`, `flat`, `fold`, or otherwise asks for content changes.
+- When Igor says to keep a reference inside a rewritten task, do not leave only a naked URL. Preserve or expand the reference content enough that the task is useful offline: author, date, compact source idea, and key metadata when available.
 - Do not start task bodies with a default `## Context` heading. Start directly with the content unless structure genuinely helps.
 - If a rename changes the meaning, update the filesystem slug/folder too.
+- When editing an imported task with a bad URL/import slug, rename the task folder to the semantic title unless Igor explicitly wants the raw source slug.
+- For split reference + implementation pairs, keep the raw/source link in the reference and link to that reference from the implementation task. Do not duplicate the raw source link in both places.
+- When a feature already exists, name the task as an addition to the existing surface. Example: "add a button to existing DevMode", not "add DevMode".
 - Keep task prose dense. Searchability matters, but repeated contextual labels are clutter.
 
 ## Skip During Broad Classification
 
-Follow the skip list in `tasks/TAGS.md`.
+Follow the skip list in `files/TAGS.md`.
 
 ## Learned Examples
 
@@ -163,6 +178,13 @@ Follow the skip list in `tasks/TAGS.md`.
 - A browser extension can be a separate public low-priority backlog idea when Igor distinguishes it from the macOS app/browser direction.
 - Human-as-a-Service is an idea task; external examples can be links inside it.
 - Loop designs belong in public backlog with `loop` when they are reusable Meseeks behavior and do not contain private personal context.
+- Shared-task trust/accountability captures such as message signing, proof of human, and expiring human verification are `multi-player` work by default and stay private for now.
+- `balance should be wallet` is public product work: balance/wallet/identity/money/secrets should become a high-priority wallet/account surface task, not stay as a raw slash-command note.
+- A dynamic/funny AI-powered 404 page is a public low-priority UX backlog task when the source is an inspiration link.
+- A provider/model caveat file such as auto-maintained `KNOWN_ISSUES.md` is public low-priority backlog unless it exposes private details.
+- CAPTCHA alternatives such as Vercel BotID are public `tech` references unless tied to a concrete implementation task.
+- If Igor asks to expand/unroll a source but keep it in inbox for review, expand the raw content in place and do not add a lifecycle status yet.
+- Eval harnesses can be private backlog work when Igor wants to test Meseeks against them, even if the linked project itself is public.
 - Public tech references from Vercel MCP adapter, Gemini system prompt, Pliny prompt injection, browser automation CLI, etc. should be references with `tech`.
 - Skill backlog examples: WhatsApp skillset, Serper search, Exa/search provider skill, public-profile lookup. Default public backlog low unless specified.
 - Stale model-release/news captures should be deleted when Igor says they are not relevant anymore. Do not salvage them as `intelligence` references unless he says the model/source still matters.

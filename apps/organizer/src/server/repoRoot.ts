@@ -7,9 +7,9 @@ export function findRepoRoot(startDirectory = process.cwd()): string {
 
 	while (true) {
 		const hasRootPackage = existsSync(join(current, 'package.json'));
-		const hasTasksDirectory = existsSync(join(current, 'tasks'));
+		const hasFilesDirectory = existsSync(join(current, 'files'));
 
-		if (hasRootPackage && hasTasksDirectory) return current;
+		if (hasRootPackage && hasFilesDirectory) return current;
 
 		const parent = dirname(current);
 		if (parent === current) {

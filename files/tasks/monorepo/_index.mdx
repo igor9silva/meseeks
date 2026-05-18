@@ -1,0 +1,69 @@
+---
+title: Reorganize repository into Bun monorepo
+priority: high
+tags: [debt, status:completed, class:task]
+---
+
+consider Vite+, see: https://x.com/branchseer/status/2032464454747893976?s=20
+
+# Reorganize repository into Bun monorepo
+
+The CI/tooling drift is a repository-structure problem, not just a script problem. Root-level commands currently traverse mixed projects with different constraints (main app, organizer, proof-of-concepts), which forces brittle exclusions and creates noisy failures.
+
+The durable fix is to make workspace boundaries explicit through a proper monorepo layout with `apps/` for runnable apps and `packages/` for libraries, experiments, and placeholders.
+
+Bun is the preferred workspace/package manager for this migration. Use pnpm only if we hit a documented blocking issue.
+
+Note: we have a private/ dir which is a completely separate repo (because it should remaing private). However, it does interact with the main repo constantly (For example, it has a task structure that follows the same pattern as the parent repo, and they are all handled by the same scripts and also configs.). Ideally it should sit as a package in the monorepo, but it MUST REMAIN PRIVATE. The only cost of this approach is that Worktrees or Cloud Tasks on Codex might not be able to see private stuff. But this is okay; I'm willing to pay for that and only work on private stuff in local mode.
+
+## Objective
+
+Reorganize this repository into a Bun-first monorepo where each package has explicit ownership and scripts. The main Meseeks app remains the only deployment gate through Vercel's Git integration; no GitHub Actions are introduced.
+
+## Subtasks
+
+-   [x] Define and approve target monorepo layout with `apps/` for runnable apps and `packages/` for libraries/side projects.
+-   [x] Move current projects into package boundaries (main app, organizer, check-verse, macOS shell, compiler POC, and reactor placeholder).
+-   [x] Introduce Bun workspace configuration and per-package scripts for package-local checks.
+-   [x] Replace root "scan everything" commands with orchestrated Bun workspace commands.
+-   [x] Keep non-core packages out of the Vercel deployment gate by using `apps/meseeks` as the Vercel project root.
+-   [ ] Normalize TypeScript config strategy across packages (`tsconfig.base.json` plus package-local extensions).
+-   [ ] Normalize ESLint and Prettier strategy across packages with shared config and package-specific overrides only when required.
+-   [x] Document local developer workflows for workspace commands using Bun.
+-   [ ] Add migration checklist and rollback plan for path/import/script changes.
+
+## Progress Log
+
+### 2026-02-24
+
+-   Task created
+-   Rewritten with command evidence and concrete CI stabilization plan
+-   Re-scoped to monorepo migration as the primary fix
+
+### 2026-05-03
+
+-   Migrated repo to Bun workspaces with root `apps/*` and `packages/*` globs.
+-   Moved the main app and Convex runtime into `apps/meseeks`, with Vercel config colocated there.
+-   Moved Organizer into `apps/` and unrelated experiments into `side/`.
+-   Moved compiler POC into `side/safe-mdx-compiler`.
+-   Collapsed nested lockfiles into the root `bun.lockb`.
+-   Verified workspace checks for active apps. Prototype checks are explicit, not part of broad workspace checks.
+-   `workspace:lint` still exposes existing app ESLint debt; Prettier and Organizer lint pass.
+
+## Notes
+
+Implemented package map:
+
+-   `apps/meseeks` for the main Meseeks web app and Convex runtime code
+-   `apps/organizer` for the organizer app
+-   `side/check-verse` for Check Verse
+-   `side/mecode-mvp` for the macOS Electrobun shell prototype
+-   `side/safe-mdx-compiler` for the compiler proof-of-concept
+-   `side/browser-poc` for the Electron browser experiment
+
+Acceptance criteria:
+
+-   Root commands target workspace packages explicitly, not raw repo globs.
+-   Vercel deploys only `apps/meseeks`.
+-   Prototypes keep their own checks and can run independently when explicitly targeted.
+-   Bun remains the primary workspace toolchain unless a blocker is documented with reason and fallback decision.

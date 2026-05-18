@@ -9,13 +9,13 @@ Make a task clear enough to act on. For raw inbox captures, also turn them into 
 
 ## Start Here
 
-1. Read `tasks/README.md` and `tasks/TAGS.md` first.
+1. Read `files/README.md` and `files/TAGS.md` first.
 2. If Organizer provided task key/source/path context, use that exact context instead of guessing.
 3. Read the target task file in full.
 4. Read the parent `_index.*` chain from root to the target folder when present.
 5. Inspect source metadata, sibling files, nearby duplicate candidates, reused tags, and repo context relevant to the task.
 6. If the task is only links or mostly links, expand those links before planning. Use repo scraping skills/scripts for supported sources, and otherwise fetch, browse, or search enough to capture the page/post content. Preserve the original links and scraped source details in the task before trying to infer intent.
-7. Interpret tags through `tasks/TAGS.md`. In particular, `human:to-read` is a private saved-reading queue signal, not an invite to classify the page as product work.
+7. Interpret tags through `files/TAGS.md`. In particular, `human:to-read` is a private saved-reading queue signal, not an invite to classify the page as product work.
 
 Nearby candidates means search both public and private task roots when available for title words, source URLs, TickTick IDs, slugs, transcript names, and distinctive quoted text.
 
@@ -32,9 +32,10 @@ When Plan was invoked by Seek, stop once the task is executable and hand back th
 Produce a plan covering:
 
 - title and short slug
-- tags, following `tasks/TAGS.md`, including retired-tag replacements, `status:*`, and visibility constraints
-- root: `tasks/` for public product/repo work, `private/tasks/` for sensitive, personal, raw, or unreviewed captures
+- tags, following `files/TAGS.md`, including `class:*`, retired-tag replacements, `status:*`, and visibility constraints
+- root: `files/` for public product/repo work, `private/files/` for sensitive, personal, raw, or unreviewed captures
 - path: `inbox/`, `tasks/`, `references/`, `ideas/`, or delete
+- class: no class for inbox/root, `class:task` for `tasks/`, `class:reference` for `references/`, or `class:idea` for `ideas/`
 - lifecycle: `status:backlog`, `status:active`, or `status:completed` for actionable tasks under `tasks/`
 - structure: single file, parent `_index.*`, child task, reference note, split, merge, or delete
 - source metadata preservation: URLs, TickTick IDs, capture text, transcript pointers, import notes, dates, raw source blocks, attachments, and exported data
@@ -44,10 +45,10 @@ Plain text is fine. Add sections only when they make the task easier to act on.
 ## Safety Rules
 
 - Default to a proposal/dry run when the item is ambiguous, private/public-sensitive, or mixed.
-- Ask Igor before moving private material into `tasks/`, exposing personal details, handling security-sensitive content, or deciding a gray-line public/private case.
-- Split mixed files instead of sanitizing by accident: public actionable task in `tasks/`, raw/sensitive source note in `private/tasks/references/`.
-- Follow `tasks/TAGS.md` for source provenance: first imports preserve every possible bit of source information; later organizing can remove unused raw import debris after it has been committed.
-- Follow `tasks/TAGS.md` for `human:*`: those items are blocked on human intervention and should not be auto-executed or over-organized away.
+- Ask Igor before moving private material into public, exposing personal details, handling security-sensitive content, or deciding a gray-line public/private case.
+- Split mixed files instead of sanitizing by accident: public actionable task in `files/tasks/`, raw/sensitive source note in `private/files/references/`.
+- Follow `files/TAGS.md` for source provenance: first imports preserve every possible bit of source information; later organizing can remove unused raw import debris after it has been committed.
+- Follow `files/TAGS.md` for `human:*`: those items are blocked on human intervention and should not be auto-executed or over-organized away.
 - Use `references/` for context, saved links, transcripts, prompts, examples, and research that is not itself completable work.
 - Use `status:completed` only for achieved work. Delete rejected task shells unless useful context should survive as a reference.
 - Flatten grouping-only folders when tags or UI filters can carry the organization.
@@ -61,19 +62,20 @@ Do not edit, move, delete, or create task files unless the user explicitly asks 
 When applying:
 
 1. Make the smallest filesystem change that matches the decision.
-2. Keep frontmatter minimal and compatible with `tasks/README.md`.
-3. Update source links or backlinks when splitting/merging.
-4. Preserve the raw source in private references when public output must be cleaned.
-5. Use a short semantic filename, put readable page content before metadata, and keep `Source` as the very last section.
-6. Run `bun run tasks:build` only when task files changed and the current scope allows it.
-7. Report changed files, deleted files, and any skipped build.
+2. Keep frontmatter minimal and compatible with `files/README.md`.
+3. Set the matching `class:*` tag for `tasks/`, `references/`, or `ideas/`; remove it from inbox/root.
+4. Update source links or backlinks when splitting/merging.
+5. Preserve the raw source in private references when public output must be cleaned.
+6. Use a short semantic filename, put readable page content before metadata, and keep `Source` as the very last section.
+7. Run `bun run tasks:build` only when task files changed and the current scope allows it.
+8. Report changed files, deleted files, and any skipped build.
 
 ## Output
 
 For dry runs, lead with the decision:
 
 ```md
-Decision: move to `tasks/tasks/...` with `status:backlog` and split raw capture into `private/tasks/references/...`.
+Decision: move to `files/tasks/...` with `status:backlog` and split raw capture into `private/files/references/...`.
 
 Why: the work is public product scope, but the capture contains private account details.
 

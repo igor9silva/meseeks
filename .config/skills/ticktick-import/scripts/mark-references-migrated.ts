@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const tickTickDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`;
 const tickTickApiBaseUrl = 'https://api.ticktick.com/api/v2';
-const referencesDir = resolve('private/tasks/references');
+const referencesDir = resolve('private/files/references');
 const defaultSummaryFile = '/private/tmp/ticktick-references-migrated.json';
 
 const argsSchema = z.object({

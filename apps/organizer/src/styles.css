@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@source '../../../packages/ui/src';
+
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -219,5 +221,47 @@ code {
 	select,
 	summary {
 		cursor: pointer;
+	}
+}
+
+@layer components {
+	.task-detail-header {
+		container-type: inline-size;
+	}
+
+	.task-detail-heading {
+		padding-inline-end: 17rem;
+	}
+
+	.task-detail-actions {
+		position: absolute;
+		inset-block-start: 1rem;
+		inset-inline-end: 1rem;
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		max-inline-size: none;
+	}
+
+	@container (max-width: 54rem) {
+		.task-detail-heading {
+			padding-inline-end: 3rem;
+		}
+
+		.task-detail-actions {
+			flex-direction: column-reverse;
+			flex-wrap: nowrap;
+			max-inline-size: 2rem;
+		}
+
+		.task-detail-done-button {
+			inline-size: 2rem;
+			padding-inline: 0;
+		}
+
+		.task-detail-done-label {
+			display: none;
+		}
 	}
 }

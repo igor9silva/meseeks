@@ -9,7 +9,7 @@ import { API_KEYS } from '../../../../private/skills/config'
 import { extractTweetId, scrapeTweet, toMarkdown } from '../../scrape-content/scripts/lib'
 
 const coreDataUnixOffsetSeconds = 978307200
-const defaultOutputDir = resolve('private/tasks/inbox')
+const defaultOutputDir = resolve('private/files/inbox')
 const defaultSummaryFile = '/tmp/meseeks-links-import-summary.json'
 const defaultDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`
 const defaultTimeZone = 'Europe/Lisbon'

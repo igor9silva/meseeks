@@ -11,7 +11,6 @@ import type { CreateTaskDefaults, TaskDetailTask } from './taskExplorerTypes';
 
 export const taskSourceOptions: TaskSource[] = ['public', 'private'];
 export const taskPriorityOptions: Array<CreateTaskInput['priority']> = ['critical', 'high', 'medium', 'low'];
-export const taskStatusOptions = ['backlog', 'active', 'completed'];
 export const SEARCH_DEBOUNCE_MS = 150;
 
 export function formatSourceLabel(source: TaskSource): string {
@@ -100,7 +99,7 @@ export function toCursorFileHref(absolutePath: string | null): string | null {
 function buildTaskContextPrompt(task: TaskDetailTask, intent: string): string {
 	//
 	const taskFileRelativePath =
-		task.taskSource === 'private' ? `private/tasks/${task.relativePath}` : `tasks/${task.relativePath}`;
+		task.taskSource === 'private' ? `private/files/${task.relativePath}` : `files/${task.relativePath}`;
 	const lines = [
 		intent,
 		'',

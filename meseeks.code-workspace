@@ -8,14 +8,6 @@
 			"name": "Private",
 			"path": "./private",
 		},
-		{
-			"name": "Codex 878a",
-			"path": "/Users/igor/.codex/worktrees/878a/meseeks",
-		},
-		{
-			"name": "Codex dfd4",
-			"path": "/Users/igor/.codex/worktrees/dfd4/meseeks",
-		},
 	],
 	"settings": {
 		// use Oxfmt wherever the Oxc VS Code extension provides formatting

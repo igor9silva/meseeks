@@ -9,17 +9,42 @@ const taskTagSchema = z.object({
 	value: z.string().min(1),
 });
 
-const taskConfigColumnSchema = z.object({
+export const taskConfigColumnMatchSchema = z.discriminatedUnion('type', [
+	z.object({
+		type: z.literal('tag'),
+		tag: z.string().min(1),
+	}),
+	z.object({
+		type: z.literal('source'),
+		source: taskSourceSchema,
+	}),
+]);
+
+export const taskConfigColumnSchema = z.object({
 	id: z.string().min(1),
 	label: z.string().min(1),
-	tag: z.string().min(1).nullable(),
+	match: taskConfigColumnMatchSchema,
 });
 
-const taskConfigSchema = z.object({
+export const taskConfigPanelSizesSchema = z.object({
+	current: z.number().min(10).max(80),
+	selected: z.number().min(10).max(80),
+	tagFilters: z.number().min(42).max(320),
+});
+
+export const taskConfigPanelsSchema = z.object({
+	currentCollapsed: z.boolean(),
+});
+
+export const taskConfigSchema = z.object({
 	view: z.enum(['list', 'board']),
 	scope: z.literal('direct'),
 	columns: z.array(taskConfigColumnSchema),
-	hiddenTags: z.array(z.string().min(1)),
+	minDepth: z.number().int().min(1).max(16),
+	maxDepth: z.number().int().min(1).max(16),
+	sort: z.enum(['priority_then_recency', 'recency', 'title']),
+	panelSizes: taskConfigPanelSizesSchema,
+	panels: taskConfigPanelsSchema,
 });
 
 const taskTagGroupValueSchema = z.object({
@@ -159,6 +184,7 @@ export type TaskSource = z.infer<typeof taskSourceSchema>;
 export type TaskSection = z.infer<typeof taskSectionSchema>;
 export type TaskConfig = z.infer<typeof taskConfigSchema>;
 export type TaskConfigColumn = z.infer<typeof taskConfigColumnSchema>;
+export type TaskConfigColumnMatch = z.infer<typeof taskConfigColumnMatchSchema>;
 export type TaskSummary = z.infer<typeof taskSummarySchema>;
 export type WarningEntry = z.infer<typeof warningEntrySchema>;
 export type TasksMeta = z.infer<typeof tasksMetaSchema>;

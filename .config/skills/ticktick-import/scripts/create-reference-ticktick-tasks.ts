@@ -6,7 +6,7 @@ import { Database } from 'bun:sqlite'
 import { z } from 'zod'
 
 const tickTickDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`
-const referencesDir = resolve('private/tasks/references')
+const referencesDir = resolve('private/files/references')
 const defaultSummaryPath = '/tmp/ticktick-references-create-summary.json'
 const tickTickApiBaseUrl = 'https://api.ticktick.com/api/v2'
 const referencesProjectName = 'references'

@@ -21,8 +21,8 @@ const CONFIG_GENERATOR = resolve(__dirname, './generate-configs.ts');
 const TASK_GENERATOR = resolve(__dirname, './generate-task-index.ts');
 
 const TASK_ROOTS = [
-	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
-	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
+	{ label: 'public', root: join(PROJECT_ROOT, 'files') },
+	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'files') },
 ];
 
 const TASK_EXTENSIONS = new Set(['.md', '.mdx', '.txt', '']);

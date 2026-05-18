@@ -1,0 +1,100 @@
+---
+title: Adopt PostHog for privacy-first observability
+priority: low
+tags: [observability, status:backlog, class:task]
+---
+
+# Privacy-first PostHog observability
+
+Current observability is split across weak or noisy tooling:
+
+- `@vercel/analytics` is wired into the app shell and several route/components, but the current signal is low-value enough to treat as basically nonexistent.
+- several analytics events are fired directly during render instead of lifecycle-safe points, so counts are likely dirty even before any vendor-specific issues.
+- Sentry exists today, but the current setup is noisy and low-trust: dev activity leaks into notifications, handled problems are counted like real failures, and the instrumentation quality is not good enough to judge the tool fairly yet.
+- the next step is **hosted PostHog**, not self-hosted PostHog.
+- privacy is a hard constraint: use as much of PostHog as is actually useful, but do it intentionally instead of defaulting into creepy full-capture sludge.
+- old monitoring work is now folded into this task: dev/develop failures should not page us, expected handled product errors should remain observable but non-urgent, severity semantics should be explicit, and anomalies should be counted without becoming fake incidents.
+
+Current in-repo touchpoints already known from the scan:
+
+- app shell: `src/routes/__root.tsx`
+- client error/replay init: `src/client.tsx`
+- build/release upload config: `vite.config.ts`
+- manual Vercel analytics calls:
+  - `src/routes/skills.tsx`
+  - `src/routes/skills_.innate_.$key.tsx`
+  - `src/routes/$.tsx`
+  - `src/routes/balance.tsx`
+  - `src/routes/skills_.new.tsx`
+  - `src/routes/top-up_.$id.tsx`
+  - `src/routes/top-up.tsx`
+  - `src/routes/skills_.$id.tsx`
+  - `src/routes/action_.$id.tsx`
+  - `src/components/subscribe/SubscribePage.tsx`
+- package/dependency surface: `package.json`
+- privacy copy that still names Vercel Analytics: `public/static/privacy-policy.md`
+
+The repo scan undercounted Sentry scope once already. Treat "Sentry is client-only" as false unless a fresh rollout audit proves otherwise.
+
+## Objective
+Make PostHog the primary observability stack for Meseeks with privacy-first defaults, remove `@vercel/analytics` from the app, clean up bad instrumentation patterns that create fake signal, and leave a concrete keep-or-remove decision for Sentry based on real signal quality instead of vibes.
+
+## Subtasks
+- [ ] Inventory the real observability surface before swapping vendors:
+  - confirm every current Sentry integration path in code, build, deploy config, and provider-side setup
+  - classify current signals into product analytics, replay, performance, and actual error reporting
+  - separate true failures from handled/user-facing states that should not page anyone
+  - produce a numbered current-state report so follow-up fixes can be referenced by index
+- [ ] Design the privacy-first PostHog baseline:
+  - use **hosted** PostHog
+  - decide and document the policy for consent, cookieless/cookie usage, user identification, session retention, replay masking, and autocapture scope
+  - explicitly choose which PostHog capabilities are in scope now: pageviews, custom events, session replay, feature flags, error tracking, and any other actually useful surface
+- [ ] Fix instrumentation quality before or during migration:
+  - move analytics/event emission out of render paths into route lifecycle or event handlers
+  - define one app-owned analytics/observability entrypoint instead of vendor calls scattered through routes
+  - distinguish expected handled failures from reportable exceptions so noisy "errors" stop polluting alerts
+- [ ] Replace the current Vercel analytics wiring:
+  - remove `<Analytics />` from `src/routes/__root.tsx`
+  - remove `@vercel/analytics` imports/usages from the current route/component call sites
+  - remove `@vercel/analytics` from `package.json`
+  - decide whether `@vercel/speed-insights` stays temporarily or is removed in the same pass; do not let it silently linger without a reason
+- [ ] Roll out PostHog as primary observability:
+  - initialize PostHog in the client with privacy-preserving defaults
+  - migrate existing product events to PostHog and dedupe route/page tracking
+  - add replay/error configuration only after masking and noise rules are explicit
+  - verify local/dev behavior does not contaminate production reporting
+- [ ] Resolve Sentry explicitly instead of letting it rot:
+  - either remove Sentry after PostHog signal is good enough
+  - or keep a narrowed temporary Sentry setup with a documented reason, reduced scope, and cleaned-up alert semantics
+  - in either case, stop the current dev-noise and handled-error spam
+  - enforce severity semantics across Sentry/logs: `debug` for debug sessions, `info` for default visible logs, `warning` for admin notification, and `error` for urgent admin notification
+  - add non-paging counters for unexpected-but-handled anomalies, such as tool calls present with finish reason `stop`
+  - if Sentry stays, use the TanStack Start integration docs as the implementation reference: https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/
+- [ ] Update user-facing/privacy documentation:
+  - replace Vercel Analytics references in `public/static/privacy-policy.md`
+  - document the actual PostHog data policy shipped in code
+  - make replay/error capture language match reality
+- [ ] Verify the rollout with concrete checks:
+  - no `@vercel/analytics` imports remain
+  - route/page events no longer fire from render
+  - production-only reporting rules are explicit and tested manually
+  - event names and properties have one documented source of truth
+
+## Progress Log
+### 2026-05-12
+- Merged the old private `Better monitoring and error handling` task into this public PostHog/observability task and removed the private duplicate.
+
+### 2026-03-18
+- Task created from PostHog adoption planning.
+- Captured user corrections that change scope: Sentry is not client-only, Vercel Analytics/Speed Insights are close to zero-value, hosted PostHog is the target, and privacy must shape the rollout from day one.
+
+## Notes
+- Do not treat this as a blind vendor swap. Bad instrumentation is the first bug.
+- At minimum, `@vercel/analytics` must be removed in this scope.
+- Axiom supports monitoring AI SDK directly: https://x.com/njpatel/status/1970217382955360417
+- If PostHog feature flags or experiments are added, do it only after the analytics/replay/error baseline is stable. Do not turn this into a kitchen-sink rollout on day one.
+- Preserve rejected assumptions from this planning pass:
+  - self-hosted PostHog is not the current plan
+  - "Sentry is only client-side" is not a safe assumption
+  - Vercel Analytics should not be used as the benchmark for what "working analytics" looks like
+- Original monitoring example to preserve as non-urgent signal: `(xai/grok-4.1-fast-non-reasoning) has tool calls but finish reason is 'stop': cancelSchedule`.

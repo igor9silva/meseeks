@@ -15,12 +15,12 @@ const projectConfigs = [
 	{
 		id: '66b35a9a617f11216a574648',
 		label: 'Meseeks',
-		outputDir: resolve('private/tasks/inbox'),
+		outputDir: resolve('private/files/inbox'),
 	},
 	{
 		id: '66b90a03fa0851023612087c',
 		label: 'References',
-		outputDir: resolve('private/tasks/references'),
+		outputDir: resolve('private/files/references'),
 	},
 ];
 
@@ -365,7 +365,7 @@ function loadExistingTaskIds() {
 	const taskIds = new Map<string, string>();
 	const taskIdPattern = /"taskId"\s*:\s*"([^"]+)"/g;
 
-	for (const root of [resolve('tasks'), resolve('private/tasks')]) {
+	for (const root of [resolve('files'), resolve('private/files')]) {
 		for (const filePath of collectTaskFiles(root)) {
 			const content = readFileSync(filePath, 'utf-8');
 

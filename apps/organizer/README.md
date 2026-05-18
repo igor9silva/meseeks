@@ -32,10 +32,10 @@ bun run organizer:dev
 Organizer reads these generated files:
 
 ```text
-../../private/tasks/.generated/tasks.meta.json
-../../private/tasks/.generated/tasks.lookup.json
-../../private/tasks/.generated/tasks.graph.json
-../../private/tasks/.generated/tasks.content.json
+../../private/files/.generated/tasks.meta.json
+../../private/files/.generated/tasks.lookup.json
+../../private/files/.generated/tasks.graph.json
+../../private/files/.generated/tasks.content.json
 ```
 
 The app does not own index freshness. The root config watcher/index generator owns that, and Organizer should surface missing or stale index diagnostics instead of silently rebuilding as part of normal read flows.

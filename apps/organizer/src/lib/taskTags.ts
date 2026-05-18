@@ -36,7 +36,7 @@ export function parseTaskTag(tag: string): ParsedTaskTag {
 
 export function formatTagGroupLabel(key: string | null): string {
 	//
-	return key ?? 'Tags';
+	return key ?? 'tags';
 }
 
 export function getTagGroupLookupKey(key: string | null): string {
@@ -60,9 +60,10 @@ export function compareTagGroupKeys(left: string | null, right: string | null): 
 function getTagGroupRank(key: string | null): number {
 	//
 	if (key === null) return 0;
-	if (key === 'source') return 1;
-	if (key === 'ticktick-list') return 2;
-	if (key === 'ticktick-status') return 3;
+	if (key === 'class') return 1;
+	if (key === 'source') return 2;
+	if (key === 'ticktick-list') return 3;
+	if (key === 'ticktick-status') return 4;
 
 	return 100;
 }

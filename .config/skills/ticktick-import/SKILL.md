@@ -86,7 +86,7 @@ export TICKTICK_INBOX_ID="inbox118693896"
 
 ### Import link groups from TickTick Inbox
 
-Reads a parent task from TickTick Inbox via the local macOS database, scrapes each child link, and writes folder tasks into `private/tasks/inbox` unless `--output-dir` says otherwise.
+Reads a parent task from TickTick Inbox via the local macOS database, scrapes each child link, and writes folder tasks into `private/files/inbox` unless `--output-dir` says otherwise.
 
 ```bash
 bun scripts/import-links.ts \
@@ -126,9 +126,10 @@ bun scripts/import-project-tasks.ts \
 
 Current behavior:
 
-- imports Meseeks into `private/tasks/inbox`
-- imports References into `private/tasks/references`
-- tags every imported file with `source:ticktick` and `ticktick-list:<list>` using the source namespace rules in `tasks/TAGS.md`
+- imports Meseeks into `private/files/inbox`
+- imports References into `private/files/references`
+- adds the matching `class:*` tag for any imported reviewed section such as `references/`, `tasks/`, or `ideas/`; raw inbox imports stay without `class:*`
+- tags every imported file with `source:ticktick` and `ticktick-list:<list>` using the source namespace rules in `files/TAGS.md`
 - tags Meseeks board columns as `ticktick-status:<status>`, for example `ticktick-status:user-interface`; this is source metadata, not current lifecycle
 - treats TickTick priority `0` as unset and omits local `priority`; maps TickTick `1`, `3`, and `5` to `low`, `medium`, and `high`
 - imports TickTick child task rows as real local subtasks under the parent task folder
@@ -166,7 +167,7 @@ bun scripts/create-reference-ticktick-tasks.ts \
 
 Current behavior:
 
-- reads local task files from `private/tasks/references`
+- reads local task files from `private/files/references`
 - extracts the original link from the file metadata payload
 - derives a human title from the first meaningful scraped line instead of using the raw URL
 - stores the original link plus scraped body in TickTick `content`
@@ -183,7 +184,7 @@ Implementation note:
 
 ### Mark imported `References` tasks migrated in TickTick
 
-Marks open TickTick `References` tasks that already exist under `private/tasks/references` as TickTick `won't do` and appends a migration note to their content.
+Marks open TickTick `References` tasks that already exist under `private/files/references` as TickTick `won't do` and appends a migration note to their content.
 
 ```bash
 bun scripts/mark-references-migrated.ts \
@@ -208,7 +209,7 @@ Marks open TickTick Meseeks tasks already imported into git as TickTick `won't d
 bun scripts/mark-meseeks-migrated.ts \
   --apply \
   --timestamp 2026-05-11T15:41:44Z \
-  --backup-dir private/tasks/.ticktick-migration-backups/meseeks-2026-05-11T15-41-44Z
+  --backup-dir private/files/.ticktick-migration-backups/meseeks-2026-05-11T15-41-44Z
 ```
 
 Current behavior:

@@ -1,0 +1,87 @@
+---
+title: Resolve deferred-work markers
+priority: low
+tags: [debt, status:backlog, class:task]
+---
+
+# Resolve deferred-work markers
+
+Current code-only scan (excluding prototype packages) shows **73** deferred-work markers (`TODO/FIXME/HACK/XXX/BUG`).
+
+Highest-concentration files right now:
+- `schemas/intelligenceSchema.ts` (7)
+- `convex/tasks.private.ts` (7)
+- `skills/createAITool.ts` (6)
+- `convex/magicRock.private.ts` (6)
+- `schemas/skillSchema.tsx` (4)
+- `convex/users.private.ts` (4)
+- `lib/polar.ts` (3)
+
+The previous version of this task was too meta. This version is the execution tracker for taking deferred work out of source comments and into the disk task system.
+
+## Objective
+
+First, remove deferred-work markers from code by converting every still-useful marker into a tracked disk task or folding it into an existing tracked disk task.
+
+After that extraction pass, resolve the highest-risk tracked tasks with implementation and tests. The codebase should not use `TODO`, `FIXME`, `HACK`, `XXX`, or `BUG` comments as the source of truth for deferred work.
+
+## First Pass
+
+- [ ] Refresh the marker inventory from the current codebase.
+- [ ] For each marker, decide one of:
+  - create a child task under this task when the marker is real deferred work without a better owner
+  - fold the marker into an existing canonical task when the work already belongs somewhere else
+  - delete the marker when it is stale, obvious, or not worth preserving
+  - fix immediately when it is a tiny safe cleanup
+- [ ] Remove the source-code marker comment after it is represented in disk tasks, folded into an existing task, deleted, or fixed.
+- [ ] Re-run the scan and keep iterating until the remaining source-code markers are intentional exceptions with explicit rationale.
+
+## Subtasks
+- [ ] Resolve task lifecycle markers in `convex/tasks.private.ts`:
+- implement deterministic active-task ordering for budget-prioritized processing (`findActiveTasks`)
+- replace hardcoded bootstrap actions in `addTask` with explicit action construction flow
+- enforce `moveTask` invariants (self-parent and cycle checks) and parent-change propagation semantics
+- decide and implement partial-vs-replace semantics for `updateTaskInstructions`
+- [ ] Resolve orchestration/config markers across `convex/magicRock.private.ts` and `skills/createAITool.ts`:
+- remove provider-specific hacks by codifying capabilities in model/intelligence config
+- move static model mapping responsibilities out of ad-hoc code paths
+- implement cached-token handling from provider metadata in persisted usage and cost calculation
+- replace "workaround because async" instruction rendering path with explicit async composition step
+- [ ] Resolve schema-quality markers in `schemas/intelligenceSchema.ts` and `schemas/skillSchema.tsx`:
+- enforce provider type from known set (not plain `z.string()`)
+- decide and add missing schema fields with defaults (`speed`, deprecation flags)
+- remove stale "move to env/models.dev" placeholders by implementing one source of truth strategy
+- [ ] Resolve billing/lifecycle markers by implementing linked tasks:
+- [harden-billing-and-lifecycle-behavior.mdx](../harden-billing-and-lifecycle-behavior/_index.mdx)
+- [type-hardening-critical-paths.mdx](../type-hardening-critical-paths/_index.mdx)
+- [ ] Rebuild and reconcile marker inventory artifacts after extraction:
+  - refresh marker inventory from disk tasks, not source comments
+  - reconcile inventory counts with the current `rg` marker baseline and remove drift
+- [ ] Triage each extracted task with an explicit decision:
+  - keep and rewrite task text if still relevant
+  - merge duplicates into canonical tracked tasks
+  - delete stale/outdated tasks
+  - fix-now quick wins immediately
+- [ ] Review prior high-signal cleanup areas to avoid regression:
+  - `lib/polar.ts`
+  - `convex/magicRock.tsx`
+  - `convex/skills/`
+  - `src/components/`
+  - `package.json`
+- [ ] Decide whether to automate marker reviews on a recurring cadence (for example monthly) after this batch.
+- [ ] Remove stale marker comments immediately when extracted or implemented; if a marker survives this batch, it needs a concrete reason to stay in code.
+
+## Progress Log
+### 2026-02-24
+- Task created
+- Rewritten with concrete file-level execution plan and reduction target (`73 -> 45 or fewer`)
+- Merged duplicate task `private/files/tasks/review-all-code-todos/_index.md` into this one
+### 2026-05-17
+- Updated priority of execution: first extract useful code markers into disk tasks and remove the comments from code; implementation follows from tracked tasks, not from scattered TODO comments.
+
+## Notes
+Audit command baseline:
+```bash
+rg -n "TODO|FIXME|HACK|XXX|BUG" src convex lib schemas skills organizer --glob '*.{ts,tsx,js,jsx}'
+```
+This task is complete only when deferred work is managed through disk tasks, marker count is reduced, and any remaining marker comments are intentional code-local exceptions instead of hidden backlog.

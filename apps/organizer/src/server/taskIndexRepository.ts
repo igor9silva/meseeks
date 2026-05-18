@@ -48,7 +48,7 @@ let snapshotCache: SnapshotCache | null = null;
 
 function getGeneratedDir(): string {
 	//
-	return join(findRepoRoot(), 'private', 'tasks', '.generated');
+	return join(findRepoRoot(), 'private', 'files', '.generated');
 }
 
 function getFiles(generatedDir: string): FileSet {

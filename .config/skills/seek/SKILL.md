@@ -9,7 +9,7 @@ Act on the task. Do not stop at planning unless a blocker makes execution unsafe
 
 ## Start Here
 
-1. Read `tasks/README.md`. If execution changes task tags or task placement, also read `tasks/TAGS.md`.
+1. Read `files/README.md`. If execution changes task tags or task placement, also read `files/TAGS.md`.
 2. If Organizer provided task key/source/path context, use that exact task.
 3. Read the target task file in full.
 4. Read nearby context that changes execution: parent `_index.*`, child tasks, linked references, sibling duplicates, repo files named by the task, and relevant source metadata.
@@ -41,7 +41,8 @@ Ask concrete questions, not open-ended planning theater. If one reasonable assum
 - Prefer existing repo patterns over new abstractions.
 - Keep changes scoped to the task.
 - Update or remove task files only when the task requires it.
+- If moving a task between inbox, tasks, references, or ideas, update the `class:*` tag according to `files/TAGS.md`.
 - Run focused validation that matches the change.
 - Report what changed, why, and what was not verified.
 
-If execution reveals the task is already done, verify that fact, then say so and suggest completing or deleting the task according to `tasks/README.md`.
+If execution reveals the task is already done, verify that fact, then say so and suggest completing or deleting the task according to `files/README.md`.

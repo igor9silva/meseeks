@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
-import { buildExplorerSnapshot, buildTaskDetail, createTaskLookup } from '~/server/taskExplorerReadModel';
+import { createTaskLookup } from '~/server/taskExplorerLookup';
+import { buildExplorerSnapshot, buildTaskDetail } from '~/server/taskExplorerReadModel';
 import {
 	type CreateTaskInput,
 	type DetailQuery,
@@ -15,28 +16,8 @@ import {
 	titleMutationSchema,
 	updateTaskSourceInputSchema,
 } from '~/server/taskExplorerSchemas';
-import type { TaskConfig } from '~/server/taskIndexSchemas';
-import { z } from 'zod';
 
 export type { CreateTaskInput } from '~/server/taskExplorerSchemas';
-
-const taskConfigColumnSchema = z.object({
-	id: z.string().min(1),
-	label: z.string().min(1),
-	tag: z.string().min(1).nullable(),
-});
-
-const taskConfigSchema = z.object({
-	view: z.enum(['list', 'board']),
-	scope: z.literal('direct'),
-	columns: z.array(taskConfigColumnSchema),
-	hiddenTags: z.array(z.string().min(1)),
-});
-
-const updateTaskConfigInputSchema = z.object({
-	taskKey: z.string().min(1),
-	config: taskConfigSchema,
-});
 
 async function readTaskIndexSnapshot() {
 	//
@@ -212,19 +193,5 @@ export const updateTaskTitle = createServerFn({ method: 'POST' })
 		return {
 			taskKey: data.taskKey,
 			title: result.title,
-		};
-	});
-
-export const updateTaskConfig = createServerFn({ method: 'POST' })
-	.inputValidator((input: unknown) => updateTaskConfigInputSchema.parse(input))
-	.handler(async ({ data }) => {
-		const repository = await import('~/server/taskMutationRepository');
-		const task = await findTaskByKey(data);
-		const config: TaskConfig = data.config;
-		const result = repository.updateTaskConfig(task, { config });
-
-		return {
-			taskKey: data.taskKey,
-			config: result.config,
 		};
 	});

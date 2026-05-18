@@ -8,8 +8,8 @@ import { z } from 'zod';
 const tickTickDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9UT8AY.com.TickTick.task.mac/OSXCoreDataObjC.storedata`;
 const tickTickApiBaseUrl = 'https://api.ticktick.com/api/v2';
 const meseeksProjectId = '66b35a9a617f11216a574648';
-const defaultBackupRoot = resolve('private/tasks/.ticktick-migration-backups');
-const taskRoots = [resolve('tasks'), resolve('private/tasks')];
+const defaultBackupRoot = resolve('private/files/.ticktick-migration-backups');
+const taskRoots = [resolve('files'), resolve('private/files')];
 
 const argsSchema = z.object({
 	apply: z.boolean(),

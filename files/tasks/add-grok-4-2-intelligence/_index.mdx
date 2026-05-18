@@ -1,0 +1,40 @@
+---
+title: Test and add Grok 4.2 intelligence
+priority: low
+tags: [intelligence, status:backlog, class:task]
+---
+
+# Test and add Grok 4.2 intelligence
+
+Grok 4.2 is a candidate xAI model for the Meseeks intelligence registry. It previously behaved broken, so this needs investigation and evidence before enabling it as a supported intelligence.
+
+## Objective
+Verify whether `xai/grok-4.2` can run reliably in Meseeks, then add it only if the execution path is healthy. Acceptance criteria: the correct xAI model id and reasoning behavior are confirmed; the original broken behavior is reproduced or cleared with logs; the model is added to the schema, metadata registry, and runtime model map only if a tool-required action succeeds; `bun typecheck` passes.
+
+## Subtasks
+- [ ] Confirm the correct xAI model id for Grok 4.2 and whether it requires explicit reasoning options.
+- [ ] Reproduce the previously broken behavior with logs or a concrete action run, then record the outcome in this task.
+- [ ] If usable, add `xai/grok-4.2` to `schemas/intelligenceSchema.ts` with name `Grok 4.2`, provider `xAI`, input price `1.25`, output price `2.5`, context `200_000`, and intelligence level `7`.
+- [ ] If usable, map `xai/grok-4.2` in `convex/magicRock.private.ts` with the correct xAI model id and provider options.
+- [ ] Run a real action smoke test that proves Grok 4.2 can complete the tool-required execution path.
+- [ ] Run `bun typecheck`.
+
+## Progress Log
+### 2026-05-01
+- Task created
+
+## Notes
+Requested metadata:
+
+```ts
+'xai/grok-4.2': {
+	key: 'xai/grok-4.2',
+	name: 'Grok 4.2',
+	provider: 'xAI',
+	pricing: buildPricing({ input: 1.25, output: 2.5 }),
+	context: buildContext(200_000),
+	intelligenceLevel: 7,
+},
+```
+
+No command evidence for the broken behavior is attached yet. Capture the failure logs when investigating so this does not become another spooky oral tradition.

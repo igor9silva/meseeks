@@ -368,11 +368,11 @@ One file per hook in `src/hooks/`.
   - bad: user says `delete stale`, and the assistant creates or preserves a reference because the content looked interesting
   - good: delete it
   - bad: user says `done` on a private task, and the assistant promotes it to public with a "Done already" note
-  - good: keep it private, move it under `private/tasks/tasks/`, add `status:completed`, and leave the body alone
-- In task-system work, follow `tasks/TAGS.md` for tag semantics and preserve explicit section/status/tag semantics instead of inferring a "better" taxonomy from the content.
+  - good: keep it private, move it under `private/files/tasks/`, add `status:completed`, and leave the body alone
+- In task-system work, follow `files/TAGS.md` for tag semantics and preserve explicit section/status/tag semantics instead of inferring a "better" taxonomy from the content.
   - bad: user says a link is just `human:to-read`, and the assistant moves it to `references/` or adds `demand` because the article mentions a relevant market trend
   - good: keep it in the private saved-reading queue and only improve title/source/content backup in place
-- Treat `tasks/TAGS.md` as executable cleanup guidance. Apply its section, lifecycle, visibility, and canonical-task constraints directly when the move is mechanical and safe.
+- Treat `files/TAGS.md` as executable cleanup guidance. Apply its section, lifecycle, visibility, and canonical-task constraints directly when the move is mechanical and safe.
 - Do not apply current tag cleanup to `status:completed` tasks. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless the user explicitly asks.
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
@@ -454,7 +454,7 @@ CRITICAL rules are non-negotiable. If a rule seems wrong for a specific case, di
 
 Some directories are intentionally outside the main app scope:
 
-- `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/tasks/.generated`.
+- `apps/organizer/`: standalone task explorer app that reads generated task indexes from `private/files/.generated`.
 - `ideas/`: unrelated experiments and imported side projects that should stay visible in this repository but should not be included in root Bun workspaces, Vercel builds, or workspace-level checks by default.
 - `ideas/browser-poc/`: Electron browser experiment.
 - `ideas/mecode-mvp/`: Electrobun macOS app shell prototype.

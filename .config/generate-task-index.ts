@@ -4,8 +4,8 @@
  *
  * every task is a directory containing one _index.* body file.
  * task roots:
- * - tasks/
- * - private/tasks/
+ * - files/
+ * - private/files/
  *
  * generated indexes are consumed by apps/organizer.
  */
@@ -15,7 +15,7 @@ import { basename, dirname, extname, join, posix, relative, resolve } from 'node
 import { z } from 'zod/v3';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
-const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'tasks', '.generated');
+const OUTPUT_DIR = join(PROJECT_ROOT, 'private', 'files', '.generated');
 const OUTPUT_VERSION = 4;
 const VERBOSE = process.argv.includes('--verbose');
 
@@ -23,6 +23,7 @@ type TaskSourceLabel = 'public' | 'private';
 type BodyFormat = 'md' | 'mdx' | 'text' | 'empty';
 type TaskSection = 'root' | 'inbox' | 'tasks' | 'references' | 'ideas' | 'other';
 type TaskView = 'list' | 'board';
+type TaskSort = 'priority_then_recency' | 'recency' | 'title';
 
 interface TaskSource {
 	label: TaskSourceLabel;
@@ -38,14 +39,36 @@ interface TaskTag {
 interface TaskConfigColumn {
 	id: string;
 	label: string;
-	tag: string | null;
+	match: TaskConfigColumnMatch;
+}
+
+type TaskConfigColumnMatch =
+	| {
+			type: 'tag';
+			tag: string;
+	  }
+	| {
+			type: 'source';
+			source: TaskSourceLabel;
+	  };
+
+interface TaskConfigPanels {
+	currentCollapsed: boolean;
 }
 
 interface TaskConfig {
 	view: TaskView;
 	scope: 'direct';
 	columns: TaskConfigColumn[];
-	hiddenTags: string[];
+	minDepth: number;
+	maxDepth: number;
+	sort: TaskSort;
+	panelSizes: {
+		current: number;
+		selected: number;
+		tagFilters: number;
+	};
+	panels: TaskConfigPanels;
 }
 
 interface ParsedTaskFile {
@@ -221,12 +244,11 @@ interface TaskLookupPayload {
 }
 
 const TASK_SOURCES: TaskSource[] = [
-	{ label: 'public', root: join(PROJECT_ROOT, 'tasks') },
-	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'tasks') },
+	{ label: 'public', root: join(PROJECT_ROOT, 'files') },
+	{ label: 'private', root: join(PROJECT_ROOT, 'private', 'files') },
 ];
 
 const INDEX_EXTENSIONS = ['.md', '.mdx', '.txt'];
-const CONFIG_FILENAME = '_config.json';
 
 const optionalStringSchema = z.preprocess((value) => normalizeOptionalString(value), z.string().min(1)).optional();
 const optionalLowerStringSchema = z
@@ -239,21 +261,6 @@ const frontmatterSchema = z
 		title: optionalStringSchema,
 		priority: optionalLowerStringSchema,
 		tags: optionalStringArraySchema,
-	})
-	.passthrough();
-
-const taskConfigColumnSchema = z.object({
-	id: z.string().min(1),
-	label: z.string().min(1),
-	tag: z.string().min(1).nullable().optional(),
-});
-
-const taskConfigSchema = z
-	.object({
-		view: z.enum(['list', 'board']).optional(),
-		scope: z.literal('direct').optional(),
-		columns: z.array(taskConfigColumnSchema).optional(),
-		hiddenTags: z.array(z.string().min(1)).optional(),
 	})
 	.passthrough();
 
@@ -373,8 +380,8 @@ function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTask
 	const section = inferTaskSection(pathSegments);
 	const key = createTaskKey(taskPath, taskSource.label);
 	const id = taskPath.length === 0 ? 'root' : taskPath;
-	const configResult = readTaskConfig(taskSource.root, taskPath, section);
-	const warnings = extraction.warnings.concat(configResult.warnings);
+	const config = createDefaultTaskConfig(taskPath, section);
+	const warnings = extraction.warnings;
 	const duplicateIndexFiles = findIndexFiles(dirname(absolutePath));
 
 	if (duplicateIndexFiles.length > 1) {
@@ -401,99 +408,60 @@ function parseTaskFile(absolutePath: string, taskSource: TaskSource): ParsedTask
 		fileCtimeMs: fileStats.ctimeMs,
 		fileBirthtimeMs: fileStats.birthtimeMs,
 		isEmptyFile: normalizedContent.trim().length === 0,
-		config: configResult.config,
+		config,
 		warnings,
 	};
 }
 
-function readTaskConfig(root: string, taskPath: string, section: TaskSection): { config: TaskConfig; warnings: string[] } {
-	//
-	const defaultConfig = createDefaultTaskConfig(taskPath, section);
-	const configPath = join(root, ...taskPathSegments(taskPath), CONFIG_FILENAME);
-
-	if (!existsSync(configPath)) return { config: defaultConfig, warnings: [] };
-
-	try {
-		const parsedJson: unknown = JSON.parse(readFileSync(configPath, 'utf-8'));
-		const parsedConfig = taskConfigSchema.safeParse(parsedJson);
-
-		if (!parsedConfig.success) {
-			return {
-				config: defaultConfig,
-				warnings: [`${CONFIG_FILENAME} schema parse failed, using defaults`],
-			};
-		}
-
-		return {
-			config: {
-				view: parsedConfig.data.view ?? defaultConfig.view,
-				scope: parsedConfig.data.scope ?? defaultConfig.scope,
-				columns: normalizeConfigColumns(parsedConfig.data.columns, defaultConfig.columns),
-				hiddenTags: dedupeStrings(parsedConfig.data.hiddenTags ?? defaultConfig.hiddenTags),
-			},
-			warnings: [],
-		};
-	} catch (error) {
-		const message = error instanceof Error ? error.message : 'unknown parse failure';
-		return {
-			config: defaultConfig,
-			warnings: [`${CONFIG_FILENAME} parse failed: ${message}`],
-		};
-	}
-}
-
-function normalizeConfigColumns(
-	columns: Array<z.infer<typeof taskConfigColumnSchema>> | undefined,
-	defaultColumns: TaskConfigColumn[],
-): TaskConfigColumn[] {
-	//
-	if (columns === undefined) return defaultColumns;
-
-	return columns.map((column) => ({
-		id: column.id,
-		label: column.label,
-		tag: column.tag ?? null,
-	}));
-}
-
 function createDefaultTaskConfig(taskPath: string, section: TaskSection): TaskConfig {
 	//
-	if (taskPath === 'tasks') {
-		return {
-			view: 'board',
-			scope: 'direct',
-			columns: [
-				{ id: 'backlog', label: 'Backlog', tag: 'status:backlog' },
-				{ id: 'active', label: 'Active', tag: 'status:active' },
-			],
-			hiddenTags: ['status:completed'],
-		};
-	}
-
-	if (section === 'tasks' && taskPath.length > 'tasks'.length) {
-		return {
-			view: 'board',
-			scope: 'direct',
-			columns: [
-				{ id: 'backlog', label: 'Backlog', tag: 'status:backlog' },
-				{ id: 'active', label: 'Active', tag: 'status:active' },
-			],
-			hiddenTags: ['status:completed'],
-		};
+	if (taskPath === 'tasks' || (section === 'tasks' && taskPath.length > 'tasks'.length)) {
+		return createDefaultBoardConfig();
 	}
 
 	return {
 		view: 'list',
 		scope: 'direct',
 		columns: [],
-		hiddenTags: [],
+		minDepth: 1,
+		maxDepth: 1,
+		sort: 'priority_then_recency',
+		panelSizes: createDefaultPanelSizes(),
+		panels: createDefaultPanels(),
 	};
 }
 
-function taskPathSegments(taskPath: string): string[] {
+function createDefaultBoardConfig(): TaskConfig {
 	//
-	if (taskPath.length === 0) return [];
-	return taskPath.split('/');
+	return {
+		view: 'board',
+		scope: 'direct',
+		columns: [
+			{ id: 'backlog', label: 'Backlog', match: { type: 'tag', tag: 'status:backlog' } },
+			{ id: 'active', label: 'Active', match: { type: 'tag', tag: 'status:active' } },
+		],
+		minDepth: 1,
+		maxDepth: 1,
+		sort: 'priority_then_recency',
+		panelSizes: createDefaultPanelSizes(),
+		panels: createDefaultPanels(),
+	};
+}
+
+function createDefaultPanelSizes(): TaskConfig['panelSizes'] {
+	//
+	return {
+		current: 24,
+		selected: 30,
+		tagFilters: 128,
+	};
+}
+
+function createDefaultPanels(): TaskConfigPanels {
+	//
+	return {
+		currentCollapsed: false,
+	};
 }
 
 function inferTaskSection(pathSegments: string[]): TaskSection {
