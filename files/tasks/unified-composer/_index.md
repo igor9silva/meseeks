@@ -19,6 +19,7 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - `apps/meseeks/src/components/ActionComposer/ActionComposer.tsx` has a task-contained Composer with strips, voice input, queueing, and shortcuts.
 - `apps/meseeks/src/hooks/useComposer.tsx` already supports a queue up to 16 actions, draft sync, pending submitted actions, budget/energy queueing, and final skill ordering.
 - `apps/meseeks/src/components/Launcher/LauncherDialog.tsx` is still a search/command dialog with paginated task loading and mobile current-task detail rendering.
+- `apps/meseeks/src/components/Launcher/LauncherDialog.tsx` still uses `api.tasks.findAllPaginated` plus command filtering for task search, so Launcher search only covers loaded/paginated tasks.
 
 ## Open design questions
 
@@ -39,6 +40,7 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - Quick actions, pinned tasks, skill/loop switching, and skill selection.
 - Composer undo behavior.
 - Launcher pasted-resource matching: if I paste an existing resource path like `/task/kh71mzvz3bb7d42nyzadxx7v89845ea2`, the Launcher should recognize it as a task, load the task details inline, and navigate there on Enter/Return.
+- Launcher server-side search: when a search term is present, use a debounced Convex query over all tasks instead of only filtering loaded/paginated tasks; keep pagination for empty-search browsing and show a search loading state.
 - Visual references for richer Composer controls.
 - Main entry Composer visual direction: preserve both a simple "what can I help with?" home surface and the richer energy/intelligence/action-control reference.
 - Detailed context usage: show a polished breakdown of what is consuming the context window, how much remains, and enough detail to make pruning or energy decisions obvious.
