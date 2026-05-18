@@ -139,6 +139,21 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- portable agent identity/trust/reputation may need ERC-8004-style discovery, registration files, MCP/A2A endpoints, on-chain reputation, validators, wallet/payment proofs, and x402-weighted feedback; reference: [ERC-8004 agent trust and discovery](../../references/erc-8004-agent-trust-and-discovery/_index.md)
 - root task should be "Igor's life"
 
+# Virtual File System
+
+- [S3 files as shared agent workspace](https://x.com/skeptrune/status/2041657917708103915?s=12): Nick Khami's point was that S3 files could remove the need to spin up a sandbox VM just to give agents POSIX-like tools, and could let many compute workers operate over the same filesystem.
+- [Rivet operating system](https://x.com/nathanflurry/status/2039017546649907674?s=12): Rivet described a WASM/V8-isolate environment with `node`, `python`, `bash`, `git`, `grep`, `curl`, mounts for S3/Google Drive/SQLite, library embedding, Actors, Secure Exec, and Sandbox Agent.
+- [JavaScript runtime inside BEAM](https://x.com/dan_note/status/2032139121850728939?s=12): Danila Poyarkov described JS runtimes as supervised GenServers with native BEAM term mapping, Elixir-owned DOM reading, OXC TypeScript tooling, npm package support, and sandboxed user-defined business rules.
+- [Microsandbox](https://x.com/microsandbox/status/2045114415016522062?s=12): fast local sandboxes for agents; useful reminder that execution should not always require cloud infrastructure.
+- [Zeroboot](https://x.com/githubprojects/status/2034955640872083785?s=12): preloaded VM snapshots that fork new isolated VMs in about 0.8ms; relevant to keeping sandbox startup invisible.
+- [Persistent sprites / full Linux environments](https://x.com/martin_casado/status/2014452233384169791?s=20): Martin Casado framed the future as many persistent AI compute sprites with internet access, generated UI, checkpointing, and full Linux environments.
+- [Rivet Sandbox Agent SDK](https://x.com/rivet_dev/status/2016548084696727842?s=46): a universal HTTP/TypeScript API for running coding agents such as Claude Code, Codex, OpenCode, and Amp inside sandboxes.
+- [Sim / Freestyle server-side JS execution](https://github.com/simstudioai/sim/blob/main/sim/app/api/function/execute/route.ts): original Sim route now 404s, but the imported note also pointed at `https://api.freestyle.sh` as a related custom server-side JS execution surface.
+- [Tencent/E2B-compatible microVM sandbox](https://x.com/ericksky/status/2046569383149932750?s=12): claimed self-hosted open-source sandbox with sub-60ms startup, roughly 5 MB RAM per instance, KVM/RustVMM isolation, and E2B SDK compatibility.
+- [Owned DOM sandbox via QuickJS/WASM](https://x.com/jpschroeder/status/2036115634749112744?s=12): parse TypeScript AST `html` calls, replace reactive parts with identifiers, run JS inside WASM/QuickJS, and restrict DOM changes to generated owned blocks mounted through Web Components/Shadow DOM.
+- [Wasmer Edge.js](https://x.com/wasmerio/status/2033966082944577693?s=12): run unmodified Node.js apps safely without Docker, with a sandboxed design and pluggable JS engine.
+- [Rivet Secure Exec SDK](https://x.com/rivet_dev/status/2034295508446187619?s=20): secure Node.js execution as a library, supporting Node.js, Bun, and browsers with Cloudflare-Workers-like isolation, low cold start, and low memory.
+
 ## Nice to have
 
 - some streaming support?

@@ -191,6 +191,7 @@ Follow the skip list in `files/TAGS.md`.
 - If an MVP is already shipped but unmanaged, such as `/translate`, move the original task to completed when Igor says so; do not keep a duplicate backlog skill shell for full Reactor authorization/billing integration.
 - `WebSquare` remains meaningful in the Feeds idea; preserve the full WebSquare content when organizing that task.
 - Feeds are user-owned streams that can follow people, organizations, topics, repos, sites, or personal sources, with AI and code filters.
+- Virtual filesystem captures tagged `human:vfs` were folded into `files/tasks/reactor-v1/_index.mdx` under `# Virtual File System`; future similar captures should usually enrich that Reactor section instead of staying parked in inbox.
 
 ## Current State Notes
 

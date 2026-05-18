@@ -1,7 +1,7 @@
 ---
 title: AI-preprocessed browser POC
 priority: medium
-tags: [side, status:completed, class:task]
+tags: [status:completed, class:task]
 ---
 
 # AI Coding Prompt: AI-Preprocessed Browser POC
