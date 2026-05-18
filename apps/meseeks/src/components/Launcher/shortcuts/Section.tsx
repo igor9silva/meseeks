@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { CommandGroup } from '@reactor/ui/command';
-import { BalanceItem } from './BalanceItem';
 import { DevModeItem } from './DevModeItem';
 import { InboxItem } from './InboxItem';
 import { NewTaskItem } from './NewTaskItem';
@@ -10,6 +9,7 @@ import { SignOutItem } from './SignOutItem';
 import { SkillsItem } from './SkillsItem';
 import { SourceCodeItem } from './SourceCodeItem';
 import { SubscribeItem } from './SubscribeItem';
+import { WalletItem } from './WalletItem';
 
 interface ShortcutsSectionProps {
 	onClose: () => void;
@@ -24,7 +24,7 @@ export function ShortcutsSection({ onClose, onNavigate, shouldUseSearch }: Short
 			<InboxItem onSelect={onNavigate} />
 			<NewTaskItem onSelect={onNavigate} />
 			<SeekItem shouldUseSearch={shouldUseSearch} />
-			<BalanceItem onSelect={onNavigate} />
+			<WalletItem onSelect={onNavigate} />
 			<Suspense fallback={null}>
 				<SubscribeItem onSelect={onNavigate} />
 			</Suspense>

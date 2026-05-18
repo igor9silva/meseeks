@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TranslateRouteImport } from './routes/translate'
 import { Route as TopUpRouteImport } from './routes/top-up'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
@@ -28,6 +29,11 @@ import { Route as SkillsInnateKeyRouteImport } from './routes/skills_.innate_.$k
 import { Route as ApiTranslateSessionRouteImport } from './routes/api/translate/session'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TranslateRoute = TranslateRouteImport.update({
   id: '/translate',
   path: '/translate',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
   '/translate': typeof TranslateRoute
+  '/wallet': typeof WalletRoute
   '/action/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
   '/translate': typeof TranslateRoute
+  '/wallet': typeof WalletRoute
   '/action/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
   '/translate': typeof TranslateRoute
+  '/wallet': typeof WalletRoute
   '/action_/$id': typeof ActionIdRoute
   '/polar/subscribed': typeof PolarSubscribedRoute
   '/polar/topped': typeof PolarToppedRoute
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/top-up'
     | '/translate'
+    | '/wallet'
     | '/action/$id'
     | '/polar/subscribed'
     | '/polar/topped'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/top-up'
     | '/translate'
+    | '/wallet'
     | '/action/$id'
     | '/polar/subscribed'
     | '/polar/topped'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/subscribe'
     | '/top-up'
     | '/translate'
+    | '/wallet'
     | '/action_/$id'
     | '/polar/subscribed'
     | '/polar/topped'
@@ -252,6 +264,7 @@ export interface RootRouteChildren {
   SubscribeRoute: typeof SubscribeRoute
   TopUpRoute: typeof TopUpRoute
   TranslateRoute: typeof TranslateRoute
+  WalletRoute: typeof WalletRoute
   ActionIdRoute: typeof ActionIdRoute
   ShareIdRoute: typeof ShareIdRoute
   SkillsIdRoute: typeof SkillsIdRoute
@@ -264,6 +277,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/translate': {
       id: '/translate'
       path: '/translate'
@@ -416,6 +436,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubscribeRoute: SubscribeRoute,
   TopUpRoute: TopUpRoute,
   TranslateRoute: TranslateRoute,
+  WalletRoute: WalletRoute,
   ActionIdRoute: ActionIdRoute,
   ShareIdRoute: ShareIdRoute,
   SkillsIdRoute: SkillsIdRoute,

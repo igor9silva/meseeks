@@ -72,9 +72,9 @@ export function UserMenuItem() {
 								Account
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Link to="/balance">
+								<Link to="/wallet">
 									<CreditCard />
-									Billing
+									Wallet
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>

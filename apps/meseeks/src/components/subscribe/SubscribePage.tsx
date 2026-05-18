@@ -13,10 +13,10 @@ export function SubscribePage() {
 	const startSubscription = useAction(api.subscriptions.startSubscription);
 	const { isPro } = useIsPro();
 
-	// redirect to balance if already subscribed
+	// redirect to wallet if already subscribed
 	useEffect(() => {
 		if (isPro) {
-			navigate({ to: '/balance' });
+			navigate({ to: '/wallet' });
 		}
 	}, [isPro, navigate]);
 
