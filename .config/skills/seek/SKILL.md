@@ -21,6 +21,13 @@ If the task is clear enough to execute, act on it immediately. Do not write a pl
 
 If the task is not clear enough to execute, invoke the Plan skill first. Plan should question assumptions, ask Igor concrete questions when needed, and keep breaking down the task until the work is clear enough to execute.
 
+For terse imported task captures, use the body and tags to size the work. Do not shrink a broad transformation into a rename, redirect, or compatibility shim unless the task asks for compatibility.
+
+Example:
+
+- bad: title says `/old should be /new`, body says "identity, money, and secrets", and the implementation only renames the route while keeping `/old`
+- good: rebuild `/new` around the broader product surface and remove `/old` unless compatibility was requested
+
 Once Plan makes the task clear enough, return to Seek and execute. Seek is the actor.
 
 Use Plan when the task is raw, ambiguous, misplaced, mixed public/private, likely duplicated, missing enough context, or likely to be solved incorrectly by guessing.

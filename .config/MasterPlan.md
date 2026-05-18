@@ -378,6 +378,9 @@ One file per hook in `src/hooks/`.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit
   - good: only commit when the user explicitly says "commit it", "run git commit", "create the commit", or gives an equally direct instruction
+- Public repo artifacts must never reveal which assistant, model, or tool produced the work. Use neutral product/repo wording for PR titles, PR bodies, branch names, commit messages, issue comments, release notes, and public task prose.
+  - bad: `[ai-agent] redesign Wallet & Identity route`
+  - good: `redesign Wallet & Identity route`
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
