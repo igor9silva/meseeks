@@ -74,7 +74,7 @@ export function UserMenuItem() {
 							<DropdownMenuItem>
 								<Link to="/wallet">
 									<CreditCard />
-									Wallet
+									Wallet & Identity
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>

@@ -15,7 +15,6 @@ import { Route as TopUpRouteImport } from './routes/top-up'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SchedulesRouteImport } from './routes/schedules'
-import { Route as BalanceRouteImport } from './routes/balance'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as PolarRouteRouteImport } from './routes/polar/route'
 import { Route as TopUpIdRouteImport } from './routes/top-up_.$id'
@@ -57,11 +56,6 @@ const SkillsRoute = SkillsRouteImport.update({
 const SchedulesRoute = SchedulesRouteImport.update({
   id: '/schedules',
   path: '/schedules',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BalanceRoute = BalanceRouteImport.update({
-  id: '/balance',
-  path: '/balance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -128,7 +122,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -149,7 +142,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -171,7 +163,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
   '/schedules': typeof SchedulesRoute
   '/skills': typeof SkillsRoute
   '/subscribe': typeof SubscribeRoute
@@ -194,7 +185,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/polar'
     | '/$'
-    | '/balance'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -215,7 +205,6 @@ export interface FileRouteTypes {
   to:
     | '/polar'
     | '/$'
-    | '/balance'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -236,7 +225,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/polar'
     | '/$'
-    | '/balance'
     | '/schedules'
     | '/skills'
     | '/subscribe'
@@ -258,7 +246,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   PolarRouteRoute: typeof PolarRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
-  BalanceRoute: typeof BalanceRoute
   SchedulesRoute: typeof SchedulesRoute
   SkillsRoute: typeof SkillsRoute
   SubscribeRoute: typeof SubscribeRoute
@@ -317,13 +304,6 @@ declare module '@tanstack/react-router' {
       path: '/schedules'
       fullPath: '/schedules'
       preLoaderRoute: typeof SchedulesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/balance': {
-      id: '/balance'
-      path: '/balance'
-      fullPath: '/balance'
-      preLoaderRoute: typeof BalanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -430,7 +410,6 @@ const PolarRouteRouteWithChildren = PolarRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   PolarRouteRoute: PolarRouteRouteWithChildren,
   SplatRoute: SplatRoute,
-  BalanceRoute: BalanceRoute,
   SchedulesRoute: SchedulesRoute,
   SkillsRoute: SkillsRoute,
   SubscribeRoute: SubscribeRoute,
