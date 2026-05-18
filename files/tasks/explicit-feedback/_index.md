@@ -6,7 +6,7 @@ tags: [ux, status:backlog, source:ticktick, ticktick-list:meseeks, ticktick-stat
 
 Add explicit feedback on actions.
 
-The basic interaction can be classic thumbs up/down, but it should also allow a short text note when the user wants to explain the feedback:
+The basic interaction can be classic thumbs up/down 👎👍🤯, but it should also allow a short text note when the user wants to explain the feedback:
 
 - "I wanted that to be shorter"
 - "I'd prefer a table"

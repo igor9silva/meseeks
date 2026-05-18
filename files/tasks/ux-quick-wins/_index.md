@@ -5,6 +5,8 @@ tags: [ux, status:backlog, source:ticktick, ticktick-list:meseeks, ticktick-stat
 ---
 
 - pinning tasks
+- minimal notifications
+- better MDX fallback render. It breaks if passed in an unknown <Component />, and the fallback is not useful.
 
 ideas from OpenCode:
 - double ESC to interrupt

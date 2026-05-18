@@ -7,6 +7,33 @@ Prompt-style capture of how ChatGPT may structure long-term context, response pr
 
 The useful part is the concrete section order and the kind of evidence each section carries.
 
+## Memory write behavior
+
+Additional captures on how ChatGPT-style memory systems may validate, compress, prioritize, and annotate memory writes.
+
+Meseeks implications:
+
+- `learn()` may need extra structured arguments rendered into its instructions, such as `documentationURL`.
+- `instruct()` may need `intent_tags`, inspired by GPT-style internal classification.
+
+![Memory validation layer](attachments/memory-validation-layer.png)
+
+![Memory canonicalization](attachments/memory-canonicalization.png)
+
+![Memory saliency and recency](attachments/memory-saliency-recency.png)
+
+![Memory shaping by session type](attachments/memory-session-shaping.png)
+
+![Memory metadata tagging](attachments/memory-metadata-tagging.png)
+
+Useful mechanics to preserve:
+
+- Validate memory candidates before committing them. Stable user facts, life-impacting facts, and inferred facts should not be written blindly.
+- Compress and canonicalize related memories so memory stays useful instead of becoming prompt bloat.
+- Rank memories by saliency and recency at render time, so important long-term facts stay alive while recent changes temporarily dominate.
+- Shape memory selection by session type. Technical, social, creative, and info-seeking sessions should weight different memories differently.
+- Store invisible metadata on memories, such as confidence, source, sensitivity, and update time.
+
 ## Model set context
 
 ```txt
