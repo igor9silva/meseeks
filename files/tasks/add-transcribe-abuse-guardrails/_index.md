@@ -1,7 +1,7 @@
 ---
 title: Add abuse guardrails for transcribe action
-priority: medium
-tags: [security, status:backlog, class:task]
+priority: low
+tags: [security, status:backlog, class:task, legacy]
 ---
 
 # Add abuse guardrails for transcribe action

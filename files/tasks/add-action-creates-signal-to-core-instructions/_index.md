@@ -1,7 +1,7 @@
 ---
 title: Add action-creates-signal principle to core instructions
-priority: medium
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+priority: low
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task, behavior]
 ---
 
 Add this idea into the core Meseeks instructions, rewritten in our own words:

@@ -1,7 +1,7 @@
 ---
 title: "Training-friendly data export"
 priority: low
-tags: [tech, status:backlog, class:task]
+tags: [status:backlog, class:task, transparency]
 ---
 
 Add a way to export Meseeks data in a training-friendly format so user-owned activity, traces, actions, and outcomes can eventually feed evaluation or model-improvement workflows.

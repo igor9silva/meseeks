@@ -1,7 +1,7 @@
 ---
 title: Per-skill monitoring
 priority: low
-tags: [skill, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task, observability]
 ---
 
 Build a backoffice view to inspect, monitor, and improve skills.

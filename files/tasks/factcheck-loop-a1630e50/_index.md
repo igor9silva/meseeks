@@ -1,7 +1,7 @@
 ---
 title: "factCheck loop"
-priority: medium
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+priority: low
+tags: [loop, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
 ---
 
 - list assumptions
