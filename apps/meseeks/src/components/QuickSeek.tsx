@@ -33,8 +33,13 @@ const PLACEHOLDERS = [
 export function QuickSeek({ className }: { className?: string }) {
 	//
 	return (
-		<div className={cn('h-full flex flex-col justify-end items-center md:justify-center', className)}>
+		<div className={cn('h-full flex flex-col justify-center items-center gap-12', className)}>
+			<h1 className="px-4 text-center text-3xl font-semibold md:text-5xl">What are you seeking?</h1>
 			<QuickSeekContent className="w-full max-w-5xl" />
+			{/* balance the heading so the composer stays vertically centered */}
+			<h1 aria-hidden className="invisible px-4 text-center text-3xl font-semibold md:text-5xl">
+				What are you seeking?
+			</h1>
 		</div>
 	);
 }

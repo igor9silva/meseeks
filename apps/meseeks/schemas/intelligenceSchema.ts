@@ -40,11 +40,10 @@ const buildPricing = ({ input, output }: { input: number; output: number }) => {
 	};
 };
 
-export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'xai/grok-4.1-fast-non-reasoning';
+export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'moonshot/kimi-2.5';
 
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
-	'xai/grok-4.1-fast-non-reasoning': 0.2,
 	'moonshot/kimi-2.5': 50.0,
 	'anthropic/claude-4.5-opus': Number.POSITIVE_INFINITY,
 } as const;

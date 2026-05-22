@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { Id } from 'convex/_generated/dataModel';
 import { Loading } from '~/components/Loading';
+import { QuickSeek } from '~/components/QuickSeek';
 import { TaskItem } from '~/components/TaskItem';
 import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
 import { usePaginatedSubtasks } from '~/hooks/useSuspensePaginatedQuery';
@@ -42,7 +43,9 @@ export function TaskList({
 			{isLoadingFirstPage && <Loading className="mt-4" />}
 
 			{/* Content */}
-			{!isLoadingFirstPage && (
+			{!isLoadingFirstPage && subtasks.length === 0 && parentTaskId === 'inbox' && <QuickSeek />}
+
+			{!isLoadingFirstPage && subtasks.length > 0 && (
 				<>
 					{subtasks.map((task) => (
 						<TaskItem
