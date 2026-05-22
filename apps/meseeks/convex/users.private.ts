@@ -113,7 +113,7 @@ export const seedUserIfNeeded = defineMutation({
 
 		// TODO: users should be able to spawn their own Convex instance for full isolation and control
 
-		await addInitialTask(ctx, { userId });
+		// await addInitialTask(ctx, { userId });
 		await setDefaultPreferences(ctx, { userId });
 
 		await ctx.db.patch(userId, { isReady: true });

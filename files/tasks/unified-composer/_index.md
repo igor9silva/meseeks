@@ -53,6 +53,10 @@ On desktop, the right answer may be different. Keep iterating against the real U
 
 ![Context usage reference](attachments/context-usage-reference-12a858d8.jpg)
 
+![Context usage Cursor](attachments/context-usage-cursor.png)
+
+
+
 ## Original notes
 
 I’ve been thinking about our keyboard shortcuts (global and contextual). While using other AI apps, I’ve been paying extra attention to the small UX details and trying to abstract patterns we can borrow. Even though Meseeks is “simpler” in terms of how we represent information, I feel like our shortcut system is already more complex than it should be.
