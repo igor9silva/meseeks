@@ -22,6 +22,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `raw`: preserve the useful source title/body verbatim while moving or merging. Routine `Source` and `TickTick source` blocks can still be removed after the import snapshot has already been committed.
 - `rewrite`: rewrite the content as appropriate under current task rules.
 - `human:brainstorm`: keep private inbox and otherwise leave it alone for later review.
+- `funding` in review feedback means `human:funding`. Keep it in private inbox; do not create or use a bare `funding` tag.
 - `human:to-read`: keep private inbox unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
 
 ## Placement Heuristics
@@ -174,6 +175,7 @@ Follow the skip list in `files/TAGS.md`.
 - Coinbase Onramp API was a reference for ETH deposits; mention it inside the Reactor ETH deposits section, do not keep a standalone file.
 - CDP Wallets is also a candidate link under ETH deposits; keep it as a named link, not a paragraph of invented justification.
 - `Context URL now GA in Gemini API` belongs under the scraping task as another scraping option.
+- A bare `ref` instruction on a private inbox item means private reference by default. Add `class:reference` and a semantic tag such as `tech` only when obvious; do not promote public unless Igor says public.
 - Local model provider vision belongs in the macOS app/provider task: the app itself is the provider, not a background daemon.
 - A browser extension can be a separate public low-priority backlog idea when Igor distinguishes it from the macOS app/browser direction.
 - Human-as-a-Service is an idea task; external examples can be links inside it.
