@@ -32,19 +32,27 @@ const PLACEHOLDERS = [
 
 export function QuickSeek({ className }: { className?: string }) {
 	//
+	const [isAdding, setIsAdding] = useState(false);
+
 	return (
-		<div className={cn('h-full flex flex-col justify-center items-center gap-12', className)}>
-			<h1 className="px-4 text-center text-3xl font-semibold md:text-5xl">What are you seeking?</h1>
-			<QuickSeekContent className="w-full max-w-5xl" />
-			{/* balance the heading so the composer stays vertically centered */}
-			<h1 aria-hidden className="invisible px-4 text-center text-3xl font-semibold md:text-5xl">
-				What are you seeking?
-			</h1>
+		<div className={cn('relative h-full flex items-center justify-center', className)}>
+			{!isAdding && (
+				<h1 className="absolute bottom-1/2 mb-32 px-4 text-center text-3xl font-semibold md:text-5xl">
+					What are you seeking?
+				</h1>
+			)}
+			<QuickSeekContent className="w-full max-w-5xl" onAddingChange={setIsAdding} />
 		</div>
 	);
 }
 
-export function QuickSeekContent({ className }: { className?: string }) {
+export function QuickSeekContent({
+	className, //
+	onAddingChange,
+}: {
+	className?: string;
+	onAddingChange?: (isAdding: boolean) => void;
+}) {
 	//
 	const navigate = useNavigate();
 	const { addTask, isAdding } = useAddTask();
@@ -129,6 +137,11 @@ export function QuickSeekContent({ className }: { className?: string }) {
 	};
 
 	const showVoiceInterface = recordingStatus !== 'idle';
+
+	useEffect(() => {
+		//
+		onAddingChange?.(isAdding);
+	}, [isAdding, onAddingChange]);
 
 	// Handle ⌘+Enter shortcut like ActionComposer
 	useKeyboardShortcut({
