@@ -35,6 +35,8 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		});
 	};
 
+	if (action.status === 'failed') return null;
+
 	return (
 		<>
 			<Message
