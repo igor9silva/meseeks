@@ -80,6 +80,7 @@ When placement says backlog, active and completed are still valid when the lifec
 | `operations` | Admin tasks Igor has to do. | Private actionable tasks. |
 | `debt` | Technical debt, refactors, cleanup, hardening, or maintenance work. | Actionable tasks by default. |
 | `demand` | Market-demand signal tracking. Keep the raw signal because the signal itself is the artifact. | Private references by default. |
+| `entity` | Real-world entities worth keeping as durable context: people, companies, vehicles, organizations, accounts, and similar records. Store documents, identifiers, addresses, history, contact notes, and other entity facts in the body. | Private references ONLY. |
 | `intelligence` | AI model/model-provider support tasks only. The work is usually "add support", not "evaluate". | Public actionable tasks by default. |
 | `insight` | Conceptual insight, belief, mental model, or raw thought whose value is the idea itself rather than immediate work. | References by default. |
 | `legacy` | Pre-Reactor-v1 work kept as useful context until Reactor v1 supersedes or revalidates it. | Add alongside the current useful tag. |
@@ -92,6 +93,12 @@ When placement says backlog, active and completed are still valid when the lifec
 | `tech` | Everything technical: libraries, tools, implementation references, prompts, systems, and engineering material. It does not force the reference to stay raw; preserve details or synthesize depending on the source and instruction. | References by default. |
 | `transparency` | Public proof, accountability, metrics, traces, or other transparency surfaces. | Actionable tasks by default. |
 | `ux` | Interface, design, interaction, product-experience, or UI inspiration. Can coexist with `tech` for technical references that shape UI feel. | References or actionable tasks. |
+
+## Entity References
+
+Use `entity` only in private references. Keep one file per real-world entity.
+
+Entity references can store lookup facts such as tax IDs, document numbers, IBANs, addresses, company registration data, vehicles, insurance policy numbers, historical company identifiers, relationship notes, and other durable facts.
 
 ## Broad Classification Skips
 
