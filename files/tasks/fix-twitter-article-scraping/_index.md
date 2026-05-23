@@ -1,7 +1,7 @@
 ---
 title: Fix Twitter article scraping
 priority: low
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task, skill]
 ---
 
 Article links come with an "expand URL".

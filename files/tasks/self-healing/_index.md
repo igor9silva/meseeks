@@ -1,5 +1,5 @@
 ---
-title: Fix action
+title: "self healing"
 priority: low
 tags: [skill, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
 ---

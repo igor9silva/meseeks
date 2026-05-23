@@ -14,3 +14,8 @@ The basic interaction can be classic thumbs up/down 👎👍🤯, but it should 
 
 Feedback should be specific enough to start a `learn()` task or otherwise feed the learning loop with the action, context, rating, and optional note.
 
+Grok-style presets are a useful reference shape:
+
+- "expected XYZ"
+- "wrong answer"
+- "tell us more" opens a text field
