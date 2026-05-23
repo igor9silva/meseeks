@@ -99,6 +99,7 @@ export async function prepareContext(
 	const isGPT5 = intelligenceKey.includes('gpt-5');
 	const isGPT5_4 = intelligenceKey.includes('gpt-5.4');
 	const isMoonshot = intelligenceKey.startsWith('moonshot/');
+	const isDeepSeek = intelligenceKey.startsWith('deepseek/');
 
 	// TODO: remove those hacks
 	const temperature = (() => {
@@ -138,8 +139,10 @@ export async function prepareContext(
 		}),
 		// xAI: set server-side storage
 		...(isXai && { xai: { store: true } }), // true is the default
-		// Kimi: disable thinking
+		// Kimi: disable reasoning
 		...(isMoonshot && { moonshot: { thinking: { type: 'disabled' } } }),
+		// DeepSeek: disable reasoning
+		...(isDeepSeek && { deepseek: { thinking: { type: 'disabled' } } }),
 	};
 
 	return {
@@ -254,6 +257,8 @@ export function languageModelFrom(
 		'groq/qwen3-32b': groq('qwen/qwen3-32b'),
 
 		// DeepSeek
+		'deepseek/deepseek-v4-pro': deepseek('deepseek-v4-pro'),
+		'deepseek/deepseek-v4-flash': deepseek('deepseek-v4-flash'),
 		'deepseek/deepseek-v3': deepseek('deepseek-chat'),
 
 		// Moonshot

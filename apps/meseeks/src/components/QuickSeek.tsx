@@ -37,7 +37,7 @@ export function QuickSeek({ className }: { className?: string }) {
 	return (
 		<div className={cn('relative h-full flex items-center justify-center', className)}>
 			{!isAdding && (
-				<h1 className="absolute bottom-1/2 mb-32 px-4 text-center text-3xl font-semibold md:text-5xl">
+				<h1 className="absolute bottom-1/2 mb-36 px-4 text-center text-3xl md:text-4xl font-semibold">
 					What are you seeking?
 				</h1>
 			)}
@@ -91,7 +91,9 @@ export function QuickSeekContent({
 		onTranscriptionComplete: setMessage,
 	});
 
-	const placeholder = useMemo(() => PLACEHOLDERS[0] ?? "What's happening?", []);
+	const placeholder = useMemo(() => {
+		return PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
+	}, []);
 
 	const handleStartRecording = async () => {
 		try {

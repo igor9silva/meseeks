@@ -40,10 +40,11 @@ const buildPricing = ({ input, output }: { input: number; output: number }) => {
 	};
 };
 
-export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'moonshot/kimi-2.5';
+export const DEFAULT_INTELLIGENCE: IntelligenceKey = 'deepseek/deepseek-v4-flash';
 
 // dynamically chooses the intelligence to use based on the available energy
 export const INTELLIGENCE_PROGRESSION = {
+	'deepseek/deepseek-v4-flash': 0.2,
 	'moonshot/kimi-2.5': 50.0,
 	'anthropic/claude-4.5-opus': Number.POSITIVE_INFINITY,
 } as const;
@@ -93,6 +94,8 @@ export const intelligenceKeys = z.enum([
 	'groq/qwen3-32b',
 
 	// DeepSeek
+	'deepseek/deepseek-v4-pro',
+	'deepseek/deepseek-v4-flash',
 	'deepseek/deepseek-v3',
 
 	// Moonshot
@@ -382,6 +385,22 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 	// ==============================
 	//           DeepSeek
 	// ==============================
+	'deepseek/deepseek-v4-pro': {
+		key: 'deepseek/deepseek-v4-pro',
+		name: 'DeepSeek V4 Pro',
+		provider: 'DeepSeek',
+		pricing: buildPricing({ input: 0.435, output: 0.87 }),
+		context: buildContext(1_000_000),
+		intelligenceLevel: 8,
+	},
+	'deepseek/deepseek-v4-flash': {
+		key: 'deepseek/deepseek-v4-flash',
+		name: 'DeepSeek V4 Flash',
+		provider: 'DeepSeek',
+		pricing: buildPricing({ input: 0.14, output: 0.28 }),
+		context: buildContext(1_000_000),
+		intelligenceLevel: 6,
+	},
 	'deepseek/deepseek-v3': {
 		key: 'deepseek/deepseek-v3',
 		name: 'DeepSeek V3',
