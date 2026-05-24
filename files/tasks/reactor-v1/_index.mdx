@@ -28,6 +28,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
 - learning
+	- if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)
 - we must support synchronous actions
 - we must support multiple tool-call
 - safe secrets
@@ -50,6 +51,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
 	- "every 5 rounds"
 	- "on context > X%"
+- one-off tasks
+	- AI should be able to start one-off tasks itself: child tasks that run a loop, eventually finish, and can auto-resolve without direct user interaction
+	- useful for parallel work, better organization, and isolating small internal work units without forcing the user to manage every subtask
+	- system-wide dictation is a good example: each dictation creates a raw voice file, then triggers transcription into a second file
+	- raw audio and transcription files should have specific tags so we can render a dedicated dictation/transcription UI showing every captured transcription, with retries, corrections, yada yada
 - support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
 - skill grouping!
 	- this is very important
@@ -83,6 +89,8 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- task activity is the shared history of all actions taken by humans, AI, skills, and external systems on that task
 - redesign our skills to prompt using `<xml>` tags
 - `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
+- Rename reason() to reasoning()
+- consider renaming say() to message(), write(), comment() or other
 - sharing skills
 	- at least some basic importing/exporting support
 	- skill marketplace/subscriptions
@@ -134,6 +142,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
 - searchWeb could take multiple queries at once
+- launcher search should be scored, not grouped
+	- example: if `isDiscard`, multiply score by `0.2`
+- UX: `#` is for mentioning tasks. Period.
+	* Launcher: `after # it starts searching for tasks by "anything"`
+	* Composer: `any # searches in-place for tasks to mention`
+	* potential for "any  #" in Launcher ask well?
 - multi-player
 	- fix authorization from the beginning
 	- portable agent identity/trust/reputation may need ERC-8004-style discovery, registration files, MCP/A2A endpoints, on-chain reputation, validators, wallet/payment proofs, and x402-weighted feedback; reference: [ERC-8004 agent trust and discovery](../../references/erc-8004-agent-trust-and-discovery/_index.md)
@@ -228,3 +242,7 @@ meta/microsoft:
 
 > our take into AI is like owning a car
 > you OWN it, you do whatever the F you want with it, and you're responsible for the outcomes
+
+---
+
+- [Takes on Manus](../../../private/files/references/takes-on-manus/_index.md)

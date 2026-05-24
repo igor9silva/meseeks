@@ -6,6 +6,14 @@ tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:bac
 
 Add support for fine-tuning a model per user using that user's own data.
 
+- native A/B testing for models/LLMs: auto A/B testing
+- eval itself to find the most efficiency way of executing this
+	- better instructed small LLM
+	- fine-tuned open model
+	- any combination of those
+- uses your OWN data only, from your usage
+- how YOU act feeds the optimizer
+
 
 ## References
 
