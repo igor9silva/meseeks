@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { useCallback } from 'react';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
 import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { SkillCard } from './SkillCard';
@@ -48,23 +47,20 @@ function SkillList({
 	//
 	const { enabledSkills, setEnabledSkills } = useEnabledSkillsPreference();
 
-	const onToggle = useCallback(
-		(skillKey: string, isEnabled: boolean) => {
-			//
-			let nextEnabledSkills = enabledSkills;
+	const onToggle = (skillKey: string, isEnabled: boolean) => {
+		//
+		let nextEnabledSkills = enabledSkills;
 
-			if (isEnabled && !enabledSkills.includes(skillKey)) {
-				nextEnabledSkills = enabledSkills.concat(skillKey);
-			}
+		if (isEnabled && !enabledSkills.includes(skillKey)) {
+			nextEnabledSkills = enabledSkills.concat(skillKey);
+		}
 
-			if (!isEnabled && enabledSkills.includes(skillKey)) {
-				nextEnabledSkills = enabledSkills.filter((enabledSkill) => enabledSkill !== skillKey);
-			}
+		if (!isEnabled && enabledSkills.includes(skillKey)) {
+			nextEnabledSkills = enabledSkills.filter((enabledSkill) => enabledSkill !== skillKey);
+		}
 
-			setEnabledSkills(nextEnabledSkills);
-		},
-		[enabledSkills, setEnabledSkills],
-	);
+		setEnabledSkills(nextEnabledSkills);
+	};
 
 	// Filter skills based on search term
 	const filteredSkills = skills.filter(

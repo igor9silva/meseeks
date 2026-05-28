@@ -11,6 +11,7 @@ import { Loading } from '~/components/Loading';
 
 const errorText = 'Failed to load or render this action.';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/action_/$id')({
 	component: RouteComponent,
 	errorComponent: () => <BasicError text={errorText} />,
@@ -21,7 +22,7 @@ function isActionId(value: string | undefined): value is Id<'actions'> {
 	return isNonEmptyString(value);
 }
 
-function RouteComponent() {
+export function RouteComponent() {
 	//
 	const { id } = Route.useParams();
 
@@ -35,7 +36,7 @@ function RouteComponent() {
 	return <ActionRouteRenderer actionId={id} />;
 }
 
-function ActionRouteRenderer({ actionId }: { actionId: Id<'actions'> }) {
+export function ActionRouteRenderer({ actionId }: { actionId: Id<'actions'> }) {
 	//
 	const query = convexQuery(api.action.findOne, { actionId });
 	const { data: action, isPending, isError } = useQuery(query);

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, use, useEffect } from 'react';
 import { Textarea } from './textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 import { useSubmitHotkey } from './hooks/useSubmitHotkey';
@@ -17,7 +17,7 @@ const PromptInputContext = createContext<PromptInputContextType>({
 });
 
 function usePromptInput() {
-	const context = useContext(PromptInputContext);
+	const context = use(PromptInputContext);
 	if (!context) {
 		throw new Error('usePromptInput must be used within a PromptInput');
 	}

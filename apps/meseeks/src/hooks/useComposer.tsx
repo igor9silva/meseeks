@@ -1,6 +1,6 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, use, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { EnqueuedSkill, SkillToEnqueue } from '~/components/ActionComposer/types';
 import { useAct } from './useAct';
@@ -45,7 +45,7 @@ const ComposerContext = createContext<ComposerContextValue | null>(null);
 
 export function useComposer() {
 	//
-	const context = useContext(ComposerContext);
+	const context = use(ComposerContext);
 
 	if (!context) {
 		throw new Error('useComposer must be used within ComposerProvider');
@@ -60,6 +60,14 @@ type ComposerProviderProps = {
 };
 
 export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
+	return (
+		<ComposerProviderInner key={taskId} taskId={taskId}>
+			{children}
+		</ComposerProviderInner>
+	);
+}
+
+function ComposerProviderInner({ taskId, children }: ComposerProviderProps) {
 	//
 	const { act, isActing } = useAct();
 
@@ -71,26 +79,19 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 
 	// refs for tracking
 	const userHasTypedRef = useRef(false);
-	const lastTaskIdRef = useRef(taskId);
-
-	// stable refs for draft sync callbacks
-	const latestQueueRef = useRef<QueueItem[]>([]);
-	const latestMessageRef = useRef('');
-	latestQueueRef.current = queueItems;
-	latestMessageRef.current = message;
 
 	// draft sync handles all server persistence
 	const draftSync = useDraftSync({
 		taskId,
 		getLocalState: () => ({
-			queue: latestQueueRef.current,
-			message: latestMessageRef.current,
+			queue: queueItems,
+			message,
 		}),
 		isSaveBlocked: pendingServerDraft !== null,
 		onServerDraftReceived: (draft) => {
 			//
-			const localMessage = latestMessageRef.current;
-			const localQueue = latestQueueRef.current;
+			const localMessage = message;
+			const localQueue = queueItems;
 			const isLocalEmpty = !localMessage.trim() && localQueue.length === 0;
 			const isServerEmpty = !draft.message.trim() && draft.queue.length === 0;
 			const isSameAsLocal = areDraftsEqual(localQueue, localMessage, draft);
@@ -108,33 +109,22 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		},
 	});
 
-	// handle task change: reset local state
-	if (taskId !== lastTaskIdRef.current) {
-		draftSync.cancel();
-		setQueueItems([]);
-		setMessageState('');
-		setPendingServerDraft(null);
-		setPendingSkillItems([]);
-		userHasTypedRef.current = false;
-		lastTaskIdRef.current = taskId;
-	}
-
 	// convert to EnqueuedSkill format with stable IDs
-	const queue = useMemo(() => {
+	const queue = (() => {
 		//
 		return queueItems.map(
 			(item, index): EnqueuedSkill => ({
 				id: `${item.skillKey}-${index}`,
 				skillKey: item.skillKey,
 				args: item.args,
-				enqueuedAt: Date.now(),
+				enqueuedAt: 0,
 			}),
 		);
-	}, [queueItems]);
+	})();
 
 	const isEmpty = queueItems.length === 0 && !message.trim();
 
-	const restoreServerDraft = useCallback(() => {
+	const restoreServerDraft = () => {
 		//
 		if (!pendingServerDraft) return;
 
@@ -143,147 +133,135 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		setPendingServerDraft(null);
 		userHasTypedRef.current = true;
 		draftSync.save(pendingServerDraft.queue, pendingServerDraft.message);
-	}, [pendingServerDraft, draftSync]);
+	};
 
-	const dismissServerDraft = useCallback(() => {
+	const dismissServerDraft = () => {
 		//
 		setPendingServerDraft(null);
 		draftSync.save(queueItems, message);
-	}, [queueItems, message, draftSync]);
+	};
 
-	const enqueue = useCallback(
-		(skill: SkillToEnqueue, options?: { clearMessage?: boolean }): boolean => {
-			//
-			if (queueItems.length >= MAX_QUEUE_SIZE) {
-				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
-				return false;
-			}
+	const enqueue = (skill: SkillToEnqueue, options?: { clearMessage?: boolean }): boolean => {
+		//
+		if (queueItems.length >= MAX_QUEUE_SIZE) {
+			toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
+			return false;
+		}
 
-			userHasTypedRef.current = true;
-			const newQueue = queueItems.concat({ skillKey: skill.skillKey, args: skill.args });
-			setQueueItems(newQueue);
+		userHasTypedRef.current = true;
+		const newQueue = queueItems.concat({ skillKey: skill.skillKey, args: skill.args });
+		setQueueItems(newQueue);
 
-			const newMessage = options?.clearMessage ? '' : message;
-			if (options?.clearMessage) {
-				setMessageState('');
-			}
+		const newMessage = options?.clearMessage ? '' : message;
+		if (options?.clearMessage) {
+			setMessageState('');
+		}
 
-			if (!pendingServerDraft) {
-				draftSync.save(newQueue, newMessage);
-			}
+		if (!pendingServerDraft) {
+			draftSync.save(newQueue, newMessage);
+		}
 
-			return true;
-		},
-		[queueItems, message, pendingServerDraft, draftSync],
-	);
+		return true;
+	};
 
-	const addEnergyIncrease = useCallback(
-		(dollars: number): boolean => {
-			//
-			const existingIncrease = queueItems.find((item) => item.skillKey === 'increaseBudget');
+	const addEnergyIncrease = (dollars: number): boolean => {
+		//
+		const existingIncrease = queueItems.find((item) => item.skillKey === 'increaseBudget');
 
-			if (!existingIncrease && queueItems.length >= MAX_QUEUE_SIZE) {
-				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
-				return false;
-			}
+		if (!existingIncrease && queueItems.length >= MAX_QUEUE_SIZE) {
+			toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
+			return false;
+		}
 
-			userHasTypedRef.current = true;
-			const existingDollars = getDollarsArg(existingIncrease?.args) ?? 0;
-			const nextQueue = queueItems
-				.filter((item) => item.skillKey !== 'increaseBudget')
-				.concat({ skillKey: 'increaseBudget', args: { dollars: addDollars(existingDollars, dollars) } });
-
-			setQueueItems(nextQueue);
-
-			if (!pendingServerDraft) {
-				draftSync.save(nextQueue, message);
-			}
-
-			return true;
-		},
-		[queueItems, message, pendingServerDraft, draftSync],
-	);
-
-	const dequeue = useCallback(
-		(id: string) => {
-			//
-			setQueueItems((prev) => {
-				const index = prev.findIndex((_, i) => `${prev[i]?.skillKey}-${i}` === id);
-				if (index === -1) return prev;
-
-				const newQueue = prev.filter((_, i) => i !== index);
-
-				if (!pendingServerDraft) {
-					draftSync.save(newQueue, message);
-				}
-
-				return newQueue;
+		userHasTypedRef.current = true;
+		const existingDollars = getDollarsArg(existingIncrease?.args) ?? 0;
+		const nextQueue = queueItems
+			.filter((item) => item.skillKey !== 'increaseBudget')
+			.concat({
+				skillKey: 'increaseBudget',
+				args: { dollars: addDollars(existingDollars, dollars) },
 			});
-		},
-		[message, pendingServerDraft, draftSync],
-	);
 
-	const setMessage = useCallback(
-		(newMessage: string) => {
-			//
-			userHasTypedRef.current = true;
-			setMessageState(newMessage);
+		setQueueItems(nextQueue);
+
+		if (!pendingServerDraft) {
+			draftSync.save(nextQueue, message);
+		}
+
+		return true;
+	};
+
+	const dequeue = (id: string) => {
+		//
+		setQueueItems((prev) => {
+			const index = prev.findIndex((_, i) => `${prev[i]?.skillKey}-${i}` === id);
+			if (index === -1) return prev;
+
+			const newQueue = prev.filter((_, i) => i !== index);
 
 			if (!pendingServerDraft) {
-				draftSync.save(queueItems, newMessage);
+				draftSync.save(newQueue, message);
 			}
-		},
-		[queueItems, pendingServerDraft, draftSync],
-	);
 
-	const clear = useCallback(() => {
+			return newQueue;
+		});
+	};
+
+	const setMessage = (newMessage: string) => {
+		//
+		userHasTypedRef.current = true;
+		setMessageState(newMessage);
+
+		if (!pendingServerDraft) {
+			draftSync.save(queueItems, newMessage);
+		}
+	};
+
+	const clear = () => {
 		//
 		setQueueItems([]);
 		setMessageState('');
 		setPendingServerDraft(null);
 		userHasTypedRef.current = false;
 		draftSync.clear();
-	}, [draftSync]);
+	};
 
-	const clearQueue = useCallback(() => {
+	const clearQueue = () => {
 		//
 		setQueueItems([]);
 
 		if (!pendingServerDraft) {
 			draftSync.save([], message);
 		}
-	}, [message, pendingServerDraft, draftSync]);
+	};
 
-	const submit = useCallback(
-		async (task: Doc<'tasks'>) => {
-			//
-			const skills = buildFinalSkills(queue, message, task);
-			if (skills.length === 0) return;
+	const submit = async (task: Doc<'tasks'>) => {
+		//
+		const skills = buildFinalSkills(queue, message, task);
+		if (skills.length === 0) return;
 
-			// generate unique batch ID for this submission
-			const batchId = `batch-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-			const now = Date.now();
+		// generate unique batch ID for this submission
+		const batchId = `batch-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+		const now = Date.now();
 
-			// convert skills to EnqueuedSkill format for display in pending strip
-			const pendingItems: EnqueuedSkill[] = skills.map((skill, index) => ({
-				id: `${batchId}-${index}`,
-				skillKey: skill.skillKey,
-				args: skill.args,
-				enqueuedAt: now,
-			}));
+		// convert skills to EnqueuedSkill format for display in pending strip
+		const pendingItems: EnqueuedSkill[] = skills.map((skill, index) => ({
+			id: `${batchId}-${index}`,
+			skillKey: skill.skillKey,
+			args: skill.args,
+			enqueuedAt: now,
+		}));
 
-			// immediately add to pending skills and clear composer
-			setPendingSkillItems((prev) => prev.concat(pendingItems));
-			clear();
+		// immediately add to pending skills and clear composer
+		setPendingSkillItems((prev) => prev.concat(pendingItems));
+		clear();
 
-			// run mutation in background (don't await - allows rapid submissions)
-			act({ taskId, skills, shouldReopen: true }).finally(() => {
-				// remove this batch's items when mutation completes
-				setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
-			});
-		},
-		[taskId, queue, message, act, clear],
-	);
+		// run mutation in background (don't await - allows rapid submissions)
+		act({ taskId, skills, shouldReopen: true }).finally(() => {
+			// remove this batch's items when mutation completes
+			setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
+		});
+	};
 
 	const value: ComposerContextValue = {
 		queue,
@@ -372,7 +350,7 @@ function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
 	//
 	// budget skills store dollars as number, convert to bigint for backend
 	const dollars = getDollarsArg(skill.args);
-	const amount = dollars ? asBigInt({ dollars }) : 0n;
+	const amount = dollars ? asBigInt({ dollars }) : BigInt('0');
 
 	return {
 		skillKey: skill.skillKey,

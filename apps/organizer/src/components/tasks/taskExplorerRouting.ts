@@ -1,8 +1,4 @@
-import {
-	type ExplorerRouteSearch,
-	type TaskSource,
-	ROOT_PARENT_KEY,
-} from '~/lib/explorerSearchParams';
+import { type ExplorerRouteSearch, type TaskSource, ROOT_PARENT_KEY } from '~/lib/explorerSearchParams';
 import type { ExplorerTask } from './taskExplorerTypes';
 
 export type ExpandedPanel = 'current' | 'subtasks' | 'selected';

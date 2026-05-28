@@ -1,7 +1,7 @@
 import { type Doc, type Id } from 'convex/_generated/dataModel';
 import { usePaginatedQuery } from 'convex/react';
 import { ChevronDown, Clock3, Loader2, ShieldAlert } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { api } from 'convex/_generated/api';
 import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
 import { cn } from '@reactor/ui/lib/utils';
@@ -26,14 +26,14 @@ export function ActionIsland({
 		{ initialNumItems: INITIAL_ACTION_COUNT },
 	);
 
-	const activeActions = useMemo(() => {
+	const activeActions = (() => {
 		return results.filter(isActiveAction).sort((a, b) => {
 			const priorityDelta = getActionPriority(a.status) - getActionPriority(b.status);
 			if (priorityDelta !== 0) return priorityDelta;
 
 			return b._creationTime - a._creationTime;
 		});
-	}, [results]);
+	})();
 
 	if (activeActions.length === 0) return null;
 

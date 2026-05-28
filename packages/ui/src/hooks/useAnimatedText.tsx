@@ -1,7 +1,7 @@
 // source: https://x.com/samselikoff/status/1845640546208870750
 import { useEffect } from 'react';
 
-import { animate, useMotionValue } from 'motion/react';
+import { animate, useMotionValue, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
 
 const DELIMITER = '';
@@ -9,6 +9,7 @@ const CHARS_PER_SECOND = 2000;
 
 export function useAnimatedText(text: string) {
 	//
+	const shouldReduceMotion = useReducedMotion();
 	const animatedCursor = useMotionValue(0);
 	const [cursor, setCursor] = useState(0);
 	const [prevText, setPrevText] = useState(text);
@@ -24,6 +25,8 @@ export function useAnimatedText(text: string) {
 	}
 
 	useEffect(() => {
+		if (shouldReduceMotion) return;
+
 		if (!isSameText) {
 			animatedCursor.jump(0);
 		}
@@ -37,7 +40,9 @@ export function useAnimatedText(text: string) {
 		});
 
 		return () => controls.stop();
-	}, [animatedCursor, isSameText, text]);
+	}, [animatedCursor, isSameText, shouldReduceMotion, text]);
+
+	if (shouldReduceMotion) return text;
 
 	return text.split(DELIMITER).slice(0, cursor).join(DELIMITER);
 }

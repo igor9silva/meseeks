@@ -2,7 +2,17 @@ import type { ReactNode } from 'react';
 import { nextSort, type SortState } from './reportSort';
 import { priorityClassName } from './reportFormat';
 
-export function Metric({ icon, label, value, detail }: { icon?: ReactNode; label: string; value: string; detail: string }) {
+export function Metric({
+	icon,
+	label,
+	value,
+	detail,
+}: {
+	icon?: ReactNode;
+	label: string;
+	value: string;
+	detail: string;
+}) {
 	//
 	return (
 		<div className="rounded-md border border-border bg-card p-4">

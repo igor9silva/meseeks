@@ -26,7 +26,7 @@ declare global {
 		useMemo: typeof React.useMemo;
 		useCallback: typeof React.useCallback;
 		useReducer: typeof React.useReducer;
-		useContext: typeof React.useContext;
+		useContext: typeof React.use;
 		useLayoutEffect: typeof React.useLayoutEffect;
 
 		// Query hooks
@@ -72,7 +72,7 @@ export function useSetupWindowGlobals() {
 		window.useMemo = React.useMemo;
 		window.useCallback = React.useCallback;
 		window.useReducer = React.useReducer;
-		window.useContext = React.useContext;
+		window.useContext = React.use;
 		window.useLayoutEffect = React.useLayoutEffect;
 
 		// Query hooks

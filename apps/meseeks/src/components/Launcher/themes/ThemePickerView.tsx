@@ -1,5 +1,5 @@
-import { useCommandState } from '@reactor/ui/command';
-import { useEffect, useMemo } from 'react';
+import { useCommandState } from '@reactor/ui/command-state';
+import { useEffect } from 'react';
 import { CommandGroup, CommandSeparator } from '@reactor/ui/command';
 import { APP_THEMES, type AppThemeId } from '~/lib/themes/catalog';
 import { isThemeId } from '~/lib/themes/resolve';
@@ -35,9 +35,9 @@ export function ThemePickerView({
 }: ThemePickerViewProps) {
 	//
 	const selectedValue = useCommandState((state) => state.value);
-	const visibleThemes = useMemo(() => {
+	const visibleThemes = (() => {
 		return APP_THEMES.filter((theme) => matchesThemeSearch(theme, themeSearch));
-	}, [themeSearch]);
+	})();
 
 	useEffect(() => {
 		if (selectedValue === 'theme:back') {

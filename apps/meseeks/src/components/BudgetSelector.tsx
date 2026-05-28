@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { ChangeEvent, FocusEvent } from 'react';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
 import { Slider } from '@reactor/ui/slider';
@@ -22,56 +22,47 @@ type BudgetSelectorProps = {
 
 export function BudgetSelector({ value, onChange, label, className, inputTabIndex }: BudgetSelectorProps) {
 	//
-	const [inputValue, setInputValue] = useState(() => formatBudget(value));
+	const [inputState, setInputState] = useState(() => ({
+		value,
+		inputValue: formatBudget(value),
+	}));
+	const inputValue = inputState.value === value ? inputState.inputValue : formatBudget(value);
 
-	useEffect(() => {
-		setInputValue(formatBudget(value));
-	}, [value]);
+	const handleSliderChange = (values: number[]) => {
+		//
+		const nextStepIndex = values[0];
+		if (nextStepIndex === undefined) return;
 
-	const handleSliderChange = useCallback(
-		(values: number[]) => {
-			//
-			const nextStepIndex = values[0];
-			if (nextStepIndex === undefined) return;
+		const nextBudget = BUDGET_STEPS[nextStepIndex];
+		if (nextBudget === undefined) return;
 
-			const nextBudget = BUDGET_STEPS[nextStepIndex];
-			if (nextBudget === undefined) return;
+		setInputState({ value: nextBudget, inputValue: formatBudget(nextBudget) });
+		onChange(nextBudget);
+	};
 
-			setInputValue(formatBudget(nextBudget));
-			onChange(nextBudget);
-		},
-		[onChange],
-	);
+	const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+		//
+		const nextInputValue = event.target.value;
+		setInputState({ value, inputValue: nextInputValue });
+		if (hasTrailingBudgetDecimalSeparator(nextInputValue)) return;
 
-	const handleInputChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			//
-			const nextInputValue = event.target.value;
-			setInputValue(nextInputValue);
-			if (hasTrailingBudgetDecimalSeparator(nextInputValue)) return;
+		const parsedValue = parseBudgetInput(nextInputValue);
+		if (parsedValue === undefined) return;
 
-			const parsedValue = parseBudgetInput(nextInputValue);
-			if (parsedValue === undefined) return;
+		onChange(parsedValue);
+	};
 
-			onChange(parsedValue);
-		},
-		[onChange],
-	);
+	const handleInputBlur = (_event: FocusEvent<HTMLInputElement>) => {
+		//
+		const parsedValue = parseBudgetInput(inputValue);
+		if (parsedValue === undefined) {
+			setInputState({ value, inputValue: formatBudget(value) });
+			return;
+		}
 
-	const handleInputBlur = useCallback(
-		(_event: FocusEvent<HTMLInputElement>) => {
-			//
-			const parsedValue = parseBudgetInput(inputValue);
-			if (parsedValue === undefined) {
-				setInputValue(formatBudget(value));
-				return;
-			}
-
-			if (parsedValue !== value) onChange(parsedValue);
-			setInputValue(formatBudget(parsedValue));
-		},
-		[inputValue, onChange, value],
-	);
+		if (parsedValue !== value) onChange(parsedValue);
+		setInputState({ value: parsedValue, inputValue: formatBudget(parsedValue) });
+	};
 
 	return (
 		<div className={cn('flex items-center gap-2', className)}>

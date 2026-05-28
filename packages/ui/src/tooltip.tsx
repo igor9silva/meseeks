@@ -61,7 +61,7 @@ const TooltipTrigger = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
 >((props, ref) => {
 	//
-	const mobileContext = React.useContext(MobileTooltipContext);
+	const mobileContext = React.use(MobileTooltipContext);
 
 	if (mobileContext?.isMobileDrawer) {
 		return <DrawerTrigger ref={ref} {...props} />;
@@ -76,7 +76,7 @@ const TooltipContent = React.forwardRef<
 	React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(({ className, sideOffset = 4, children, ...props }, ref) => {
 	//
-	const mobileContext = React.useContext(MobileTooltipContext);
+	const mobileContext = React.use(MobileTooltipContext);
 
 	if (mobileContext?.isMobileDrawer) {
 		return (

@@ -1,6 +1,6 @@
 import type { DialogProps } from '@radix-ui/react-dialog';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { Command as CommandPrimitive, defaultFilter, useCommandState } from 'cmdk';
+import { Command as CommandPrimitive } from 'cmdk';
 import * as React from 'react';
 import { Dialog, DialogContent } from './dialog';
 import { cn } from './lib/utils';
@@ -151,6 +151,4 @@ export {
 	CommandLoading,
 	CommandSeparator,
 	CommandShortcut,
-	defaultFilter,
-	useCommandState,
 };

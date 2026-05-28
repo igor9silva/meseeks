@@ -10,6 +10,7 @@ interface RouterContext {
 	queryClient: QueryClient;
 }
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createRootRouteWithContext<RouterContext>()({
 	head: () => ({
 		meta: [
@@ -26,7 +27,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	component: RootComponent,
 });
 
-function RootComponent() {
+export function RootComponent() {
 	//
 	return (
 		<RootDocument>
@@ -35,12 +36,12 @@ function RootComponent() {
 	);
 }
 
-function RootNotFoundComponent() {
+export function RootNotFoundComponent() {
 	//
 	return <div className="p-6 text-sm text-muted-foreground">Page not found.</div>;
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function RootDocument({ children }: { children: React.ReactNode }) {
 	//
 	return (
 		<html lang="en">

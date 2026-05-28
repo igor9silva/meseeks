@@ -10,13 +10,14 @@ import { CardDescription, CardTitle } from '@reactor/ui/card';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { useSkill } from '~/hooks/query/useSkills';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/skills_/$id')({
 	component: RouteComponent,
 	pendingComponent: Pending,
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 });
 
-function RouteComponent() {
+export function RouteComponent() {
 	//
 	const { id } = Route.useParams();
 	const { skill } = useSkill(id as Id<'skills'>);
@@ -68,7 +69,7 @@ function RouteComponent() {
 	);
 }
 
-function Pending() {
+export function Pending() {
 	//
 	return (
 		<div className="m-6">

@@ -12,13 +12,14 @@ const searchSchema = z.object({
 	debug: z.boolean().optional(),
 });
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/$')({
 	component: MDXPage,
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 	validateSearch: searchSchema,
 });
 
-function MDXPage() {
+export function MDXPage() {
 	//
 	const params = useSplatParams();
 

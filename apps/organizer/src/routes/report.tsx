@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
@@ -6,6 +5,7 @@ import { ReportContent } from '~/components/report/ReportContent';
 import { ReportShell } from '~/components/report/ReportShell';
 import { getTaskReport } from '~/server/taskReport';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/report')({
 	head: () => ({
 		meta: [{ title: 'Report' }],
@@ -13,22 +13,18 @@ export const Route = createFileRoute('/report')({
 	component: ReportRoute,
 });
 
-function ReportRoute() {
+export function ReportRoute() {
 	//
 	const getTaskReportServer = useServerFn(getTaskReport);
-	const [hasMounted, setHasMounted] = useState(false);
+	const canQuery = typeof window !== 'undefined';
 	const reportQuery = useQuery({
 		queryKey: ['task-report'],
 		queryFn: () => getTaskReportServer({ data: {} }),
-		enabled: hasMounted,
+		enabled: canQuery,
 	});
 
-	useEffect(() => {
-		setHasMounted(true);
-	}, []);
-
-	if (!hasMounted || reportQuery.isPending) {
-		return <ReportShell title="Report">Loading report...</ReportShell>;
+	if (!canQuery || reportQuery.isPending) {
+		return <ReportShell title="Report">Loading report…</ReportShell>;
 	}
 
 	if (reportQuery.isError) {

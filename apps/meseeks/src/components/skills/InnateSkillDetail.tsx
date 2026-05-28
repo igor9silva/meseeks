@@ -72,7 +72,7 @@ export function InnateSkillDetail({ skill }: { skill: InnateSkill }) {
 function PreApprovedCost({ cost }: { cost: bigint | 'none' }) {
 	//
 	if (cost === 'none') return <>Always requires explicit authorization</>;
-	if (cost === 0n) return <>Automatically authorized while free</>;
+	if (cost === BigInt('0')) return <>Automatically authorized while free</>;
 
 	return <>Automatically authorized up to estimated cost ≤ {asDollars({ bigInt: cost })}</>;
 }

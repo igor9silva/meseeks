@@ -84,9 +84,9 @@ export function FeedbackDialog({
 			} catch (error) {
 				console.error('Error submitting feedback:', error);
 				toast.error('Failed to submit feedback. Please try again later.');
-			} finally {
-				setIsSubmitting(false);
 			}
+
+			setIsSubmitting(false);
 		},
 	});
 

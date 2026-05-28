@@ -1,17 +1,7 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { defaultFilter } from '@reactor/ui/command';
+import { defaultFilter } from '@reactor/ui/command-state';
 import { usePaginatedQuery, useQuery } from 'convex/react';
-import {
-	Suspense,
-	startTransition,
-	type KeyboardEvent,
-	type UIEvent,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react';
+import { Suspense, startTransition, KeyboardEvent, UIEvent, useEffect, useRef, useState } from 'react';
 import { api } from 'convex/_generated/api';
 import { Loading } from '~/components/Loading';
 import TaskDetail from '~/components/TaskDetail';
@@ -95,15 +85,15 @@ export function LauncherDialog() {
 		//
 	}, [defaultSearch]);
 
-	const shouldFilter = useMemo(() => {
+	const shouldFilter = (() => {
 		//
 		if (view === 'themes') return false;
 
 		return mainSearch !== defaultSearch;
 		//
-	}, [defaultSearch, mainSearch, view]);
+	})();
 
-	const setSearch = useCallback((nextSearch: string) => {
+	const setSearch = (nextSearch: string) => {
 		setLauncherState((state) => {
 			//
 			if (state.view === 'themes') {
@@ -112,58 +102,49 @@ export function LauncherDialog() {
 
 			return { ...state, mainSearch: nextSearch };
 		});
-	}, []);
+	};
 
-	const handleSearchChange = useCallback(
-		(nextSearch: string) => {
-			//
-			if (view === 'main' && nextSearch !== defaultSearch) {
-				setHasRequestedMobileList(true);
-			}
-
-			setSearch(nextSearch);
-		},
-		[defaultSearch, setSearch, view],
-	);
-
-	const handleInputKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLInputElement>) => {
-			//
-			if (view !== 'main') return;
-			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-
+	const handleSearchChange = (nextSearch: string) => {
+		//
+		if (view === 'main' && nextSearch !== defaultSearch) {
 			setHasRequestedMobileList(true);
-		},
-		[view],
-	);
+		}
 
-	const showMainLauncherView = useCallback(() => {
+		setSearch(nextSearch);
+	};
+
+	const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		//
+		if (view !== 'main') return;
+		if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+		setHasRequestedMobileList(true);
+	};
+
+	const showMainLauncherView = () => {
 		clearThemePreview();
 		setLauncherState((state) => ({ ...state, view: 'main' }));
-	}, [clearThemePreview]);
+	};
 
-	const openThemePicker = useCallback(() => {
+	const openThemePicker = () => {
 		setLauncherState((state) => ({
 			...state,
 			view: 'themes',
 			themeSearch: THEME_PICKER_SEARCH,
 		}));
-	}, []);
+	};
 
-	const onSelect = useCallback(
-		(value: string) => {
-			close();
-			navigate({ to: value });
-		},
-		[navigate, close],
-	);
+	const onSelect = (value: string) => {
+		close();
+		navigate({ to: value });
+	};
 
-	const handleFeedback = useCallback(() => {
+	const handleFeedback = () => {
 		close();
 		openFeedbackDialogRef.current();
-	}, [close]);
+	};
 
-	const closeAndResetLauncher = useCallback(() => {
+	const closeAndResetLauncher = () => {
 		clearThemePreview();
 		setHasRequestedMobileList(false);
 		setLauncherState({
@@ -172,22 +153,14 @@ export function LauncherDialog() {
 			themeSearch: THEME_PICKER_SEARCH,
 		});
 		close();
-	}, [clearThemePreview, close, defaultSearch]);
+	};
 
-	useEffect(() => {
-		if (!isOpen) return;
-		setHasRequestedMobileList(false);
-	}, [isOpen]);
+	const handleEscapeKeyDown = (event: Event) => {
+		if (view !== 'themes') return;
 
-	const handleEscapeKeyDown = useCallback(
-		(event: Event) => {
-			if (view !== 'themes') return;
-
-			event.preventDefault();
-			showMainLauncherView();
-		},
-		[showMainLauncherView, view],
-	);
+		event.preventDefault();
+		showMainLauncherView();
+	};
 
 	const {
 		results: tasks,
@@ -204,19 +177,16 @@ export function LauncherDialog() {
 	const shouldShowMobileTaskDetail =
 		view === 'main' && Boolean(currentTaskId) && !shouldFilter && !hasRequestedMobileList;
 
-	const handleScroll = useCallback(
-		(e: UIEvent<HTMLDivElement>) => {
-			//
-			const target = e.currentTarget;
-			const { scrollTop, scrollHeight, clientHeight } = target;
-			const scrollBottom = scrollHeight - scrollTop - clientHeight;
+	const handleScroll = (e: UIEvent<HTMLDivElement>) => {
+		//
+		const target = e.currentTarget;
+		const { scrollTop, scrollHeight, clientHeight } = target;
+		const scrollBottom = scrollHeight - scrollTop - clientHeight;
 
-			if (scrollBottom < SCROLL_THRESHOLD && hasMore && !isLoadingMore) {
-				loadMore(PAGE_SIZE);
-			}
-		},
-		[hasMore, isLoadingMore, loadMore],
-	);
+		if (scrollBottom < SCROLL_THRESHOLD && hasMore && !isLoadingMore) {
+			loadMore(PAGE_SIZE);
+		}
+	};
 
 	return (
 		<CommandDialog

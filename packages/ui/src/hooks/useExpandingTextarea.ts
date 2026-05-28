@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseExpandingTextareaOptions {
 	//
@@ -24,7 +24,7 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 	const [isEmpty, setIsEmpty] = useState(!initialValue.trim());
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-	const adjustHeight = useCallback(() => {
+	const adjustHeight = () => {
 		//
 		if (!textareaRef.current) return;
 
@@ -45,16 +45,13 @@ export function useExpandingTextarea(options: UseExpandingTextareaOptions = {}):
 			textareaRef.current.style.height = `${singleLineHeight}px`;
 		}
 		//
-	}, [maxHeight, singleLineHeight]);
+	};
 
-	const onChange = useCallback(
-		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			//
-			setValue(e.target.value);
-			adjustHeight();
-		},
-		[adjustHeight],
-	);
+	const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		//
+		setValue(e.target.value);
+		adjustHeight();
+	};
 
 	useEffect(() => {
 		setIsEmpty(value.trim().length === 0);

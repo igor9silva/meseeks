@@ -1,6 +1,13 @@
 import { parseTaskTag } from '~/lib/taskTags';
 import { lifecycleStatuses, priorities, priorityReportSections, taskSections } from '~/server/taskReportConstants';
-import { compareCountRows, countBy, getPriority, getReportSection, mapCountRows, mapKnownCounts } from '~/server/taskReportRows';
+import {
+	compareCountRows,
+	countBy,
+	getPriority,
+	getReportSection,
+	mapCountRows,
+	mapKnownCounts,
+} from '~/server/taskReportRows';
 import type { CountRow, PriorityReportRow, SectionReportRow, StatusReportRow } from '~/server/taskReportTypes';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
 

@@ -1,6 +1,6 @@
 import { Id } from 'convex/_generated/dataModel';
 import { CalendarIcon, ClockIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { getNextDates } from 'lib/cron';
 import { Button } from '@reactor/ui/button';
@@ -40,7 +40,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 	// Compute next execution dates for cron preview
-	const nextCronDates = useMemo(() => {
+	const nextCronDates = (() => {
 		//
 		if (scheduleType === 'recurring' && cronExpression.trim()) {
 			try {
@@ -53,7 +53,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 
 		return { dates: [], error: null };
 		//
-	}, [cronExpression, timeZone, scheduleType]);
+	})();
 
 	// Check if current selection matches a quick option
 	const isOptionActive = (option: (typeof quickOptions)[number]) => {
@@ -146,11 +146,11 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								onValueChange={(value) => setScheduleType(value as 'one-time' | 'recurring')}
 								className="flex gap-6"
 							>
-								<div className="flex items-center space-x-2">
+								<div className="flex items-center gap-x-2">
 									<RadioGroupItem value="one-time" id="one-time" />
 									<Label htmlFor="one-time">One-time</Label>
 								</div>
-								<div className="flex items-center space-x-2">
+								<div className="flex items-center gap-x-2">
 									<RadioGroupItem value="recurring" id="recurring" />
 									<Label htmlFor="recurring">Recurring</Label>
 								</div>
@@ -231,7 +231,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								{nextCronDates.dates.length > 0 && (
 									<div className="space-y-2">
 										<Label className="text-sm font-medium">Next 5 executions</Label>
-										<div className="bg-muted/50 rounded-full px-3 py-3 space-y-1">
+										<div className="bg-muted/50 rounded-full p-3 space-y-1">
 											{nextCronDates.dates.map((date, index) => (
 												<div key={index} className="text-sm font-mono">
 													{date.toLocaleString('en-US', {
@@ -293,7 +293,7 @@ export function ScheduleIterationDialog({ taskId, open, onOpenChange }: Schedule
 								type="submit"
 								disabled={!canSubmit}
 								loading={isSchedulingIteration}
-								loadingText="Scheduling..."
+								loadingText="Scheduling…"
 							>
 								Schedule
 							</LoadingButton>

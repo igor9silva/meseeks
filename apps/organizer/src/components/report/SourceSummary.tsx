@@ -20,11 +20,13 @@ function SourceChart({ rows }: { rows: CountRow[] }) {
 	//
 	const total = rows.reduce((sum, row) => sum + row.count, 0);
 	const colors = ['#22d3ee', '#a78bfa', '#f59e0b', '#34d399', '#f472b6'];
-	let offset = 0;
 	const segments = rows.map((row, index) => {
+		const offset = percent(
+			rows.slice(0, index).reduce((sum, item) => sum + item.count, 0),
+			total,
+		);
 		const width = percent(row.count, total);
 		const segment = `${colors[index % colors.length]} ${offset}% ${offset + width}%`;
-		offset += width;
 		return segment;
 	});
 

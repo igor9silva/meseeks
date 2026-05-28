@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, startTransition, useContext, useMemo, useState } from 'react';
+import { createContext, ReactNode, startTransition, use, useState } from 'react';
 import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
 
 interface LauncherContextType {
@@ -11,7 +11,7 @@ const LauncherContext = createContext<LauncherContextType | null>(null);
 
 export function useLauncher() {
 	//
-	const context = useContext(LauncherContext);
+	const context = use(LauncherContext);
 
 	if (!context) {
 		throw new Error('useLauncher must be used within LauncherProvider');
@@ -24,14 +24,11 @@ export function LauncherProvider({ children }: { children: ReactNode }) {
 	//
 	const [isOpen, setIsOpen] = useState(false);
 
-	const value = useMemo(
-		() => ({
-			isOpen,
-			open: () => setIsOpen(true),
-			close: () => setIsOpen(false),
-		}),
-		[isOpen],
-	);
+	const value = {
+		isOpen,
+		open: () => setIsOpen(true),
+		close: () => setIsOpen(false),
+	};
 
 	// command menu toggle shortcut (⌘+K)
 	useKeyboardShortcut({

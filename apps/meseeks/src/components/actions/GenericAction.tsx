@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Bug } from 'lucide-react';
-import { useMemo } from 'react';
 import { ActionComponentProps } from '~/components/actions';
 import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
 import { cn } from '@reactor/ui/lib/utils';
@@ -20,9 +19,9 @@ export function GenericAction(props: ActionComponentProps) {
 	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className, suppressAnchorId } = props;
 	const { approveAction, isApprovingAction } = useApproveAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
-	const isNew = useMemo(() => {
+	const isNew = (() => {
 		return new Date(action._creationTime) > initialRenderDate;
-	}, [action, initialRenderDate]);
+	})();
 
 	const handleApprove = () => {
 		if (isApprovingAction) return;

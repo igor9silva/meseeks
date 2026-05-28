@@ -1,0 +1,2036 @@
+{
+	"ignore": {
+		"overrides": [
+			{
+				"files": [
+					"convex/_generated/server.js"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/action.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/action.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/action/details.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/action/details.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/babel.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/_generated/api.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/_generated/component.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/_generated/dataModel.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/_generated/server.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/adapter.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/component.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/runtime.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuth/schema.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/betterAuthTriggers.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/components.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/components.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/drafts.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/drafts.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/http.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/magicRock.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file",
+					"react-doctor/js-combine-iterations",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/magicRock.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/migrations.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-await-in-loop"
+				]
+			},
+			{
+				"files": [
+					"convex/reactor.constants.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/reactor.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"convex/reactor.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/schedule/lifecycle.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file",
+					"react-doctor/async-parallel"
+				]
+			},
+			{
+				"files": [
+					"convex/schedule/lifecycle.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/schedules.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/schedules.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/seed.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-await-in-loop",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/skills.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file",
+					"react-doctor/async-await-in-loop",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/skills.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/subscriptions.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/subscriptions.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/tasks.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/tasks.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/topUps.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/topUps.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"convex/transactions.private.ts"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/transactions.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-parallel"
+				]
+			},
+			{
+				"files": [
+					"convex/users.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users/preferences.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users/preferences.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users/requests.private.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users/requests.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"convex/users/themes.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"lib/auth.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"lib/authOptions.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"lib/bigintJson.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"lib/convex.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"lib/date.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"lib/errors.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"lib/money.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"lib/polar.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"lib/zodToString.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"package.json"
+				],
+				"rules": [
+					"deslop/unused-dev-dependency"
+				]
+			},
+			{
+				"files": [
+					"schemas/actionSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/envSchema.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"schemas/intelligenceSchema.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/paginationOptionsSchema.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"schemas/polarEventSchema.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/scheduleSchema.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/skillSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/subscriptionSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/taskSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"schemas/toolSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"schemas/transactionSchema.tsx"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"scripts/preview-env.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/askForClarification.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/cancelSchedule.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/createSkill.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-parallel"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/createSubtask.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/decreaseBudget.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/discard.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/divide.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/done.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/getSkillDetails.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/increaseBudget.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/index.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/justSay.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/lookAtMe.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/moveTask.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/multiply.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/reason.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/render.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/reopen.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/requestBudget.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/requestIteration.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/resolve.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/say.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/schedule.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-defer-await"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/scheduledIteration.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/setUserInfo.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/stop.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/subtract.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/sum.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/updateInstructions.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/builtIn/updateSkill.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-parallel"
+				]
+			},
+			{
+				"files": [
+					"skills/createAITool.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/createBuiltInTool.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/createHttpTool.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/async-defer-await"
+				]
+			},
+			{
+				"files": [
+					"skills/createReactions.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"skills/defineSkill.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"skills/tools.ts"
+				],
+				"rules": [
+					"deslop/unused-file",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"src/accordion.tsx"
+				],
+				"rules": [
+					"react-doctor/no-multi-comp",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/alert.tsx"
+				],
+				"rules": [
+					"react-doctor/no-multi-comp",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/avatar.tsx"
+				],
+				"rules": [
+					"react-doctor/no-multi-comp",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/breadcrumb.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis",
+					"react-doctor/prefer-tag-over-role"
+				]
+			},
+			{
+				"files": [
+					"src/button.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/card.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/checkbox.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/code-block.tsx"
+				],
+				"rules": [
+					"react-doctor/no-danger",
+					"react-doctor/no-derived-state",
+					"react-doctor/no-multi-comp"
+				]
+			},
+			{
+				"files": [
+					"src/command.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis",
+					"react-doctor/no-unknown-property"
+				]
+			},
+			{
+				"files": [
+					"src/components/Action.tsx"
+				],
+				"rules": [
+					"deslop/circular-dependency"
+				]
+			},
+			{
+				"files": [
+					"src/components/ActionComposer/IdleState.tsx"
+				],
+				"rules": [
+					"react-doctor/control-has-associated-label",
+					"react-doctor/no-many-boolean-props"
+				]
+			},
+			{
+				"files": [
+					"src/components/ActionComposer/index.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/ActionIsland.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/actions/GenericAction.tsx"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"react-doctor/jsx-pascal-case",
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key"
+				]
+			},
+			{
+				"files": [
+					"src/components/actions/RenderAction.tsx"
+				],
+				"rules": [
+					"react-doctor/button-has-type",
+					"react-doctor/iframe-missing-sandbox"
+				]
+			},
+			{
+				"files": [
+					"src/components/actions/ScrapeLinkAction.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-pascal-case"
+				]
+			},
+			{
+				"files": [
+					"src/components/actions/ValyuSearchAction.tsx"
+				],
+				"rules": [
+					"deslop/circular-dependency"
+				]
+			},
+			{
+				"files": [
+					"src/components/BudgetSelector.tsx"
+				],
+				"rules": [
+					"react-doctor/control-has-associated-label"
+				]
+			},
+			{
+				"files": [
+					"src/components/CollapsibleSummary.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-pascal-case"
+				]
+			},
+			{
+				"files": [
+					"src/components/CompositionFrame.tsx"
+				],
+				"rules": [
+					"react-doctor/iframe-missing-sandbox"
+				]
+			},
+			{
+				"files": [
+					"src/components/ConvexAuthProvider.tsx"
+				],
+				"rules": [
+					"react-doctor/js-index-maps"
+				]
+			},
+			{
+				"files": [
+					"src/components/DebugAction.tsx"
+				],
+				"rules": [
+					"react-doctor/control-has-associated-label",
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/no-event-handler",
+					"react-doctor/no-generic-handler-names",
+					"react-doctor/no-pass-data-to-parent",
+					"react-doctor/no-prop-callback-in-effect",
+					"react-doctor/prefer-tag-over-role"
+				]
+			},
+			{
+				"files": [
+					"src/components/EditableContent.tsx"
+				],
+				"rules": [
+					"react-doctor/no-derived-useState",
+					"react-doctor/no-event-handler"
+				]
+			},
+			{
+				"files": [
+					"src/components/FeedbackDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/components/IntelligenceSelector/IntelligenceList.tsx"
+				],
+				"rules": [
+					"react-doctor/js-combine-iterations",
+					"react-doctor/no-barrel-import"
+				]
+			},
+			{
+				"files": [
+					"src/components/IntelligenceSelector/IntelligenceSelector.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/components/Launcher/themes/ThemePickerView.tsx"
+				],
+				"rules": [
+					"react-doctor/no-pass-data-to-parent",
+					"react-doctor/no-prop-callback-in-effect"
+				]
+			},
+			{
+				"files": [
+					"src/components/Launcher/themeSearch.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/components/MainSidebar.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/QuestionDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/components/QuickSeek.tsx"
+				],
+				"rules": [
+					"deslop/unused-export",
+					"react-doctor/control-has-associated-label",
+					"react-doctor/no-pass-data-to-parent",
+					"react-doctor/no-prop-callback-in-effect"
+				]
+			},
+			{
+				"files": [
+					"src/components/RenderActionTestSuite.tsx"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/rendering-hydration-mismatch-time"
+				]
+			},
+			{
+				"files": [
+					"src/components/report/reportFormat.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"src/components/report/ReportShell.tsx"
+				],
+				"rules": [
+					"react-doctor/no-polymorphic-children"
+				]
+			},
+			{
+				"files": [
+					"src/components/ScheduleIterationDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/no-noninteractive-element-interactions",
+					"react-doctor/prefer-useReducer"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/HardSkillConfig.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/no-giant-component",
+					"react-doctor/rerender-memo-with-default-value"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/InnateSkillDetail.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/shared/InputSchemaDisplay.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/shared/SkillCommandList.tsx"
+				],
+				"rules": [
+					"react-doctor/rerender-memo-with-default-value"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/shared/SkillSelector.tsx"
+				],
+				"rules": [
+					"react-doctor/rerender-memo-with-default-value"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/ShareSkillRequestDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/SkillTooltip.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key"
+				]
+			},
+			{
+				"files": [
+					"src/components/skills/SoftSkillConfig.tsx"
+				],
+				"rules": [
+					"react-doctor/rerender-memo-with-default-value"
+				]
+			},
+			{
+				"files": [
+					"src/components/SkillsLink.tsx"
+				],
+				"rules": [
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/no-generic-handler-names"
+				]
+			},
+			{
+				"files": [
+					"src/components/subscribe/faq/EnterpriseEarlyAccessDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/components/subscribe/faq/FaqSection.tsx"
+				],
+				"rules": [
+					"deslop/circular-dependency",
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key"
+				]
+			},
+			{
+				"files": [
+					"src/components/subscribe/faq/FounderPackageFaq.tsx"
+				],
+				"rules": [
+					"react-doctor/html-no-invalid-paragraph-child"
+				]
+			},
+			{
+				"files": [
+					"src/components/subscribe/faq/SafetyFaq.tsx"
+				],
+				"rules": [
+					"react-doctor/no-side-tab-border"
+				]
+			},
+			{
+				"files": [
+					"src/components/subscribe/faq/SkillsAndLoopsFaq.tsx"
+				],
+				"rules": [
+					"react-doctor/html-no-invalid-paragraph-child"
+				]
+			},
+			{
+				"files": [
+					"src/components/SubtaskList.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/tags/tagUtils.ts"
+				],
+				"rules": [
+					"deslop/unused-export",
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"src/components/TaskConversation.tsx"
+				],
+				"rules": [
+					"react-doctor/client-passive-event-listeners",
+					"react-doctor/no-event-handler"
+				]
+			},
+			{
+				"files": [
+					"src/components/TaskConversationActions.tsx"
+				],
+				"rules": [
+					"react-doctor/no-many-boolean-props"
+				]
+			},
+			{
+				"files": [
+					"src/components/TaskDetail.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-pascal-case"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/board/BoardColumnsDialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-derived-useState"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/board/boardTasks.ts"
+				],
+				"rules": [
+					"react-doctor/js-index-maps"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/board/BoardView.tsx"
+				],
+				"rules": [
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/board/taskDisplay.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/board/TaskRow.tsx"
+				],
+				"rules": [
+					"react-doctor/no-prevent-default",
+					"react-doctor/prefer-tag-over-role"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/CreateTaskView.tsx"
+				],
+				"rules": [
+					"react-doctor/no-derived-useState",
+					"react-doctor/prefer-useReducer"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/detail/TaskDetailFilename.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-target-blank",
+					"react-doctor/no-many-boolean-props"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/detail/TaskDetailTitle.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-target-blank",
+					"react-doctor/no-many-boolean-props"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/detail/useHoldAction.ts"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/detail/useTaskDetailHeaderModel.ts"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps",
+					"react-doctor/no-event-handler"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/detail/useTaskDetailMutations.ts"
+				],
+				"rules": [
+					"react-doctor/query-mutation-missing-invalidation"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/root/rootReportUtils.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/TaskBoard.tsx"
+				],
+				"rules": [
+					"react-doctor/no-many-boolean-props"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/TaskExplorerPage.tsx"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps",
+					"react-doctor/no-giant-component"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/taskExplorerUtils.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/useTaskExplorerSearchDraft.ts"
+				],
+				"rules": [
+					"react-doctor/no-derived-state"
+				]
+			},
+			{
+				"files": [
+					"src/components/tasks/useTaskExplorerTitle.ts"
+				],
+				"rules": [
+					"react-doctor/no-event-handler"
+				]
+			},
+			{
+				"files": [
+					"src/components/TopUpCard.tsx"
+				],
+				"rules": [
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/components/TweetCard.schema.ts"
+				],
+				"rules": [
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"src/components/TweetCard.tsx"
+				],
+				"rules": [
+					"react-doctor/control-has-associated-label",
+					"react-doctor/no-array-index-as-key",
+					"react-doctor/no-array-index-key",
+					"react-doctor/no-render-in-render"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/label.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/mdx.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-target-blank",
+					"react-doctor/no-side-tab-border"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/mdx/mdxComponents.tsx"
+				],
+				"rules": [
+					"react-doctor/media-has-caption",
+					"react-doctor/no-pure-black-background",
+					"react-doctor/no-side-tab-border"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/message.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-pascal-case"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/select.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/slider.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/ui/switch.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/components/UserMenuItem.tsx"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/dialog.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/drawer.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/dropdown-menu.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/form.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-constructed-context-values",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useComposer.tsx"
+				],
+				"rules": [
+					"react-doctor/js-length-check-first"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useDraftSync.ts"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps",
+					"react-doctor/no-adjust-state-on-prop-change",
+					"react-doctor/no-event-handler"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useExpandingTextarea.ts"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps",
+					"react-doctor/no-derived-state",
+					"react-doctor/no-derived-state-effect",
+					"react-doctor/no-pass-live-state-to-parent"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useInfiniteScroll.ts"
+				],
+				"rules": [
+					"react-doctor/advanced-event-handler-refs",
+					"react-doctor/client-passive-event-listeners",
+					"react-doctor/exhaustive-deps"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useIsMobile.tsx"
+				],
+				"rules": [
+					"react-doctor/no-initialize-state"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useKeyboardShortcuts.ts"
+				],
+				"rules": [
+					"react-doctor/advanced-event-handler-refs",
+					"react-doctor/exhaustive-deps"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/usePayment.ts"
+				],
+				"rules": [
+					"react-doctor/query-mutation-missing-invalidation"
+				]
+			},
+			{
+				"files": [
+					"src/hooks/useSkillFormSubmit.ts"
+				],
+				"rules": [
+					"react-doctor/query-mutation-missing-invalidation"
+				]
+			},
+			{
+				"files": [
+					"src/input.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/label.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/lib/bigint-serialization.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/energyBudget.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/explorerSearchParams.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/iframe-generator.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/tailwind.ts"
+				],
+				"rules": [
+					"deslop/unused-file"
+				]
+			},
+			{
+				"files": [
+					"src/lib/taskFilename.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/taskItemTimestamp.ts"
+				],
+				"rules": [
+					"react-doctor/js-hoist-intl"
+				]
+			},
+			{
+				"files": [
+					"src/lib/themes/catalog.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/themes/document.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/themes/resolve.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/lib/themes/storage.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/popover.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/prompt-input.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-constructed-context-values",
+					"react-doctor/no-noninteractive-element-interactions"
+				]
+			},
+			{
+				"files": [
+					"src/radio-group.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/reasoning.tsx"
+				],
+				"rules": [
+					"react-doctor/button-has-type",
+					"react-doctor/jsx-no-constructed-context-values",
+					"react-doctor/no-multi-comp"
+				]
+			},
+			{
+				"files": [
+					"src/routes/__root.tsx"
+				],
+				"rules": [
+					"react-doctor/no-danger",
+					"react-doctor/no-multi-comp"
+				]
+			},
+			{
+				"files": [
+					"src/routes/$.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-pascal-case"
+				]
+			},
+			{
+				"files": [
+					"src/routes/balance.tsx"
+				],
+				"rules": [
+					"react-doctor/tanstack-start-no-navigate-in-render"
+				]
+			},
+			{
+				"files": [
+					"src/routes/translate.tsx"
+				],
+				"rules": [
+					"react-doctor/exhaustive-deps",
+					"react-doctor/no-giant-component",
+					"react-doctor/prefer-useReducer"
+				]
+			},
+			{
+				"files": [
+					"src/scroll-area.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/select.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/separator.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskExplorer.ts"
+				],
+				"rules": [
+					"deslop/unused-export",
+					"react-doctor/server-sequential-independent-await"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskExplorerHierarchy.ts"
+				],
+				"rules": [
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskExplorerReadModel.ts"
+				],
+				"rules": [
+					"react-doctor/js-combine-iterations"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskExplorerSchemas.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskExplorerSearch.ts"
+				],
+				"rules": [
+					"react-doctor/js-set-map-lookups"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskIndexSchemas.ts"
+				],
+				"rules": [
+					"deslop/unused-export"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskMutationStatus.ts"
+				],
+				"rules": [
+					"react-doctor/js-length-check-first"
+				]
+			},
+			{
+				"files": [
+					"src/server/taskReportRows.ts"
+				],
+				"rules": [
+					"react-doctor/js-set-map-lookups"
+				]
+			},
+			{
+				"files": [
+					"src/sheet.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/sidebar.tsx"
+				],
+				"rules": [
+					"react-doctor/button-has-type",
+					"react-doctor/no-react19-deprecated-apis",
+					"react-doctor/no-usememo-simple-expression"
+				]
+			},
+			{
+				"files": [
+					"src/slider.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/switch.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/table.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/tabs.tsx"
+				],
+				"rules": [
+					"react-doctor/no-multi-comp",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/textarea.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/toggle.tsx"
+				],
+				"rules": [
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			},
+			{
+				"files": [
+					"src/tooltip.tsx"
+				],
+				"rules": [
+					"react-doctor/jsx-no-constructed-context-values",
+					"react-doctor/no-react19-deprecated-apis"
+				]
+			}
+		]
+	}
+}

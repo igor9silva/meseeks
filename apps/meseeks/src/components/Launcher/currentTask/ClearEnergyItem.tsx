@@ -8,7 +8,7 @@ export function ClearEnergyItem({ task }: { task: CurrentTask }) {
 	//
 	const { close } = useLauncher();
 	const { decreaseBudget, isDecreasingBudget } = useDecreaseBudget();
-	if (!task.isActive || task.energyBudget.available <= 0n) return null;
+	if (!task.isActive || task.energyBudget.available <= BigInt('0')) return null;
 
 	const handleSelect = () => {
 		if (isDecreasingBudget) return;

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Plus, X } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
@@ -46,7 +46,8 @@ export function CreateTaskView({
 	const [body, setBody] = useState('');
 	const [filename, setFilename] = useState('');
 	const [hasEditedFilename, setHasEditedFilename] = useState(false);
-	const normalizedFilename = useMemo(() => createTaskFilename(filename || title || body), [body, filename, title]);
+	const displayedFilename = hasEditedFilename ? filename : createTaskFilename(title || body);
+	const normalizedFilename = createTaskFilename(displayedFilename || title || body);
 	const createTaskMutation = useMutation({
 		mutationFn: (input: CreateTaskInput) => createTaskServer({ data: input }),
 		onSuccess: async (result) => {
@@ -64,19 +65,8 @@ export function CreateTaskView({
 	});
 
 	useEffect(() => {
-		setTaskSource(defaults.taskSource);
-		setParentPath(defaults.parentPath);
-		setStatus(defaults.status);
-	}, [defaults.parentPath, defaults.status, defaults.taskSource]);
-
-	useEffect(() => {
 		bodyTextareaRef.current?.focus();
 	}, []);
-
-	useEffect(() => {
-		if (hasEditedFilename) return;
-		setFilename(createTaskFilename(title || body));
-	}, [body, hasEditedFilename, title]);
 
 	const handleFilenameChange = (value: string) => {
 		setHasEditedFilename(true);
@@ -172,7 +162,7 @@ export function CreateTaskView({
 					<div className="flex items-center gap-2">
 						<Input
 							id={filenameInputId}
-							value={filename}
+							value={displayedFilename}
 							onChange={(event) => handleFilenameChange(event.currentTarget.value)}
 							onBlur={handleFilenameBlur}
 							placeholder={normalizedFilename || 'auto-generated'}

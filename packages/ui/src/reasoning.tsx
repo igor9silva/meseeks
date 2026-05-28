@@ -1,5 +1,5 @@
 import { ChevronDownIcon } from 'lucide-react';
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, use, useEffect, useRef, useState } from 'react';
 import { cn } from './lib/utils';
 
 type ReasoningContextType = {
@@ -10,7 +10,7 @@ type ReasoningContextType = {
 const ReasoningContext = createContext<ReasoningContextType | undefined>(undefined);
 
 function useReasoningContext() {
-	const context = useContext(ReasoningContext);
+	const context = use(ReasoningContext);
 	if (!context) {
 		throw new Error('useReasoningContext must be used within a Reasoning provider');
 	}

@@ -10,6 +10,7 @@ import { SkillList } from '~/components/skills/SkillList';
 import { Card, CardContent, CardDescription, CardTitle } from '@reactor/ui/card';
 import { Separator } from '@reactor/ui/separator';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/skills')({
 	component: RouteComponent,
 });
@@ -28,7 +29,7 @@ export default function RouteComponent() {
 				<div>
 					<CardTitle className="text-2xl">Skills</CardTitle>
 					<CardDescription>
-						The building blocks of Meseeks — they define what it can do.
+						The building blocks of Meseeks, they define what it can do.
 						<Card className="text-sm border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 mt-4">
 							<CardContent className="flex items-center gap-3 p-4">
 								<Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />

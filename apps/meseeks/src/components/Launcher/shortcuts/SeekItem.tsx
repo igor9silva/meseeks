@@ -1,6 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from '@reactor/ui/command';
-import { useCallback, useMemo } from 'react';
+import { useCommandState } from '@reactor/ui/command-state';
 import { SquarePen } from 'lucide-react';
 import { CommandItem } from '@reactor/ui/command';
 import { useLauncher } from '../LauncherProvider';
@@ -11,12 +10,12 @@ export function SeekItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 	const navigate = useNavigate();
 	const typedSearch = useCommandState((state) => state.search);
 
-	const search = useMemo(() => {
+	const search = (() => {
 		if (!shouldUseSearch) return '';
 		return typedSearch;
-	}, [shouldUseSearch, typedSearch]);
+	})();
 
-	const handleSelect = useCallback(() => {
+	const handleSelect = () => {
 		//
 		navigate({
 			to: '/$',
@@ -26,7 +25,7 @@ export function SeekItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {
 
 		close();
 		//
-	}, [navigate, close, search]);
+	};
 
 	if (!search) return null;
 

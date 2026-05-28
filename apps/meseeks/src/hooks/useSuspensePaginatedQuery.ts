@@ -1,6 +1,5 @@
 import { usePaginatedQuery } from 'convex/react';
 import type { Id } from 'convex/_generated/dataModel';
-import { useMemo } from 'react';
 import { api } from 'convex/_generated/api';
 
 interface UseSuspensePaginatedQueryOptions {
@@ -22,7 +21,7 @@ export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions =
 		{ initialNumItems },
 	);
 
-	const sortedResults = useMemo(() => {
+	const sortedResults = (() => {
 		//
 		if (!results) return [];
 
@@ -54,7 +53,7 @@ export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions =
 		// Inactive tasks don't need sorting (always "idle"), just append them
 		return sortedActiveTasks.concat(inactiveTasks);
 		//
-	}, [results]);
+	})();
 
 	return {
 		results,

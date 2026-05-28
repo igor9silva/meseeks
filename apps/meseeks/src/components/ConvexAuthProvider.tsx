@@ -1,6 +1,6 @@
 import { ConvexProviderWithAuth, type ConvexReactClient } from 'convex/react';
 import { convexJwtCookieNames } from 'lib/auth';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod/v3';
 import { getConvexToken } from 'lib/auth-client';
 
@@ -13,6 +13,7 @@ const jwtPayloadSchema = z.object({
 export function ConvexAuthProvider({ children, client }: { children: React.ReactNode; client: ConvexReactClient }) {
 	//
 	return (
+		// react-doctor-disable-next-line react-hooks-js/hooks -- ConvexProviderWithAuth accepts a useAuth hook by API contract.
 		<ConvexProviderWithAuth client={client} useAuth={useCookieBackedConvexAuth}>
 			{children}
 		</ConvexProviderWithAuth>
@@ -21,16 +22,8 @@ export function ConvexAuthProvider({ children, client }: { children: React.React
 
 function useCookieBackedConvexAuth() {
 	//
-	const [hasLoadedToken, setHasLoadedToken] = useState(false);
-	const [token, setToken] = useState<string | null>(null);
-	const tokenRef = useRef<string | null>(null);
-
-	useEffect(() => {
-		const initialToken = readConvexJwtCookie();
-		tokenRef.current = initialToken;
-		setToken(initialToken);
-		setHasLoadedToken(true);
-	}, []);
+	const [token, setToken] = useState(() => readConvexJwtCookie());
+	const tokenRef = useRef<string | null>(token);
 
 	useEffect(() => {
 		//
@@ -81,7 +74,7 @@ function useCookieBackedConvexAuth() {
 		};
 	}, [token]);
 
-	const fetchAccessToken = useCallback(async () => {
+	const fetchAccessToken = async () => {
 		//
 		// convex asks for a token through this callback; reading the cached jwt
 		// here keeps reloads close to the old convex auth behavior while
@@ -93,16 +86,13 @@ function useCookieBackedConvexAuth() {
 		}
 
 		return cachedToken;
-	}, []);
+	};
 
-	return useMemo(
-		() => ({
-			isLoading: !hasLoadedToken,
-			isAuthenticated: Boolean(token),
-			fetchAccessToken,
-		}),
-		[fetchAccessToken, hasLoadedToken, token],
-	);
+	return {
+		isLoading: false,
+		isAuthenticated: Boolean(token),
+		fetchAccessToken,
+	};
 }
 
 async function requestConvexToken() {

@@ -4,7 +4,8 @@ import { CalendarIcon, ClockIcon, RefreshCwIcon } from 'lucide-react';
 import { TimeAgo } from '~/components/TimeAgo';
 import { Badge } from '@reactor/ui/badge';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
-import { CancelScheduleButton, getScheduleInstructions, type Schedule } from '~/components/schedules/ScheduleItem';
+import { CancelScheduleButton, type Schedule } from '~/components/schedules/ScheduleItem';
+import { getScheduleInstructions } from '~/components/schedules/scheduleUtils';
 import { cn } from '@reactor/ui/lib/utils';
 
 export function ScheduleCard({ schedule, taskTitle }: { schedule: Schedule; taskTitle: string }) {

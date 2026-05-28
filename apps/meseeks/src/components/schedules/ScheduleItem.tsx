@@ -2,18 +2,14 @@ import { formatDistanceToNow } from 'lib/date';
 import { type Doc } from 'convex/_generated/dataModel';
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod/v3';
 
 import { Button } from '@reactor/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@reactor/ui/dialog';
 import { useCancelSchedule } from '~/hooks/useCancelSchedule';
 import { cn } from '@reactor/ui/lib/utils';
+import { getScheduleInstructions } from './scheduleUtils';
 
 export type Schedule = Doc<'schedules'>;
-
-const scheduleArgsSchema = z.object({
-	instructions: z.string().optional(),
-});
 
 export function TaskScheduleCompactItem({ schedule }: { schedule: Schedule }) {
 	//
@@ -125,14 +121,6 @@ function CancelScheduleDialog({
 			</DialogContent>
 		</Dialog>
 	);
-}
-
-export function getScheduleInstructions(schedule: Schedule) {
-	//
-	const parsed = scheduleArgsSchema.safeParse(schedule.args);
-	if (!parsed.success) return undefined;
-
-	return parsed.data.instructions;
 }
 
 function formatRelativeScheduleTime(timestamp: number) {

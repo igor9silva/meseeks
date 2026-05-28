@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import type { Id } from 'convex/_generated/dataModel';
 import { QuickActionsSection } from './quickActions/Section';
 import { ShortcutsSection } from './shortcuts/Section';
@@ -16,7 +15,7 @@ interface LauncherContentProps {
 	tasks: LauncherTask[];
 }
 
-export const LauncherContent = memo(function LauncherContent({
+export const LauncherContent = function LauncherContent({
 	currentTaskId,
 	isLoadingMore,
 	onClose,
@@ -38,4 +37,4 @@ export const LauncherContent = memo(function LauncherContent({
 			<TasksSection isLoadingMore={isLoadingMore} onNavigate={onNavigate} tasks={tasks} />
 		</>
 	);
-});
+};

@@ -104,7 +104,10 @@ function QualitySignals({ report }: { report: TaskReport }) {
 					]}
 					total={report.totals.tasks}
 				/>
-				<a href="/tags" className="mt-4 inline-flex items-center gap-2 text-sm text-cyan-300 hover:text-cyan-200">
+				<a
+					href="/tags"
+					className="mt-4 inline-flex items-center gap-2 text-sm text-cyan-300 hover:text-cyan-200"
+				>
 					<Tags className="size-4" />
 					Open tag report
 				</a>

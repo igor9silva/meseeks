@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, use, useState } from 'react';
 
 interface FeedbackDialogContextType {
 	isOpen: boolean;
@@ -10,7 +10,7 @@ const FeedbackDialogContext = createContext<FeedbackDialogContextType | null>(nu
 
 export function useFeedbackDialog() {
 	//
-	const context = useContext(FeedbackDialogContext);
+	const context = use(FeedbackDialogContext);
 
 	if (!context) {
 		throw new Error('useFeedbackDialog must be used within FeedbackDialogProvider');

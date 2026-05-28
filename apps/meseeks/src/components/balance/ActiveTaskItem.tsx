@@ -15,7 +15,7 @@ export function ActiveTaskItem({ task }: ActiveTaskItemProps) {
 	const totalBudget = task.energyBudget.total;
 	const spentBudget = totalBudget - availableBudget;
 
-	if (availableBudget < 1n) return null;
+	if (availableBudget < BigInt('1')) return null;
 
 	return (
 		<Link

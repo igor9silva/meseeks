@@ -17,7 +17,7 @@ export function Balance({ className }: { className?: string }) {
 			onClick={() => navigate({ to: '/balance' })}
 		>
 			<span className="mt-0.5">⚡</span>
-			<span className="hidden md:block">{asDollars({ bigInt: user.balanceUSD ?? 0n })}</span>
+			<span className="hidden md:block">{asDollars({ bigInt: user.balanceUSD ?? BigInt('0') })}</span>
 		</Button>
 	);
 }

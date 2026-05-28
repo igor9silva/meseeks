@@ -8,12 +8,13 @@ import { api } from 'convex/_generated/api';
 
 import { asDollars } from 'lib/money';
 import { BasicError } from '~/components/BasicError';
-import { topUpStatusColors } from '~/components/TopUpItem';
+import { topUpStatusColors } from '~/components/topUpStatus';
 import { Badge } from '@reactor/ui/badge';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent, CardFooter } from '@reactor/ui/card';
 import { useTopUp } from '~/hooks/query/useTopUps';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/top-up_/$id')({
 	component: RouteComponent,
 });

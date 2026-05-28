@@ -357,8 +357,10 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 	const hasActualCosts = 'costs' in action && action.costs && action.costs.length > 0;
 
 	if (!hasEstimatedCost && !hasActualCosts) return null;
-	const estimatedAmount = hasEstimatedCost ? action.estimatedCost! : 0n;
-	const actualTotal = hasActualCosts ? action.costs.reduce((total, cost) => total + cost.amount, 0n) : 0n;
+	const estimatedAmount = hasEstimatedCost ? action.estimatedCost! : BigInt('0');
+	const actualTotal = hasActualCosts
+		? action.costs.reduce((total, cost) => total + cost.amount, BigInt('0'))
+		: BigInt('0');
 
 	return (
 		<div className="space-y-3">
@@ -369,7 +371,7 @@ function CostSection({ action }: { action: Doc<'actions'> }) {
 						<span className="text-muted-foreground font-normal text-xs">
 							{actualTotal === estimatedAmount ? (
 								<>(estimated correctly)</>
-							) : estimatedAmount > 0n ? (
+							) : estimatedAmount > BigInt('0') ? (
 								(() => {
 									const actualFloat = Number(actualTotal) / 1000000; // Convert to dollars
 									const estimatedFloat = Number(estimatedAmount) / 1000000;
@@ -831,8 +833,8 @@ function ActionRow({
 	const isResolvedAction = action.status === 'succeeded' || action.status === 'skipped' || action.status === 'failed';
 	const totalActualCost =
 		isResolvedAction && 'costs' in action && (action as any).costs && (action as any).costs.length > 0
-			? (action as any).costs.reduce((sum: bigint, cost: any) => sum + cost.amount, 0n)
-			: action.estimatedCost || 0n;
+			? (action as any).costs.reduce((sum: bigint, cost: any) => sum + cost.amount, BigInt('0'))
+			: action.estimatedCost || BigInt('0');
 
 	const handleDataLoaded = (data: any) => {
 		//
@@ -924,11 +926,13 @@ function ActionRow({
 								</TooltipTrigger>
 								<TooltipContent side="top">
 									<div className="space-y-1 text-xs">
-										{typeof action.estimatedCost === 'bigint' && action.estimatedCost > 0n && (
-											<div>
-												Estimated: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })}
-											</div>
-										)}
+										{typeof action.estimatedCost === 'bigint' &&
+											action.estimatedCost > BigInt('0') && (
+												<div>
+													Estimated: $
+													{asDollars({ bigInt: action.estimatedCost, precision: 6 })}
+												</div>
+											)}
 										<div>Actual: ${asDollars({ bigInt: totalActualCost, precision: 6 })}</div>
 									</div>
 								</TooltipContent>

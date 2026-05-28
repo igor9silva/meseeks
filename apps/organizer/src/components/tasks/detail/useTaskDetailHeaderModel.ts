@@ -1,5 +1,5 @@
 import type { FormEvent, MouseEvent } from 'react';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { TaskDetailTask } from '../taskExplorerTypes';
 import {
 	createTaskRenameFilename,
@@ -14,16 +14,18 @@ import {
 import { buildSystemTagGroups } from './systemTagGroups';
 import type { TaskDetailCallbacks, TaskDetailPanelControls } from './TaskDetailHeaderTypes';
 import type { TaskDetailMetadataModel } from './TaskDetailMetadata';
-import {
-	getPrivateBlurClassName,
-	getTaskPathFilename,
-	isStructuralTask,
-} from './taskDetailUtils';
+import { getPrivateBlurClassName, getTaskPathFilename, isStructuralTask } from './taskDetailUtils';
 import type { TaskMutationErrorEntry } from './TaskMutationErrors';
 import { useHoldAction } from './useHoldAction';
 import { useTaskDetailMutations } from './useTaskDetailMutations';
 
 const COPY_FEEDBACK_MS = 1500;
+
+type OptimisticTagState = {
+	taskKey: string;
+	isTaskCompleted: boolean | null;
+	isTaskClass: boolean | null;
+};
 
 interface TaskDetailHeaderModelInput {
 	task: TaskDetailTask;
@@ -56,14 +58,19 @@ export function useTaskDetailHeaderModel({
 	const isStructural = isStructuralTask(task);
 	const indexedIsTaskCompleted = task.tags.includes('status:completed');
 	const indexedIsTaskClass = task.tags.includes('class:task');
-	const [optimisticIsTaskCompleted, setOptimisticIsTaskCompleted] = useState<boolean | null>(null);
-	const [optimisticIsTaskClass, setOptimisticIsTaskClass] = useState<boolean | null>(null);
-	const selectedTags = useMemo(
-		() => applyOptimisticTagState(task.tags, optimisticIsTaskCompleted, optimisticIsTaskClass),
-		[optimisticIsTaskClass, optimisticIsTaskCompleted, task.tags],
-	);
-	const displayFilename = useMemo(() => getTaskDisplayFilename(task.relativePath), [task.relativePath]);
-	const currentFilename = useMemo(() => getTaskPathFilename(task.taskPath), [task.taskPath]);
+	const [optimisticTagState, setOptimisticTagState] = useState<OptimisticTagState | null>(null);
+	const activeOptimisticTagState = optimisticTagState?.taskKey === task.key ? optimisticTagState : null;
+	const optimisticIsTaskCompleted =
+		activeOptimisticTagState?.isTaskCompleted === indexedIsTaskCompleted
+			? null
+			: (activeOptimisticTagState?.isTaskCompleted ?? null);
+	const optimisticIsTaskClass =
+		activeOptimisticTagState?.isTaskClass === indexedIsTaskClass
+			? null
+			: (activeOptimisticTagState?.isTaskClass ?? null);
+	const selectedTags = applyOptimisticTagState(task.tags, optimisticIsTaskCompleted, optimisticIsTaskClass);
+	const displayFilename = getTaskDisplayFilename(task.relativePath);
+	const currentFilename = getTaskPathFilename(task.taskPath);
 	const currentFileBasename = currentFilename;
 	const [isFilePathCopied, setIsFilePathCopied] = useState(false);
 	const [isRenamingFile, setIsRenamingFile] = useState(false);
@@ -88,9 +95,9 @@ export function useTaskDetailHeaderModel({
 		};
 	}, []);
 
-	const systemTags = useMemo(() => dedupeStrings(task.tags.concat(tagOptions)), [tagOptions, task.tags]);
-	const systemTagGroups = useMemo(() => buildSystemTagGroups(systemTags), [systemTags]);
-	const normalizedRenameFilename = useMemo(() => createTaskRenameFilename(renameDraft), [renameDraft]);
+	const systemTags = dedupeStrings(task.tags.concat(tagOptions));
+	const systemTagGroups = buildSystemTagGroups(systemTags);
+	const normalizedRenameFilename = createTaskRenameFilename(renameDraft);
 	const mutations = useTaskDetailMutations(task, {
 		...callbacks,
 		onRenameSuccess: () => {
@@ -103,43 +110,33 @@ export function useTaskDetailHeaderModel({
 		},
 	});
 
-	useEffect(() => {
-		setOptimisticIsTaskCompleted(null);
-		setOptimisticIsTaskClass(null);
-	}, [task.key]);
-
-	useEffect(() => {
-		if (optimisticIsTaskCompleted === null) return;
-		if (indexedIsTaskCompleted !== optimisticIsTaskCompleted) return;
-		setOptimisticIsTaskCompleted(null);
-	}, [indexedIsTaskCompleted, optimisticIsTaskCompleted]);
-
-	useEffect(() => {
-		if (optimisticIsTaskClass === null) return;
-		if (indexedIsTaskClass !== optimisticIsTaskClass) return;
-		setOptimisticIsTaskClass(null);
-	}, [indexedIsTaskClass, optimisticIsTaskClass]);
-
-	useEffect(() => {
-		if (!mutations.updateTaskTagsMutation.error) return;
-		setOptimisticIsTaskCompleted(null);
-		setOptimisticIsTaskClass(null);
-	}, [mutations.updateTaskTagsMutation.error]);
-
 	const handleTagToggle = (tag: string) => {
 		const isRemovingTag = selectedTags.includes(tag);
 
 		if (tag === 'status:completed') {
-			setOptimisticIsTaskCompleted(!isRemovingTag);
+			setOptimisticTagState((currentState) => ({
+				taskKey: task.key,
+				isTaskCompleted: !isRemovingTag,
+				isTaskClass: currentState?.taskKey === task.key ? currentState.isTaskClass : null,
+			}));
 		}
 		if (tag === 'class:task') {
-			setOptimisticIsTaskClass(!isRemovingTag);
+			setOptimisticTagState((currentState) => ({
+				taskKey: task.key,
+				isTaskCompleted: currentState?.taskKey === task.key ? currentState.isTaskCompleted : null,
+				isTaskClass: !isRemovingTag,
+			}));
 		}
 
-		mutations.updateTaskTagsMutation.mutate({
-			action: isRemovingTag ? 'remove' : 'add',
-			tag,
-		});
+		mutations.updateTaskTagsMutation.mutate(
+			{
+				action: isRemovingTag ? 'remove' : 'add',
+				tag,
+			},
+			{
+				onError: () => setOptimisticTagState(null),
+			},
+		);
 	};
 
 	const handlePriorityChange = (value: string) => {

@@ -11,6 +11,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@react
 import { cn } from '@reactor/ui/lib/utils';
 import { SkillTooltip } from './SkillTooltip';
 
+function CardWrapper({ children, isActive }: { children: React.ReactNode; isActive: boolean }) {
+	return <Card className={cn('flex flex-col h-full transition-opacity', !isActive && 'opacity-50')}>{children}</Card>;
+}
+
 /**
  * Skill card with basic information and available actions
  */
@@ -37,11 +41,6 @@ export function SkillCard({
 		event.stopPropagation();
 		onToggle(!isEnabled);
 	};
-
-	// Card content to avoid duplication
-	const CardWrapper = ({ children }: { children: React.ReactNode }) => (
-		<Card className={cn('flex flex-col h-full transition-opacity', !isActive && 'opacity-50')}>{children}</Card>
-	);
 
 	const cardContent = (
 		<>
@@ -100,7 +99,7 @@ export function SkillCard({
 
 	return (
 		<Link to="/skills/$id" params={{ id: skill._id }} className="block transition-all focus:shadow-md outline-none">
-			<CardWrapper>{cardContent}</CardWrapper>
+			<CardWrapper isActive={isActive}>{cardContent}</CardWrapper>
 		</Link>
 	);
 }
@@ -181,7 +180,7 @@ function Pricing({ skill }: { skill: Doc<'skills'> }) {
 	if (skill.cost !== 'dynamic') {
 		return (
 			<div className="flex items-center justify-center">
-				{skill.cost === 0n ? (
+				{skill.cost === BigInt('0') ? (
 					<span>Free</span>
 				) : (
 					<span>{asDollars({ bigInt: skill.cost, precision: 4 })}$ per use</span>

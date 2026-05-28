@@ -1,6 +1,5 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
-import { useMemo } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -23,7 +22,7 @@ export function TaskBudget({
 	const available = task.energyBudget.available;
 	const total = task.energyBudget.total;
 	const spent = total - available;
-	const percentSpent = total > 0n ? Number((spent * 100n) / total) : 0;
+	const percentSpent = total > BigInt('0') ? Number((spent * BigInt('100')) / total) : 0;
 	const trigger = (
 		<div
 			className={cn(
@@ -74,7 +73,7 @@ function TriggerActive(props: {
 	//
 	const { available, total, percentSpent, showColors, precision } = props;
 
-	const color = useMemo(() => {
+	const color = (() => {
 		//
 		if (!showColors) return undefined;
 
@@ -88,7 +87,7 @@ function TriggerActive(props: {
 
 		return `rgb(${r}, ${g}, ${b})`;
 		//
-	}, [percentSpent, showColors]);
+	})();
 
 	return (
 		<div className="flex flex-col">

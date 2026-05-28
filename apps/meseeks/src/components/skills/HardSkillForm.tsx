@@ -1,6 +1,6 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Doc } from 'convex/_generated/dataModel';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { HardSkillConfig } from '~/components/skills/HardSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
@@ -25,6 +25,9 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 		defaultValues: getDefaultHardSkill(skill),
 		mode: 'onChange',
 	});
+	const config = useWatch({ control: form.control, name: 'config' });
+	const bodyTemplate = useWatch({ control: form.control, name: 'bodyTemplate' });
+	const knownReactions = useWatch({ control: form.control, name: 'knownReactions' });
 
 	const { submitSkill, handleFormError, isSubmitting } = useSkillFormSubmit(skill, buildHardSkillFromForm);
 
@@ -36,17 +39,17 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 
 				{/* Hard skill specific configuration */}
 				<HardSkillConfig
-					url={form.watch('config.url')}
+					url={config.url}
 					onUrlChange={(value) => form.setValue('config.url', value)}
-					method={form.watch('config.method')}
+					method={config.method}
 					onMethodChange={(value) => form.setValue('config.method', value)}
-					headers={form.watch('config.headers')}
+					headers={config.headers}
 					onHeadersChange={(headers) => form.setValue('config.headers', headers)}
-					paramMappings={form.watch('config.paramMappings')}
+					paramMappings={config.paramMappings}
 					onParamMappingsChange={(mappings) => form.setValue('config.paramMappings', mappings)}
-					bodyTemplate={form.watch('bodyTemplate')}
+					bodyTemplate={bodyTemplate}
 					onBodyTemplateChange={(value) => form.setValue('bodyTemplate', value)}
-					knownReactions={form.watch('knownReactions')}
+					knownReactions={knownReactions}
 					onKnownReactionsChange={(reactions) => form.setValue('knownReactions', reactions)}
 					isEditable={isEditable}
 				/>

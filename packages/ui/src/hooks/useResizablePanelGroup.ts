@@ -1,5 +1,5 @@
 import { useDebouncedCallback } from '@tanstack/react-pacer';
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 
 interface UseResizablePanelGroupOptions {
 	getValue: () => number;
@@ -17,11 +17,11 @@ export function useResizablePanelGroup({
 	//
 	const isDraggingRef = useRef(false);
 
-	const getPanelSize = useCallback(() => {
+	const getPanelSize = () => {
 		//
 		return getValue() ?? defaultValue;
 		//
-	}, [getValue, defaultValue]);
+	};
 
 	const handleResize = useDebouncedCallback(
 		(size: number) => {
@@ -33,17 +33,14 @@ export function useResizablePanelGroup({
 		{ wait: debounceMs },
 	);
 
-	const handleLayout = useCallback(
-		(sizes: number[]) => {
-			if (!isDraggingRef.current) return;
-			handleResize(sizes[0]);
-		},
-		[handleResize],
-	);
+	const handleLayout = (sizes: number[]) => {
+		if (!isDraggingRef.current) return;
+		handleResize(sizes[0]);
+	};
 
-	const handleDragging = useCallback((isDragging: boolean) => {
+	const handleDragging = (isDragging: boolean) => {
 		isDraggingRef.current = isDragging;
-	}, []);
+	};
 
 	return {
 		getPanelSize,

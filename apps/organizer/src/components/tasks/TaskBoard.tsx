@@ -4,11 +4,7 @@ import type { ExplorerQueryInput, ExplorerSort } from '~/lib/explorerSearchParam
 import type { TaskConfig } from '~/server/taskIndexSchemas';
 import { BoardView } from './board/BoardView';
 import { ListView } from './board/ListView';
-import {
-	TaskBoardHeader,
-	type TaskBoardHeaderActions,
-	type TaskBoardHeaderState,
-} from './board/TaskBoardHeader';
+import { TaskBoardHeader, type TaskBoardHeaderActions, type TaskBoardHeaderState } from './board/TaskBoardHeader';
 import { buildTagGroups } from './board/tagGroups';
 import type { TaskListContext } from './board/taskListTypes';
 import type { ExplorerFacets, ExplorerHealth, ExplorerTask, ExplorerTotals, TaskDetailTask } from './taskExplorerTypes';
@@ -164,7 +160,7 @@ export function TaskBoard({
 		>
 			<TaskBoardHeader state={headerState} actions={headerActions} />
 			<div className="min-h-0 flex-1 overflow-auto">
-				{isPending ? <div className="px-3 py-4 text-sm text-muted-foreground">Loading tasks...</div> : null}
+				{isPending ? <div className="px-3 py-4 text-sm text-muted-foreground">Loading tasks…</div> : null}
 				{!isPending && visibleTasks.length === 0 ? (
 					<div className="px-3 py-4 text-sm text-muted-foreground">
 						{totals?.directChildren === 0 ? 'This task has no subtasks.' : 'No tasks match this view.'}

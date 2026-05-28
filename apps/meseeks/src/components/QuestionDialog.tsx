@@ -59,9 +59,9 @@ export function QuestionDialog({ className }: { className?: string }) {
 			} catch (error) {
 				console.error('Error submitting question:', error);
 				toast.error('Failed to submit question. Please try again later.');
-			} finally {
-				setIsSubmitting(false);
 			}
+
+			setIsSubmitting(false);
 		},
 	});
 

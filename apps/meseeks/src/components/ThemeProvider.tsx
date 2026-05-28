@@ -1,6 +1,6 @@
 import { useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { api } from 'convex/_generated/api';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, use, useEffect, useState } from 'react';
 import {
 	applyThemeToDocument,
 	getInitialCustomThemeId,
@@ -46,36 +46,43 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 	const setThemeMutation = useMutation(api.users.themes.set);
 	const resetThemeMutation = useMutation(api.users.themes.reset);
 
-	const [customThemeId, setCustomThemeId] = useState<AppThemeId | null>(() => getInitialCustomThemeId());
+	const [initialCustomThemeId] = useState<AppThemeId | null>(() => getInitialCustomThemeId());
+	const [optimisticCustomThemeId, setOptimisticCustomThemeId] = useState<AppThemeId | null | undefined>(undefined);
 
 	// launcher hover previews should not change the persisted selection marker.
 	const [previewThemeId, setPreviewThemeId] = useState<AppThemeId | null>(null);
 	const [systemThemeMode, setSystemThemeMode] = useState<ThemeMode>(() => getInitialSystemThemeMode());
 
+	const serverCustomThemeId = userTheme === undefined ? undefined : (userTheme.themeId ?? null);
+	const loadedCustomThemeId = serverCustomThemeId === undefined ? initialCustomThemeId : serverCustomThemeId;
+	const isOptimisticThemeSettled =
+		optimisticCustomThemeId !== undefined && optimisticCustomThemeId === serverCustomThemeId;
+	const customThemeId =
+		isOptimisticThemeSettled || optimisticCustomThemeId === undefined
+			? loadedCustomThemeId
+			: optimisticCustomThemeId;
 	const systemThemeId = getSystemThemeId(systemThemeMode);
 	const persistedTheme = resolveTheme({ customThemeId, systemMode: systemThemeMode });
 	const displayedTheme = previewThemeId ? getRequiredTheme(previewThemeId) : persistedTheme;
 	const displayedThemeSource = previewThemeId || customThemeId ? 'custom' : 'system';
 
-	const syncPersistedCustomTheme = useCallback((themeId: AppThemeId | null) => {
-		setCustomThemeId(themeId);
+	const syncPersistedCustomTheme = (themeId: AppThemeId | null) => {
+		setOptimisticCustomThemeId(themeId);
 		syncThemeSnapshot(themeId ? getRequiredTheme(themeId) : null);
-	}, []);
+	};
 
-	const restoreThemeSelection = useCallback(
-		(selection: ThemeSelection) => {
-			syncPersistedCustomTheme(selection.customThemeId);
-			setPreviewThemeId(selection.previewThemeId);
-		},
-		[syncPersistedCustomTheme],
-	);
+	const restoreThemeSelection = (selection: ThemeSelection) => {
+		syncPersistedCustomTheme(selection.customThemeId);
+		setPreviewThemeId(selection.previewThemeId);
+	};
 
 	useEffect(() => {
 		// Convex is the source of truth after hydration. The stored snapshot only bridges first paint.
 		if (userTheme === undefined) return;
 
-		syncPersistedCustomTheme(userTheme.themeId ?? null);
-	}, [syncPersistedCustomTheme, userTheme]);
+		const themeId = userTheme.themeId ?? null;
+		syncThemeSnapshot(themeId ? getRequiredTheme(themeId) : null);
+	}, [userTheme]);
 
 	useEffect(() => subscribeToSystemThemeMode(setSystemThemeMode), []);
 
@@ -88,27 +95,24 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 		});
 	}, [displayedTheme.id, displayedTheme.mode, displayedTheme.variables, displayedThemeSource]);
 
-	const setThemeById = useCallback(
-		async (themeId: AppThemeId) => {
-			const previousSelection: ThemeSelection = {
-				customThemeId,
-				previewThemeId,
-			};
+	const setThemeById = async (themeId: AppThemeId) => {
+		const previousSelection: ThemeSelection = {
+			customThemeId,
+			previewThemeId,
+		};
 
-			syncPersistedCustomTheme(themeId);
-			setPreviewThemeId(null);
+		syncPersistedCustomTheme(themeId);
+		setPreviewThemeId(null);
 
-			try {
-				await setThemeMutation({ themeId });
-			} catch (error) {
-				restoreThemeSelection(previousSelection);
-				throw error;
-			}
-		},
-		[customThemeId, previewThemeId, restoreThemeSelection, setThemeMutation, syncPersistedCustomTheme],
-	);
+		try {
+			await setThemeMutation({ themeId });
+		} catch (error) {
+			restoreThemeSelection(previousSelection);
+			throw error;
+		}
+	};
 
-	const resetTheme = useCallback(async () => {
+	const resetTheme = async () => {
 		const previousSelection: ThemeSelection = {
 			customThemeId,
 			previewThemeId,
@@ -123,46 +127,34 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 			restoreThemeSelection(previousSelection);
 			throw error;
 		}
-	}, [customThemeId, previewThemeId, resetThemeMutation, restoreThemeSelection, syncPersistedCustomTheme]);
+	};
 
-	const previewThemeById = useCallback((themeId: AppThemeId) => {
+	const previewThemeById = (themeId: AppThemeId) => {
 		setPreviewThemeId(themeId);
-	}, []);
+	};
 
-	const clearThemePreview = useCallback(() => {
+	const clearThemePreview = () => {
 		setPreviewThemeId(null);
-	}, []);
+	};
 
-	const value = useMemo(
-		() => ({
-			theme: displayedTheme.mode,
-			themeId: displayedTheme.id,
-			persistedThemeId: customThemeId,
-			systemThemeId,
-			hasCustomTheme: customThemeId !== null,
-			setThemeById,
-			resetTheme,
-			previewThemeById,
-			clearThemePreview,
-		}),
-		[
-			clearThemePreview,
-			customThemeId,
-			displayedTheme.id,
-			displayedTheme.mode,
-			previewThemeById,
-			resetTheme,
-			setThemeById,
-			systemThemeId,
-		],
-	);
+	const value = {
+		theme: displayedTheme.mode,
+		themeId: displayedTheme.id,
+		persistedThemeId: customThemeId,
+		systemThemeId,
+		hasCustomTheme: customThemeId !== null,
+		setThemeById,
+		resetTheme,
+		previewThemeById,
+		clearThemePreview,
+	};
 
 	return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>;
 }
 
 export function useTheme() {
 	//
-	const context = useContext(ThemeProviderContext);
+	const context = use(ThemeProviderContext);
 	if (!context) throw new Error('useTheme must be used within a ThemeProvider');
 
 	return context;

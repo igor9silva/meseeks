@@ -1,20 +1,8 @@
-import {
-	Button,
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '@reactor/ui';
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@reactor/ui';
 import { Plus, Settings2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { TaskConfig, TaskConfigColumn } from '~/server/taskIndexSchemas';
-import {
-	createDefaultColumn,
-	normalizeColumns,
-	validateColumns,
-} from './boardColumns';
+import { createDefaultColumn, normalizeColumns, validateColumns } from './boardColumns';
 import { BoardColumnEditor } from './BoardColumnEditor';
 
 export function BoardColumnsDialog({
@@ -28,11 +16,6 @@ export function BoardColumnsDialog({
 	const [isOpen, setIsOpen] = useState(false);
 	const [draftColumns, setDraftColumns] = useState(columns);
 	const canSaveColumns = validateColumns(draftColumns);
-
-	useEffect(() => {
-		if (!isOpen) return;
-		setDraftColumns(columns);
-	}, [columns, isOpen]);
 
 	const handleOpenChange = (nextIsOpen: boolean) => {
 		if (nextIsOpen) {

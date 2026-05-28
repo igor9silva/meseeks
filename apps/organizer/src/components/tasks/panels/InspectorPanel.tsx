@@ -33,13 +33,14 @@ export function InspectorPanel({ state, actions }: { state: InspectorPanelState;
 		<section className="flex h-full min-h-0 flex-col overflow-hidden border border-border/80 bg-card">
 			{state.createTaskDefaults !== null && (
 				<CreateTaskView
+					key={`${state.createTaskDefaults.taskSource}:${state.createTaskDefaults.parentPath}:${state.createTaskDefaults.status ?? ''}`}
 					defaults={state.createTaskDefaults}
 					onCancel={actions.onCreateCancel}
 					onTaskCreated={actions.onTaskCreated}
 				/>
 			)}
 			{!isCreatingTask && state.selectedTaskKey !== null && state.isDetailPending && (
-				<div className="p-4 text-sm text-muted-foreground">Loading task detail...</div>
+				<div className="p-4 text-sm text-muted-foreground">Loading task detail…</div>
 			)}
 			{state.shouldShowTaskNotFound && (
 				<div className="p-4 text-sm text-muted-foreground">Task not found in generated indexes.</div>

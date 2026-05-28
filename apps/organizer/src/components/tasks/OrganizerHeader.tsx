@@ -1,6 +1,6 @@
 import { Button, cn } from '@reactor/ui';
 import { ArrowLeft, Eye, EyeOff, Inbox, Plus, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { TaskSource } from '~/lib/explorerSearchParams';
 import { formatSourceLabel } from './taskExplorerUtils';
 
@@ -23,11 +23,7 @@ interface OrganizerHeaderProps {
 
 export function usePrivateTaskBlur() {
 	//
-	const [shouldBlurPrivateTasks, setShouldBlurPrivateTasks] = useState(false);
-
-	useEffect(() => {
-		setShouldBlurPrivateTasks(readShouldBlurPrivateTasks());
-	}, []);
+	const [shouldBlurPrivateTasks, setShouldBlurPrivateTasks] = useState(readShouldBlurPrivateTasks);
 
 	const togglePrivateBlur = () => {
 		setShouldBlurPrivateTasks((currentValue) => {
@@ -68,7 +64,7 @@ export function OrganizerHeader({
 					href="/"
 					aria-label="Organizer root"
 					title="Organizer root"
-					className="inline-flex h-10 w-10 items-center justify-center rounded-md text-foreground/80 hover:bg-accent hover:text-foreground"
+					className="inline-flex size-10 items-center justify-center rounded-md text-foreground/80 hover:bg-accent hover:text-foreground"
 				>
 					<Inbox className="size-5" />
 				</a>

@@ -2,7 +2,7 @@ import { useDebouncer } from '@reactor/ui/hooks/pacer';
 import type { Id } from 'convex/_generated/dataModel';
 import { api } from 'convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const SAVE_DEBOUNCE_MS = 500;
 
@@ -46,16 +46,18 @@ export function useDraftSync({
 	const hasPendingSaveRef = useRef(false);
 	const hasReceivedInitialDraftRef = useRef(false);
 	const hasLoadedServerDraftRef = useRef(false);
+	const [hasPendingSave, setHasPendingSave] = useState(false);
 
 	// stable refs for callbacks
 	const getLocalStateRef = useRef(getLocalState);
-	getLocalStateRef.current = getLocalState;
-
 	const onServerDraftReceivedRef = useRef(onServerDraftReceived);
-	onServerDraftReceivedRef.current = onServerDraftReceived;
-
 	const isSaveBlockedRef = useRef(isSaveBlocked);
-	isSaveBlockedRef.current = isSaveBlocked;
+
+	useEffect(() => {
+		getLocalStateRef.current = getLocalState;
+		onServerDraftReceivedRef.current = onServerDraftReceived;
+		isSaveBlockedRef.current = isSaveBlocked;
+	}, [getLocalState, isSaveBlocked, onServerDraftReceived]);
 
 	// debounced save
 	const saveDebouncer = useDebouncer(
@@ -70,6 +72,7 @@ export function useDraftSync({
 			}
 
 			hasPendingSaveRef.current = false;
+			setHasPendingSave(false);
 			//
 		},
 		{ wait: SAVE_DEBOUNCE_MS },
@@ -85,6 +88,7 @@ export function useDraftSync({
 		if (taskId !== lastTaskIdRef.current) {
 			cancelPendingSave();
 			hasPendingSaveRef.current = false;
+			setHasPendingSave(false);
 			hasReceivedInitialDraftRef.current = false;
 			lastTaskIdRef.current = taskId;
 			hasLoadedServerDraftRef.current = false;
@@ -150,36 +154,36 @@ export function useDraftSync({
 		return () => window.removeEventListener('beforeunload', handleBeforeUnload);
 	}, []);
 
-	const save = useCallback(
-		(queue: QueueItem[], message: string) => {
-			//
-			hasPendingSaveRef.current = true;
+	const save = (queue: QueueItem[], message: string) => {
+		//
+		hasPendingSaveRef.current = true;
+		setHasPendingSave(true);
 
-			if (!hasLoadedServerDraftRef.current) return;
-			if (isSaveBlockedRef.current) return;
+		if (!hasLoadedServerDraftRef.current) return;
+		if (isSaveBlockedRef.current) return;
 
-			queueSave(taskId, queue, message);
-		},
-		[taskId, queueSave],
-	);
+		queueSave(taskId, queue, message);
+	};
 
-	const clear = useCallback(() => {
+	const clear = () => {
 		//
 		cancelPendingSave();
 		hasPendingSaveRef.current = false;
+		setHasPendingSave(false);
 		clearDraftMutation({ taskId });
-	}, [taskId, cancelPendingSave, clearDraftMutation]);
+	};
 
-	const cancel = useCallback(() => {
+	const cancel = () => {
 		//
 		cancelPendingSave();
 		hasPendingSaveRef.current = false;
-	}, [cancelPendingSave]);
+		setHasPendingSave(false);
+	};
 
 	return {
 		save,
 		clear,
 		cancel,
-		hasPendingSave: hasPendingSaveRef.current || saveDebouncer.state,
+		hasPendingSave: hasPendingSave || saveDebouncer.state,
 	};
 }

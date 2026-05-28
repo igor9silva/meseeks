@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { usePrivateTaskBlur } from '~/components/tasks/OrganizerHeader';
 import { TaskBoard } from '~/components/tasks/TaskBoard';
 import { TaskExplorerWorkspace } from '~/components/tasks/TaskExplorerWorkspace';
@@ -21,10 +21,7 @@ import { getExplorerSnapshot, getTaskByPath, getTaskDetail } from '~/server/task
 import { RootCurrentPanel } from './root/RootCurrentPanel';
 import { CurrentTaskPanel } from './panels/CurrentTaskPanel';
 import { InspectorPanel } from './panels/InspectorPanel';
-import {
-	applyConfigDefaults,
-	createGlobalTaskConfig,
-} from './taskConfig';
+import { applyConfigDefaults, createGlobalTaskConfig } from './taskConfig';
 import type { CreateTaskDefaults, TaskDetailResult } from './taskExplorerTypes';
 import {
 	type ExpandedPanel,
@@ -44,21 +41,22 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 	//
 	const navigate = useNavigate();
 	const searchInputId = useId();
-	const { currentSource, currentPath } = useMemo(() => parseRoutePath(routePath), [routePath]);
+	const { currentSource, currentPath } = parseRoutePath(routePath);
 	const currentTaskKey = currentSource === null ? null : createTaskKey(currentSource, currentPath);
 	const selectedTaskKey = getSelectedTaskKey(search, currentSource, currentPath);
 	const explorerParentKey = getExplorerParentKey(currentTaskKey);
 	const activeConfigKey = currentTaskKey ?? '/';
-	const baseQueryInput = useMemo(() => parseExplorerQuery(search, explorerParentKey), [explorerParentKey, search]);
+	const baseQueryInput = parseExplorerQuery(search, explorerParentKey);
 	const routeExpandedPanel = parseExpandedPanel(search);
 	const hasExpandedSearch = hasExplicitExpandedPanel(search);
 	const [createTaskDefaults, setCreateTaskDefaults] = useState<CreateTaskDefaults | null>(null);
-	const defaultGlobalConfig = useMemo(() => createGlobalTaskConfig(), []);
+	const defaultGlobalConfig = createGlobalTaskConfig();
 	const { shouldBlurPrivateTasks, togglePrivateBlur } = usePrivateTaskBlur();
 	const getExplorerSnapshotServer = useServerFn(getExplorerSnapshot);
 	const getTaskByPathServer = useServerFn(getTaskByPath);
 	const getTaskDetailServer = useServerFn(getTaskDetail);
-	const isCreatingTask = createTaskDefaults !== null;
+	const activeCreateTaskDefaults = selectedTaskKey === null ? createTaskDefaults : null;
+	const isCreatingTask = activeCreateTaskDefaults !== null;
 
 	const currentTaskQuery = useQuery({
 		queryKey: ['task-current', currentSource, currentPath],
@@ -83,10 +81,7 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 					config: activeConfig,
 				}
 			: currentTask;
-	const queryInput = useMemo(
-		() => applyConfigDefaults(baseQueryInput, search, activeConfig),
-		[activeConfig, baseQueryInput, search],
-	);
+	const queryInput = applyConfigDefaults(baseQueryInput, search, activeConfig);
 
 	const explorerQuery = useQuery({
 		queryKey: ['tasks-explorer', queryInput],
@@ -107,38 +102,32 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 	const taskDetailData = taskDetailQuery.data;
 	const isTaskDetailPending = selectedTaskKey !== null && taskDetailQuery.isPending;
 
-	const updateSearch = useCallback(
-		(partial: Partial<ExplorerRouteSearch>, options: { replace?: boolean } = {}) => {
-			navigate({
-				to: '.',
-				search: {
-					...search,
-					...partial,
-				},
-				replace: options.replace ?? false,
-			});
-		},
-		[navigate, search],
-	);
+	const updateSearch = (partial: Partial<ExplorerRouteSearch>, options: { replace?: boolean } = {}) => {
+		navigate({
+			to: '.',
+			search: {
+				...search,
+				...partial,
+			},
+			replace: options.replace ?? false,
+		});
+	};
 
-	const updateQueryInput = useCallback(
-		(nextQuery: ExplorerQueryInput) => {
-			updateSearch(
-				{
-					q: nextQuery.q.length > 0 ? nextQuery.q : undefined,
-					sources: undefined,
-					tags: serializeCsv(nextQuery.tags),
-					excludedTags: serializeCsv(nextQuery.excludedTags) ?? '',
-					depth: undefined,
-					minDepth: undefined,
-					maxDepth: undefined,
-					sort: undefined,
-				},
-				{ replace: true },
-			);
-		},
-		[updateSearch],
-	);
+	const updateQueryInput = (nextQuery: ExplorerQueryInput) => {
+		updateSearch(
+			{
+				q: nextQuery.q.length > 0 ? nextQuery.q : undefined,
+				sources: undefined,
+				tags: serializeCsv(nextQuery.tags),
+				excludedTags: serializeCsv(nextQuery.excludedTags) ?? '',
+				depth: undefined,
+				minDepth: undefined,
+				maxDepth: undefined,
+				sort: undefined,
+			},
+			{ replace: true },
+		);
+	};
 	const { searchDraft, setSearchDraft } = useTaskExplorerSearchDraft({ queryInput, updateSearch });
 
 	useTaskExplorerTitle({
@@ -146,11 +135,6 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 		detailTitle: taskDetailData?.task?.title,
 		isCreatingTask,
 	});
-
-	useEffect(() => {
-		if (selectedTaskKey === null) return;
-		setCreateTaskDefaults(null);
-	}, [selectedTaskKey]);
 
 	const health = explorerQuery.data?.health;
 	const shouldShowIndexUnavailable = explorerQuery.isFetched && health !== undefined && !health.isReady;
@@ -225,24 +209,21 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 		}
 	};
 
-	const navigateToTask = useCallback(
-		(task: { taskSource: TaskSource; taskPath: string }) => {
-			const nextRoutePath = getTaskRoutePath(task);
-			if (nextRoutePath === '/') {
-				navigate({ to: '/', search: {} });
-				return;
-			}
+	const navigateToTask = (task: { taskSource: TaskSource; taskPath: string }) => {
+		const nextRoutePath = getTaskRoutePath(task);
+		if (nextRoutePath === '/') {
+			navigate({ to: '/', search: {} });
+			return;
+		}
 
-			navigate({
-				to: '/$',
-				params: {
-					_splat: nextRoutePath.replace(/^\/+/, ''),
-				},
-				search: {},
-			});
-		},
-		[navigate],
-	);
+		navigate({
+			to: '/$',
+			params: {
+				_splat: nextRoutePath.replace(/^\/+/, ''),
+			},
+			search: {},
+		});
+	};
 
 	const handleTaskCreated = (result: { taskKey: string; taskPath: string; taskSource: TaskSource }) => {
 		setCreateTaskDefaults(null);
@@ -342,28 +323,28 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 				isExpanded={expandedPanel === 'current'}
 				onCollapse={handleCurrentPanelCollapse}
 				onExpandedToggle={() => toggleExpandedPanel('current')}
-				/>
-			) : (
-				<CurrentTaskPanel
-					state={{
-						detail: currentTaskData,
-						isPending: currentTaskQuery.isPending,
-						isExpanded: expandedPanel === 'current',
-						shouldBlurPrivateTasks,
-						tagOptions: explorerQuery.data?.tagOptions ?? [],
-					}}
-					actions={{
-						onPanelCollapse: handleCurrentPanelCollapse,
-						onExpandedToggle: () => toggleExpandedPanel('current'),
-						onTaskSourceChanged: (newTaskKey) => handleNavigateToTaskKey(newTaskKey),
-						onTaskRenamed: (newTaskKey) => handleNavigateToTaskKey(newTaskKey),
-						onTaskTrashed: () => {
-							const parentPath = currentPath.split('/').slice(0, -1).join('/');
-							navigateToTask({ taskSource: currentSource, taskPath: parentPath });
-						},
-					}}
-				/>
-			);
+			/>
+		) : (
+			<CurrentTaskPanel
+				state={{
+					detail: currentTaskData,
+					isPending: currentTaskQuery.isPending,
+					isExpanded: expandedPanel === 'current',
+					shouldBlurPrivateTasks,
+					tagOptions: explorerQuery.data?.tagOptions ?? [],
+				}}
+				actions={{
+					onPanelCollapse: handleCurrentPanelCollapse,
+					onExpandedToggle: () => toggleExpandedPanel('current'),
+					onTaskSourceChanged: (newTaskKey) => handleNavigateToTaskKey(newTaskKey),
+					onTaskRenamed: (newTaskKey) => handleNavigateToTaskKey(newTaskKey),
+					onTaskTrashed: () => {
+						const parentPath = currentPath.split('/').slice(0, -1).join('/');
+						navigateToTask({ taskSource: currentSource, taskPath: parentPath });
+					},
+				}}
+			/>
+		);
 	const taskBoard = (
 		<TaskBoard
 			className="h-full"
@@ -410,7 +391,7 @@ export function TaskExplorerPage({ search, routePath }: { search: ExplorerRouteS
 	const inspectorPanel = shouldShowInspector ? (
 		<InspectorPanel
 			state={{
-				createTaskDefaults,
+				createTaskDefaults: activeCreateTaskDefaults,
 				selectedTaskKey,
 				detail: taskDetailData,
 				isDetailPending: isTaskDetailPending,

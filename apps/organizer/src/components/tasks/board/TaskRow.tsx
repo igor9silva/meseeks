@@ -13,13 +13,7 @@ import type { TaskListContext } from './taskListTypes';
 import type { ExplorerTask } from '../taskExplorerTypes';
 import { getTaskRoutePath } from '../taskExplorerRouting';
 
-export function TaskRow({
-	task,
-	taskList,
-}: {
-	task: ExplorerTask;
-	taskList: TaskListContext;
-}) {
+export function TaskRow({ task, taskList }: { task: ExplorerTask; taskList: TaskListContext }) {
 	//
 	const isSelected = taskList.selectedTaskKey === task.key;
 	const shouldBlurTask = taskList.shouldBlurPrivateTasks && task.taskSource === 'private';
@@ -59,9 +53,7 @@ function TaskRowTitle({ task, taskList }: { task: ExplorerTask; taskList: TaskLi
 
 	return (
 		<div className="flex min-w-0 items-start gap-2">
-			<div className="min-w-0 flex-1 break-words text-sm font-medium leading-5 text-foreground">
-				{task.title}
-			</div>
+			<div className="min-w-0 flex-1 break-words text-sm font-medium leading-5 text-foreground">{task.title}</div>
 			<a
 				href={taskHref}
 				aria-label={`Navigate into ${task.title}`}

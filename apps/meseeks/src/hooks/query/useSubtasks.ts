@@ -1,7 +1,6 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Id } from 'convex/_generated/dataModel';
-import { useMemo } from 'react';
 import { api } from 'convex/_generated/api';
 
 export function useSubtasks(parentId?: Id<'tasks'>) {
@@ -9,7 +8,7 @@ export function useSubtasks(parentId?: Id<'tasks'>) {
 	const query = convexQuery(api.tasks.findAll, { parentId });
 	const result = useSuspenseQuery(query);
 
-	const sortedSubtasks = useMemo(() => {
+	const sortedSubtasks = (() => {
 		//
 		if (!result.data) return [];
 
@@ -41,7 +40,7 @@ export function useSubtasks(parentId?: Id<'tasks'>) {
 		// inactive tasks don't need sorting (always "idle"), just append them
 		return sortedActiveTasks.concat(inactiveTasks);
 		//
-	}, [result.data]);
+	})();
 
 	return {
 		...result,

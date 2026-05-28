@@ -1,5 +1,5 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -63,14 +63,7 @@ export function QuickSeekContent({
 	const [intelligence, setIntelligence] = useState<IntelligenceKey | undefined>(undefined);
 	const [initialFunds, setInitialFunds] = useState(0.2);
 	const [hasUserSelectedIntelligence, setHasUserSelectedIntelligence] = useState(false);
-
-	// Automatically set intelligence based on budget unless user has manually selected one
-	useEffect(() => {
-		if (!hasUserSelectedIntelligence) {
-			const suggestedIntelligence = getIntelligenceForBudget(initialFunds);
-			setIntelligence(suggestedIntelligence);
-		}
-	}, [initialFunds, hasUserSelectedIntelligence]);
+	const selectedIntelligence = hasUserSelectedIntelligence ? intelligence : getIntelligenceForBudget(initialFunds);
 
 	// Handle manual intelligence selection - marks user as having made a manual choice
 	const handleIntelligenceChange = (newIntelligence: IntelligenceKey) => {
@@ -91,9 +84,9 @@ export function QuickSeekContent({
 		onTranscriptionComplete: setMessage,
 	});
 
-	const placeholder = useMemo(() => {
+	const [placeholder] = useState(() => {
 		return PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
-	}, []);
+	});
 
 	const handleStartRecording = async () => {
 		try {
@@ -114,7 +107,7 @@ export function QuickSeekContent({
 		const task = {
 			message: message.trim(),
 			initialFunds,
-			intelligence,
+			intelligence: selectedIntelligence,
 		};
 
 		addTask(task, {
@@ -220,7 +213,7 @@ export function QuickSeekContent({
 								<div className="flex items-center justify-between md:justify-end gap-2 flex-shrink-0">
 									<div className="flex items-center gap-2 min-w-0">
 										<IntelligenceSelector
-											value={intelligence}
+											value={selectedIntelligence}
 											onChange={handleIntelligenceChange}
 											ref={intelligenceSelectorRef}
 											className="min-w-0 flex-shrink"

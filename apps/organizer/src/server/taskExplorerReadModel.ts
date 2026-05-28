@@ -48,16 +48,15 @@ export function buildExplorerSnapshot(snapshotResult: SnapshotResult, input: Exp
 		normalizedQuery.q.length === 0 &&
 		normalizedQuery.tags.length === 0 &&
 		normalizedQuery.excludedTags.length === 0;
-	const hierarchyRanks =
-		shouldUseNavigationOrder
-			? buildHierarchyRanks(
-					snapshotResult,
-					normalizedQuery.parentKey,
-					normalizedQuery.minDepth,
-					normalizedQuery.maxDepth,
-					normalizedQuery.sort,
-				)
-			: null;
+	const hierarchyRanks = shouldUseNavigationOrder
+		? buildHierarchyRanks(
+				snapshotResult,
+				normalizedQuery.parentKey,
+				normalizedQuery.minDepth,
+				normalizedQuery.maxDepth,
+				normalizedQuery.sort,
+			)
+		: null;
 	const searchTokens = normalizedQuery.q
 		.toLowerCase()
 		.split(/\s+/)

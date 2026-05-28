@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, type RefObject } from 'react';
 
 interface UseInfiniteScrollProps {
 	loadMore: (numItems: number) => void;
@@ -18,7 +18,7 @@ export function useInfiniteScroll({
 	pageSize = 50,
 }: UseInfiniteScrollProps) {
 	//
-	const handleScroll = useCallback(() => {
+	const handleScroll = () => {
 		//
 		if (!hasMore || isLoading) return;
 
@@ -33,9 +33,9 @@ export function useInfiniteScroll({
 			loadMore(pageSize);
 		}
 		//
-	}, [loadMore, hasMore, isLoading, scrollContainerRef, threshold, pageSize]);
+	};
 
-	const checkContentHeight = useCallback(() => {
+	const checkContentHeight = () => {
 		//
 		if (!hasMore || isLoading) return;
 
@@ -49,7 +49,7 @@ export function useInfiniteScroll({
 			loadMore(pageSize);
 		}
 		//
-	}, [loadMore, hasMore, isLoading, scrollContainerRef, pageSize]);
+	};
 
 	useEffect(() => {
 		//

@@ -25,7 +25,9 @@ export function TaskTable({
 	const sortedRows = sortTaskRows(rows, sort);
 
 	if (rows.length === 0) {
-		return <div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">No tasks.</div>;
+		return (
+			<div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">No tasks.</div>
+		);
 	}
 
 	return (

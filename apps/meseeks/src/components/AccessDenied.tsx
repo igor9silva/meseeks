@@ -1,5 +1,5 @@
 import { useLocation, useRouter } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { signIn } from 'lib/auth-client';
 import { z } from 'zod/v3';
 import { LoadingButton } from '@reactor/ui/loading-button';
@@ -21,7 +21,7 @@ export function AccessDenied() {
 	const [isSigningInAnonymously, setIsSigningInAnonymously] = useState(false);
 	const authError = authErrorSearchSchema.parse(search).error;
 
-	const callbackUrl = useMemo(() => {
+	const callbackUrl = (() => {
 		//
 		// use the router's location builder so auth callbacks follow the same search serialization rules
 		// as the rest of the app while stripping the one-off oauth error param.
@@ -36,16 +36,16 @@ export function AccessDenied() {
 
 		return new URL(callbackPath, window.location.origin).href;
 		//
-	}, [hash, pathname, router]);
+	})();
 
-	const errorMessage = useMemo(() => {
+	const errorMessage = (() => {
 		//
 		if (!authError) return;
 		if (authError === 'unable_to_create_user') return 'We could not create your account. Try again.';
 
 		return `Sign in failed: ${authError}`;
 		//
-	}, [authError]);
+	})();
 
 	const handleSignIn = async () => {
 		//

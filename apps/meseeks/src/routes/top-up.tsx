@@ -4,6 +4,7 @@ import { TopUpCard } from '~/components/TopUpCard';
 import { TopUpItem } from '~/components/TopUpItem';
 import { useTopUpHistory, useWaitingTopUps } from '~/hooks/query/useTopUps';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/top-up')({
 	component: RouteComponent,
 });
@@ -40,7 +41,7 @@ export function RouteComponent() {
 	);
 }
 
-function TopUpHistory() {
+export function TopUpHistory() {
 	//
 	const { topUpHistory } = useTopUpHistory();
 

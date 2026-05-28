@@ -16,7 +16,7 @@ export function TagsShell({ children }: { children: ReactNode }) {
 				onPrivateBlurToggle={togglePrivateBlur}
 			/>
 			<div className="min-h-0 flex-1 overflow-auto">
-				<div className="flex w-full max-w-none flex-col gap-6 px-6 py-6">{children}</div>
+				<div className="flex w-full max-w-none flex-col gap-6 p-6">{children}</div>
 			</div>
 		</main>
 	);

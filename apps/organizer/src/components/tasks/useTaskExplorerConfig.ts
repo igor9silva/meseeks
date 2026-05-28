@@ -1,13 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { getOrganizerConfig, updateOrganizerConfig } from '~/server/organizerConfig';
 import type { TaskConfig } from '~/server/taskIndexSchemas';
-import {
-	areTaskConfigsEqual,
-	mergeTaskConfig,
-	type TaskConfigPatch,
-} from './taskConfig';
+import { areTaskConfigsEqual, mergeTaskConfig, type TaskConfigPatch } from './taskConfig';
 
 interface TaskExplorerConfigInput {
 	activeConfigKey: string;
@@ -32,7 +28,10 @@ export function useTaskExplorerConfig({
 	});
 	const savedActiveConfig = organizerConfigQuery.data?.entries[activeConfigKey] ?? null;
 	const baseActiveConfig = savedActiveConfig ?? currentTaskConfig ?? defaultGlobalConfig;
-	const activeConfig = configOverride?.configKey === activeConfigKey ? configOverride.config : baseActiveConfig;
+	const shouldUseOverride =
+		configOverride?.configKey === activeConfigKey &&
+		(savedActiveConfig === null || !areTaskConfigsEqual(savedActiveConfig, configOverride.config));
+	const activeConfig = shouldUseOverride ? configOverride.config : baseActiveConfig;
 	const updateOrganizerConfigMutation = useMutation({
 		mutationFn: (input: { configKey: string; config: TaskConfig }) =>
 			updateOrganizerConfigServer({
@@ -42,15 +41,6 @@ export function useTaskExplorerConfig({
 			await queryClient.invalidateQueries({ queryKey: ['organizer-config'] });
 		},
 	});
-
-	useEffect(() => {
-		if (configOverride === null) return;
-		if (configOverride.configKey !== activeConfigKey) return;
-		if (savedActiveConfig === null) return;
-		if (!areTaskConfigsEqual(savedActiveConfig, configOverride.config)) return;
-
-		setConfigOverride(null);
-	}, [activeConfigKey, configOverride, savedActiveConfig]);
 
 	function persistTaskConfigPatch(patch: TaskConfigPatch): void {
 		//

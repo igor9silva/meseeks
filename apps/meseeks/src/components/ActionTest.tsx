@@ -1,5 +1,5 @@
 import { Id } from 'convex/_generated/dataModel';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Action } from '~/components/Action';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@reactor/ui/card';
@@ -51,38 +51,12 @@ const DEFAULT_ACTION = `{
 export function ActionTest({ className }: { className?: string }) {
 	//
 	const [actionJSON, setActionJSON] = useState(DEFAULT_ACTION);
-	const [parsedAction, setParsedAction] = useState<z.infer<typeof actionSchema> | null>(null);
-	const [error, setError] = useState<string>('');
-
-	// Auto-parse when JSON changes
-	useEffect(() => {
-		//
-		try {
-			const parsed = JSON.parse(actionJSON);
-
-			// Basic validation
-			const requiredFields = ['_id', 'skillKey', 'status', 'args'];
-			const missingFields = requiredFields.filter((field) => !(field in parsed));
-
-			if (missingFields.length > 0) {
-				setError(`Missing required fields: ${missingFields.join(', ')}`);
-				setParsedAction(null);
-				return;
-			}
-
-			setParsedAction(parsed as z.infer<typeof actionSchema>);
-			setError('');
-		} catch (err) {
-			setError(`Invalid JSON: ${err instanceof Error ? err.message : 'Unknown error'}`);
-			setParsedAction(null);
-		}
-	}, [actionJSON]);
+	const [previewDate] = useState(() => new Date(Date.now() - 1000));
+	const { action: parsedAction, error } = parseActionJson(actionJSON);
 
 	const handleReset = () => {
 		//
 		setActionJSON(DEFAULT_ACTION);
-		setParsedAction(null);
-		setError('');
 	};
 
 	const handleStatusChange = (newStatus: z.infer<typeof actionSchema>['status']) => {
@@ -94,8 +68,6 @@ export function ActionTest({ className }: { className?: string }) {
 			status: newStatus,
 		};
 
-		// @ts-expect-error
-		setParsedAction(updatedAction);
 		setActionJSON(JSON.stringify(updatedAction, null, 2));
 	};
 
@@ -172,7 +144,7 @@ export function ActionTest({ className }: { className?: string }) {
 									<Action
 										// @ts-expect-error
 										action={parsedAction}
-										initialRenderDate={new Date(Date.now() - 1000)} // 1 second ago
+										initialRenderDate={previewDate}
 										isAuthorCurrentUser={false}
 										taskId={'test-task-id' as Id<'tasks'>}
 									/>
@@ -186,7 +158,7 @@ export function ActionTest({ className }: { className?: string }) {
 									<Action
 										// @ts-expect-error
 										action={parsedAction}
-										initialRenderDate={new Date(Date.now() - 1000)} // 1 second ago
+										initialRenderDate={previewDate}
 										isAuthorCurrentUser={true}
 										taskId={'test-task-id' as Id<'tasks'>}
 									/>
@@ -202,4 +174,26 @@ export function ActionTest({ className }: { className?: string }) {
 			</div>
 		</div>
 	);
+}
+
+function parseActionJson(actionJSON: string): { action: z.infer<typeof actionSchema> | null; error: string } {
+	try {
+		const parsed = JSON.parse(actionJSON);
+		const requiredFields = ['_id', 'skillKey', 'status', 'args'];
+		const missingFields = requiredFields.filter((field) => !(field in parsed));
+
+		if (missingFields.length > 0) {
+			return {
+				action: null,
+				error: `Missing required fields: ${missingFields.join(', ')}`,
+			};
+		}
+
+		return { action: parsed as z.infer<typeof actionSchema>, error: '' };
+	} catch (err) {
+		return {
+			action: null,
+			error: `Invalid JSON: ${err instanceof Error ? err.message : 'Unknown error'}`,
+		};
+	}
 }

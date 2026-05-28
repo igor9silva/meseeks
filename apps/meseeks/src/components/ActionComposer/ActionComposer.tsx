@@ -1,5 +1,5 @@
 import type { Doc } from 'convex/_generated/dataModel';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { TooltipProvider } from '@reactor/ui/tooltip';
 import { useComposer } from '~/hooks/useComposer';
 import { useExpandingTextarea } from '@reactor/ui/hooks/useExpandingTextarea';
@@ -70,12 +70,9 @@ export function ActionComposer({ task, onSubmit, className }: ActionComposerProp
 
 	// computed states for UI
 	const isComposing = !isLocalEmpty || queue.length > 0;
-	const isBlocked = useMemo(() => task.status === 'blocked' && isLocalEmpty, [task.status, isLocalEmpty]);
-	const isTaskActing = useMemo(() => task.status === 'acting' && isLocalEmpty, [task.status, isLocalEmpty]);
-	const canRequestIteration = useMemo(
-		() => isLocalEmpty && !isBlocked && !isTaskActing && queue.length === 0,
-		[isLocalEmpty, isBlocked, isTaskActing, queue.length],
-	);
+	const isBlocked = task.status === 'blocked' && isLocalEmpty;
+	const isTaskActing = task.status === 'acting' && isLocalEmpty;
+	const canRequestIteration = isLocalEmpty && !isBlocked && !isTaskActing && queue.length === 0;
 
 	const handleAct = async () => {
 		//

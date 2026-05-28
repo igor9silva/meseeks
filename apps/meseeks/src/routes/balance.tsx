@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
 import { asDollars } from 'lib/money';
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 import { z } from 'zod/v3';
 import { ActiveTasksTab } from '~/components/balance/ActiveTasksTab';
 import { LowBalanceWarning } from '~/components/balance/LowBalanceWarning';
@@ -17,12 +17,13 @@ const searchSchema = z.object({
 	tab: z.enum(['transactions', 'active-tasks']).optional(),
 });
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/balance')({
 	component: RouteComponent,
 	validateSearch: searchSchema,
 });
 
-function RouteComponent() {
+export function RouteComponent() {
 	//
 	const user = useCurrentUser();
 	const navigate = useNavigate();
@@ -34,20 +35,17 @@ function RouteComponent() {
 
 	const currentTab = tab || 'transactions';
 
-	const handleTabChange = useCallback(
-		(value: string) => {
-			const newTab = value === 'transactions' ? undefined : (value as 'active-tasks');
-			navigate({
-				to: '/balance',
-				search: { tab: newTab },
-				replace: true,
-			});
-		},
-		[navigate],
-	);
+	const handleTabChange = (value: string) => {
+		const newTab = value === 'transactions' ? undefined : (value as 'active-tasks');
+		navigate({
+			to: '/balance',
+			search: { tab: newTab },
+			replace: true,
+		});
+	};
 
 	track('balance', {
-		balance: asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 10 }),
+		balance: asDollars({ bigInt: user.balanceUSD ?? BigInt('0'), precision: 10 }),
 		lockedBalance: asDollars({ bigInt: lockedBalance, precision: 10 }),
 	});
 
@@ -60,7 +58,7 @@ function RouteComponent() {
 						Your current non-locked balance is{' '}
 						<EnergyTooltip>
 							<span className="font-bold">
-								{asDollars({ bigInt: user.balanceUSD ?? 0n, precision: 6 })}⚡
+								{asDollars({ bigInt: user.balanceUSD ?? BigInt('0'), precision: 6 })}⚡
 							</span>
 						</EnergyTooltip>
 						.
@@ -79,7 +77,7 @@ function RouteComponent() {
 				</div>
 			</Link>
 
-			<LowBalanceWarning balance={user.balanceUSD ?? 0n} />
+			<LowBalanceWarning balance={user.balanceUSD ?? BigInt('0')} />
 			<TopUpSection isPro={isPro} user={user} />
 
 			<Tabs value={currentTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">

@@ -1,5 +1,5 @@
 import { Id } from 'convex/_generated/dataModel';
-import { createContext, useContext, useState } from 'react';
+import { createContext, use, useState } from 'react';
 
 interface ScheduleDialogContextType {
 	isOpen: boolean;
@@ -12,7 +12,7 @@ const ScheduleDialogContext = createContext<ScheduleDialogContextType | null>(nu
 
 export function useScheduleDialog() {
 	//
-	const context = useContext(ScheduleDialogContext);
+	const context = use(ScheduleDialogContext);
 
 	if (!context) {
 		throw new Error('useScheduleDialog must be used within ScheduleDialogProvider');

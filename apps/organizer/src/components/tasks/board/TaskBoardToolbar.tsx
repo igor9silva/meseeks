@@ -5,16 +5,10 @@ import { DepthRangeControl } from './DepthRangeControl';
 import type { TaskBoardHeaderActions, TaskBoardHeaderState } from './TaskBoardHeaderTypes';
 import { ViewTabs } from './ViewTabs';
 
-export function TaskBoardToolbar({
-	state,
-	actions,
-}: {
-	state: TaskBoardHeaderState;
-	actions: TaskBoardHeaderActions;
-}) {
+export function TaskBoardToolbar({ state, actions }: { state: TaskBoardHeaderState; actions: TaskBoardHeaderActions }) {
 	//
 	return (
-		<div className="flex flex-wrap items-center gap-2 border-t border-border/80 px-3 py-3">
+		<div className="flex flex-wrap items-center gap-2 border-t border-border/80 p-3">
 			<div className="relative min-w-80 flex-1">
 				<label className="sr-only" htmlFor={state.searchInputId}>
 					Search tasks

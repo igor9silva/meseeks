@@ -3,7 +3,7 @@ export const UnlimitedUsageFaq = {
 	answer: (
 		<div className="space-y-3 text-muted-foreground leading-relaxed">
 			<p>
-				That you can have as many tasks, actions, skills, loops, compositions — and much more to come — as you
+				That you can have as many tasks, actions, skills, loops, compositions, and much more to come, as you
 				want.
 			</p>
 			<p>

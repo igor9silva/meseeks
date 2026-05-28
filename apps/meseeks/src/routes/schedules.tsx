@@ -4,11 +4,12 @@ import { CalendarIcon } from 'lucide-react';
 import { ScheduleCard } from '~/components/schedules/ScheduleCard';
 import { useSchedules } from '~/hooks/query/useSchedules';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/schedules')({
 	component: SchedulesPage,
 });
 
-function SchedulesPage() {
+export function SchedulesPage() {
 	//
 	const { schedules } = useSchedules();
 

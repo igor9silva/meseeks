@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import { z } from 'zod/v3';
 import { useTheme } from '~/components/ThemeProvider';
 import { BASE_THEME_VARIABLES, themeVariablesSchema } from '~/lib/themes/catalog';
@@ -18,13 +16,13 @@ export function useThemeVariables() {
 	//
 	const { themeId } = useTheme();
 
-	const themeVariables = useMemo(() => {
+	const themeVariables = (() => {
 		const theme = getRequiredTheme(themeId);
 		return renderThemeVariablesSchema.parse({
 			...BASE_THEME_VARIABLES,
 			...theme.variables,
 		});
-	}, [themeId]);
+	})();
 
 	return { themeVariables, themeUpdateKey: themeId };
 }

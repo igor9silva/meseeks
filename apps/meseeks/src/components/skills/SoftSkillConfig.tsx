@@ -1,6 +1,5 @@
 import { DEFAULT_INTELLIGENCE, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { Badge } from '@reactor/ui/badge';
 import { Button } from '@reactor/ui/button';
@@ -37,22 +36,10 @@ export default function SoftSkillConfig({
 	isEditable = true,
 }: SoftSkillConfigProps) {
 	//
-	const [intelligenceMode, setIntelligenceMode] = useState<IntelligenceMode>(
-		model === 'auto' || !model ? 'automatic' : 'specific',
-	);
-
-	// Update intelligence mode when model changes externally
-	useEffect(() => {
-		if (model === 'auto' || !model) {
-			setIntelligenceMode('automatic');
-		} else {
-			setIntelligenceMode('specific');
-		}
-	}, [model]);
+	const intelligenceMode: IntelligenceMode = model === 'auto' || !model ? 'automatic' : 'specific';
 
 	const handleIntelligenceModeChange = (mode: IntelligenceMode) => {
 		//
-		setIntelligenceMode(mode);
 		if (mode === 'automatic') {
 			onModelChange('auto');
 		} else {
@@ -135,7 +122,7 @@ export default function SoftSkillConfig({
 					>
 						Temperature
 					</LabelWithTooltip>
-					<div className="flex flex-col space-y-2">
+					<div className="flex flex-col gap-y-2">
 						<div className="flex justify-between items-center">
 							<span className="text-sm text-muted-foreground">Deterministic</span>
 							<span className="text-sm font-medium tabular-nums">{temperature.toFixed(2)}</span>

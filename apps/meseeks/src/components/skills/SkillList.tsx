@@ -27,9 +27,9 @@ export function SkillList({
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center space-x-2">
+			<div className="flex items-center gap-x-2">
 				<Input
-					placeholder="Search skills..."
+					placeholder="Search skills…"
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
 				/>

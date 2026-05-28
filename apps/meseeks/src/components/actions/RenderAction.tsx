@@ -75,7 +75,13 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErr
 function RenderActionContent(props: ActionComponentProps) {
 	//
 	const { action, isAuthorCurrentUser, className } = props;
-	const fullscreen = useFullscreenAction();
+	const {
+		containerRef,
+		handleOpenDoubleTap,
+		isFullscreen,
+		placeholderStyle,
+		toggle: toggleFullscreen,
+	} = useFullscreenAction();
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 
 	// Get pre-transpiled code from action result
@@ -85,7 +91,6 @@ function RenderActionContent(props: ActionComponentProps) {
 
 	// Use iframe renderer hook with pre-transpiled code
 	const { iframeHtml } = useIframeRenderer({ code: transpiledCode });
-	const toggleFullscreen = fullscreen.toggle;
 
 	useEffect(() => {
 		//
@@ -107,10 +112,10 @@ function RenderActionContent(props: ActionComponentProps) {
 		<>
 			{/* Container for relative positioning context - never hidden */}
 			<div
-				ref={fullscreen.containerRef}
-				style={fullscreen.placeholderStyle}
-				className={cn('relative group', className, fullscreen.isFullscreen ? 'pointer-events-none' : '')}
-				onTouchEnd={fullscreen.isFullscreen ? undefined : fullscreen.handleOpenDoubleTap}
+				ref={containerRef}
+				style={placeholderStyle}
+				className={cn('relative group', className, isFullscreen ? 'pointer-events-none' : '')}
+				onTouchEnd={isFullscreen ? undefined : handleOpenDoubleTap}
 			>
 				{/* Single persistent iframe that changes position only */}
 				{iframeHtml && (
@@ -120,13 +125,12 @@ function RenderActionContent(props: ActionComponentProps) {
 						title="Rendered Composition"
 						className={cn(
 							'border-none pointer-events-auto',
-							fullscreen.isFullscreen
+							isFullscreen
 								? 'fixed inset-0 z-50 w-full h-full overscroll-contain'
 								: 'w-full min-h-96 overflow-auto rounded-3xl',
 							{
-								'bg-primary text-primary-foreground': isAuthorCurrentUser && !fullscreen.isFullscreen,
-								'bg-secondary text-secondary-foreground':
-									!isAuthorCurrentUser && !fullscreen.isFullscreen,
+								'bg-primary text-primary-foreground': isAuthorCurrentUser && !isFullscreen,
+								'bg-secondary text-secondary-foreground': !isAuthorCurrentUser && !isFullscreen,
 							},
 						)}
 					/>
@@ -136,11 +140,11 @@ function RenderActionContent(props: ActionComponentProps) {
 				<RenderActionControls
 					action={action}
 					code={originalCode}
-					isFullscreen={fullscreen.isFullscreen}
-					onToggleFullscreen={fullscreen.toggle}
+					isFullscreen={isFullscreen}
+					onToggleFullscreen={toggleFullscreen}
 					className={cn(
 						'flex gap-1 transition-opacity pointer-events-auto',
-						fullscreen.isFullscreen
+						isFullscreen
 							? 'fixed top-4 right-4 opacity-70 hover:opacity-100 z-[60]'
 							: 'absolute top-2 right-2 opacity-0 group-hover:opacity-50 hover:!opacity-100 z-10',
 					)}

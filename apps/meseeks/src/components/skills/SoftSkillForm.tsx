@@ -1,7 +1,7 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Doc } from 'convex/_generated/dataModel';
 import type { IntelligenceKey } from 'schemas/intelligenceSchema';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import SoftSkillConfig from '~/components/skills/SoftSkillConfig';
 import { BasicSkillFields } from '~/components/skills/shared/BasicSkillFields';
 import { SkillFormActions } from '~/components/skills/shared/SkillFormActions';
@@ -26,6 +26,7 @@ export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) 
 		defaultValues: getDefaultSoftSkill(skill),
 		mode: 'onChange',
 	});
+	const config = useWatch({ control: form.control, name: 'config' });
 
 	const { submitSkill, handleFormError, isSubmitting } = useSkillFormSubmit(skill, buildSoftSkillFromForm);
 
@@ -37,13 +38,13 @@ export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) 
 
 				{/* Soft skill specific configuration */}
 				<SoftSkillConfig
-					model={form.watch('config.model') as IntelligenceKey | 'auto'}
+					model={config.model as IntelligenceKey | 'auto'}
 					onModelChange={(value: IntelligenceKey | 'auto') => form.setValue('config.model', value as any)}
-					temperature={form.watch('config.temperature')}
+					temperature={config.temperature}
 					onTemperatureChange={(value: number) => form.setValue('config.temperature', value)}
-					instructions={form.watch('config.instructions')}
+					instructions={config.instructions}
 					onInstructionsChange={(value: string) => form.setValue('config.instructions', value)}
-					availableSkills={form.watch('config.availableSkills')}
+					availableSkills={config.availableSkills}
 					onAvailableSkillsChange={(skills: string[]) => form.setValue('config.availableSkills', skills)}
 					isEditable={isEditable}
 				/>

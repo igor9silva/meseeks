@@ -26,12 +26,7 @@ export function BoardView({
 	return (
 		<div className="flex min-h-full min-w-0 border-t border-border/80">
 			{visibleColumns.map(({ column, tasks: columnTasks }) => (
-				<TaskColumn
-					key={column.id}
-					title={column.label}
-					tasks={columnTasks}
-					taskList={taskList}
-				/>
+				<TaskColumn key={column.id} title={column.label} tasks={columnTasks} taskList={taskList} />
 			))}
 			{unsortedTasks.length > 0 ? (
 				<TaskColumn title="Unsorted" tasks={unsortedTasks} taskList={taskList} />

@@ -12,11 +12,12 @@ export function usePersonalSkills() {
 	const query = convexQuery(api.skills.findAllPersonal, {});
 	const result = useSuspenseQuery(query);
 
-	result.data = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
+	const skills = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
 
 	return {
 		...result,
-		skills: result.data,
+		data: skills,
+		skills,
 	};
 }
 
@@ -25,11 +26,12 @@ export function usePublicSkills() {
 	const query = convexQuery(api.skills.findAllPublic, {});
 	const result = useSuspenseQuery(query);
 
-	result.data = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
+	const skills = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
 
 	return {
 		...result,
-		skills: result.data,
+		data: skills,
+		skills,
 	};
 }
 

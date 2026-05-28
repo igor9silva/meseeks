@@ -126,10 +126,14 @@ export function TaskDetailFilename({
 						onClick={onFilePathCopy}
 						className="relative self-start disabled:opacity-100"
 					>
-						<div className={`transition-all ${isFilePathCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}>
+						<div
+							className={`transition-all ${isFilePathCopied ? 'scale-100 opacity-100' : 'scale-0 opacity-0'}`}
+						>
 							<Check className="size-3 stroke-emerald-500" aria-hidden="true" />
 						</div>
-						<div className={`absolute transition-all ${isFilePathCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}>
+						<div
+							className={`absolute transition-all ${isFilePathCopied ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
+						>
 							<Copy className="size-3" aria-hidden="true" />
 						</div>
 					</Button>

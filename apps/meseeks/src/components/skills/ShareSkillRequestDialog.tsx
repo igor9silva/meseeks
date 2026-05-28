@@ -57,9 +57,9 @@ export function ShareSkillRequestDialog({
 			} catch (error) {
 				console.error('Error submitting request:', error);
 				toast.error('Failed to submit request. Please try again later.');
-			} finally {
-				setIsSubmitting(false);
 			}
+
+			setIsSubmitting(false);
 		},
 	});
 
@@ -79,7 +79,7 @@ export function ShareSkillRequestDialog({
 							<br />
 							<br />
 							Sharing skills enable other users to use skills you taught your Meseeks (for free, or for a
-							fee — it's up to you)!
+							fee, it's up to you)!
 						</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">
@@ -107,7 +107,7 @@ export function ShareSkillRequestDialog({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting || isOverLimit || !message.trim()}>
-							{isSubmitting ? 'Submitting...' : 'Request access'}
+							{isSubmitting ? 'Submitting…' : 'Request access'}
 						</Button>
 					</DialogFooter>
 				</form>

@@ -5,7 +5,7 @@ import { cn } from '@reactor/ui/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@reactor/ui/sheet';
 import { ArrowLeftRight, History, Languages, Loader2, Mic, MicOff, VolumeX, Waves } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type LanguageCode = 'en' | 'pt' | 'zh' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'hi' | 'it';
 type SideKey = 'a' | 'b';
@@ -77,6 +77,7 @@ const languageByCode = Object.fromEntries(languages.map((language) => [language.
 	LanguageOption
 >;
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/translate')({
 	component: RouteComponent,
 	head: () => ({
@@ -90,7 +91,7 @@ export const Route = createFileRoute('/translate')({
 	}),
 });
 
-function RouteComponent() {
+export function RouteComponent() {
 	const [languagePair, setLanguagePair] = useState<Record<SideKey, LanguageCode>>({ a: 'pt', b: 'en' });
 	const [voiceTargetSide, setVoiceTargetSide] = useState<SideKey | null>(null);
 	const [status, setStatus] = useState<ConnectionStatus>('setup');
@@ -129,7 +130,7 @@ function RouteComponent() {
 		});
 	}, [status, languagePair]);
 
-	const updateLanguage = useCallback((side: SideKey, nextLanguage: LanguageCode) => {
+	const updateLanguage = (side: SideKey, nextLanguage: LanguageCode) => {
 		setLanguagePair((current) => {
 			const otherSide = oppositeSide(side);
 			if (current[side] === nextLanguage) return current;
@@ -141,13 +142,13 @@ function RouteComponent() {
 				[otherSide]: current[side] === nextLanguage ? firstDifferentLanguage(nextLanguage) : current[side],
 			};
 		});
-	}, []);
+	};
 
-	const swapLanguages = useCallback(() => {
+	const swapLanguages = () => {
 		setLanguagePair((current) => ({ a: current.b, b: current.a }));
-	}, []);
+	};
 
-	const commitRound = useCallback(() => {
+	const commitRound = () => {
 		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
 		roundCommitTimerRef.current = null;
 
@@ -178,9 +179,9 @@ function RouteComponent() {
 
 		roundDraftRef.current = createRoundDraft(languagePairRef.current);
 		setActivity('listening');
-	}, []);
+	};
 
-	const beginRound = useCallback(() => {
+	const beginRound = () => {
 		const draft = roundDraftRef.current;
 		if (hasRoundContent(draft)) return draft;
 
@@ -188,76 +189,67 @@ function RouteComponent() {
 		setHeardText('');
 		setLiveText({ a: '', b: '' });
 		return draft;
-	}, []);
+	};
 
-	const scheduleRoundCommit = useCallback(() => {
+	const scheduleRoundCommit = () => {
 		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
 		roundCommitTimerRef.current = setTimeout(commitRound, roundSettleMs);
-	}, [commitRound]);
+	};
 
-	const handleInputDelta = useCallback(
-		(delta: string) => {
-			const draft = beginRound();
-			draft.heardText += delta;
-			const nextInput = draft.heardText.trim();
-			setHeardText(nextInput);
-			setActivity('hearing');
+	const handleInputDelta = (delta: string) => {
+		const draft = beginRound();
+		draft.heardText += delta;
+		const nextInput = draft.heardText.trim();
+		setHeardText(nextInput);
+		setActivity('hearing');
 
-			scheduleRoundCommit();
-		},
-		[beginRound, scheduleRoundCommit],
-	);
+		scheduleRoundCommit();
+	};
 
-	const handleOutputDelta = useCallback(
-		(targetSide: SideKey, delta: string) => {
-			const draft = beginRound();
-			const existingDraft = draft.outputs[targetSide];
-			const nextText = existingDraft ? existingDraft + delta : delta;
-			draft.outputs[targetSide] = nextText;
-			setLiveText((current) => ({ ...current, [targetSide]: nextText.trim() }));
-			setActivity('speaking');
-			scheduleRoundCommit();
-		},
-		[beginRound, scheduleRoundCommit],
-	);
+	const handleOutputDelta = (targetSide: SideKey, delta: string) => {
+		const draft = beginRound();
+		const existingDraft = draft.outputs[targetSide];
+		const nextText = existingDraft ? existingDraft + delta : delta;
+		draft.outputs[targetSide] = nextText;
+		setLiveText((current) => ({ ...current, [targetSide]: nextText.trim() }));
+		setActivity('speaking');
+		scheduleRoundCommit();
+	};
 
-	const handleRealtimeEvent = useCallback(
-		(targetSide: SideKey, shouldCaptureInput: boolean, event: RealtimeEvent) => {
-			switch (event.type) {
-				case 'session.created':
-				case 'session.updated':
-					setActivity('listening');
-					break;
+	const handleRealtimeEvent = (targetSide: SideKey, shouldCaptureInput: boolean, event: RealtimeEvent) => {
+		switch (event.type) {
+			case 'session.created':
+			case 'session.updated':
+				setActivity('listening');
+				break;
 
-				case 'session.input_transcript.delta':
-					if (shouldCaptureInput && event.delta) handleInputDelta(event.delta);
-					break;
+			case 'session.input_transcript.delta':
+				if (shouldCaptureInput && event.delta) handleInputDelta(event.delta);
+				break;
 
-				case 'session.output_transcript.delta':
-					if (event.delta) handleOutputDelta(targetSide, event.delta);
-					break;
+			case 'session.output_transcript.delta':
+				if (event.delta) handleOutputDelta(targetSide, event.delta);
+				break;
 
-				case 'session.output_transcript.done':
-					if (event.text || event.transcript) {
-						const finalText = event.text ?? event.transcript ?? '';
-						const draft = beginRound();
-						draft.outputs[targetSide] = finalText;
-						setLiveText((current) => ({ ...current, [targetSide]: finalText.trim() }));
-					}
-					scheduleRoundCommit();
-					break;
+			case 'session.output_transcript.done':
+				if (event.text || event.transcript) {
+					const finalText = event.text ?? event.transcript ?? '';
+					const draft = beginRound();
+					draft.outputs[targetSide] = finalText;
+					setLiveText((current) => ({ ...current, [targetSide]: finalText.trim() }));
+				}
+				scheduleRoundCommit();
+				break;
 
-				case 'error':
-					setError(event.error?.message ?? 'The translator hit a realtime error.');
-					setStatus('error');
-					setActivity('quiet');
-					break;
-			}
-		},
-		[beginRound, handleInputDelta, handleOutputDelta, scheduleRoundCommit],
-	);
+			case 'error':
+				setError(event.error?.message ?? 'The translator hit a realtime error.');
+				setStatus('error');
+				setActivity('quiet');
+				break;
+		}
+	};
 
-	const cleanupSession = useCallback(() => {
+	const cleanupSession = () => {
 		if (roundCommitTimerRef.current) clearTimeout(roundCommitTimerRef.current);
 		roundCommitTimerRef.current = null;
 
@@ -271,24 +263,24 @@ function RouteComponent() {
 		mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
 		mediaStreamRef.current = null;
 		roundDraftRef.current = createRoundDraft(languagePairRef.current);
-	}, []);
+	};
 
-	const stopSession = useCallback(() => {
+	const stopSession = () => {
 		commitRound();
 		cleanupSession();
 		setStatus('idle');
 		setActivity('quiet');
-	}, [cleanupSession, commitRound]);
+	};
 
 	useEffect(() => cleanupSession, [cleanupSession]);
 
-	const openLanguageSetup = useCallback(() => {
+	const openLanguageSetup = () => {
 		stopSession();
 		setStatus('setup');
 		setError(null);
-	}, [stopSession]);
+	};
 
-	const startSession = useCallback(async () => {
+	const startSession = async () => {
 		if (isBusy || isLive) return;
 
 		if (languagePair.a === languagePair.b) {
@@ -304,11 +296,15 @@ function RouteComponent() {
 		setStatus('starting');
 		setActivity('quiet');
 
-		try {
-			if (!navigator.mediaDevices?.getUserMedia) {
-				throw new Error('This browser does not expose microphone access.');
-			}
+		if (!navigator.mediaDevices?.getUserMedia) {
+			cleanupSession();
+			setStatus('error');
+			setActivity('quiet');
+			setError('This browser does not expose microphone access.');
+			return;
+		}
 
+		try {
 			const stream = await navigator.mediaDevices.getUserMedia({
 				audio: {
 					echoCancellation: true,
@@ -350,7 +346,7 @@ function RouteComponent() {
 			setActivity('quiet');
 			setError(error instanceof Error ? error.message : 'Could not start the translator.');
 		}
-	}, [cleanupSession, handleRealtimeEvent, isBusy, isLive, languagePair]);
+	};
 
 	if (status === 'setup') {
 		return (
@@ -384,7 +380,7 @@ function RouteComponent() {
 
 					<div className="space-y-3 pb-2">
 						{error && (
-							<div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive">
+							<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
 								{error}
 							</div>
 						)}
@@ -507,7 +503,7 @@ function RouteComponent() {
 	);
 }
 
-function LanguagePicker({ value, onChange }: { value: LanguageCode; onChange: (value: LanguageCode) => void }) {
+export function LanguagePicker({ value, onChange }: { value: LanguageCode; onChange: (value: LanguageCode) => void }) {
 	return (
 		<div>
 			<Select value={value} onValueChange={(nextValue) => onChange(nextValue as LanguageCode)}>
@@ -526,7 +522,7 @@ function LanguagePicker({ value, onChange }: { value: LanguageCode; onChange: (v
 	);
 }
 
-function TranslationPanel({
+export function TranslationPanel({
 	className,
 	language,
 	text,
@@ -576,7 +572,7 @@ function TranslationPanel({
 	);
 }
 
-function HistorySheet({
+export function HistorySheet({
 	history,
 	languages,
 }: {
@@ -618,7 +614,7 @@ function HistorySheet({
 						<div className="flex flex-col gap-2 pb-1">
 							{history.map((round) => (
 								<div key={round.id} className="flex justify-center">
-									<div className="w-full rounded-lg border border-border bg-card px-2 py-2 shadow-sm">
+									<div className="w-full rounded-lg border border-border bg-card p-2 shadow-sm">
 										<div className="grid gap-1.5">
 											{(['a', 'b'] as const).map((side) => {
 												const text = round.outputs[side] || round.heardText;
@@ -628,7 +624,7 @@ function HistorySheet({
 													<div
 														key={side}
 														className={cn(
-															'grid grid-cols-[2.25rem_1fr] gap-1 rounded-md px-2 py-2',
+															'grid grid-cols-[2.25rem_1fr] gap-1 rounded-md p-2',
 															side === 'a'
 																? 'bg-primary text-primary-foreground'
 																: 'bg-muted/70 text-foreground',

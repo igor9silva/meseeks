@@ -6,13 +6,7 @@ import type { TaskBoardHeaderActions, TaskBoardHeaderState } from './TaskBoardHe
 
 export type { TaskBoardHeaderActions, TaskBoardHeaderState } from './TaskBoardHeaderTypes';
 
-export function TaskBoardHeader({
-	state,
-	actions,
-}: {
-	state: TaskBoardHeaderState;
-	actions: TaskBoardHeaderActions;
-}) {
+export function TaskBoardHeader({ state, actions }: { state: TaskBoardHeaderState; actions: TaskBoardHeaderActions }) {
 	//
 	return (
 		<header className="border-b border-border/80 bg-card/95">

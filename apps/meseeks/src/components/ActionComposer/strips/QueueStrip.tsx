@@ -1,5 +1,5 @@
 import { ChevronDown, Loader2, Trash2, X } from 'lucide-react';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@reactor/ui/button';
 import { useComposer } from '~/hooks/useComposer';
 import { cn } from '@reactor/ui/lib/utils';
@@ -20,13 +20,10 @@ export function QueueStrip({ isCollapsed, onToggleCollapse }: QueueStripProps) {
 	const pendingCount = pendingSkills.length;
 	const count = queueCount + pendingCount;
 
-	const handleClearClick = useCallback(
-		(e: React.MouseEvent) => {
-			e.stopPropagation();
-			clearQueue();
-		},
-		[clearQueue],
-	);
+	const handleClearClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		clearQueue();
+	};
 
 	if (count === 0) return null;
 
@@ -106,7 +103,7 @@ function buildHeaderText(pendingCount: number, queueCount: number): string {
 }
 
 // memoized to prevent unnecessary re-renders
-const AnimatedContent = memo(function AnimatedContent({
+const AnimatedContent = function AnimatedContent({
 	children,
 	isCollapsed,
 	shouldScroll,
@@ -151,19 +148,13 @@ const AnimatedContent = memo(function AnimatedContent({
 			</div>
 		</div>
 	);
-});
+};
 
 // memoized queue item to prevent re-renders when other items change
-const QueueItem = memo(function QueueItem({
-	skill,
-	onRemove,
-}: {
-	skill: EnqueuedSkill;
-	onRemove: (id: string) => void;
-}) {
+const QueueItem = function QueueItem({ skill, onRemove }: { skill: EnqueuedSkill; onRemove: (id: string) => void }) {
 	//
 	const label = formatSkillLabel(skill.skillKey, skill.args);
-	const handleRemove = useCallback(() => onRemove(skill.id), [onRemove, skill.id]);
+	const handleRemove = () => onRemove(skill.id);
 
 	return (
 		<div className={cn('flex items-center justify-between gap-2 text-sm', 'bg-muted/50 rounded-lg px-2 py-1')}>
@@ -179,10 +170,10 @@ const QueueItem = memo(function QueueItem({
 			</Button>
 		</div>
 	);
-});
+};
 
 // pending item - shows a sending indicator, no remove button
-const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill }) {
+const PendingItem = function PendingItem({ skill }: { skill: EnqueuedSkill }) {
 	//
 	const label = formatSkillLabel(skill.skillKey, skill.args, true);
 
@@ -197,7 +188,7 @@ const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill 
 			<Loader2 className="size-3 animate-spin shrink-0" />
 		</div>
 	);
-});
+};
 
 function formatSkillLabel(skillKey: string, args: Record<string, unknown>, isPending = false): string {
 	//

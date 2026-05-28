@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useMDX } from '~/hooks/useMDX';
 import { cn } from '~/lib/utils';
 import { MdxErrorBoundary } from './mdx/MdxErrorBoundary';
@@ -22,12 +22,12 @@ export function Mdx({
 	assetBasePath?: string | null;
 }) {
 	//
-	const compiledText = useMemo(() => rewriteRawMdxAssetUrls(text, assetBasePath), [assetBasePath, text]);
+	const compiledText = rewriteRawMdxAssetUrls(text, assetBasePath);
 	const { component, error, isPending } = useMDX(compiledText);
 	const mdxComponents = createMdxComponents(assetBasePath);
 
 	if (isPending) {
-		return <div className="text-sm text-muted-foreground">Rendering task content...</div>;
+		return <div className="text-sm text-muted-foreground">Rendering task content…</div>;
 	}
 
 	const fallback = (

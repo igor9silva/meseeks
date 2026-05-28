@@ -7,13 +7,14 @@ import { CardDescription, CardTitle } from '@reactor/ui/card';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { useInnateSkill } from '~/hooks/query/useSkills';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/skills_/innate_/$key')({
 	component: RouteComponent,
 	pendingComponent: Pending,
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 });
 
-function RouteComponent() {
+export function RouteComponent() {
 	//
 	const { key } = Route.useParams();
 	const { skill } = useInnateSkill(key);
@@ -49,7 +50,7 @@ function RouteComponent() {
 	);
 }
 
-function Pending() {
+export function Pending() {
 	//
 	return (
 		<div className="m-6">

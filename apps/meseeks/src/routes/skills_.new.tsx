@@ -7,6 +7,7 @@ import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
 import { CardDescription, CardTitle } from '@reactor/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createFileRoute('/skills_/new')({
 	component: RouteComponent,
 });

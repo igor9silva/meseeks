@@ -18,11 +18,17 @@ export interface CurrentTaskPanelActions {
 	onTaskTrashed: () => void;
 }
 
-export function CurrentTaskPanel({ state, actions }: { state: CurrentTaskPanelState; actions: CurrentTaskPanelActions }) {
+export function CurrentTaskPanel({
+	state,
+	actions,
+}: {
+	state: CurrentTaskPanelState;
+	actions: CurrentTaskPanelActions;
+}) {
 	//
 	return (
 		<section className="flex h-full min-h-0 flex-col overflow-hidden border border-border/80 bg-card">
-			{state.isPending ? <div className="p-4 text-sm text-muted-foreground">Loading current task...</div> : null}
+			{state.isPending ? <div className="p-4 text-sm text-muted-foreground">Loading current task…</div> : null}
 			{!state.isPending && state.detail?.task === null ? (
 				<div className="p-4 text-sm text-muted-foreground">Current task not found in generated indexes.</div>
 			) : null}

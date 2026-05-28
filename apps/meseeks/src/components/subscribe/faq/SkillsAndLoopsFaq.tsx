@@ -3,8 +3,8 @@ export const SkillsAndLoopsFaq = {
 	answer: (
 		<div className="space-y-3 text-muted-foreground leading-relaxed">
 			<p>
-				Skills are actions Meseeks can perform. Those can be <strong>soft skills</strong> — decision-making
-				powered by AI, or <strong>hard skills</strong> — deterministic API calls using HTTP, MCP and others.
+				Skills are actions Meseeks can perform. Those can be <strong>soft skills</strong>, decision-making
+				powered by AI, or <strong>hard skills</strong>, deterministic API calls using HTTP, MCP and others.
 			</p>
 			<p>
 				<h4>

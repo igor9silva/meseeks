@@ -21,7 +21,7 @@ export function SkillCardSkeleton() {
 				</div>
 			</CardContent>
 			<CardFooter>
-				<div className="flex justify-between w-full space-x-4">
+				<div className="flex justify-between w-full gap-x-4">
 					<Skeleton className="h-4 w-[80px]" />
 					<Skeleton className="h-4 w-[80px]" />
 				</div>

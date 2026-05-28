@@ -3,6 +3,7 @@ import { isRecord } from 'lib/guards';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
+import { SearchResultsPanel, type SearchDisplayResult } from '~/components/actions/search/SearchResultsPanel';
 import {
 	formatScore,
 	formatQueryLabel,
@@ -10,9 +11,7 @@ import {
 	getDisplayUrl,
 	normalizePublishedDate,
 	normalizeText,
-	SearchDisplayResult,
-	SearchResultsPanel,
-} from '~/components/actions/search/SearchResultsPanel';
+} from '~/components/actions/search/searchResultUtils';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 
 const ValyuResultSchema = z

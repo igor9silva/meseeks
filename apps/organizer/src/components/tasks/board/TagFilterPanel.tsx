@@ -2,13 +2,7 @@ import { getTagGroupLookupKey } from '~/lib/taskTags';
 import { TagFilterGroup } from './TagFilterGroup';
 import type { TaskBoardHeaderActions, TaskBoardHeaderState } from './TaskBoardHeaderTypes';
 
-export function TagFilterPanel({
-	state,
-	actions,
-}: {
-	state: TaskBoardHeaderState;
-	actions: TaskBoardHeaderActions;
-}) {
+export function TagFilterPanel({ state, actions }: { state: TaskBoardHeaderState; actions: TaskBoardHeaderActions }) {
 	//
 	if (state.tagGroups.length === 0) return null;
 

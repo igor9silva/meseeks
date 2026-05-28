@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent, TouchEvent } from 'react';
 import { useDoubleTap } from './useDoubleTap';
 
@@ -10,48 +10,42 @@ export function useFullscreenAction() {
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [placeholderHeight, setPlaceholderHeight] = useState<number | undefined>();
 
-	const measurePlaceholder = useCallback(() => {
+	const measurePlaceholder = () => {
 		//
 		const element = containerRef.current;
 		if (!element) return;
 
 		setPlaceholderHeight(element.getBoundingClientRect().height);
-	}, []);
+	};
 
-	const open = useCallback(
-		(event?: FullscreenActionEvent) => {
-			//
-			event?.preventDefault();
-			event?.stopPropagation();
-			measurePlaceholder();
-			setIsFullscreen(true);
-		},
-		[measurePlaceholder],
-	);
+	const open = (event?: FullscreenActionEvent) => {
+		//
+		event?.preventDefault();
+		event?.stopPropagation();
+		measurePlaceholder();
+		setIsFullscreen(true);
+	};
 
-	const close = useCallback((event?: FullscreenActionEvent) => {
+	const close = (event?: FullscreenActionEvent) => {
 		//
 		event?.preventDefault();
 		event?.stopPropagation();
 		setIsFullscreen(false);
-	}, []);
+	};
 
-	const toggle = useCallback(
-		(event?: FullscreenActionEvent) => {
-			//
-			event?.preventDefault();
-			event?.stopPropagation();
+	const toggle = (event?: FullscreenActionEvent) => {
+		//
+		event?.preventDefault();
+		event?.stopPropagation();
 
-			if (isFullscreen) {
-				setIsFullscreen(false);
-				return;
-			}
+		if (isFullscreen) {
+			setIsFullscreen(false);
+			return;
+		}
 
-			measurePlaceholder();
-			setIsFullscreen(true);
-		},
-		[isFullscreen, measurePlaceholder],
-	);
+		measurePlaceholder();
+		setIsFullscreen(true);
+	};
 
 	const handleOpenDoubleTap = useDoubleTap(open);
 	const handleCloseDoubleTap = useDoubleTap(close);

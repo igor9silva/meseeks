@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type RefObject } from 'react';
+import { useEffect, type RefObject } from 'react';
 
 type KeyCombination = {
 	//
@@ -75,37 +75,34 @@ export function useKeyboardShortcut({
 		throw new Error('useKeyboardShortcut: targetRef is required when global is false');
 	}
 
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			//
-			// Check if shortcut should be applied based on focus
-			if (!global && targetRef) {
-				const activeElement = document.activeElement;
-				if (activeElement !== targetRef.current) return;
-			}
+	const handleKeyDown = (e: KeyboardEvent) => {
+		//
+		// Check if shortcut should be applied based on focus
+		if (!global && targetRef) {
+			const activeElement = document.activeElement;
+			if (activeElement !== targetRef.current) return;
+		}
 
-			// Ignore shortcut if user is typing in an editable element
-			if (ignoreWhenTyping && isEditableElement(document.activeElement)) return;
+		// Ignore shortcut if user is typing in an editable element
+		if (ignoreWhenTyping && isEditableElement(document.activeElement)) return;
 
-			// Check if the key combination matches
-			const commandKeyPressed = e.metaKey || e.ctrlKey;
-			const ctrlKeyPressed = e.ctrlKey;
-			const altKeyPressed = e.altKey;
-			const shiftKeyPressed = e.shiftKey;
+		// Check if the key combination matches
+		const commandKeyPressed = e.metaKey || e.ctrlKey;
+		const ctrlKeyPressed = e.ctrlKey;
+		const altKeyPressed = e.altKey;
+		const shiftKeyPressed = e.shiftKey;
 
-			if (
-				e.key === combo.key &&
-				(!combo.withCommand || commandKeyPressed) &&
-				(!combo.withCtrl || ctrlKeyPressed) &&
-				(!combo.withAlt || altKeyPressed) &&
-				(!combo.withShift || shiftKeyPressed)
-			) {
-				if (!skipPreventDefault) e.preventDefault();
-				callback(e);
-			}
-		},
-		[combo, callback, targetRef, global, skipPreventDefault, ignoreWhenTyping],
-	);
+		if (
+			e.key === combo.key &&
+			(!combo.withCommand || commandKeyPressed) &&
+			(!combo.withCtrl || ctrlKeyPressed) &&
+			(!combo.withAlt || altKeyPressed) &&
+			(!combo.withShift || shiftKeyPressed)
+		) {
+			if (!skipPreventDefault) e.preventDefault();
+			callback(e);
+		}
+	};
 
 	// Register keyboard shortcut
 	useEffect(() => {

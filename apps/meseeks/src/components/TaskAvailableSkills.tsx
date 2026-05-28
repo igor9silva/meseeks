@@ -13,6 +13,17 @@ interface TaskAvailableSkillsProps {
 	isPending?: boolean;
 }
 
+function SkillCommandListSkeleton() {
+	return (
+		<div className="p-4 space-y-2">
+			<Skeleton className="h-8 w-full" />
+			<Skeleton className="h-6 w-3/4" />
+			<Skeleton className="h-6 w-1/2" />
+			<Skeleton className="h-6 w-2/3" />
+		</div>
+	);
+}
+
 function TaskAvailableSkillsContent({
 	availableSkills,
 	onAvailableSkillsChange,
@@ -43,15 +54,6 @@ function TaskAvailableSkillsContent({
 	const canAddMoreSkills = availableSkills.length < 16;
 	const hasSkillsToAdd = availableSkillsToAdd.length > 0;
 	const hasAnyEnabledSkills = enabledSkills.length > 0;
-
-	const SkillCommandListSkeleton = () => (
-		<div className="p-4 space-y-2">
-			<Skeleton className="h-8 w-full" />
-			<Skeleton className="h-6 w-3/4" />
-			<Skeleton className="h-6 w-1/2" />
-			<Skeleton className="h-6 w-2/3" />
-		</div>
-	);
 
 	return (
 		<>
@@ -150,7 +152,7 @@ export function TaskAvailableSkills({ availableSkills, onAvailableSkillsChange, 
 		<Suspense
 			fallback={
 				<div className="px-2 pb-2">
-					<div className="text-xs text-muted-foreground">Loading skills...</div>
+					<div className="text-xs text-muted-foreground">Loading skills…</div>
 				</div>
 			}
 		>

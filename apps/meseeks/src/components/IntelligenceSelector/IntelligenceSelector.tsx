@@ -1,6 +1,6 @@
 import { DEFAULT_INTELLIGENCE, intelligenceKeys, type IntelligenceKey } from 'schemas/intelligenceSchema';
 import { Brain, ChevronsUpDown } from 'lucide-react';
-import { forwardRef, Suspense, useCallback, useEffect, useId, useState } from 'react';
+import { forwardRef, Suspense, useId, useState } from 'react';
 import { Button } from '@reactor/ui/button';
 import { Command } from '@reactor/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
@@ -36,34 +36,26 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 
 		const [open, setOpen] = useState(false);
 		const [hovered, setHovered] = useState<IntelligenceKey | null>(null);
-		const [selected, setSelected] = useState<IntelligenceKey>(value ?? DEFAULT_INTELLIGENCE);
 		const listId = useId();
-
-		useEffect(() => {
-			setSelected(value ?? DEFAULT_INTELLIGENCE);
-		}, [value]);
+		const selected = value ?? DEFAULT_INTELLIGENCE;
 
 		const selectedOption = Object.values(intelligences).find(
 			(intelligence) => intelligence.key === selected, //
 		);
 
-		const handleSelect = useCallback(
-			(key: string) => {
-				const parsed = intelligenceKeys.safeParse(key);
-				if (parsed.success) {
-					setOpen(false);
-					setSelected(parsed.data);
-					onChange(parsed.data);
-				} else {
-					console.error('Invalid intelligence key', key);
-				}
-			},
-			[onChange],
-		);
+		const handleSelect = (key: string) => {
+			const parsed = intelligenceKeys.safeParse(key);
+			if (parsed.success) {
+				setOpen(false);
+				onChange(parsed.data);
+			} else {
+				console.error('Invalid intelligence key', key);
+			}
+		};
 
-		const handleHover = useCallback((key: IntelligenceKey | null) => {
+		const handleHover = (key: IntelligenceKey | null) => {
 			setHovered(key);
-		}, []);
+		};
 
 		return (
 			<Popover open={open} onOpenChange={setOpen}>
@@ -93,7 +85,7 @@ const IntelligenceCombobox = forwardRef<HTMLButtonElement, IntelligenceSelectorP
 						) : (
 							<div className="flex items-center gap-2">
 								<Brain className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-								<span className="">Select intelligence...</span>
+								<span className="">Select intelligence…</span>
 							</div>
 						)}
 						<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

@@ -1,5 +1,5 @@
 import { useAction } from 'convex/react';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from 'convex/_generated/api';
 
@@ -19,13 +19,13 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 
 	const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>('idle');
 
-	const updateStatus = useCallback((status: RecordingStatus) => {
+	const updateStatus = (status: RecordingStatus) => {
 		//
 		currentStatusRef.current = status;
 		setRecordingStatus(status);
-	}, []);
+	};
 
-	const startRecording = useCallback(async () => {
+	const startRecording = async () => {
 		//
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -60,9 +60,9 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 					} catch (error) {
 						console.error('Error transcribing audio:', error);
 						toast.error('Failed to transcribe audio. Please try again.');
-					} finally {
-						updateStatus('idle');
 					}
+
+					updateStatus('idle');
 				}
 			};
 
@@ -74,9 +74,9 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 			toast.error('Unable to access microphone. Please check your browser permissions.');
 		}
 		//
-	}, [transcribeAction, onTranscriptionComplete, updateStatus]);
+	};
 
-	const stopRecording = useCallback(() => {
+	const stopRecording = () => {
 		//
 		if (mediaRecorderRef.current && currentStatusRef.current === 'recording') {
 			mediaRecorderRef.current.stop();
@@ -86,9 +86,9 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 			streamRef.current.getTracks().forEach((track) => track.stop());
 			streamRef.current = null;
 		}
-	}, []);
+	};
 
-	const cancelRecording = useCallback(() => {
+	const cancelRecording = () => {
 		updateStatus('idle');
 
 		if (mediaRecorderRef.current) {
@@ -99,7 +99,7 @@ export function useVoiceRecording({ onTranscriptionComplete }: UseVoiceRecording
 			streamRef.current.getTracks().forEach((track) => track.stop());
 			streamRef.current = null;
 		}
-	}, [updateStatus]);
+	};
 
 	return {
 		recordingStatus,

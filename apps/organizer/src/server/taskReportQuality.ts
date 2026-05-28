@@ -1,4 +1,11 @@
-import { compareCountRows, getReportSection, getWordCount, incrementCount, mapCountRows, mapTaskRow } from '~/server/taskReportRows';
+import {
+	compareCountRows,
+	getReportSection,
+	getWordCount,
+	incrementCount,
+	mapCountRows,
+	mapTaskRow,
+} from '~/server/taskReportRows';
 import type { CountRow, QualityReport } from '~/server/taskReportTypes';
 import type { TaskSummary } from '~/server/taskIndexSchemas';
 

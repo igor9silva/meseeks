@@ -27,6 +27,7 @@ import {
 
 import appCss from '~/styles/app.css?url';
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack Router file routes must export Route.
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	head: () => ({
 		meta: [
@@ -69,7 +70,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	component: RootComponent,
 });
 
-function RootComponent() {
+export function RootComponent() {
 	return (
 		<RootDocument>
 			<Outlet />
@@ -79,7 +80,7 @@ function RootComponent() {
 	);
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function RootDocument({ children }: { children: React.ReactNode }) {
 	//
 	const rootDocumentTheme = getRootDocumentTheme();
 	const { pathname } = useLocation();

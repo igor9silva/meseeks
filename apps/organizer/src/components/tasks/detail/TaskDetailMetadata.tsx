@@ -1,8 +1,4 @@
-import {
-	formatSourceLabel,
-	taskPriorityOptions,
-	taskSourceOptions,
-} from '~/components/tasks/taskExplorerUtils';
+import { formatSourceLabel, taskPriorityOptions, taskSourceOptions } from '~/components/tasks/taskExplorerUtils';
 import type { TaskDetailTask } from '../taskExplorerTypes';
 import { TimestampButton } from './TimestampButton';
 

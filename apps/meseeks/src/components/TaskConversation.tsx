@@ -2,7 +2,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { Doc } from 'convex/_generated/dataModel';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { ChevronDown } from 'lucide-react';
-import { type RefCallback, Suspense, useEffect, useMemo, useState } from 'react';
+import { RefCallback, Suspense, useEffect, useRef } from 'react';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
 import { Action } from '~/components/Action';
 import { ActionComposer } from '~/components/ActionComposer/ActionComposer';
@@ -89,8 +89,8 @@ function TaskConversationInner({
 		{ initialNumItems: PAGE_SIZE },
 	);
 
-	const reversedActions = useMemo(() => [...actions].reverse(), [actions]);
-	const initialRenderDate = useMemo(() => new Date(), []);
+	const reversedActions = [...actions].reverse();
+	const initialRenderDate = new Date();
 
 	const markAsRead = useMutation(api.tasks.markAsRead);
 
@@ -198,12 +198,7 @@ function StickToBottomContent({
 		current: HTMLDivElement | null;
 	}; // type hack, comes odd from useStickToBottomContext
 
-	const [isLoaded, setIsLoaded] = useState(0);
-
-	useEffect(() => {
-		if (isLoaded > 0) return;
-		if (actions.length > 0) setIsLoaded(isLoaded + 1);
-	}, [actions.length, isLoaded]);
+	const loadedScrollCountRef = useRef(0);
 
 	// Infinite scroll, loads more when near the top TODO: abstract into a hook
 	useEffect(() => {
@@ -226,10 +221,7 @@ function StickToBottomContent({
 		scrollContainer?.addEventListener('scroll', handleScroll);
 
 		return () => scrollContainer?.removeEventListener('scroll', handleScroll);
-		// Keep ref.current in this dependency list intentionally: the listener is bound to the current
-		// scroll container, not the stable callback ref wrapper from useStickToBottomContext.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [loadMore, status, ref.current]);
+	}, [loadMore, status, ref]);
 
 	// Auto-scroll when new events are added and we're at the bottom
 	useEffect(() => {
@@ -238,10 +230,11 @@ function StickToBottomContent({
 			// TODO: this is a hack to make the scroll smooth when new events but instant at first
 			// 1st render is usually empty
 			// 2nd render has the actions loaded
-			scrollToBottom(isLoaded > 1 ? 'smooth' : 'instant');
+			loadedScrollCountRef.current += 1;
+			scrollToBottom(loadedScrollCountRef.current > 1 ? 'smooth' : 'instant');
 		}
 		//
-	}, [actions, isAtBottom, isLoaded, scrollToBottom]);
+	}, [actions, isAtBottom, scrollToBottom]);
 
 	return (
 		<StickToBottom.Content className={cn('relative h-full', isDebugMode ? 'p-0' : 'p-2')}>
