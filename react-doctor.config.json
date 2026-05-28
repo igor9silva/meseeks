@@ -1,0 +1,15 @@
+{
+	"categories": {
+		"Accessibility": "off",
+		"Architecture": "off",
+		"Bundle Size": "off",
+		"Correctness": "off",
+		"Dead Code": "off",
+		"Performance": "off",
+		"React Compiler": "off",
+		"Security": "off",
+		"Server": "off",
+		"State & Effects": "off",
+		"TanStack Query": "off"
+	}
+}
