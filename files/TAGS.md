@@ -85,6 +85,7 @@ When placement says backlog, active and completed are still valid when the lifec
 | `insight` | Conceptual insight, belief, mental model, or raw thought whose value is the idea itself rather than immediate work. | References by default. |
 | `legacy` | Pre-Reactor-v1 work kept as useful context until Reactor v1 supersedes or revalidates it. | Add alongside the current useful tag. |
 | `loop` | Reusable loop behavior Meseeks/Pro should support, sibling to `skill`. | Actionable tasks by default. |
+| `maintainability` | Work that makes the codebase easier to understand, inspect, upgrade, debug, or keep healthy over time. Use this for engineering-system quality that is not just cleanup debt. | Actionable tasks by default. |
 | `multi-player` | Multi-player features, multiple users/actors/tasks/resources, collaboration, liability, or cross-actor effects. | Private actionable tasks or references. |
 | `observability` | Monitoring, logging, traces, inspection, error reporting, or backoffice visibility. | Actionable tasks by default. |
 | `personal` | Private life/history tasks. | Private only. |
