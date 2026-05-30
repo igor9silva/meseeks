@@ -78,8 +78,8 @@ After the download, update the task body with:
 
 - the original URL
 - a link to the downloaded video/audio file
+- for video, a visible `<video controls src="attachments/<file>.mp4" />` embed immediately after the link
 - a link to the `*.info.json` metadata backup
-- a thumbnail embed when available
 - the useful metadata from `*.info.json` such as uploader, id, date, duration, likes, comments, and caption summary
 
 Do not write "missing attachment" until you have checked the source app/export/cache again. For TickTick imports, attachments are often recoverable from the local TickTick attachment cache even when the first import missed them.
@@ -103,6 +103,8 @@ When scraped content is saved into `files/` or `private/files/`, follow `files/R
 If the scrape is saved directly under `tasks/`, `references/`, or `ideas/`, include the matching `class:*` tag. Inbox captures stay without `class:*` until reviewed.
 
 For saved-reading or archive-style task files, the scraped page body comes first and the `## Source` block goes last. Do not replace a content backup with `Summary` / `Key Points` unless the user asked for analysis. Use a short semantic filename and preserve the original URL plus canonical URL when available.
+
+Do not save raw HTML page snapshots for routine product/tool websites just because a tweet links to them. For tool references, a backed-up tweet scrape plus the tool website URL is enough unless the page itself is the fragile artifact Igor explicitly asked to archive.
 
 Each tweet produces a `{tweetId}.md` file with this structure:
 

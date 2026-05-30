@@ -91,7 +91,7 @@ When placement says backlog, active and completed are still valid when the lifec
 | `personal` | Private life/history tasks. | Private only. |
 | `security` | Security, authorization, abuse prevention, XSS, secrets, sandboxing, unsafe execution, policy, or security reference material. | Actionable tasks or references. |
 | `skill` | Skills/integrations we want to add to Meseeks. | Actionable tasks by default. |
-| `tech` | Everything technical: libraries, tools, implementation references, prompts, systems, and engineering material. It does not force the reference to stay raw; preserve details or synthesize depending on the source and instruction. | References by default. |
+| `tech` | Everything technical: libraries, tools, implementation references, prompts, systems, and engineering material. It does not force the reference to stay raw; preserve details or synthesize depending on the source and instruction. | References only. |
 | `transparency` | Public proof, accountability, metrics, traces, or other transparency surfaces. | Actionable tasks by default. |
 | `ux` | Interface, design, interaction, product-experience, or UI inspiration. Can coexist with `tech` for technical references that shape UI feel. | References or actionable tasks. |
 

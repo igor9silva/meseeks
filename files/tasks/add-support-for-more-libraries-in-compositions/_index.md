@@ -1,7 +1,7 @@
 ---
 title: Add support for more libraries in Compositions
 priority: low
-tags: [tech, source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:inbox, status:backlog, class:task]
 ---
 
 Add support for more libraries in Compositions, our rendering system for AI-generated code.

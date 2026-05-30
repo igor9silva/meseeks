@@ -250,11 +250,10 @@ const TASK_SOURCES: TaskSource[] = [
 
 const INDEX_EXTENSIONS = ['.md', '.mdx', '.txt'];
 
-const optionalStringSchema = z.preprocess((value) => normalizeOptionalString(value), z.string().min(1)).optional();
+const optionalStringSchema = z.preprocess((value) => normalizeOptionalString(value), z.string().min(1).optional());
 const optionalLowerStringSchema = z
-	.preprocess((value) => normalizeOptionalLowerString(value), z.string().min(1))
-	.optional();
-const optionalStringArraySchema = z.preprocess((value) => normalizeStringArray(value), z.array(z.string())).optional();
+	.preprocess((value) => normalizeOptionalLowerString(value), z.string().min(1).optional());
+const optionalStringArraySchema = z.preprocess((value) => normalizeStringArray(value), z.array(z.string()).optional());
 
 const frontmatterSchema = z
 	.object({

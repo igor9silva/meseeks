@@ -163,6 +163,8 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - When expansion or classification changes a task's semantic title, rename the folder in the same pass. This applies even when the item stays in inbox with `human:*`; a reviewed `human:funding` or `human:to-read` item should not keep an opaque imported social-handle slug.
 - For split reference + implementation pairs, keep the raw/source link in the reference and link to that reference from the implementation task. Do not duplicate the raw source link in both places.
 - When a feature already exists, name the task as an addition to the existing surface. Example: "add a button to existing DevMode", not "add DevMode".
+- After scraping or expanding a link-only task, write the reviewed task from the expanded source, not from the stale import title. If the source names a specific model/library/product, the task title should use that exact name.
+- Do not save routine website HTML snapshots for tool/product references. For most linked tools, preserve the tweet scrape plus the canonical website URL; only keep raw HTML when the page itself is the fragile artifact Igor explicitly wants backed up.
 - Keep task prose dense. Searchability matters, but repeated contextual labels are clutter.
 
 ## Skip During Broad Classification
@@ -199,6 +201,9 @@ Follow the skip list in `files/TAGS.md`.
 - Due-date import batches with a large high-priority `PLAN` parent should keep that hierarchy intact as one private backlog task first. It can be split after Igor reviews the plan, but preserving the tree is safer than guessing every child immediately.
 - Funding, accelerator, founder-intro, and application-opportunity tweets that require Igor's decision belong in private inbox with `human:funding`. Hiring/career-watch items without a clear Meseeks task can stay in private inbox with `human:to-read`.
 - Public-looking technical references from unreviewed private imports can be moved to private references first when privacy is uncertain. Promote them public after review instead of laundering private import context into public files.
+- Model support task titles should name the specific model from the expanded source, for example `Add LFM2.5-8B-A1B support`, not vague provider support. Mention provider availability as a dated note in the body using "we", not "Igor".
+- Technical sandbox/runtime captures can still stay in private inbox with `human:vfs` when Igor says so; do not force every VFS-looking link into a reference or Reactor fold during review.
+- Library references can become implementation backlog when Igor names the surface and uncertainty, for example considering TanStack Virtual for large action lists while preserving the source as the task's reference.
 
 ## Current State Notes
 
