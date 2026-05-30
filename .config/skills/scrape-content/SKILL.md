@@ -58,6 +58,32 @@ Current behavior:
 - writes markdown next to the media file by default
 - deletes the remote Gemini upload after success or failure unless `--keep-upload` is set
 
+### Download external media into a task folder
+
+Use this when a task points to Instagram, X/Twitter video, YouTube, TikTok, or another `yt-dlp` supported media URL and Igor asks to expand/archive/download it.
+
+Save downloads under the owning task folder, never in a shared scratch folder:
+
+```bash
+mkdir -p private/files/inbox/<task-slug>/attachments
+yt-dlp \
+  --write-info-json \
+  --write-thumbnail \
+  --convert-thumbnails jpg \
+  --output 'private/files/inbox/<task-slug>/attachments/<source>-%(id)s.%(ext)s' \
+  '<url>'
+```
+
+After the download, update the task body with:
+
+- the original URL
+- a link to the downloaded video/audio file
+- a link to the `*.info.json` metadata backup
+- a thumbnail embed when available
+- the useful metadata from `*.info.json` such as uploader, id, date, duration, likes, comments, and caption summary
+
+Do not write "missing attachment" until you have checked the source app/export/cache again. For TickTick imports, attachments are often recoverable from the local TickTick attachment cache even when the first import missed them.
+
 Batch input file format — one URL per entry, optional comment on the next line, separated by `---`:
 
 ```

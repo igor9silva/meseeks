@@ -93,6 +93,20 @@ After imported source material has been committed once, organizing and unclutter
 
 For saved-reading backups, put readable page content first and source metadata last. The point is quick reading and local backup.
 
+## Secrets
+
+Never store passwords, PINs, PUKs, certificate passwords, API keys, access tokens, recovery codes, or account recovery credentials in task markdown.
+
+Secrets and any sensetive data are stored in locked Apple Notes under iCloud. Write the exact note title in the task or reference instead. For entity references, use one locked iCloud note per entity when secrets are needed:
+
+```txt
+Entity: <entity-slug>
+```
+
+Example: if `private/files/references/get-hit/_index.md` needs certificate credentials, the markdown should point to locked iCloud Note `Entity: get-hit`, and the raw secret should live only in that note.
+
+Note: you don't have access to read or write into Apple Notes. Ask Igor directly when needed. HIGHLIGHT IT as this is very important and an communication failure could lead to de-sync or data loss.
+
 ## Private To Public
 
 Private-to-public movement requires review.

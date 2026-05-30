@@ -22,6 +22,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `raw`: preserve the useful source title/body verbatim while moving or merging. Routine `Source` and `TickTick source` blocks can still be removed after the import snapshot has already been committed.
 - `rewrite`: rewrite the content as appropriate under current task rules.
 - `human:brainstorm`: keep private inbox and otherwise leave it alone for later review.
+- `funding` in review feedback means `human:funding`. Keep it in private inbox; do not create or use a bare `funding` tag.
 - `human:to-read`: keep private inbox unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
 
 ## Placement Heuristics
@@ -154,11 +155,12 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - Keep original context when it may matter. If unsure, paste original content under a compact separator rather than paraphrasing away detail.
 - Do not add boilerplate like "reference capture", "source preserved", "done already", or "examples from original task" when the path/status/history already says enough.
 - Treat Igor's relevance comments as triage guidance, not task prose. If he says something is low-relevance, lightweight, stale-ish, or minor, use that to choose section/priority/disposition; do not write those labels into the task body unless he explicitly asks.
-- Move/classification instructions are not rewrite instructions. Preserve the original words, title, source details, and media unless the command says `rewrite`, `expand`, `summarize`, `flat`, `fold`, or otherwise asks for content changes.
+- Rewriting is allowed when it improves a task, but the source artifact must survive. For link-only tasks, the link is content; keep it visible or backed up in the destination/reference even if the title/body are rewritten.
 - When Igor says to keep a reference inside a rewritten task, do not leave only a naked URL. Preserve or expand the reference content enough that the task is useful offline: author, date, compact source idea, and key metadata when available.
 - Do not start task bodies with a default `## Context` heading. Start directly with the content unless structure genuinely helps.
 - If a rename changes the meaning, update the filesystem slug/folder too.
 - When editing an imported task with a bad URL/import slug, rename the task folder to the semantic title unless Igor explicitly wants the raw source slug.
+- When expansion or classification changes a task's semantic title, rename the folder in the same pass. This applies even when the item stays in inbox with `human:*`; a reviewed `human:funding` or `human:to-read` item should not keep an opaque imported social-handle slug.
 - For split reference + implementation pairs, keep the raw/source link in the reference and link to that reference from the implementation task. Do not duplicate the raw source link in both places.
 - When a feature already exists, name the task as an addition to the existing surface. Example: "add a button to existing DevMode", not "add DevMode".
 - Keep task prose dense. Searchability matters, but repeated contextual labels are clutter.
@@ -174,6 +176,7 @@ Follow the skip list in `files/TAGS.md`.
 - Coinbase Onramp API was a reference for ETH deposits; mention it inside the Reactor ETH deposits section, do not keep a standalone file.
 - CDP Wallets is also a candidate link under ETH deposits; keep it as a named link, not a paragraph of invented justification.
 - `Context URL now GA in Gemini API` belongs under the scraping task as another scraping option.
+- A bare `ref` instruction on a private inbox item means private reference by default. Add `class:reference` and a semantic tag such as `tech` only when obvious; do not promote public unless Igor says public.
 - Local model provider vision belongs in the macOS app/provider task: the app itself is the provider, not a background daemon.
 - A browser extension can be a separate public low-priority backlog idea when Igor distinguishes it from the macOS app/browser direction.
 - Human-as-a-Service is an idea task; external examples can be links inside it.
@@ -192,6 +195,10 @@ Follow the skip list in `files/TAGS.md`.
 - `WebSquare` remains meaningful in the Feeds idea; preserve the full WebSquare content when organizing that task.
 - Feeds are user-owned streams that can follow people, organizations, topics, repos, sites, or personal sources, with AI and code filters.
 - Virtual filesystem captures tagged `human:vfs` were folded into `files/tasks/reactor-v1/_index.mdx` under `# Virtual File System`; future similar captures should usually enrich that Reactor section instead of staying parked in inbox.
+- Fresh TickTick imports that have not been committed yet should preserve full import metadata by moving whole folders when possible. Do not flatten-and-delete fresh imports unless the useful source metadata is copied into the destination.
+- Due-date import batches with a large high-priority `PLAN` parent should keep that hierarchy intact as one private backlog task first. It can be split after Igor reviews the plan, but preserving the tree is safer than guessing every child immediately.
+- Funding, accelerator, founder-intro, and application-opportunity tweets that require Igor's decision belong in private inbox with `human:funding`. Hiring/career-watch items without a clear Meseeks task can stay in private inbox with `human:to-read`.
+- Public-looking technical references from unreviewed private imports can be moved to private references first when privacy is uncertain. Promote them public after review instead of laundering private import context into public files.
 
 ## Current State Notes
 

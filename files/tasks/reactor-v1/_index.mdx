@@ -27,8 +27,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - files
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
+	- files should have the dream tagging system, like what I always wanted from macOS; the Organizer experiment makes this feel like the right approach
 - learning
+	- if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)
 - we must support synchronous actions
+	- built-in stuff should run directly instead of scheduling an action when scheduling is unnecessary (sync actions)
 - we must support multiple tool-call
 - safe secrets
 - paralell execution
@@ -50,6 +53,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
 	- "every 5 rounds"
 	- "on context > X%"
+	- trigger usage should be a counter, not just a boolean: a trigger can be allowed to fire N times, then deactivate/remove itself
+- one-off tasks
+	- AI should be able to start one-off tasks itself: child tasks that run a loop, eventually finish, and can auto-resolve without direct user interaction
+	- useful for parallel work, better organization, and isolating small internal work units without forcing the user to manage every subtask
+	- system-wide dictation is a good example: each dictation creates a raw voice file, then triggers transcription into a second file
+	- raw audio and transcription files should have specific tags so we can render a dedicated dictation/transcription UI showing every captured transcription, with retries, corrections, yada yada
 - support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
 - skill grouping!
 	- this is very important
@@ -82,7 +91,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- incoming external events become task messages/actions; the task loop/triggers decide whether reactions run and what happens next
 	- task activity is the shared history of all actions taken by humans, AI, skills, and external systems on that task
 - redesign our skills to prompt using `<xml>` tags
+- It should have a `<Constitution version="latest" />` instruction. "Forced" into every layer.
+	- maybe the task hierarchy is enough, as instructions drill down
 - `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
+- Rename reason() to reasoning()
+- consider renaming say() to message(), write(), comment() or other
 - sharing skills
 	- at least some basic importing/exporting support
 	- skill marketplace/subscriptions
@@ -96,7 +109,14 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - subtasks
 	- I should be able to create and move freely, controlling reactions
 - keep "magic rock" naming for fun
-	- including the comment in the file
+- UX should treat `#` as task mention syntax:
+	- `#` is for mentioning tasks. Period.
+	- Launcher: after `#` it starts searching for tasks by "anything"
+	- Composer: any `#` searches in-place for tasks to mention
+	- potential for "any #" in Launcher as well?
+- @ is for entities (people and orgs)
+- experiment with parenthesis skill invocation instead of slash commands: typing something like `say(` could open the skill list after `(`; decide through UX testing
+	- original note: no / shit! just `(`	- including the comment in the file
 - energy as a first-class citizen
 	- estimated cost should be "max theoretical cost"
 		- based on maxOutputTokens, fixed costs, and so on
@@ -123,6 +143,9 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- [Coinbase embedded wallets](https://x.com/brian_armstrong/status/1978703400008122612?s=46&t=fpfVVVXvGdro5tlVeroG9A)
 - notifications
 	- time-sensitive
+	- PWA notifications
+	- basic unread mechanics
+	- minimal offline support could make the web app a decent v1 by itself
 - support for sync/pre-executed action
 - take ActionCtx only (not MutationCtx anymore)
 - maybe we need minimal support for TRANSactions?
@@ -134,6 +157,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
 - searchWeb could take multiple queries at once
+- launcher search should be scored, not grouped
+	- example: if `isDiscard`, multiply score by `0.2`
+- UX: `#` is for mentioning tasks. Period.
+	* Launcher: `after # it starts searching for tasks by "anything"`
+	* Composer: `any # searches in-place for tasks to mention`
+	* potential for "any  #" in Launcher ask well?
 - multi-player
 	- fix authorization from the beginning
 	- portable agent identity/trust/reputation may need ERC-8004-style discovery, registration files, MCP/A2A endpoints, on-chain reputation, validators, wallet/payment proofs, and x402-weighted feedback; reference: [ERC-8004 agent trust and discovery](../../references/erc-8004-agent-trust-and-discovery/_index.md)
@@ -141,6 +170,17 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 
 # Virtual File System
 
+- run the entire action inside Daytona
+	- persistent file system on S3-like
+	- run multiple actions per invocation?
+	- safe internet access and code running
+	- files also exist within the app, attached to the task
+	- can be attached to multiple tasks, both point to each other
+	- dedicated files UI, everything gets processed and organized
+	- everything attached gets mounted
+	- how to handle ephemeral data? like git clones
+	- maybe just "task_data/", which gets persisted and mounted, but is not exposed to "Files", which are user-uploaded or explicitly saved
+	- idk how to deal with auth within the sandbox, like API keys we have for skills
 - [S3 files as shared agent workspace](https://x.com/skeptrune/status/2041657917708103915?s=12): Nick Khami's point was that S3 files could remove the need to spin up a sandbox VM just to give agents POSIX-like tools, and could let many compute workers operate over the same filesystem.
 - [Rivet operating system](https://x.com/nathanflurry/status/2039017546649907674?s=12): Rivet described a WASM/V8-isolate environment with `node`, `python`, `bash`, `git`, `grep`, `curl`, mounts for S3/Google Drive/SQLite, library embedding, Actors, Secure Exec, and Sandbox Agent.
 - [JavaScript runtime inside BEAM](https://x.com/dan_note/status/2032139121850728939?s=12): Danila Poyarkov described JS runtimes as supervised GenServers with native BEAM term mapping, Elixir-owned DOM reading, OXC TypeScript tooling, npm package support, and sandboxed user-defined business rules.
@@ -228,3 +268,11 @@ meta/microsoft:
 
 > our take into AI is like owning a car
 > you OWN it, you do whatever the F you want with it, and you're responsible for the outcomes
+
+---
+
+- [Takes on Manus](../../../private/files/references/takes-on-manus/_index.md)
+
+---
+
+INTERNAL_JOKES.md

@@ -74,14 +74,18 @@ When placement says backlog, active and completed are still valid when the lifec
 | --- | --- | --- |
 | `auth` | Authentication, OAuth, account, login, and session work. | Actionable tasks by default. |
 | `behavior` | Improvements to existing skill instructions, agent behavior, prompts, or rules. Use this for changing how skills behave; use `skill` only for new skills/integrations we want to add. | Actionable tasks by default. |
+| `benchmarks` | Benchmarks, evals, scoring suites, and comparison tests for Meseeks, models, loops, skills, or product behavior. | Actionable tasks or references. |
 | `billing` | Billing and payment lifecycle work. | Actionable tasks by default. |
 | `bug` | Broken or incorrect current product behavior, regressions, defects, or reliability issues that should be fixed. | Actionable tasks by default. |
 | `operations` | Admin tasks Igor has to do. | Private actionable tasks. |
 | `debt` | Technical debt, refactors, cleanup, hardening, or maintenance work. | Actionable tasks by default. |
 | `demand` | Market-demand signal tracking. Keep the raw signal because the signal itself is the artifact. | Private references by default. |
+| `entity` | Real-world entities worth keeping as durable context: people, companies, vehicles, organizations, accounts, and similar records. Store documents, identifiers, addresses, history, contact notes, and other entity facts in the body. | Private references ONLY. |
 | `intelligence` | AI model/model-provider support tasks only. The work is usually "add support", not "evaluate". | Public actionable tasks by default. |
+| `insight` | Conceptual insight, belief, mental model, or raw thought whose value is the idea itself rather than immediate work. | References by default. |
 | `legacy` | Pre-Reactor-v1 work kept as useful context until Reactor v1 supersedes or revalidates it. | Add alongside the current useful tag. |
 | `loop` | Reusable loop behavior Meseeks/Pro should support, sibling to `skill`. | Actionable tasks by default. |
+| `maintainability` | Work that makes the codebase easier to understand, inspect, upgrade, debug, or keep healthy over time. Use this for engineering-system quality that is not just cleanup debt. | Actionable tasks by default. |
 | `multi-player` | Multi-player features, multiple users/actors/tasks/resources, collaboration, liability, or cross-actor effects. | Private actionable tasks or references. |
 | `observability` | Monitoring, logging, traces, inspection, error reporting, or backoffice visibility. | Actionable tasks by default. |
 | `personal` | Private life/history tasks. | Private only. |
@@ -90,6 +94,12 @@ When placement says backlog, active and completed are still valid when the lifec
 | `tech` | Everything technical: libraries, tools, implementation references, prompts, systems, and engineering material. It does not force the reference to stay raw; preserve details or synthesize depending on the source and instruction. | References by default. |
 | `transparency` | Public proof, accountability, metrics, traces, or other transparency surfaces. | Actionable tasks by default. |
 | `ux` | Interface, design, interaction, product-experience, or UI inspiration. Can coexist with `tech` for technical references that shape UI feel. | References or actionable tasks. |
+
+## Entity References
+
+Use `entity` only in private references. Keep one file per real-world entity.
+
+Entity references can store lookup facts such as tax IDs, document numbers, IBANs, addresses, company registration data, vehicles, insurance policy numbers, historical company identifiers, relationship notes, and other durable facts.
 
 ## Broad Classification Skips
 

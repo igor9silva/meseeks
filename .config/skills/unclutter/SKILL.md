@@ -75,9 +75,11 @@ Use judgment, but do not override an explicit disposition Igor already gave for 
 - Do not write review labels into task prose. If Igor says something is "low-relevance", "stale", "small", or "just a link", use that to choose the disposition; do not paste the label into the file.
 - Do not add generic `Source`, `TickTick source`, raw JSON, "source preserved", "merged source note", or "examples from original task" blocks when merging imports. Git history carries routine provenance.
 - Preserve useful original context. If detail may matter, keep it compactly in the body or as a named link. Do not summarize away the reason the capture existed.
+- Rewriting is allowed when it improves understanding, but losing source content is not. If the original task is just a link, the link is the task content: keep it visible, expand it locally when practical, or move it into the destination/reference. Never replace the only useful artifact with a vague title or summary.
 - Never leave an external link as the only copy of a source. Expand it in place or into its own reference task, and link to that backed-up content. If an image/video carries the point, download it when practical and transcribe or describe the useful content.
 - Prefer named Markdown links in prose. Bare URLs are for raw source lists or when the URL itself is the artifact.
 - Do not start every task with `## Context`. Start with the content.
+- When expansion or classification changes the semantic title, rename the task folder in the same pass. This applies even when the item stays in `inbox/` with `human:*`. Do not leave reviewed tasks with stale URL, social-handle, hash, or import-artifact slugs unless Igor explicitly wants the raw source slug.
 
 ## Tag Hygiene
 

@@ -1,20 +1,22 @@
 ---
-title: "X/Twitter skill"
-tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, skill, status:backlog, class:task]
+title: "/sos"
+priority: low
+tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, status:backlog, class:task]
 ---
+
+an immutable page that you can always go to in case you mess things up
 
 ## TickTick source
 
 - Project: `🧞‍♂Meseeks (66b35a9a617f11216a574648)`
 - List tag: `ticktick-list:meseeks`
-- Task id: `67daadb5a91bd15bc03d4763`
-- Parent task id: `67da9d129b34510ab250dce4`
+- Task id: `679a5eb90987113206203fad`
 - Column: `Backlog (66b35abe623e91216a57464a)`
 - Status tag: `ticktick-status:backlog`
-- Priority: `0`
-- Created: `2025-03-19T11:42:45Z`
-- Updated: `2025-04-12T18:55:17Z`
-- Sort order: `2018027920663623400`
+- Priority: `1`
+- Created: `2025-01-29T17:00:41Z`
+- Updated: `2025-02-14T19:04:16Z`
+- Sort order: `-9216715340645109000`
 
 ```json
 {
@@ -25,29 +27,29 @@ tags: [source:ticktick, ticktick-list:meseeks, ticktick-status:backlog, skill, s
     "ticktick-status:backlog"
   ],
   "tickTick": {
-    "taskId": "67daadb5a91bd15bc03d4763",
-    "parentTaskId": "67da9d129b34510ab250dce4",
+    "taskId": "679a5eb90987113206203fad",
+    "parentTaskId": null,
     "projectId": "66b35a9a617f11216a574648",
     "projectName": "🧞‍♂Meseeks",
     "columnId": "66b35abe623e91216a57464a",
     "columnName": "Backlog",
-    "title": "twitter stuff",
-    "content": "",
+    "title": "/sos",
+    "content": "an immutable page that you can always go to in case you mess things up",
     "description": "",
     "notionBlockString": "",
     "status": 0,
     "deletionStatus": 0,
-    "priority": 0,
+    "priority": 1,
     "progress": 0,
-    "sortOrder": 2018027920663623400,
+    "sortOrder": -9216715340645109000,
     "taskType": 0,
     "commentCount": 0,
     "tagString": "",
     "timeZone": "Europe/Lisbon",
     "startAt": null,
     "endAt": null,
-    "createdAt": "2025-03-19T11:42:45Z",
-    "updatedAt": "2025-04-12T18:55:17Z",
+    "createdAt": "2025-01-29T17:00:41Z",
+    "updatedAt": "2025-02-14T19:04:16Z",
     "completedAt": null,
     "repeatRule": null,
     "repeatFrom": null,
