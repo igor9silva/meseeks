@@ -249,6 +249,7 @@ export function languageModelFrom(
 		'xai/grok-4.1-fast-non-reasoning': xai.responses('grok-4-1-fast-non-reasoning'),
 		'xai/grok-4': xai.responses('grok-4-0709'),
 		'xai/grok-4-fast-non-reasoning': xai.responses('grok-4-fast-non-reasoning'),
+		'xai/grok-build-0.1': xai.responses('grok-build-0.1'),
 		'xai/grok-code-fast-1': xai.responses('grok-code-fast-1-0825'),
 		'xai/grok-3': xai.responses('grok-3'),
 		'xai/grok-3-mini': xai.responses('grok-3-mini'),
