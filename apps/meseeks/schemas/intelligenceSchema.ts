@@ -86,6 +86,7 @@ export const intelligenceKeys = z.enum([
 	'xai/grok-4.1-fast-non-reasoning',
 	'xai/grok-4',
 	'xai/grok-4-fast-non-reasoning',
+	'xai/grok-build-0.1',
 	'xai/grok-code-fast-1',
 	'xai/grok-3',
 	'xai/grok-3-mini',
@@ -340,6 +341,15 @@ export const INTELLIGENCES: Record<IntelligenceKey, Intelligence> = {
 		provider: 'xAI',
 		pricing: buildPricing({ input: 0.2, output: 0.5 }),
 		context: buildContext(2_000_000),
+		intelligenceLevel: 5,
+	},
+	'xai/grok-build-0.1': {
+		key: 'xai/grok-build-0.1',
+		name: 'Grok Build 0.1',
+		description: 'Early-access coding model trained for agentic coding.',
+		provider: 'xAI',
+		pricing: buildPricing({ input: 1, output: 2 }),
+		context: buildContext(256_000),
 		intelligenceLevel: 5,
 	},
 	'xai/grok-code-fast-1': {

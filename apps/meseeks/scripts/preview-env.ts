@@ -119,6 +119,26 @@ export function run(command: string, args: string[], options: SpawnSyncOptions =
 	}
 }
 
+export function runForwarded(command: string, args: string[], options: SpawnSyncOptions = {}) {
+	const result = spawnSync(command, args, {
+		stdio: ['inherit', 'pipe', 'pipe'],
+		encoding: 'utf8',
+		maxBuffer: 1024 * 1024 * 20,
+		...options,
+	});
+
+	const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+	if (result.stdout) process.stdout.write(result.stdout);
+	if (result.stderr) process.stderr.write(result.stderr);
+
+	if (result.error) throw result.error;
+	if (result.status !== 0) {
+		throw new Error(`${[command, ...args].join(' ')} failed with exit code ${result.status ?? 1}.`);
+	}
+
+	return output;
+}
+
 export function tryRun(command: string, args: string[], options: SpawnSyncOptions = {}) {
 	const result = spawnSync(command, args, {
 		stdio: 'pipe',
@@ -141,21 +161,22 @@ export function tryRunConvex(args: string[], options: SpawnSyncOptions = {}) {
 }
 
 export function runConvexDeploy(args: string[], options: SpawnSyncOptions = {}) {
-	runConvex(args, options);
+	return runForwarded('bun', ['convex', ...args], options);
 }
 
 export function ensureConvexClientUrls(entries: Map<string, string>) {
 	const cloudUrl =
 		entries.get('CONVEX_CLOUD_URL') ??
-		deploymentUrl(entries.get('CONVEX_DEPLOYMENT'), 'cloud') ??
-		entries.get('VITE_CONVEX_URL');
+		entries.get('CONVEX_URL') ??
+		entries.get('VITE_CONVEX_URL') ??
+		deploymentUrl(entries.get('CONVEX_DEPLOYMENT'), 'cloud');
 	if (cloudUrl) entries.set('VITE_CONVEX_URL', cloudUrl);
 
 	const siteUrl =
 		entries.get('CONVEX_SITE_URL') ??
-		deploymentUrl(entries.get('CONVEX_DEPLOYMENT'), 'site') ??
+		entries.get('VITE_CONVEX_SITE_URL') ??
 		cloudUrl?.replace(/\.convex\.cloud$/, '.convex.site') ??
-		entries.get('VITE_CONVEX_SITE_URL');
+		deploymentUrl(entries.get('CONVEX_DEPLOYMENT'), 'site');
 	if (siteUrl) entries.set('VITE_CONVEX_SITE_URL', siteUrl);
 }
 

@@ -40,7 +40,8 @@ function main() {
 		? getPreviewRun(entries)
 		: undefined;
 
-	runConvexDeploy(deployArgs, { env });
+	const deployOutput = runConvexDeploy(deployArgs, { env });
+	updatePreviewEnvFromDeployOutput(entries, deployOutput);
 	if (previewRun) {
 		runConvex(['run', previewRun], { env });
 		markPreviewSeeded(deploymentRef);
@@ -91,6 +92,22 @@ function markPreviewSeeded(deploymentRef: string) {
 	const entries = loadEnvLocal();
 	entries.set(previewSeededRefKey, deploymentRef);
 	writeDotenv(envLocalFile, entries);
+}
+
+function updatePreviewEnvFromDeployOutput(entries: Map<string, string>, deployOutput: string) {
+	const cloudUrl = extractDeployedCloudUrl(deployOutput);
+	if (!cloudUrl) return;
+
+	entries.set('VITE_CONVEX_URL', cloudUrl);
+	entries.set('VITE_CONVEX_SITE_URL', cloudUrl.replace(/\.convex\.cloud$/, '.convex.site'));
+	writeDotenv(envLocalFile, entries);
+
+	console.log(`Updated ${envLocalFile} with deployed Convex URL ${cloudUrl}`);
+}
+
+function extractDeployedCloudUrl(output: string) {
+	const urls = output.match(/https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)?\.convex\.cloud/g);
+	return urls?.at(-1);
 }
 
 function writePreviewEnv(previewName: string, deploymentRef: string) {
