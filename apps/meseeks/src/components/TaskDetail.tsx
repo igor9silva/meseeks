@@ -9,6 +9,7 @@ import { cn } from '@reactor/ui/lib/utils';
 import { CollapsibleSummary } from './CollapsibleSummary';
 import { EditableContent } from './EditableContent';
 import { TaskAvailableSkills } from './TaskAvailableSkills';
+import { TaskWorkspacePanel } from './TaskWorkspacePanel';
 
 export default function TaskDetail({
 	className, //
@@ -78,6 +79,7 @@ export default function TaskDetail({
 				/>
 			</CardHeader>
 			<CardContent className="px-4 py-0 flex-grow flex flex-col">
+				<TaskWorkspacePanel className="mb-4" />
 				<EditableContent
 					key={task.instructions}
 					value={task.instructions ?? ''}

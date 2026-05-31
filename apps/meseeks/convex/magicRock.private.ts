@@ -17,6 +17,11 @@ import { asDollars } from 'lib/money';
 import { env } from 'schemas/envSchema';
 import type { IntelligenceKey } from 'schemas/intelligenceSchema';
 import type { instructionVariableSchema, softSkillSchema } from 'schemas/skillSchema';
+import {
+	normalizeTaskWorkspace,
+	renderTaskWorkspaceForPrompt,
+	taskWorkspacePreferenceKey,
+} from 'schemas/taskWorkspaceSchema';
 import type { AITool } from 'schemas/toolSchema';
 import { modelFrom } from 'skills/createAITool';
 import { _toolsForMagicRock } from 'skills/tools';
@@ -468,9 +473,10 @@ async function renderInstructions(
 	// Handle async variables
 	const userInfo = await getUserInfoIfNeeded(ctx, task.owner, result);
 	const taskSchedules = await getTaskSchedulesIfNeeded(ctx, task._id, result);
+	const taskWorkspace = await getTaskWorkspaceIfNeeded(ctx, task.owner, task._id, result);
 
 	// Single-pass parsing that handles both escaped and normal variables correctly
-	result = parseAndReplaceVariables(result, task, action, userInfo, taskSchedules);
+	result = parseAndReplaceVariables(result, task, action, userInfo, taskSchedules, taskWorkspace);
 
 	return result;
 }
@@ -481,6 +487,7 @@ function parseAndReplaceVariables(
 	action: Doc<'actions'>,
 	userInfo?: string,
 	taskSchedules?: string,
+	taskWorkspace?: string,
 ): string {
 	//
 	// Use a single regex that captures all {{...}} patterns and distinguishes escaped from normal
@@ -493,12 +500,12 @@ function parseAndReplaceVariables(
 
 		// Normal variable - replace with value
 		const trimmedVariable = variableName.trim();
-		const replacedValue = valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules);
+		const replacedValue = valueForVariable(trimmedVariable, task, action, userInfo, taskSchedules, taskWorkspace);
 
 		// If the replacement contains {{}} patterns, we need to process them recursively
 		// but only if they're different from the original to avoid infinite loops
 		if (replacedValue !== match && replacedValue.includes('{{')) {
-			return parseAndReplaceVariables(replacedValue, task, action, userInfo, taskSchedules);
+			return parseAndReplaceVariables(replacedValue, task, action, userInfo, taskSchedules, taskWorkspace);
 		}
 
 		return replacedValue;
@@ -595,6 +602,7 @@ function valueForVariable(
 	action: Doc<'actions'>,
 	userInfo?: string,
 	taskSchedules?: string,
+	taskWorkspace?: string,
 ): string {
 	//
 	switch (variable) {
@@ -659,6 +667,9 @@ function valueForVariable(
 
 		case 'taskSchedules':
 			return taskSchedules ?? '<system>No active schedules for this task.</system>';
+
+		case 'taskWorkspace':
+			return taskWorkspace ?? '<system>No task working memory.</system>';
 
 		case 'currentDate':
 			return new Date().toISOString();
@@ -756,6 +767,22 @@ async function getTaskSchedulesIfNeeded(
 		console.error('Failed to fetch task schedules:', error);
 		return '<system>Error loading schedules.</system>';
 	}
+}
+
+async function getTaskWorkspaceIfNeeded(
+	ctx: ActionCtx | MutationCtx,
+	userId: Id<'users'>,
+	taskId: Id<'tasks'>,
+	text: string,
+): Promise<string | undefined> {
+	if (!text.includes('{{taskWorkspace}}')) return undefined;
+
+	const workspacePreference = await ctx.runQuery(internal.users.preferences._getUserPreference, {
+		userId,
+		key: taskWorkspacePreferenceKey(taskId),
+	});
+
+	return renderTaskWorkspaceForPrompt(normalizeTaskWorkspace(workspacePreference?.value));
 }
 
 function dateOrNever(date: number | undefined) {

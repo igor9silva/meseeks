@@ -6,7 +6,8 @@ import { TaskConversation } from '~/components/TaskConversation';
 import TaskDetail from '~/components/TaskDetail';
 import { TaskDetailAndConversation } from '~/components/layout/TaskDetailAndConversation';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
-import { useCurrentTaskId } from '~/hooks/useCurrentTask';
+import { useCurrentTask, useCurrentTaskId } from '~/hooks/useCurrentTask';
+import { TaskWorkspaceProvider } from '~/hooks/useTaskWorkspace';
 import {
 	useInboxWidthPercentPreference,
 	useTaskDetailVisiblePreference,
@@ -113,19 +114,23 @@ function TaskDetailWithConditionalRendering({
 	isTaskDetailVisible: boolean;
 }) {
 	//
+	const { task } = useCurrentTask();
+
 	return (
-		<TaskDetailAndConversation
-			list={isTaskDetailVisible ? <TaskDetail /> : undefined}
-			detail={
-				<TaskConversation
-					onToggleList={onToggleList}
-					onToggleTaskDetail={onToggleTaskDetail}
-					isTaskListVisible={isTaskListVisible}
-					isTaskDetailVisible={isTaskDetailVisible}
-				/>
-			}
-			onToggleTaskDetail={onToggleTaskDetail}
-		/>
+		<TaskWorkspaceProvider taskId={task._id}>
+			<TaskDetailAndConversation
+				list={isTaskDetailVisible ? <TaskDetail /> : undefined}
+				detail={
+					<TaskConversation
+						onToggleList={onToggleList}
+						onToggleTaskDetail={onToggleTaskDetail}
+						isTaskListVisible={isTaskListVisible}
+						isTaskDetailVisible={isTaskDetailVisible}
+					/>
+				}
+				onToggleTaskDetail={onToggleTaskDetail}
+			/>
+		</TaskWorkspaceProvider>
 	);
 }
 
