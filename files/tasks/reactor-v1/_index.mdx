@@ -28,6 +28,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
 	- files should have the dream tagging system, like what I always wanted from macOS; the Organizer experiment makes this feel like the right approach
+	- consider renaming `references` to `memories`
 - learning
 	- if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)
 - we must support synchronous actions
@@ -51,6 +52,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- hard (code) skills can also trigger multi-reactions
 - triggers primitive
 	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
+	- schedules in the new Reactor should be implemented using triggers
 	- "every 5 rounds"
 	- "on context > X%"
 	- trigger usage should be a counter, not just a boolean: a trigger can be allowed to fire N times, then deactivate/remove itself
@@ -62,6 +64,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
 - skill grouping!
 	- this is very important
+	- every app feature should be exposed to Meseeks as a skill; no hidden human-only capability
 	- built-in stuff should be versioned btw
 		- innate/say@0.1.0
 		- core/say@0.1.0
@@ -127,6 +130,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- when a done() call is made, run a doubleCheck() to accept/reject it
 	- properly account reasoning tokens
 	- variable hard-skill costs
+	- unresolved recurring maintenance costs
+		- how do we charge for costs that keep accruing over time, like file storage/R2?
+		- maybe "maintenance cost" is the thing we charge every X time, but the accounting model is still unclear
+	- unresolved low account balance behavior
+		- what happens when account balance is too low to fulfill work that has already been committed?
+		- maybe a `deactivate()` / `clearEnergy()`-style trigger when `accountBalance < threshold`, enforced on every loop as a protection
 - multi-provider
 	- code sandbox
 	- LLM/AI

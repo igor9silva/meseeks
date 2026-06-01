@@ -44,6 +44,14 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - Visual references for richer Composer controls.
 - Main entry Composer visual direction: preserve both a simple "what can I help with?" home surface and the richer energy/intelligence/action-control reference.
 - Detailed context usage: show a polished breakdown of what is consuming the context window, how much remains, and enough detail to make pruning or energy decisions obvious.
+- Energy and other queued actions could maybe render as removable pills instead of only a strip. Not settled.
+- Slack-inspired read-state interaction: `Esc` in Composer could mark the current task/inbox item as read, and this could live explicitly on Inbox/Composer/header.
+- Composer should render inline Markdown while typing, not only after sending or in the action list.
+- Done/action-result affordances:
+  - `done()` should carry a confidence level that triggers can use to decide whether to iterate, stop, discard, or resolve.
+  - done/result actions render should be clickable with quick actions to discard or resolve the task.
+  - after resolving, maybe navigate back to the list/inbox/current parent.
+  - support action pinning into the task.
 
 ![Composer home reference](attachments/composer-home-a908e686.png)
 
