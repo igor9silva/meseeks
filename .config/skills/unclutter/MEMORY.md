@@ -32,7 +32,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - Rejected, obsolete, or "won't do" work should be deleted, not moved to completed.
 - `references/` is source/context, not completable work. A reference can be raw or synthesized depending on the source and Igor's instruction.
 - `ideas/` is for product ideas, side projects, use cases, and things to try. In reviewed TickTick Meseeks imports, Igor often moves original use-case column items here, while keeping `ticktick-status:*` only as provenance.
-- Demand signals stay private by default. The point is to preserve raw market signal, not publish it.
+- Demand signals stay private by default. The point is to preserve raw market signal, not publish it. If Igor provides the title/body, use that title/body directly; do not add "Demand signal", "Why it matters", "Requested features", or other analysis sections. The `demand` tag already says why the file exists. For tweet demand references, the tweet is the content: render attached tweet media in the body with the tweet text, not buried under source metadata.
 - Use cases we want to do with Meseeks stay private ideas by default unless Igor explicitly says public.
 - `inbox/` is for untriaged capture. In reviewed TickTick Meseeks imports, original user-interface column items often stay inbox until reviewed, while keeping `ticktick-status:*` only as provenance.
 - Once an inbox task has been reviewed, it should almost never remain in inbox. Exception: `human:to-read` stays in private inbox when Igor says it is just something to read. Move other reviewed items to the best public/private section; if the destination is unclear, ask Igor instead of parking it in inbox.

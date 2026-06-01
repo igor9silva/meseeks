@@ -84,6 +84,8 @@ Captured: 2026-05-10
 
 Keep raw source text, transcript pointers, URLs, import notes, timestamps, IDs, attachments, and raw exported data when importing. If a file mixes public work with private raw material, split it into a public task and a private reference.
 
+Demand references are raw market signals. If Igor provides the title/body, use that title/body directly. Do not add analysis sections like "Demand signal", "Requested features", "Why it matters", or other prose that only restates the `demand` tag. For tweet demand references, the tweet is the content: render attached tweet media with the tweet text in the body, then put source metadata/backups last.
+
 For saved-reading backups, the body should be the captured page content, not a `Summary` / `Key Points` analysis unless Igor asked for analysis. Keep the filename short and put `## Source` at the very end.
 
 ## Subtasks

@@ -75,10 +75,4 @@
 	*::-webkit-scrollbar-corner {
 		background: hsl(var(--background));
 	}
-
-	.action-anchor:target,
-	.action-anchor-pulse {
-		background: hsl(var(--primary) / 0.08);
-		outline: 1px solid hsl(var(--primary) / 0.25);
-	}
 }

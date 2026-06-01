@@ -104,6 +104,8 @@ If the scrape is saved directly under `tasks/`, `references/`, or `ideas/`, incl
 
 For saved-reading or archive-style task files, the scraped page body comes first and the `## Source` block goes last. Do not replace a content backup with `Summary` / `Key Points` unless the user asked for analysis. Use a short semantic filename and preserve the original URL plus canonical URL when available.
 
+For demand references, keep the source itself as the body. If Igor provides a title/body, use that directly and do not add "Demand signal", "Requested features", "Why it matters", or similar analysis sections. For tweet demand references, attached tweet media is part of the tweet content and should render with the tweet text in the body; source URLs, metrics, raw scrape backups, and JSON belong after that.
+
 Do not save raw HTML page snapshots for routine product/tool websites just because a tweet links to them. For tool references, a backed-up tweet scrape plus the tool website URL is enough unless the page itself is the fragile artifact Igor explicitly asked to archive.
 
 Each tweet produces a `{tweetId}.md` file with this structure:

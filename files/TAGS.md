@@ -79,7 +79,7 @@ When placement says backlog, active and completed are still valid when the lifec
 | `bug` | Broken or incorrect current product behavior, regressions, defects, or reliability issues that should be fixed. | Actionable tasks by default. |
 | `operations` | Admin tasks Igor has to do. | Private actionable tasks. |
 | `debt` | Technical debt, refactors, cleanup, hardening, or maintenance work. | Actionable tasks by default. |
-| `demand` | Market-demand signal tracking. Keep the raw signal because the signal itself is the artifact. | Private references by default. |
+| `demand` | Market-demand signal tracking. Keep the raw signal because the signal itself is the artifact: title, body, quotes, screenshots, and attached tweet media should preserve the source itself, not assistant analysis. | Private references by default. |
 | `entity` | Real-world entities worth keeping as durable context: people, companies, vehicles, organizations, accounts, and similar records. Store documents, identifiers, addresses, history, contact notes, and other entity facts in the body. | Private references ONLY. |
 | `intelligence` | AI model/model-provider support tasks only. The work is usually "add support", not "evaluate". | Public actionable tasks by default. |
 | `insight` | Conceptual insight, belief, mental model, or raw thought whose value is the idea itself rather than immediate work. | References by default. |
