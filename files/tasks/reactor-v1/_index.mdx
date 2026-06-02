@@ -184,6 +184,9 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- hard skills can return huge payloads; one observed result was around 455,810 characters (http://localhost:3000/task/kh70t75w7zpw3yykvc6b2298w585xrkn?debug=true#nd7e8m7xd03tb98yjsb1aec9gh85xxm0), which wrecks model context and is not useful inline
 	- after the virtual filesystem exists, huge action results should be written to a virtual file and surfaced as a readable handle/path
 	- the model should choose whether to read specific lines, `head`, `tail`, summaries, or slices instead of being forced to ingest the whole result
+- the loop should auto-manage context distribution
+	- decide whether to use a larger-context model variant
+	- choose the distribution, e.g. less message history but more images, or drop a file for more message history
 - searchWeb could take multiple queries at once
 - launcher search should be scored, not grouped
 	- example: if `isDiscard`, multiply score by `0.2`

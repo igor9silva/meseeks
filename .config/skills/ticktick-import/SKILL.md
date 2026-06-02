@@ -136,6 +136,8 @@ Current behavior:
 - skips already imported TickTick task IDs unless `--overwrite` is passed
 - copies TickTick attachments into the imported task folder as `attachments/*`
 - writes every imported task as a folder with `_index.md`, so the task key stays stable and attachments live inside the task
+- writes TickTick body text directly into the task body; do not wrap it in a generic `## Context` section
+- if a TickTick task is only a URL or Markdown link in the title, copy that title/link into the body so the link is clickable in Organizer
 - falls back to the local TickTick attachment cache when `ZLOCALFILEPATH` is empty
 - records missing local attachment files in the task payload instead of pretending they imported
 - preserves every possible bit of imported source information; later organizing/uncluttering can remove unused raw import debris after the import snapshot has been committed

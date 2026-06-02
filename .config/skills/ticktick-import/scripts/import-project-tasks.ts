@@ -641,12 +641,30 @@ function findAttachmentInCache(attachment: AttachmentRow, attachmentsRoot: strin
 	return filePaths.find((filePath) => basename(filePath) === fileName) ?? null;
 }
 
-function textSection(title: string, content: string) {
+function bodyContent(content: string) {
 	//
 	const trimmedContent = content.trim();
 	if (!trimmedContent) return '';
 
-	return `## ${title}\n\n${trimmedContent}\n\n`;
+	return `${trimmedContent}\n\n`;
+}
+
+function titleHasOnlyLinkValue(title: string) {
+	//
+	const trimmedTitle = title.trim();
+	if (!trimmedTitle) return false;
+	if (/^https?:\/\/\S+$/u.test(trimmedTitle)) return true;
+	if (/^\[[\s\S]+?\]\(https?:\/\/[^)]+\)$/u.test(trimmedTitle)) return true;
+	if (/^watch\s+(\[[\s\S]+?\]\(https?:\/\/[^)]+\)|https?:\/\/\S+)$/iu.test(trimmedTitle)) return true;
+	return false;
+}
+
+function bodyValuesForTask(task: TaskRow) {
+	//
+	const bodyValues = uniqueValues([task.content.trim(), task.description.trim(), task.notionBlockString.trim()]);
+	if (bodyValues.length > 0) return bodyValues;
+	if (titleHasOnlyLinkValue(task.title)) return [task.title.trim()];
+	return [];
 }
 
 function listMetadata(label: string, value: string | number | null) {
@@ -884,7 +902,7 @@ function renderTaskFile(
 	const task = importedTask.task;
 	const title = getTaskTitle(task);
 	const tags = buildTags(task, projectConfig);
-	const bodyValues = uniqueValues([task.content.trim(), task.description.trim(), task.notionBlockString.trim()]);
+	const bodyValues = bodyValuesForTask(task);
 	const parentAttachmentImports = attachmentImports.filter(
 		(attachmentImport) => attachmentImport.attachment.taskId === task.entityId,
 	);
@@ -895,7 +913,7 @@ title: ${yamlString(title)}
 ${renderPriorityFrontmatter(task.priority)}tags: [${tags.join(', ')}]
 ---
 
-${textSection('Context', bodyValues.join('\n\n'))}${renderChecklistItems(importedTask.checklistItems)}${renderAttachments(parentAttachmentImports)}${renderSourceMetadata(task, projectConfig)}\`\`\`json
+${bodyContent(bodyValues.join('\n\n'))}${renderChecklistItems(importedTask.checklistItems)}${renderAttachments(parentAttachmentImports)}${renderSourceMetadata(task, projectConfig)}\`\`\`json
 ${JSON.stringify(payload, null, 2)}
 \`\`\`
 `;
@@ -918,7 +936,11 @@ function renderChildTaskFile(
 		child.content.trim(),
 		child.description.trim(),
 		child.notionBlockString.trim(),
-	]).map((bodyValue) => rewriteAttachmentReferences(bodyValue, childAttachmentImports));
+	]);
+	const titleBodyValues = bodyValues.length > 0 ? bodyValues : bodyValuesForTask(child);
+	const renderedBodyValues = titleBodyValues.map((bodyValue) =>
+		rewriteAttachmentReferences(bodyValue, childAttachmentImports)
+	);
 	const payload = buildTaskPayload(child, [], childAttachmentImports, tags, args);
 
 	return `---
@@ -926,7 +948,7 @@ title: ${yamlString(title)}
 ${renderPriorityFrontmatter(child.priority)}tags: [${tags.join(', ')}]
 ---
 
-${textSection('Context', bodyValues.join('\n\n'))}${renderAttachments(childAttachmentImports)}${renderSourceMetadata(child, projectConfig)}- TickTick parent task id: \`${parentTask.entityId}\`
+${bodyContent(renderedBodyValues.join('\n\n'))}${renderAttachments(childAttachmentImports)}${renderSourceMetadata(child, projectConfig)}- TickTick parent task id: \`${parentTask.entityId}\`
 
 \`\`\`json
 ${JSON.stringify(payload, null, 2)}
