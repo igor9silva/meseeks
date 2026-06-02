@@ -10,6 +10,7 @@ const defaultDbPath = `${process.env.HOME ?? ''}/Library/Group Containers/75TY9U
 const defaultAttachmentsRoot = join(dirname(defaultDbPath), 'Attachments');
 const defaultSummaryFile = resolve('organize/ticktick-import-2026-05-11.json');
 const defaultImportDate = '2026-05-11';
+const defaultAllProjectsOutputDir = resolve('private/files/inbox');
 
 const projectConfigs = [
 	{
@@ -24,6 +25,9 @@ const projectConfigs = [
 	},
 ];
 
+const priorityValueSchema = z.enum(['none', 'low', 'medium', 'high', '0', '1', '3', '5']);
+const dueDateValueSchema = z.union([z.literal('today'), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]);
+
 const argsSchema = z.object({
 	dbPath: z.string(),
 	attachmentsRoot: z.string(),
@@ -32,6 +36,12 @@ const argsSchema = z.object({
 	dryRun: z.boolean(),
 	overwrite: z.boolean(),
 	verbose: z.boolean(),
+	allProjects: z.boolean(),
+	priority: z.number().int().nullable(),
+	dueDate: z
+		.string()
+		.regex(/^\d{4}-\d{2}-\d{2}$/)
+		.nullable(),
 });
 
 const projectRowSchema = z.object({
@@ -64,7 +74,9 @@ const taskRowSchema = z.object({
 	tagString: z.string(),
 	timeZoneName: z.string().nullable(),
 	startAt: z.string().nullable(),
+	startLocalDate: z.string().nullable(),
 	endAt: z.string().nullable(),
+	endLocalDate: z.string().nullable(),
 	createdAt: z.string().nullable(),
 	updatedAt: z.string().nullable(),
 	completedAt: z.string().nullable(),
@@ -169,12 +181,41 @@ interface AttachmentImport {
 	status: 'copied' | 'missing' | 'dry-run';
 }
 
+function localDatePart(value: number) {
+	//
+	return String(value).padStart(2, '0');
+}
+
+function formatLocalDate(date: Date) {
+	//
+	return `${date.getFullYear()}-${localDatePart(date.getMonth() + 1)}-${localDatePart(date.getDate())}`;
+}
+
+function parsePriority(value: string) {
+	//
+	const parsedValue = priorityValueSchema.parse(value.trim().toLowerCase());
+
+	if (parsedValue === 'none' || parsedValue === '0') return 0;
+	if (parsedValue === 'low' || parsedValue === '1') return 1;
+	if (parsedValue === 'medium' || parsedValue === '3') return 3;
+	return 5;
+}
+
+function parseDueDate(value: string) {
+	//
+	const parsedValue = dueDateValueSchema.parse(value.trim().toLowerCase());
+	if (parsedValue === 'today') return formatLocalDate(new Date());
+	return parsedValue;
+}
+
 function parseArgs(rawArgs: string[]) {
 	//
 	const dbPathIndex = rawArgs.indexOf('--db-path');
 	const attachmentsRootIndex = rawArgs.indexOf('--attachments-root');
 	const importDateIndex = rawArgs.indexOf('--import-date');
 	const summaryFileIndex = rawArgs.indexOf('--summary-file');
+	const priorityIndex = rawArgs.indexOf('--priority');
+	const dueDateIndex = rawArgs.indexOf('--due-date');
 
 	return argsSchema.parse({
 		dbPath: dbPathIndex === -1 ? defaultDbPath : resolve(rawArgs[dbPathIndex + 1] ?? defaultDbPath),
@@ -188,11 +229,30 @@ function parseArgs(rawArgs: string[]) {
 		dryRun: rawArgs.includes('--dry-run'),
 		overwrite: rawArgs.includes('--overwrite'),
 		verbose: rawArgs.includes('--verbose'),
+		allProjects: rawArgs.includes('--all-projects'),
+		priority: priorityIndex === -1 ? null : parsePriority(rawArgs[priorityIndex + 1] ?? ''),
+		dueDate: dueDateIndex === -1 ? null : parseDueDate(rawArgs[dueDateIndex + 1] ?? ''),
 	});
 }
 
-function queryProjects(database: Database) {
+function queryProjects(database: Database, args: Args) {
 	//
+	if (args.allProjects) {
+		const statement = database.query(`
+			SELECT
+				Z_PK AS pk,
+				COALESCE(ZENTITYID, '') AS entityId,
+				COALESCE(ZNAME, '') AS name,
+				ZCLOSED AS closed,
+				ZKIND AS kind
+			FROM ZTTPROJECT
+			WHERE COALESCE(ZCLOSED, 0) = 0
+			ORDER BY ZNAME ASC
+		`);
+
+		return projectRowSchema.array().parse(statement.all());
+	}
+
 	const statement = database.query(`
 		SELECT
 			Z_PK AS pk,
@@ -228,6 +288,11 @@ function dateExpression(columnName: string) {
 	return `CASE WHEN ${columnName} IS NULL THEN NULL ELSE strftime('%Y-%m-%dT%H:%M:%SZ', ${columnName} + ${coreDataUnixOffsetSeconds}, 'unixepoch') END`;
 }
 
+function localDateExpression(columnName: string) {
+	//
+	return `CASE WHEN ${columnName} IS NULL THEN NULL ELSE strftime('%Y-%m-%d', ${columnName} + ${coreDataUnixOffsetSeconds}, 'unixepoch', 'localtime') END`;
+}
+
 function queryOpenTasks(database: Database, projectPk: number) {
 	//
 	const statement = database.query(`
@@ -253,7 +318,9 @@ function queryOpenTasks(database: Database, projectPk: number) {
 			COALESCE(t.ZSTRINGOFTAGS, '') AS tagString,
 			t.ZTIMEZONENAME AS timeZoneName,
 			${dateExpression('t.ZSTARTDATE')} AS startAt,
+			${localDateExpression('t.ZSTARTDATE')} AS startLocalDate,
 			${dateExpression('t.ZENDDATE')} AS endAt,
+			${localDateExpression('t.ZENDDATE')} AS endLocalDate,
 			${dateExpression('t.ZCREATIONDATE')} AS createdAt,
 			${dateExpression('t.ZLASTMODIFIEDDATE')} AS updatedAt,
 			${dateExpression('t.ZCOMPLETIONDATE')} AS completedAt,
@@ -609,7 +676,9 @@ function renderSourceMetadata(task: TaskRow, projectConfig: ProjectConfig) {
 		listMetadata('Created', task.createdAt) +
 		listMetadata('Updated', task.updatedAt) +
 		listMetadata('Start', task.startAt) +
+		listMetadata('Start local date', task.startLocalDate) +
 		listMetadata('End', task.endAt) +
+		listMetadata('End local date', task.endLocalDate) +
 		listMetadata('Sort order', task.sortOrder) +
 		'\n'
 	);
@@ -757,7 +826,9 @@ function buildTaskPayload(
 			tagString: task.tagString,
 			timeZone: task.timeZoneName,
 			startAt: task.startAt,
+			startLocalDate: task.startLocalDate,
 			endAt: task.endAt,
+			endLocalDate: task.endLocalDate,
 			createdAt: task.createdAt,
 			updatedAt: task.updatedAt,
 			completedAt: task.completedAt,
@@ -778,6 +849,8 @@ function buildTaskPayload(
 			sortOrder: child.sortOrder,
 			createdAt: child.createdAt,
 			updatedAt: child.updatedAt,
+			startLocalDate: child.startLocalDate,
+			endLocalDate: child.endLocalDate,
 		})),
 		attachments: attachmentImports.map((attachmentImport) => ({
 			...attachmentImport.attachment,
@@ -912,26 +985,77 @@ function buildImportedTasks(
 	};
 }
 
+function doesTaskMatchFilters(task: TaskRow, args: Args) {
+	//
+	if (args.priority !== null && task.priority !== args.priority) return false;
+
+	if (args.dueDate !== null && task.startLocalDate !== args.dueDate && task.endLocalDate !== args.dueDate)
+		return false;
+
+	return true;
+}
+
+function selectFilteredTasks(tasks: TaskRow[], args: Args) {
+	//
+	if (args.priority === null && args.dueDate === null) return tasks;
+
+	const selectedTaskIds = new Set(
+		tasks.filter((task) => doesTaskMatchFilters(task, args)).map((task) => task.entityId),
+	);
+	let hasAddedTask = true;
+
+	while (hasAddedTask) {
+		hasAddedTask = false;
+
+		for (const task of tasks) {
+			if (!task.parentId) continue;
+			if (!selectedTaskIds.has(task.parentId)) continue;
+			if (selectedTaskIds.has(task.entityId)) continue;
+
+			selectedTaskIds.add(task.entityId);
+			hasAddedTask = true;
+		}
+	}
+
+	return tasks.filter((task) => selectedTaskIds.has(task.entityId));
+}
+
+function filterRowsForTasks<TItem extends { taskId: string }>(items: TItem[], tasks: TaskRow[]) {
+	//
+	if (tasks.length === 0) return [];
+
+	const taskIds = new Set(tasks.map((task) => task.entityId));
+	return items.filter((item) => taskIds.has(item.taskId));
+}
+
 function countAttachmentImports(importedFiles: ImportedFile[], status: 'copiedAttachments' | 'missingAttachments') {
 	//
 	return importedFiles.reduce((total, file) => total + file[status], 0);
 }
 
-function findProjectConfig(project: ProjectRow) {
+function findProjectConfig(project: ProjectRow, args: Args) {
 	//
-	return projectConfigs.find((config) => config.id === project.entityId) ?? null;
+	const knownConfig = projectConfigs.find((config) => config.id === project.entityId);
+	if (knownConfig) return knownConfig;
+	if (!args.allProjects) return null;
+
+	return {
+		id: project.entityId,
+		label: project.name || project.entityId,
+		outputDir: defaultAllProjectsOutputDir,
+	};
 }
 
 function importProject(database: Database, project: ProjectRow, existingTaskIds: Map<string, string>, args: Args) {
 	//
-	const config = findProjectConfig(project);
+	const config = findProjectConfig(project, args);
 	if (!config) throw new Error(`No local import config for TickTick project ${project.name} (${project.entityId})`);
 
 	const sourceCounts = querySourceCounts(database, project.pk);
-	const openTasks = queryOpenTasks(database, project.pk);
-	const attachments = queryAttachments(database, project.pk);
-	const checklistItems = queryChecklistItems(database, project.pk);
-	const reminders = queryReminders(database, project.pk);
+	const openTasks = selectFilteredTasks(queryOpenTasks(database, project.pk), args);
+	const attachments = filterRowsForTasks(queryAttachments(database, project.pk), openTasks);
+	const checklistItems = filterRowsForTasks(queryChecklistItems(database, project.pk), openTasks);
+	const reminders = filterRowsForTasks(queryReminders(database, project.pk), openTasks);
 	const built = buildImportedTasks(openTasks, attachments, checklistItems, reminders);
 	const importedFiles: ImportedFile[] = [];
 
@@ -1025,6 +1149,11 @@ function writeSummary(args: Args, projectSummaries: ProjectSummary[], importedFi
 	const summary = {
 		importedAt: args.importDate,
 		dryRun: args.dryRun,
+		filters: {
+			allProjects: args.allProjects,
+			priority: args.priority,
+			dueDate: args.dueDate,
+		},
 		source: {
 			dbPath: args.dbPath,
 			attachmentsRoot: args.attachmentsRoot,
@@ -1035,6 +1164,7 @@ function writeSummary(args: Args, projectSummaries: ProjectSummary[], importedFi
 		notes: [
 			'TickTick was read from the local macOS SQLite store in readonly mode.',
 			'Open, non-deletion-flagged rows were imported.',
+			'When CLI filters are provided, they are applied before local task files are written.',
 			'Every imported task gets source:ticktick plus ticktick-list:<list>.',
 			'Meseeks board columns are preserved as ticktick-status:<status> tags.',
 			'TickTick priority 0 is treated as no local priority; priority 1 maps to low.',
@@ -1052,6 +1182,7 @@ function writeSummary(args: Args, projectSummaries: ProjectSummary[], importedFi
 	const consoleSummary = {
 		importedAt: summary.importedAt,
 		dryRun: summary.dryRun,
+		filters: summary.filters,
 		source: summary.source,
 		projects: summary.projects,
 		fileCount: summary.files.length,
@@ -1066,9 +1197,11 @@ function main() {
 	//
 	const args = parseArgs(process.argv.slice(2));
 	const database = new Database(args.dbPath, { readonly: true });
-	const projects = queryProjects(database);
+	const projects = queryProjects(database, args);
 	const foundProjectIds = new Set(projects.map((project) => project.entityId));
-	const missingProjects = projectConfigs.filter((project) => !foundProjectIds.has(project.id));
+	const missingProjects = args.allProjects
+		? []
+		: projectConfigs.filter((project) => !foundProjectIds.has(project.id));
 
 	if (missingProjects.length > 0) {
 		throw new Error(
