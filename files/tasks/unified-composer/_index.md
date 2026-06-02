@@ -37,6 +37,7 @@ On desktop, the right answer may be different. Keep iterating against the real U
 - Energy controls in or near the Composer.
 - Submit button state that reflects how many actions will run.
 - Optional reaction suppression so Composer can behave like a regular task app.
+- Silent actions: maybe a `silent` flag, or maybe a trigger-free loop, where an action runs without breaking an active chain; already-running chains should still be able to see newly created actions.
 - Quick actions, pinned tasks, skill/loop switching, and skill selection.
 - Composer undo behavior.
 - Launcher pasted-resource matching: if I paste an existing resource path like `/task/kh71mzvz3bb7d42nyzadxx7v89845ea2`, the Launcher should recognize it as a task, load the task details inline, and navigate there on Enter/Return.

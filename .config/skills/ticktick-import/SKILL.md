@@ -140,6 +140,8 @@ Current behavior:
 - records missing local attachment files in the task payload instead of pretending they imported
 - preserves every possible bit of imported source information; later organizing/uncluttering can remove unused raw import debris after the import snapshot has been committed
 
+When expanding or organizing an imported task after import, write from the preserved source body/link/attachment, not from the stale TickTick title alone. If the imported item is only a URL, that URL is the content until it is backed up locally.
+
 ### Reshape imported link files
 
 Rewrites already-imported link task files into the flat format used now:
@@ -270,8 +272,9 @@ Use this when the user wants the actual asset from a TickTick task instead of a 
 1. Read the task from TickTick using the existing native macOS path or cached local data.
 2. Extract the first real media URL from the task title/content/description.
 3. Use the globally installed `yt-dlp` as the default downloader for supported media sites like Instagram, YouTube, and X video links.
-4. If the user wants a transcript after download, run `bun run transcribe:media <downloaded-file>` with `GEMINI_API_KEY` set and keep the transcript next to the media file unless they asked for a different destination.
-5. Move the downloaded file into the repo only if the user asked for that; otherwise keep it in a temporary download location and report the path.
+4. Embed the downloaded video/audio itself when saving into a task. Thumbnails can be saved as metadata, but never as a replacement for the video.
+5. If the user wants a transcript after download, run `bun run transcribe:media <downloaded-file>` with `GEMINI_API_KEY` set and keep the transcript next to the media file unless they asked for a different destination.
+6. Move the downloaded file into the repo only if the user asked for that; otherwise keep it in a temporary download location and report the path.
 
 Examples:
 

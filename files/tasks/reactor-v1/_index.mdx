@@ -62,9 +62,17 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- system-wide dictation is a good example: each dictation creates a raw voice file, then triggers transcription into a second file
 	- raw audio and transcription files should have specific tags so we can render a dedicated dictation/transcription UI showing every captured transcription, with retries, corrections, yada yada
 - support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
+- task shape, to consider ??
+	- use `task.goal` for the definition of done: the thing we test against to decide whether a task is complete
+	- use `task.plan` for optional planning/current context as the task evolves; `.plan` should include the task summary
+	- `goal` already has community momentum from Codex `/goal`, which we can reuse as vocabulary
+- loop behavior examples to preserve
+	- respect explicit output contracts from the triggering user action, even when the loop does internal research or planning
+	- example failure: user asked "Qual deixa broxa, finasterida ou minoxidil? Responde só o nome mais nada."; the loop correctly researched, but replied with explanation and sources instead of only the medication name
 - skill grouping!
 	- this is very important
 	- every app feature should be exposed to Meseeks as a skill; no hidden human-only capability
+	- feedback/reporting is part of that: if the user complains that Meseeks is broken, the AI should be able to ask permission and call a feedback tool that reports the actual problem to us
 	- built-in stuff should be versioned btw
 		- innate/say@0.1.0
 		- core/say@0.1.0
@@ -75,18 +83,25 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- aliases can be owned by orgs, e.g. `@pro/efficient`, `@openai/GPT:latest`, `@xai/Grok-fast:latest`
 		- users should be able to pin exact models when they care, but default UX should prefer stable capability names
 - version everything: tasks, skills, ...
-	- `updateInstructions()` should compute and persist a git-style diff at write-time, then render that diff to humans and future AI context instead of only saying that a title/body changed
+	- actions need `action.index`: a stable per-task counter so summaries and diffs can reference ranges such as "actions 1 to 100"
+	- mutations should render git-style patches to the model: e.g. `updateInstructions()` should compute and persist a diff at write-time, then render the previous-vs-updated patch to humans and future AI context instead of the whole new instruction body
 	- task history should make updates versioned, easy to visualize, and reversible
 - live UI customization
 	- Meseeks should let users select a running UI/component and ask the AI to change its appearance or behavior: bigger, smaller, different color, rounder, different interaction, etc.
 	- MDX/component rendering should make the app surface directly customizable at runtime
+	- component catalog/playground: users should be able to view MDX-renderable components individually, test props/classes, and set per-user global defaults
+	- customization should be inheritable through the task hierarchy: a root-level override affects child tasks, while a lower task-level override affects only that subtree
 	- reference: [Agentation](../../references/agentation/_index.md)
 - bi-rendering
 	- important components/actions/skills should be able to render for humans and for AI
 	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
+	- consider actions returning component definitions instead of raw payloads
+		- render the component for humans through React
+		- render the same component for digital intelligences in whatever format they support
+		- this could solve huge-result context pollution by returning a component with a virtual file path or another lazy-readable handle instead of the full content
 	- MDX should be able to mention task/action outputs, and those references must render into the AI-facing instructions/context
 	- this overlaps with [Bi-rendering system](../bi-rendering-system/_index.md), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
-	- references: JSX prompts in practice, [jsx-prompts](https://fables.gg/blog/introducing-jsx-prompts-build-complex-prompts-for-llms-with-jsx), [Priompt](https://github.com/anysphere/priompt), [mdx-prompt](https://github.com/edspencer/mdx-prompt)
+	- references: JSX prompts in practice, [jsx-prompts](https://fables.gg/blog/introducing-jsx-prompts-build-complex-prompts-for-llms-with-jsx), [Priompt](https://github.com/anysphere/priompt), [mdx-prompt](https://github.com/edspencer/mdx-prompt), [Smithers durable JSX AI workflow](../../references/smithers-durable-jsx-ai-workflow/_index.md)
 - external task interfaces
 	- any task can request incoming email addresses; each received email becomes a message/action on that task
 	- tasks can also have outgoing email addresses when they need to send email
@@ -165,6 +180,9 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - branching
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
+	- hard skills can return huge payloads; one observed result was around 455,810 characters (http://localhost:3000/task/kh70t75w7zpw3yykvc6b2298w585xrkn?debug=true#nd7e8m7xd03tb98yjsb1aec9gh85xxm0), which wrecks model context and is not useful inline
+	- after the virtual filesystem exists, huge action results should be written to a virtual file and surfaced as a readable handle/path
+	- the model should choose whether to read specific lines, `head`, `tail`, summaries, or slices instead of being forced to ingest the whole result
 - searchWeb could take multiple queries at once
 - launcher search should be scored, not grouped
 	- example: if `isDiscard`, multiply score by `0.2`
@@ -179,8 +197,11 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 
 # Virtual File System
 
+- private inbox items tagged `human:vfs` are the review queue for this section: candidates, references, and related information for the virtual filesystem implementation
+- [Files SDK](../../references/files-sdk/_index.md): unified storage SDK for S3/R2/Vercel Blob/Google Drive-style backends and agent SDK tools; relevant to a provider-neutral VFS layer.
 - run the entire action inside Daytona
 	- persistent file system on S3-like
+	- if we do git-versioning everything, consider `repositories` as a first-class primitive
 	- run multiple actions per invocation?
 	- safe internet access and code running
 	- sandboxes could have a lifecycle independent of actions, priced after the used timeout; visible in a composer strip
@@ -286,3 +307,43 @@ meta/microsoft:
 ---
 
 INTERNAL_JOKES.md
+
+---
+
+we could trash all instructions and do every thing example driven
+
+we build examples with codex, say 15
+codex uses those 10 to write instructions
+then evaluates against all the 15 in a loop until all pass
+
+for that whats the primitive?
+do we need `learnings`, for `feedbacks` or `examples`?
+
+---
+
+> write examples from this convo down to disk
+> raw, 1 file per feedback
+> rewrite unclutter from it
+
+---
+if everything is a file, a task has a tag like kind:task or smth
+all files have statuses etc
+
+or maybe tasks are simply a directory
+could work like macOS `.app`
+`.task` is a directory that usually (convention) has
+instructions.*
+summary.*
+any other files, including other .task/s
+we could render meta as like `/meta.xml` or smth so its visible from our VFS
+---
+tags could have an optional description and even schema enforcement
+like, values must comply to a certain schema
+---
+`preferences` can be just a tag
+
+for  `references/` it could be a "global" (direct child to root) task
+
+---
+
+we could embed a web vscode with our virtual worktree!

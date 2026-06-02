@@ -84,7 +84,13 @@ Captured: 2026-05-10
 
 Keep raw source text, transcript pointers, URLs, import notes, timestamps, IDs, attachments, and raw exported data when importing. If a file mixes public work with private raw material, split it into a public task and a private reference.
 
+If Igor gives an exact title/body, use that title/body. Do not "improve" it into a summary, demand analysis, or generic backlog wrapper.
+
 Demand references are raw market signals. If Igor provides the title/body, use that title/body directly. Do not add analysis sections like "Demand signal", "Requested features", "Why it matters", or other prose that only restates the `demand` tag. For tweet demand references, the tweet is the content: render attached tweet media with the tweet text in the body, then put source metadata/backups last.
+
+Do not add classification boilerplate. A file in `references/` does not need "reference" in its title/body. A file tagged `demand` does not need to explain that it is a demand signal. A task under `tasks/` should be named as the actual action, not "build a backlog idea around...".
+
+If the source was expanded from a link, write from the expanded source, not the stale import title. If the source names a specific model, library, product, or request, use that exact name in the title. Keep dated caveats in the body with "we" when the note is about our project state.
 
 For saved-reading backups, the body should be the captured page content, not a `Summary` / `Key Points` analysis unless Igor asked for analysis. Keep the filename short and put `## Source` at the very end.
 

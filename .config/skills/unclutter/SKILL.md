@@ -78,6 +78,8 @@ Use judgment, but do not override an explicit disposition Igor already gave for 
 - Rewriting is allowed when it improves understanding, but losing source content is not. If the original task is just a link, the link is the task content: keep it visible, expand it locally when practical, or move it into the destination/reference. Never replace the only useful artifact with a vague title or summary.
 - Never leave an external link as the only copy of a source. Expand it in place or into its own reference task, and link to that backed-up content. If an image/video carries the point, download it when practical and transcribe or describe the useful content.
 - Prefer named Markdown links in prose. Bare URLs are for raw source lists or when the URL itself is the artifact.
+- When adding a reference to another task, make it an actual Markdown link to the reference/task file. Do not write parenthetical labels like "private reference" when a link is what preserves navigation.
+- If Igor gives exact wording for the destination title/body, copy it. Do not wrap it in helper prose such as "Demand signal", "Why it matters", "Requested features", "Scraped tweet", or "Build a backlog idea around".
 - Do not start every task with `## Context`. Start with the content.
 - When expansion or classification changes the semantic title, rename the task folder in the same pass. This applies even when the item stays in `inbox/` with `human:*`. Do not leave reviewed tasks with stale URL, social-handle, hash, or import-artifact slugs unless Igor explicitly wants the raw source slug.
 
