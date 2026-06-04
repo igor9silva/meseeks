@@ -1,7 +1,7 @@
 ---
 title: Current Action Execution Model
 priority: low
-tags: [status:active, class:task]
+tags: [class:task, status:completed]
 ---
 
 # Current Action Execution Model (Implementation Notes)

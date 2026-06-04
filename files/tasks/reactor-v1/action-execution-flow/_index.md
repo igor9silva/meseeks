@@ -1,7 +1,7 @@
 ---
 title: Action Execution Flows
 priority: low
-tags: [status:active, class:task]
+tags: [class:task, status:completed]
 ---
 
 # Action Execution Flows (UI -> Backend)

@@ -19,13 +19,6 @@ The engine. The platform.
 
 This task should become the implementation-grade technical design for V2: explicit enough that we can give Codex one large goal and have it produce working code. It is not a phased roadmap; it is the contract for the next core.
 
-Use the current execution references in this folder as source material:
-
-- [Current action execution model](action-execution-model/_index.md)
-- [Action execution flows](action-execution-flow/_index.md)
-
-They describe v0/current behavior and may be stale as implementation changes. Keep useful details, but v1 should define the new core instead of preserving accidental current constraints.
-
 ## Execution Contract
 
 Reactor has three durable phases:
@@ -87,9 +80,9 @@ Dead concepts that should not come back:
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
 	- files should have the dream tagging system, like what I always wanted from macOS; the Organizer experiment makes this feel like the right approach
-	- consider renaming `references` to `memories`
+	- rename `references` to `memories`
 - learning
-	- if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)
+	> "if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)"
 - we must support synchronous actions
 	- built-in stuff should run directly instead of scheduling an action when scheduling is unnecessary (sync actions)
 - we must support multiple tool-call
@@ -124,7 +117,7 @@ Dead concepts that should not come back:
 - task shape, to consider ??
 	- use `task.goal` for the definition of done: the thing we test against to decide whether a task is complete
 	- use `task.plan` for optional planning/current context as the task evolves; `.plan` should include the task summary
-	- `goal` already has community momentum from Codex `/goal`, which we can reuse as vocabulary
+	- the word `goal` already has community momentum from Codex `/goal`, which we can reuse as vocabulary
 - loop behavior examples to preserve
 	- respect explicit output contracts from the triggering user action, even when the loop does internal research or planning
 	- example failure: user asked "Qual deixa broxa, finasterida ou minoxidil? Responde só o nome mais nada."; the loop correctly researched, but replied with explanation and sources instead of only the medication name
@@ -170,7 +163,7 @@ Dead concepts that should not come back:
 - redesign our skills to prompt using `<xml>` tags
 - It should have a `<Constitution version="latest" />` instruction. "Forced" into every layer.
 	- maybe the task hierarchy is enough, as instructions drill down
-- `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
+- `instruct()` should become `plan()`
 - Rename reason() to reasoning()
 - consider renaming say() to message(), write(), comment() or other
 - sharing skills
@@ -258,6 +251,7 @@ Dead concepts that should not come back:
 	- fix authorization from the beginning
 	- portable agent identity/trust/reputation may need ERC-8004-style discovery, registration files, MCP/A2A endpoints, on-chain reputation, validators, wallet/payment proofs, and x402-weighted feedback; reference: [ERC-8004 agent trust and discovery](../../references/erc-8004-agent-trust-and-discovery/_index.md)
 - root task should be "Igor's life"
+- bring your own keys
 
 # Virtual File System
 
@@ -317,10 +311,10 @@ Dead concepts that should not come back:
 	- OpenAI/Anthropic-compatible proxies so they set BASE_URL to it
 	- we could do similar and "run the action" in the background?!
 - retry on technical failures
-- we should probably be using "aggregators" for computed stuff like task status? not sure
+- we should probably be using Convex"aggregators" for computed stuff like task status? not sure
 - look into modern AI SDK and TanStack AI; consider choosing one as a native layer
 - Actions should likely have a maximum size (because of context)
-	- and/or/at least expose a "size" thing we can do math on
+	- and/or/at least expose a "size" thing we can do math on, like HTTP's Content-Length
 
 ---
 
