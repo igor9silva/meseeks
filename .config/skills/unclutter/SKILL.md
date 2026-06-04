@@ -82,6 +82,7 @@ Use judgment, but do not override an explicit disposition Igor already gave for 
 - If Igor gives exact wording for the destination title/body, copy it. Do not wrap it in helper prose such as "Demand signal", "Why it matters", "Requested features", "Scraped tweet", or "Build a backlog idea around".
 - Do not start every task with `## Context`. Start with the content.
 - When expansion or classification changes the semantic title, rename the task folder in the same pass. This applies even when the item stays in `inbox/` with `human:*`. Do not leave reviewed tasks with stale URL, social-handle, hash, or import-artifact slugs unless Igor explicitly wants the raw source slug.
+- Dictated Meseeks planning notes can contain speech-to-text artifacts. Treat `m6` and `me6` as transcription errors for "Meseeks". Do not create product names, task titles, or GTM/architecture notes from those artifacts.
 
 ## Tag Hygiene
 

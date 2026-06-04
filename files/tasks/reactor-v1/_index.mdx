@@ -17,12 +17,71 @@ like GPT specific?
 
 The engine. The platform.
 
+This task should become the implementation-grade technical design for V2: explicit enough that we can give Codex one large goal and have it produce working code. It is not a phased roadmap; it is the contract for the next core.
+
 Use the current execution references in this folder as source material:
 
 - [Current action execution model](action-execution-model/_index.md)
 - [Action execution flows](action-execution-flow/_index.md)
 
 They describe v0/current behavior and may be stale as implementation changes. Keep useful details, but v1 should define the new core instead of preserving accidental current constraints.
+
+## Execution Contract
+
+Reactor has three durable phases:
+
+1. `claim`
+2. `perform`
+3. `finish`
+
+`claim` prepares durable action details, computes cost fields, checks task policy, checks account balance, checks authorization when needed, reserves funds/energy, marks the action running, and schedules or invokes execution.
+
+`perform` marks `startedAt`, rebuilds execution context from durable action details, and runs the skill/action.
+
+`finish` settles cost, persists result/cost metadata, updates pressure, emits reactions, and attempts to claim the next runnable action.
+
+Accounting vocabulary:
+
+- `maxCost`: hard upper bound.
+- `estimatedCost`: current best prediction.
+- `reservedEnergy`: account hold/reservation.
+- `actualCost`: real settled cost.
+
+`action_details` stays as the durable details table. Reactor owns the helper/write lifecycle around it: details are persisted before authorization, reservation, and scheduling; execution rebuilds context from those persisted details instead of relying on transient runtime state.
+
+Loop and trigger model:
+
+- `action.loop` passes through reactions.
+- `task.triggers` are always live.
+- `task.triggers` can override loop triggers.
+- Loops are collections of triggers, not active runtime entities.
+- No `chain`.
+- No `chainId`.
+- No active-loop object.
+
+Interruption semantics:
+
+- Convex actions are not cancellable.
+- Started interrupted actions finish financially and settle real costs.
+- Started interrupted actions do not react.
+- Started interrupted actions should disappear from future model history.
+- Unstarted interrupted actions can be skipped without cost.
+
+Cost rules:
+
+- Soft-skill cost should use prepared input plus capped max output, not the whole possible context window.
+- If `actualCost > maxCost`, Reactor should warn or enforce loudly. Silent overrun is not acceptable.
+
+Bi-rendering belongs in Reactor at the high level: one canonical artifact, many render targets. Actions should be able to produce artifacts that render for humans, render for AI context, and expose file/path handles when the payload is too large or media-like to inline.
+
+Dead concepts that should not come back:
+
+- `claimed` as a status; use timestamps instead.
+- `budgetScope`.
+- task-wallet accounting.
+- chain budget abstractions.
+- `reactionTrigger`, `shouldReact`, or `finishTrigger` as durable concepts.
+- verbose helper/type names such as `buildMagicRockContextFromActionDetails`, `ClaimAuthorization`, `reactorBudget`, `reactorDetails`, `spentEnergy`, or `nullResultSchema`.
 
 - files
 	- virtual tasks, skills
@@ -136,8 +195,9 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - experiment with parenthesis skill invocation instead of slash commands: typing something like `say(` could open the skill list after `(`; decide through UX testing
 	- original note: no / shit! just `(`	- including the comment in the file
 - energy as a first-class citizen
-	- estimated cost should be "max theoretical cost"
+	- `maxCost` should be max theoretical cost
 		- based on maxOutputTokens, fixed costs, and so on
+	- `estimatedCost` is separate: current best prediction, only when we have a real estimate
 		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
 	- the model should see the cost of each skill and preemptively suggest other paths that could require more energy
 	- done() could have a mandatory confidence: 0-100 field (so we could trigger a continue)

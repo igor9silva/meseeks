@@ -92,6 +92,8 @@ Do not add classification boilerplate. A file in `references/` does not need "re
 
 If the source was expanded from a link, write from the expanded source, not the stale import title. If the source names a specific model, library, product, or request, use that exact name in the title. Keep dated caveats in the body with "we" when the note is about our project state.
 
+Dictated Meseeks planning notes often contain speech-to-text artifacts. Treat `m6` and `me6` as transcription errors for "Meseeks". Do not create product names, task titles, or GTM/architecture notes from those artifacts.
+
 For saved-reading backups, the body should be the captured page content, not a `Summary` / `Key Points` analysis unless Igor asked for analysis. Keep the filename short and put `## Source` at the very end.
 
 ## Subtasks
