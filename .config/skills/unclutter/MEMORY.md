@@ -21,6 +21,7 @@ Durable judgment for future Unclutter passes. This file is not a changelog. It s
 - `flat`, `fold`, `merge`: move the smallest useful content/link/media into X in the natural place, then delete the source.
 - `raw`: preserve the useful source title/body verbatim while moving or merging. Routine `Source` and `TickTick source` blocks can still be removed after the import snapshot has already been committed.
 - `rewrite`: rewrite the content as appropriate under current task rules.
+- If Igor gives the exact title/body for a task or reference, copy it. Do not add "Demand signal", "Why it matters", "request features", "Scraped tweet", or other helper prose around it.
 - `human:brainstorm`: keep private inbox and otherwise leave it alone for later review.
 - `funding` in review feedback means `human:funding`. Keep it in private inbox; do not create or use a bare `funding` tag.
 - `human:to-read`: keep private inbox unless Igor explicitly asks to classify or move it. It is a reading queue, not automatically a reference or demand signal.
@@ -142,7 +143,9 @@ Flatten into the existing GTM task. Do not create separate launch/SEO/onboarding
 - For `human:to-read`, the link/page backup is often the task. Expand into readable markdown for local backup when useful, keep `## Source` last, and do not over-organize it into `references/`, `backlog`, or `demand` unless Igor asks.
 - When flattening imported tasks, do not keep generic `Source`, `TickTick source`, raw JSON, "source capture preserved", or "merged source note" blocks. Git history carries routine provenance.
 - Preserve useful links, media, quotes, screenshots, and decisions in the target task body.
+- When adding a reference to a target task, use a real named Markdown link to the local reference/task. Do not leave plain labels like "private reference".
 - Do not leave external links as the only durable copy of a source. When folding or referencing a link, expand it in place or into a reference task. If the source is an image/video and it carries the actual point, download the media when practical and transcribe or describe the useful content.
+- For video sources, the video is the asset. Thumbnails are optional metadata and should not be the primary embed.
 - Preserve Igor's short original keywords/intent when converting imports into references; they often explain why the source mattered better than the scraped summary does.
 - If important attachments/media move into a target task, move the actual file too and update the Markdown so it renders.
 - Tasks with local attachments should keep media beside `slug/_index.md`, usually in `slug/attachments/*`.

@@ -82,6 +82,8 @@ After the download, update the task body with:
 - a link to the `*.info.json` metadata backup
 - the useful metadata from `*.info.json` such as uploader, id, date, duration, likes, comments, and caption summary
 
+A thumbnail is secondary metadata. Never use a thumbnail as the main embed when the source is a video; the task body should render the video itself.
+
 Do not write "missing attachment" until you have checked the source app/export/cache again. For TickTick imports, attachments are often recoverable from the local TickTick attachment cache even when the first import missed them.
 
 Batch input file format — one URL per entry, optional comment on the next line, separated by `---`:
@@ -105,6 +107,8 @@ If the scrape is saved directly under `tasks/`, `references/`, or `ideas/`, incl
 For saved-reading or archive-style task files, the scraped page body comes first and the `## Source` block goes last. Do not replace a content backup with `Summary` / `Key Points` unless the user asked for analysis. Use a short semantic filename and preserve the original URL plus canonical URL when available.
 
 For demand references, keep the source itself as the body. If Igor provides a title/body, use that directly and do not add "Demand signal", "Requested features", "Why it matters", or similar analysis sections. For tweet demand references, attached tweet media is part of the tweet content and should render with the tweet text in the body; source URLs, metrics, raw scrape backups, and JSON belong after that.
+
+Do not add "Scraped tweet" or other source-tool labels to the readable body. The URL, metrics, and raw backup already show where the content came from.
 
 Do not save raw HTML page snapshots for routine product/tool websites just because a tweet links to them. For tool references, a backed-up tweet scrape plus the tool website URL is enough unless the page itself is the fragile artifact Igor explicitly asked to archive.
 

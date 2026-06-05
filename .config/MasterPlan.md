@@ -432,6 +432,7 @@ One file per hook in `src/hooks/`.
 - Preserve exact user-specified literals (names/tags/phrases/UI labels) when implementing instructions; do not substitute near-synonyms.
   - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`
   - good: keep exact literal requested by the user
+- Whenever you see `m6`/`me6` assume it is a transcription error for "Meseeks", due to speech-to-text artifacts. Don't reply with "me6".
 - Whenever you are blocked, stop and present a few concrete next-step alternatives with tradeoffs, then wait for user choice.
   - bad: keep expanding refactors while still blocked on the same root error
   - good: "Option 1: break import cycle between A/B (small diff); Option 2: move helper to neutral module; Option 3: revert experiment and bisect"

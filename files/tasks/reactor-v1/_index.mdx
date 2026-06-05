@@ -17,19 +17,72 @@ like GPT specific?
 
 The engine. The platform.
 
-Use the current execution references in this folder as source material:
+This task should become the implementation-grade technical design for V2: explicit enough that we can give Codex one large goal and have it produce working code. It is not a phased roadmap; it is the contract for the next core.
 
-- [Current action execution model](action-execution-model/_index.md)
-- [Action execution flows](action-execution-flow/_index.md)
+## Execution Contract
 
-They describe v0/current behavior and may be stale as implementation changes. Keep useful details, but v1 should define the new core instead of preserving accidental current constraints.
+Reactor has three durable phases:
+
+1. `claim`
+2. `perform`
+3. `finish`
+
+`claim` prepares durable action details, computes cost fields, checks task policy, checks account balance, checks authorization when needed, reserves funds/energy, marks the action running, and schedules or invokes execution.
+
+`perform` marks `startedAt`, rebuilds execution context from durable action details, and runs the skill/action.
+
+`finish` settles cost, persists result/cost metadata, updates pressure, emits reactions, and attempts to claim the next runnable action.
+
+Accounting vocabulary:
+
+- `maxCost`: hard upper bound.
+- `estimatedCost`: current best prediction.
+- `reservedEnergy`: account hold/reservation.
+- `actualCost`: real settled cost.
+
+`action_details` stays as the durable details table. Reactor owns the helper/write lifecycle around it: details are persisted before authorization, reservation, and scheduling; execution rebuilds context from those persisted details instead of relying on transient runtime state.
+
+Loop and trigger model:
+
+- `action.loop` passes through reactions.
+- `task.triggers` are always live.
+- `task.triggers` can override loop triggers.
+- Loops are collections of triggers, not active runtime entities.
+- No `chain`.
+- No `chainId`.
+- No active-loop object.
+
+Interruption semantics:
+
+- Convex actions are not cancellable.
+- Started interrupted actions finish financially and settle real costs.
+- Started interrupted actions do not react.
+- Started interrupted actions should disappear from future model history.
+- Unstarted interrupted actions can be skipped without cost.
+
+Cost rules:
+
+- Soft-skill cost should use prepared input plus capped max output, not the whole possible context window.
+- If `actualCost > maxCost`, Reactor should warn or enforce loudly. Silent overrun is not acceptable.
+
+Bi-rendering belongs in Reactor at the high level: one canonical artifact, many render targets. Actions should be able to produce artifacts that render for humans, render for AI context, and expose file/path handles when the payload is too large or media-like to inline.
+
+Dead concepts that should not come back:
+
+- `claimed` as a status; use timestamps instead.
+- `budgetScope`.
+- task-wallet accounting.
+- chain budget abstractions.
+- `reactionTrigger`, `shouldReact`, or `finishTrigger` as durable concepts.
+- verbose helper/type names such as `buildMagicRockContextFromActionDetails`, `ClaimAuthorization`, `reactorBudget`, `reactorDetails`, `spentEnergy`, or `nullResultSchema`.
 
 - files
 	- virtual tasks, skills
 	- support "bash pipe", multi-action per request
 	- files should have the dream tagging system, like what I always wanted from macOS; the Organizer experiment makes this feel like the right approach
+	- rename `references` to `memories`
 - learning
-	- if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)
+	> "if you ask AGI something it don't know how to do, it should be able to just learn how to do it, and then do it (given enough resources)"
 - we must support synchronous actions
 	- built-in stuff should run directly instead of scheduling an action when scheduling is unnecessary (sync actions)
 - we must support multiple tool-call
@@ -51,6 +104,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- hard (code) skills can also trigger multi-reactions
 - triggers primitive
 	- loops could be just a set of triggers (maybe with a core/entry soft skill that we loop on)
+	- schedules in the new Reactor should be implemented using triggers
 	- "every 5 rounds"
 	- "on context > X%"
 	- trigger usage should be a counter, not just a boolean: a trigger can be allowed to fire N times, then deactivate/remove itself
@@ -60,8 +114,17 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- system-wide dictation is a good example: each dictation creates a raw voice file, then triggers transcription into a second file
 	- raw audio and transcription files should have specific tags so we can render a dedicated dictation/transcription UI showing every captured transcription, with retries, corrections, yada yada
 - support for infinite tasks/duties: goals that never really complete, such as "stay in touch with my grandma" or "get fit"
+- task shape, to consider ??
+	- use `task.goal` for the definition of done: the thing we test against to decide whether a task is complete
+	- use `task.plan` for optional planning/current context as the task evolves; `.plan` should include the task summary
+	- the word `goal` already has community momentum from Codex `/goal`, which we can reuse as vocabulary
+- loop behavior examples to preserve
+	- respect explicit output contracts from the triggering user action, even when the loop does internal research or planning
+	- example failure: user asked "Qual deixa broxa, finasterida ou minoxidil? Responde só o nome mais nada."; the loop correctly researched, but replied with explanation and sources instead of only the medication name
 - skill grouping!
 	- this is very important
+	- every app feature should be exposed to Meseeks as a skill; no hidden human-only capability
+	- feedback/reporting is part of that: if the user complains that Meseeks is broken, the AI should be able to ask permission and call a feedback tool that reports the actual problem to us
 	- built-in stuff should be versioned btw
 		- innate/say@0.1.0
 		- core/say@0.1.0
@@ -72,18 +135,25 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- aliases can be owned by orgs, e.g. `@pro/efficient`, `@openai/GPT:latest`, `@xai/Grok-fast:latest`
 		- users should be able to pin exact models when they care, but default UX should prefer stable capability names
 - version everything: tasks, skills, ...
-	- `updateInstructions()` should compute and persist a git-style diff at write-time, then render that diff to humans and future AI context instead of only saying that a title/body changed
+	- actions need `action.index`: a stable per-task counter so summaries and diffs can reference ranges such as "actions 1 to 100"
+	- mutations should render git-style patches to the model: e.g. `updateInstructions()` should compute and persist a diff at write-time, then render the previous-vs-updated patch to humans and future AI context instead of the whole new instruction body
 	- task history should make updates versioned, easy to visualize, and reversible
 - live UI customization
 	- Meseeks should let users select a running UI/component and ask the AI to change its appearance or behavior: bigger, smaller, different color, rounder, different interaction, etc.
 	- MDX/component rendering should make the app surface directly customizable at runtime
+	- component catalog/playground: users should be able to view MDX-renderable components individually, test props/classes, and set per-user global defaults
+	- customization should be inheritable through the task hierarchy: a root-level override affects child tasks, while a lower task-level override affects only that subtree
 	- reference: [Agentation](../../references/agentation/_index.md)
 - bi-rendering
 	- important components/actions/skills should be able to render for humans and for AI
 	- human rendering targets UI; AI rendering targets model context, Markdown, XML-ish structure, or `ModelMessage[]`
+	- consider actions returning component definitions instead of raw payloads
+		- render the component for humans through React
+		- render the same component for digital intelligences in whatever format they support
+		- this could solve huge-result context pollution by returning a component with a virtual file path or another lazy-readable handle instead of the full content
 	- MDX should be able to mention task/action outputs, and those references must render into the AI-facing instructions/context
 	- this overlaps with [Bi-rendering system](../bi-rendering-system/_index.md), but the Reactor framing is broader: rendering is part of the engine contract, not just action-history cleanup
-	- references: JSX prompts in practice, [jsx-prompts](https://fables.gg/blog/introducing-jsx-prompts-build-complex-prompts-for-llms-with-jsx), [Priompt](https://github.com/anysphere/priompt), [mdx-prompt](https://github.com/edspencer/mdx-prompt)
+	- references: JSX prompts in practice, [jsx-prompts](https://fables.gg/blog/introducing-jsx-prompts-build-complex-prompts-for-llms-with-jsx), [Priompt](https://github.com/anysphere/priompt), [mdx-prompt](https://github.com/edspencer/mdx-prompt), [Smithers durable JSX AI workflow](../../references/smithers-durable-jsx-ai-workflow/_index.md)
 - external task interfaces
 	- any task can request incoming email addresses; each received email becomes a message/action on that task
 	- tasks can also have outgoing email addresses when they need to send email
@@ -93,7 +163,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - redesign our skills to prompt using `<xml>` tags
 - It should have a `<Constitution version="latest" />` instruction. "Forced" into every layer.
 	- maybe the task hierarchy is enough, as instructions drill down
-- `instruct()` should likely become `plan()`. I'm not sure about `task.instructions`; could be `task.plan` or simpy `task.description` or even `.body`.
+- `instruct()` should become `plan()`
 - Rename reason() to reasoning()
 - consider renaming say() to message(), write(), comment() or other
 - sharing skills
@@ -118,8 +188,9 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - experiment with parenthesis skill invocation instead of slash commands: typing something like `say(` could open the skill list after `(`; decide through UX testing
 	- original note: no / shit! just `(`	- including the comment in the file
 - energy as a first-class citizen
-	- estimated cost should be "max theoretical cost"
+	- `maxCost` should be max theoretical cost
 		- based on maxOutputTokens, fixed costs, and so on
+	- `estimatedCost` is separate: current best prediction, only when we have a real estimate
 		- for a hard skill, should predict the cost for the sandbox config in use (timeout time, max RAM usage, etc)
 	- the model should see the cost of each skill and preemptively suggest other paths that could require more energy
 	- done() could have a mandatory confidence: 0-100 field (so we could trigger a continue)
@@ -127,6 +198,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- when a done() call is made, run a doubleCheck() to accept/reject it
 	- properly account reasoning tokens
 	- variable hard-skill costs
+	- unresolved recurring maintenance costs
+		- how do we charge for costs that keep accruing over time, like file storage/R2?
+		- maybe "maintenance cost" is the thing we charge every X time, but the accounting model is still unclear
+	- unresolved low account balance behavior
+		- what happens when account balance is too low to fulfill work that has already been committed?
+		- maybe a `deactivate()` / `clearEnergy()`-style trigger when `accountBalance < threshold`, enforced on every loop as a protection
 - multi-provider
 	- code sandbox
 	- LLM/AI
@@ -135,6 +212,7 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 		- this could also be very useful for accounting!
 		- so we need "provider" as a primitive, and trace usage to it
 - ETH deposits
+	- consider supporting ETH deposits from day 1
 	- simplest possible version: accept ETH deposits into the user/task wallet, not checkout-style payments
 	- wallet balance then pays for models, sandboxes, storage, skills, and external providers through the same accounting layer
 	- support for x402
@@ -156,6 +234,12 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 - branching
 - standardized solution for huge responses
 	- e.g. persisting to filesystem and feeding it a path it can read with tail/head/cat
+	- hard skills can return huge payloads; one observed result was around 455,810 characters (http://localhost:3000/task/kh70t75w7zpw3yykvc6b2298w585xrkn?debug=true#nd7e8m7xd03tb98yjsb1aec9gh85xxm0), which wrecks model context and is not useful inline
+	- after the virtual filesystem exists, huge action results should be written to a virtual file and surfaced as a readable handle/path
+	- the model should choose whether to read specific lines, `head`, `tail`, summaries, or slices instead of being forced to ingest the whole result
+- the loop should auto-manage context distribution
+	- decide whether to use a larger-context model variant
+	- choose the distribution, e.g. less message history but more images, or drop a file for more message history
 - searchWeb could take multiple queries at once
 - launcher search should be scored, not grouped
 	- example: if `isDiscard`, multiply score by `0.2`
@@ -167,11 +251,15 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- fix authorization from the beginning
 	- portable agent identity/trust/reputation may need ERC-8004-style discovery, registration files, MCP/A2A endpoints, on-chain reputation, validators, wallet/payment proofs, and x402-weighted feedback; reference: [ERC-8004 agent trust and discovery](../../references/erc-8004-agent-trust-and-discovery/_index.md)
 - root task should be "Igor's life"
+- bring your own keys
 
 # Virtual File System
 
+- private inbox items tagged `human:vfs` are the review queue for this section: candidates, references, and related information for the virtual filesystem implementation
+- [Files SDK](../../references/files-sdk/_index.md): unified storage SDK for S3/R2/Vercel Blob/Google Drive-style backends and agent SDK tools; relevant to a provider-neutral VFS layer.
 - run the entire action inside Daytona
 	- persistent file system on S3-like
+	- if we do git-versioning everything, consider `repositories` as a first-class primitive
 	- run multiple actions per invocation?
 	- safe internet access and code running
 	- sandboxes could have a lifecycle independent of actions, priced after the used timeout; visible in a composer strip
@@ -223,10 +311,10 @@ They describe v0/current behavior and may be stale as implementation changes. Ke
 	- OpenAI/Anthropic-compatible proxies so they set BASE_URL to it
 	- we could do similar and "run the action" in the background?!
 - retry on technical failures
-- we should probably be using "aggregators" for computed stuff like task status? not sure
+- we should probably be using Convex"aggregators" for computed stuff like task status? not sure
 - look into modern AI SDK and TanStack AI; consider choosing one as a native layer
 - Actions should likely have a maximum size (because of context)
-	- and/or/at least expose a "size" thing we can do math on
+	- and/or/at least expose a "size" thing we can do math on, like HTTP's Content-Length
 
 ---
 
@@ -277,3 +365,43 @@ meta/microsoft:
 ---
 
 INTERNAL_JOKES.md
+
+---
+
+we could trash all instructions and do every thing example driven
+
+we build examples with codex, say 15
+codex uses those 10 to write instructions
+then evaluates against all the 15 in a loop until all pass
+
+for that whats the primitive?
+do we need `learnings`, for `feedbacks` or `examples`?
+
+---
+
+> write examples from this convo down to disk
+> raw, 1 file per feedback
+> rewrite unclutter from it
+
+---
+if everything is a file, a task has a tag like kind:task or smth
+all files have statuses etc
+
+or maybe tasks are simply a directory
+could work like macOS `.app`
+`.task` is a directory that usually (convention) has
+instructions.*
+summary.*
+any other files, including other .task/s
+we could render meta as like `/meta.xml` or smth so its visible from our VFS
+---
+tags could have an optional description and even schema enforcement
+like, values must comply to a certain schema
+---
+`preferences` can be just a tag
+
+for  `references/` it could be a "global" (direct child to root) task
+
+---
+
+we could embed a web vscode with our virtual worktree!

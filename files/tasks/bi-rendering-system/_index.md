@@ -14,3 +14,4 @@ Useful references from the retired `bi-render` tag:
 - [Priompt](https://github.com/anysphere/priompt): JSX prompt trees with priorities, fallbacks, token budgeting, message components, source maps, and token reservations.
 - [Tom Dorr's Priompt post](https://x.com/tom_doerr/status/1838000576992342149): warning that priority-heavy prompt design can hurt prompt-cache stability and become its own complexity.
 - [mdx-prompt](https://github.com/edspencer/mdx-prompt): React/MDX components as prompt fragments, reusable prompt sections, and structured XML-like prompt tags.
+- [Smithers durable JSX AI workflow](../../references/smithers-durable-jsx-ai-workflow/_index.md): JSX/React syntax for durable AI workflows.
