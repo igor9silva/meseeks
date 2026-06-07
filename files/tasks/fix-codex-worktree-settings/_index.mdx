@@ -1,0 +1,16 @@
+---
+title: Fix Codex worktree settings to generate AGENTS.md
+tags: [status:backlog, class:task, behavior]
+---
+
+# Fix Codex worktree settings to generate AGENTS.md
+
+New Codex worktrees can start without the generated `AGENTS.md`, which forces the agent to run the repo config build before editing.
+
+Fix the Codex worktree settings so a fresh worktree starts with generated repo-local setup already in place: `AGENTS.md`, MCP config, Codex config, and repo-local skills. Use the repo's config build path instead of relying on the agent to notice missing instructions mid-task.
+
+Acceptance criteria:
+
+- Fresh Codex worktrees have generated `AGENTS.md` before task execution.
+- Worktree setup runs the same repo config build used by the main checkout.
+- Agents no longer need to begin task work by saying they are running config build because generated instructions are missing.
