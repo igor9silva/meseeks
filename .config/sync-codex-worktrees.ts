@@ -42,6 +42,7 @@ const WORKSPACE_FILE = join(PROJECT_ROOT, 'meseeks.code-workspace');
 const CODEX_WORKTREES_ROOT = resolve(
 	process.env.CODEX_WORKTREES_DIR ?? join(homedir(), '.codex', 'worktrees'),
 );
+const LOCAL_WORKTREES_ROOT = join(PROJECT_ROOT, '.worktrees');
 const WATCH_MODE = process.argv.includes('--watch');
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -61,6 +62,11 @@ function main(): void {
 		console.info(`watching ${CODEX_WORKTREES_ROOT}`);
 	} else {
 		console.warn(`Codex worktrees directory does not exist: ${CODEX_WORKTREES_ROOT}`);
+	}
+
+	if (existsSync(LOCAL_WORKTREES_ROOT)) {
+		watchers.push(watch(LOCAL_WORKTREES_ROOT, requestSync));
+		console.info(`watching ${LOCAL_WORKTREES_ROOT}`);
 	}
 
 	process.on('SIGINT', () => closeAndExit(watchers));
@@ -100,15 +106,15 @@ function syncWorkspaceFile(): SyncResult {
 	const sourceFolders = readWorkspaceFolders(sourceContent);
 	const workspaceDirectory = dirname(WORKSPACE_FILE);
 	const baseFolders = sourceFolders.filter(
-		(folder) => !isManagedCodexWorktreeFolder(folder, workspaceDirectory),
+		(folder) => !isManagedWorktreeFolder(folder, workspaceDirectory),
 	);
 	const baseFolderPaths = new Set(
 		baseFolders.map((folder) => normalizeFolderPath(folder.path, workspaceDirectory)),
 	);
-	const codexFolders = listCodexWorktrees()
+	const managedFolders = listManagedWorktrees()
 		.filter((worktree) => !baseFolderPaths.has(resolve(worktree.path)))
 		.map(toWorkspaceFolder);
-	const nextFolders = [...baseFolders, ...codexFolders];
+	const nextFolders = [...baseFolders, ...managedFolders];
 	const nextContent = replaceWorkspaceFolders(sourceContent, nextFolders);
 	const changed = sourceContent !== nextContent;
 
@@ -116,31 +122,31 @@ function syncWorkspaceFile(): SyncResult {
 		writeFileAtomic(WORKSPACE_FILE, nextContent);
 	}
 
-	const previousCodexFolders = sourceFolders.filter((folder) =>
-		isManagedCodexWorktreeFolder(folder, workspaceDirectory),
+	const previousManagedFolders = sourceFolders.filter((folder) =>
+		isManagedWorktreeFolder(folder, workspaceDirectory),
 	);
-	const nextCodexFolderPaths = new Set(codexFolders.map((folder) => folder.path));
-	const previousCodexFolderPaths = new Set(
-		previousCodexFolders.map((folder) =>
+	const nextManagedFolderPaths = new Set(managedFolders.map((folder) => folder.path));
+	const previousManagedFolderPaths = new Set(
+		previousManagedFolders.map((folder) =>
 			normalizeFolderPath(folder.path, workspaceDirectory),
 		),
 	);
 
 	return {
-		added: codexFolders.filter(
-			(folder) => !previousCodexFolderPaths.has(folder.path),
+		added: managedFolders.filter(
+			(folder) => !previousManagedFolderPaths.has(folder.path),
 		),
 		changed,
-		removed: previousCodexFolders.filter(
+		removed: previousManagedFolders.filter(
 			(folder) =>
-				!nextCodexFolderPaths.has(normalizeFolderPath(folder.path, workspaceDirectory)),
+				!nextManagedFolderPaths.has(normalizeFolderPath(folder.path, workspaceDirectory)),
 		),
-		total: codexFolders.length,
+		total: managedFolders.length,
 		workspacePath: WORKSPACE_FILE,
 	};
 }
 
-function listCodexWorktrees(): Worktree[] {
+function listManagedWorktrees(): Worktree[] {
 	//
 	const result = spawnSync('git', ['worktree', 'list', '--porcelain'], {
 		cwd: PROJECT_ROOT,
@@ -153,7 +159,7 @@ function listCodexWorktrees(): Worktree[] {
 	}
 
 	return parseWorktreeList(result.stdout)
-		.filter((worktree) => isCodexWorktreePath(worktree.path))
+		.filter((worktree) => isManagedWorktreePath(worktree.path))
 		.sort((a, b) => a.path.localeCompare(b.path));
 }
 
@@ -171,6 +177,13 @@ function parseWorktreeList(output: string): Worktree[] {
 
 function toWorkspaceFolder(worktree: Worktree): WorkspaceFolder {
 	//
+	if (isLocalWorktreePath(worktree.path)) {
+		return {
+			name: basename(worktree.path),
+			path: worktree.path,
+		};
+	}
+
 	const worktreeId = basename(dirname(worktree.path));
 
 	return {
@@ -361,15 +374,22 @@ function removeTrailingCommas(content: string): string {
 	return content.replace(/,\s*([}\]])/g, '$1');
 }
 
-function isManagedCodexWorktreeFolder(
+function isManagedWorktreeFolder(
 	folder: WorkspaceFolder,
 	workspaceDirectory: string,
 ): boolean {
 	//
+	const folderPath = normalizeFolderPath(folder.path, workspaceDirectory);
+
 	return (
-		folder.name?.startsWith('Codex ') === true &&
-		isCodexWorktreePath(normalizeFolderPath(folder.path, workspaceDirectory))
+		(folder.name?.startsWith('Codex ') === true && isCodexWorktreePath(folderPath)) ||
+		(isLocalWorktreePath(folderPath) && folder.name === basename(folderPath))
 	);
+}
+
+function isManagedWorktreePath(worktreePath: string): boolean {
+	//
+	return isCodexWorktreePath(worktreePath) || isLocalWorktreePath(worktreePath);
 }
 
 function isCodexWorktreePath(worktreePath: string): boolean {
@@ -387,6 +407,21 @@ function isCodexWorktreePath(worktreePath: string): boolean {
 	const parts = relativePath.split(/[\\/]/);
 
 	return parts.length === 2 && parts[1] === PROJECT_NAME;
+}
+
+function isLocalWorktreePath(worktreePath: string): boolean {
+	//
+	const relativePath = relative(LOCAL_WORKTREES_ROOT, resolve(worktreePath));
+
+	if (
+		relativePath === '' ||
+		relativePath.startsWith('..') ||
+		isAbsolute(relativePath)
+	) {
+		return false;
+	}
+
+	return relativePath.split(/[\\/]/).length === 1;
 }
 
 function normalizeFolderPath(folderPath: string, workspaceDirectory: string): string {
@@ -408,7 +443,7 @@ function logResult(result: SyncResult): void {
 
 	if (!result.changed) {
 		console.info(
-			`codex workspace unchanged${suffix}: ${result.total} worktree folders in ${basename(
+			`workspace unchanged${suffix}: ${result.total} worktree folders in ${basename(
 				result.workspacePath,
 			)}`,
 		);
@@ -419,7 +454,7 @@ function logResult(result: SyncResult): void {
 	const removed = result.removed.map((folder) => folder.name).join(', ') || 'none';
 
 	console.info(
-		`codex workspace synced${suffix}: ${result.total} worktree folders in ${basename(
+		`workspace synced${suffix}: ${result.total} worktree folders in ${basename(
 			result.workspacePath,
 		)} (added: ${added}; removed: ${removed})`,
 	);
