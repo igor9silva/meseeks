@@ -12,6 +12,7 @@ import { watch, existsSync, readdirSync } from 'node:fs';
 import type { Dirent, FSWatcher } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
+import { WORKSPACE_TEMPLATE_FILE } from './workspace-file';
 
 const PROJECT_ROOT = resolve(__dirname, '..');
 const CONFIG_FILE = resolve(__dirname, './mcp.config.ts');
@@ -85,6 +86,10 @@ watch(RULES_FILE, (eventType) => {
 	if (eventType === 'change') regenerateConfigs();
 });
 
+watch(WORKSPACE_TEMPLATE_FILE, (eventType) => {
+	if (eventType === 'change' || eventType === 'rename') regenerateConfigs();
+});
+
 if (existsSync(SKILLS_DIR)) {
 	watch(SKILLS_DIR, { recursive: true }, (eventType) => {
 		if (eventType === 'change' || eventType === 'rename') regenerateConfigs();
@@ -123,11 +128,7 @@ function requestTaskRebuild(root: string): void {
 	regenerateTasks();
 }
 
-function handleTaskWatchEvent(
-	root: string,
-	eventType: string,
-	fileName: string | null,
-): void {
+function handleTaskWatchEvent(root: string, eventType: string, fileName: string | null): void {
 	//
 	// rename events cover creates, deletes, and moves. deleted directories cannot
 	// be statted after the event, so any visible rename means the task tree changed.

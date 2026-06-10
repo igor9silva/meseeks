@@ -9,6 +9,7 @@
  *   bun run .config/generate-configs.ts
  *
  * This will create:
+ *   - meseeks.code-workspace (for VS Code)
  *   - .cursor/mcp.json (for Cursor IDE)
  *   - .opencode/opencode.jsonc (for OpenCode)
  *   - .codex/config.toml (for Codex app)
@@ -17,6 +18,7 @@
  *   - .agents/skills/ (skills for AI assistants)
  *
  * Sources:
+ *   - .config/meseeks.code-workspace → VS Code workspace
  *   - .config/mcp.config.ts → MCP configs
  *   - .config/MasterPlan.md → AI assistant rules
  *   - .config/skills/ → AI assistant skills
@@ -25,10 +27,10 @@
  */
 
 import { mcpConfig, type MCPServerConfig } from './mcp.config';
+import { PROJECT_ROOT, WORKSPACE_FILE, WORKSPACE_TEMPLATE_FILE, writeGeneratedWorkspaceFile } from './workspace-file';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-const PROJECT_ROOT = path.resolve(__dirname, '..');
 const RULES_SOURCE = path.join(PROJECT_ROOT, '.config', 'MasterPlan.md');
 const SKILLS_SOURCE = path.join(PROJECT_ROOT, '.config', 'skills');
 const SKILLS_TARGET = path.join(PROJECT_ROOT, '.agents', 'skills');
@@ -37,6 +39,16 @@ const VERBOSE = process.argv.includes('--verbose');
 function log(message: string): void {
 	//
 	if (VERBOSE) console.log(message);
+}
+
+function generateWorkspaceFile(): void {
+	//
+	if (!fs.existsSync(WORKSPACE_TEMPLATE_FILE)) {
+		throw new Error(`Workspace template not found: ${WORKSPACE_TEMPLATE_FILE}`);
+	}
+
+	writeGeneratedWorkspaceFile();
+	log(`  workspace: ${WORKSPACE_FILE}`);
 }
 
 /**
@@ -338,6 +350,9 @@ function generateSkills(): void {
 
 // Main execution
 try {
+	// Generate VS Code workspace
+	generateWorkspaceFile();
+
 	// Generate MCP configs
 	generateCursorConfig();
 	generateOpenCodeConfig();
@@ -354,7 +369,7 @@ try {
 		? fs.readdirSync(SKILLS_SOURCE, { withFileTypes: true }).filter((e) => e.isDirectory()).length
 		: 0;
 
-	console.info(`✓ configs: mcp, rules, ${skillCount} skills`);
+	console.info(`✓ configs: workspace, mcp, rules, ${skillCount} skills`);
 } catch (error) {
 	console.error('✗ config generation failed:', error);
 	process.exit(1);

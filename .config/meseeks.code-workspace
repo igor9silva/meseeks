@@ -2,11 +2,11 @@
 	"folders": [
 		{
 			"name": "Meseeks",
-			"path": "./",
+			"path": ".",
 		},
 		{
 			"name": "Private",
-			"path": "./private",
+			"path": "private",
 		},
 	],
 	"settings": {

@@ -30,6 +30,7 @@ app.config.timestamp_*.js
 node_modules
 temp/
 dist/
+/meseeks.code-workspace
 
 # Sentry Config File
 .env.sentry-build-plugin

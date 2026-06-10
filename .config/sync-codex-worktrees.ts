@@ -1,28 +1,20 @@
 #!/usr/bin/env bun
 
 import { spawnSync } from 'node:child_process';
-import {
-	existsSync,
-	readFileSync,
-	renameSync,
-	watch,
-	writeFileSync,
-} from 'node:fs';
+import { existsSync, renameSync, watch, writeFileSync } from 'node:fs';
 import type { FSWatcher } from 'node:fs';
 import { homedir } from 'node:os';
-import {
-	basename,
-	dirname,
-	isAbsolute,
-	join,
-	relative,
-	resolve,
-} from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { z } from 'zod/v3';
+import { PROJECT_ROOT, WORKSPACE_FILE, readWorkspaceFileContent } from './workspace-file';
 
-type WorkspaceFolder = {
-	name?: string;
-	path: string;
-};
+const workspaceFolderSchema = z.object({
+	name: z.string().optional(),
+	path: z.string(),
+});
+const workspaceFoldersSchema = z.array(workspaceFolderSchema);
+
+type WorkspaceFolder = z.infer<typeof workspaceFolderSchema>;
 
 type Worktree = {
 	path: string;
@@ -36,12 +28,8 @@ type SyncResult = {
 	workspacePath: string;
 };
 
-const PROJECT_ROOT = resolve(__dirname, '..');
 const PROJECT_NAME = basename(PROJECT_ROOT);
-const WORKSPACE_FILE = join(PROJECT_ROOT, 'meseeks.code-workspace');
-const CODEX_WORKTREES_ROOT = resolve(
-	process.env.CODEX_WORKTREES_DIR ?? join(homedir(), '.codex', 'worktrees'),
-);
+const CODEX_WORKTREES_ROOT = resolve(process.env.CODEX_WORKTREES_DIR ?? join(homedir(), '.codex', 'worktrees'));
 const LOCAL_WORKTREES_ROOT = join(PROJECT_ROOT, '.worktrees');
 const WATCH_MODE = process.argv.includes('--watch');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -102,21 +90,18 @@ function closeAndExit(watchers: FSWatcher[]): void {
 
 function syncWorkspaceFile(): SyncResult {
 	//
-	const sourceContent = readFileSync(WORKSPACE_FILE, 'utf8');
+	const hasWorkspaceFile = existsSync(WORKSPACE_FILE);
+	const sourceContent = readWorkspaceFileContent();
 	const sourceFolders = readWorkspaceFolders(sourceContent);
 	const workspaceDirectory = dirname(WORKSPACE_FILE);
-	const baseFolders = sourceFolders.filter(
-		(folder) => !isManagedWorktreeFolder(folder, workspaceDirectory),
-	);
-	const baseFolderPaths = new Set(
-		baseFolders.map((folder) => normalizeFolderPath(folder.path, workspaceDirectory)),
-	);
+	const baseFolders = sourceFolders.filter((folder) => !isManagedWorktreeFolder(folder, workspaceDirectory));
+	const baseFolderPaths = new Set(baseFolders.map((folder) => normalizeFolderPath(folder.path, workspaceDirectory)));
 	const managedFolders = listManagedWorktrees()
 		.filter((worktree) => !baseFolderPaths.has(resolve(worktree.path)))
 		.map(toWorkspaceFolder);
-	const nextFolders = [...baseFolders, ...managedFolders];
+	const nextFolders = baseFolders.concat(managedFolders);
 	const nextContent = replaceWorkspaceFolders(sourceContent, nextFolders);
-	const changed = sourceContent !== nextContent;
+	const changed = !hasWorkspaceFile || sourceContent !== nextContent;
 
 	if (changed && !DRY_RUN) {
 		writeFileAtomic(WORKSPACE_FILE, nextContent);
@@ -127,19 +112,14 @@ function syncWorkspaceFile(): SyncResult {
 	);
 	const nextManagedFolderPaths = new Set(managedFolders.map((folder) => folder.path));
 	const previousManagedFolderPaths = new Set(
-		previousManagedFolders.map((folder) =>
-			normalizeFolderPath(folder.path, workspaceDirectory),
-		),
+		previousManagedFolders.map((folder) => normalizeFolderPath(folder.path, workspaceDirectory)),
 	);
 
 	return {
-		added: managedFolders.filter(
-			(folder) => !previousManagedFolderPaths.has(folder.path),
-		),
+		added: managedFolders.filter((folder) => !previousManagedFolderPaths.has(folder.path)),
 		changed,
 		removed: previousManagedFolders.filter(
-			(folder) =>
-				!nextManagedFolderPaths.has(normalizeFolderPath(folder.path, workspaceDirectory)),
+			(folder) => !nextManagedFolderPaths.has(normalizeFolderPath(folder.path, workspaceDirectory)),
 		),
 		total: managedFolders.length,
 		workspacePath: WORKSPACE_FILE,
@@ -197,15 +177,12 @@ function readWorkspaceFolders(content: string): WorkspaceFolder[] {
 	const range = findFoldersArrayRange(content);
 	const foldersText = content.slice(range.start, range.end);
 	const json = removeTrailingCommas(stripJsonComments(foldersText));
-	const folders = JSON.parse(json) as WorkspaceFolder[];
+	const parsed: unknown = JSON.parse(json);
 
-	return folders.filter((folder) => typeof folder.path === 'string');
+	return workspaceFoldersSchema.parse(parsed);
 }
 
-function replaceWorkspaceFolders(
-	content: string,
-	folders: WorkspaceFolder[],
-): string {
+function replaceWorkspaceFolders(content: string, folders: WorkspaceFolder[]): string {
 	//
 	const range = findFoldersArrayRange(content);
 	const serializedFolders = serializeWorkspaceFolders(folders);
@@ -374,10 +351,7 @@ function removeTrailingCommas(content: string): string {
 	return content.replace(/,\s*([}\]])/g, '$1');
 }
 
-function isManagedWorktreeFolder(
-	folder: WorkspaceFolder,
-	workspaceDirectory: string,
-): boolean {
+function isManagedWorktreeFolder(folder: WorkspaceFolder, workspaceDirectory: string): boolean {
 	//
 	const folderPath = normalizeFolderPath(folder.path, workspaceDirectory);
 
@@ -396,11 +370,7 @@ function isCodexWorktreePath(worktreePath: string): boolean {
 	//
 	const relativePath = relative(CODEX_WORKTREES_ROOT, resolve(worktreePath));
 
-	if (
-		relativePath === '' ||
-		relativePath.startsWith('..') ||
-		isAbsolute(relativePath)
-	) {
+	if (relativePath === '' || relativePath.startsWith('..') || isAbsolute(relativePath)) {
 		return false;
 	}
 
@@ -413,11 +383,7 @@ function isLocalWorktreePath(worktreePath: string): boolean {
 	//
 	const relativePath = relative(LOCAL_WORKTREES_ROOT, resolve(worktreePath));
 
-	if (
-		relativePath === '' ||
-		relativePath.startsWith('..') ||
-		isAbsolute(relativePath)
-	) {
+	if (relativePath === '' || relativePath.startsWith('..') || isAbsolute(relativePath)) {
 		return false;
 	}
 
@@ -443,9 +409,7 @@ function logResult(result: SyncResult): void {
 
 	if (!result.changed) {
 		console.info(
-			`workspace unchanged${suffix}: ${result.total} worktree folders in ${basename(
-				result.workspacePath,
-			)}`,
+			`workspace unchanged${suffix}: ${result.total} worktree folders in ${basename(result.workspacePath)}`,
 		);
 		return;
 	}
