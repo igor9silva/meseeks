@@ -4,7 +4,7 @@ import { Doc } from 'convex/_generated/dataModel';
 export const NOT_FOUND_ERROR = 'Not Found';
 export const UNAUTHORIZED_ERROR = 'Unauthorized';
 export const INSUFFICIENT_ACCOUNT_FUNDS_ERROR = 'Insufficient Account Balance';
-export const NOT_ENOUGH_BUDGET_ERROR = 'Not Enough Task Budget';
+export const NOT_ENOUGH_BUDGET_ERROR = 'Not Enough File Budget';
 
 const createError = (code: string) => (message?: string) =>
 	new ConvexError({

@@ -20,7 +20,7 @@ export function CollapsibleSummary({ summary }: { summary: string }) {
 							</span>
 						</TooltipTrigger>
 						<TooltipContent className="text-xs">
-							A summary of all the task actions. Enables infinite conversations, managed by the loop.
+							A summary of all the file actions. Enables long conversations managed by the loop.
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>

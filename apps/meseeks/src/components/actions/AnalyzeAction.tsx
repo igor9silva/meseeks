@@ -43,11 +43,11 @@ export function AnalyzeAction(props: ActionComponentProps) {
 	}
 }
 
-function Error({ action, isAuthorCurrentUser }: ActionComponentProps) {
+function Error({ isAuthorCurrentUser }: ActionComponentProps) {
 	return (
 		<FailedMessage
 			text={`Failed to run code`}
-			error={action.result?.text ?? ''}
+			error="Execution failed."
 			isAuthorCurrentUser={isAuthorCurrentUser}
 		/>
 	);
@@ -62,7 +62,7 @@ function Success(props: ActionComponentProps) {
 	const parsedArgs = analyzeActionArgsSchema.safeParse(action.args);
 	const code = parsedArgs.success ? parsedArgs.data.code : '';
 	const language = parsedArgs.success ? parsedArgs.data.language : undefined;
-	const output = action.result?.text ?? '';
+	const output = action.resultFile ? `Output saved to ${action.resultFile}` : '';
 
 	return (
 		<>

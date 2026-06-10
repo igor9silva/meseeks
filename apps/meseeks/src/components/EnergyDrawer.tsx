@@ -3,8 +3,8 @@ import { BudgetSelector } from '~/components/BudgetSelector';
 import { Button } from '@reactor/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@reactor/ui/drawer';
 import { useComposer } from '~/hooks/useComposer';
-import { TaskBudget } from '~/components/TaskBudget';
-import { useCurrentTask } from '~/hooks/useCurrentTask';
+import { FileBudget } from '~/components/FileBudget';
+import { useCurrentFile } from '~/hooks/useCurrentFile';
 
 const DEFAULT_ENERGY_AMOUNT = 0.2;
 const ENERGY_QUICK_OPTIONS = [0.2, 1, 5] as const;
@@ -19,7 +19,7 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 	const { addEnergyIncrease } = useComposer();
 	const [selectedEnergy, setSelectedEnergy] = useState(DEFAULT_ENERGY_AMOUNT);
 	const [hasChangedSelectedEnergy, setHasChangedSelectedEnergy] = useState(false);
-	const { task } = useCurrentTask();
+	const { file } = useCurrentFile();
 
 	useEffect(() => {
 		if (!open) return;
@@ -54,7 +54,7 @@ export function EnergyDrawer({ open, onOpenChange }: EnergyDrawerProps) {
 				<DrawerHeader>
 					<div className="flex justify-between items-center">
 						<DrawerTitle>Increase energy</DrawerTitle>
-						<TaskBudget task={task} />
+						<FileBudget file={file} />
 					</div>
 				</DrawerHeader>
 				<div className="mt-1 px-4 pb-4 space-y-3">

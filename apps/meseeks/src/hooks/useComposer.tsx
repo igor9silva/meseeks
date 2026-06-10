@@ -1,13 +1,14 @@
-import type { Doc, Id } from 'convex/_generated/dataModel';
+import type { Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { EnqueuedSkill, SkillToEnqueue } from '~/components/ActionComposer/types';
+import type { FileView } from '~/hooks/query/useFile';
 import { useAct } from './useAct';
 import { useDraftSync } from './useDraftSync';
 
 const MAX_QUEUE_SIZE = 16;
-const BUDGET_SKILL_KEYS = ['increaseBudget', 'decreaseBudget'];
+const ENERGY_SKILL_KEY = 'updateBudget';
 
 type QueueItem = { skillKey: string; args: Record<string, unknown> };
 
@@ -37,8 +38,13 @@ type ComposerContextValue = {
 	clearQueue: () => void;
 
 	// actions
-	submit: (task: Doc<'tasks'>) => Promise<void>;
+	submit: (file: FileView, options?: ComposerSubmitOptions) => Promise<void>;
 	isSubmitting: boolean;
+};
+
+type ComposerSubmitOptions = {
+	loopKey?: string | null;
+	intelligence?: string;
 };
 
 const ComposerContext = createContext<ComposerContextValue | null>(null);
@@ -55,11 +61,11 @@ export function useComposer() {
 }
 
 type ComposerProviderProps = {
-	taskId: Id<'tasks'>;
+	fileId: Id<'files'>;
 	children: React.ReactNode;
 };
 
-export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
+export function ComposerProvider({ fileId, children }: ComposerProviderProps) {
 	//
 	const { act, isActing } = useAct();
 
@@ -71,7 +77,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 
 	// refs for tracking
 	const userHasTypedRef = useRef(false);
-	const lastTaskIdRef = useRef(taskId);
+	const lastFileIdRef = useRef(fileId);
 
 	// stable refs for draft sync callbacks
 	const latestQueueRef = useRef<QueueItem[]>([]);
@@ -81,7 +87,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 
 	// draft sync handles all server persistence
 	const draftSync = useDraftSync({
-		taskId,
+		fileId,
 		getLocalState: () => ({
 			queue: latestQueueRef.current,
 			message: latestMessageRef.current,
@@ -108,15 +114,15 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 		},
 	});
 
-	// handle task change: reset local state
-	if (taskId !== lastTaskIdRef.current) {
+	// handle file change: reset local state
+	if (fileId !== lastFileIdRef.current) {
 		draftSync.cancel();
 		setQueueItems([]);
 		setMessageState('');
 		setPendingServerDraft(null);
 		setPendingSkillItems([]);
 		userHasTypedRef.current = false;
-		lastTaskIdRef.current = taskId;
+		lastFileIdRef.current = fileId;
 	}
 
 	// convert to EnqueuedSkill format with stable IDs
@@ -180,7 +186,7 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	const addEnergyIncrease = useCallback(
 		(dollars: number): boolean => {
 			//
-			const existingIncrease = queueItems.find((item) => item.skillKey === 'increaseBudget');
+			const existingIncrease = queueItems.find((item) => item.skillKey === ENERGY_SKILL_KEY);
 
 			if (!existingIncrease && queueItems.length >= MAX_QUEUE_SIZE) {
 				toast.error(`Queue is full (max ${MAX_QUEUE_SIZE} actions)`);
@@ -190,8 +196,8 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 			userHasTypedRef.current = true;
 			const existingDollars = getDollarsArg(existingIncrease?.args) ?? 0;
 			const nextQueue = queueItems
-				.filter((item) => item.skillKey !== 'increaseBudget')
-				.concat({ skillKey: 'increaseBudget', args: { dollars: addDollars(existingDollars, dollars) } });
+				.filter((item) => item.skillKey !== ENERGY_SKILL_KEY)
+				.concat({ skillKey: ENERGY_SKILL_KEY, args: { dollars: addDollars(existingDollars, dollars) } });
 
 			setQueueItems(nextQueue);
 
@@ -255,9 +261,9 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 	}, [message, pendingServerDraft, draftSync]);
 
 	const submit = useCallback(
-		async (task: Doc<'tasks'>) => {
+		async (file: FileView, options?: ComposerSubmitOptions) => {
 			//
-			const skills = buildFinalSkills(queue, message, task);
+			const skills = buildFinalSkills(queue, message);
 			if (skills.length === 0) return;
 
 			// generate unique batch ID for this submission
@@ -277,12 +283,18 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 			clear();
 
 			// run mutation in background (don't await - allows rapid submissions)
-			act({ taskId, skills, shouldReopen: true }).finally(() => {
+			act({
+				fileId,
+				skills,
+				shouldReopen: true,
+				loopKey: options?.loopKey,
+				intelligence: options?.intelligence,
+			}).finally(() => {
 				// remove this batch's items when mutation completes
 				setPendingSkillItems((prev) => prev.filter((item) => !item.id.startsWith(batchId)));
 			});
 		},
-		[taskId, queue, message, act, clear],
+		[fileId, queue, message, act, clear],
 	);
 
 	const value: ComposerContextValue = {
@@ -307,16 +319,16 @@ export function ComposerProvider({ taskId, children }: ComposerProviderProps) {
 }
 
 // builds final skills array with proper ordering and type conversion
-function buildFinalSkills(queue: EnqueuedSkill[], message: string, task: Doc<'tasks'>): SkillToEnqueue[] {
+function buildFinalSkills(queue: EnqueuedSkill[], message: string): SkillToEnqueue[] {
 	//
 	const result: SkillToEnqueue[] = [];
 
-	// 1. budget skills first (from queue) - convert dollars to bigint
-	const budgetSkills = queue.filter((s) => BUDGET_SKILL_KEYS.includes(s.skillKey));
-	result.push(...budgetSkills.map(toBudgetSkill));
+	// 1. energy changes first (from queue) - convert dollars to bigint
+	const energySkills = queue.filter((s) => s.skillKey === ENERGY_SKILL_KEY);
+	result.push(...energySkills.map(toEnergySkill));
 
 	// 2. other queued skills
-	const otherSkills = queue.filter((s) => !BUDGET_SKILL_KEYS.includes(s.skillKey));
+	const otherSkills = queue.filter((s) => s.skillKey !== ENERGY_SKILL_KEY);
 	result.push(...otherSkills.map(toSkillToEnqueue));
 
 	// 3. message as 'say' skill
@@ -325,38 +337,7 @@ function buildFinalSkills(queue: EnqueuedSkill[], message: string, task: Doc<'ta
 		result.push({ skillKey: 'say', args: { message: trimmedMessage } });
 	}
 
-	// 4. default to requestIteration if nothing else
-	if (result.length === 0 && task.status !== 'acting') {
-		result.push({ skillKey: 'requestIteration', args: {} });
-	}
-
-	// hack so only the last action in a single submission should trigger reactions
-	if (result.length <= 1) return result;
-
-	const lastIndex = result.length - 1;
-
-	return result.map((skill, index) => {
-		//
-		if (index === lastIndex) return skill;
-
-		// the last `say` becomes `justSay`
-		if (skill.skillKey === 'say') {
-			return {
-				...skill,
-				skillKey: 'justSay',
-			};
-		}
-
-		if (skill.skillKey === 'increaseBudget') {
-			return {
-				...skill,
-				// flag with shouldIterate: false
-				args: { ...skill.args, shouldIterate: false },
-			};
-		}
-
-		return skill;
-	});
+	return result;
 }
 
 function toSkillToEnqueue(skill: EnqueuedSkill): SkillToEnqueue {
@@ -368,14 +349,14 @@ function toSkillToEnqueue(skill: EnqueuedSkill): SkillToEnqueue {
 	};
 }
 
-function toBudgetSkill(skill: EnqueuedSkill): SkillToEnqueue {
+function toEnergySkill(skill: EnqueuedSkill): SkillToEnqueue {
 	//
-	// budget skills store dollars as number, convert to bigint for backend
+	// queued energy changes store dollars as number, convert to bigint for backend
 	const dollars = getDollarsArg(skill.args);
-	const amount = dollars ? asBigInt({ dollars }) : 0n;
+	const amount = dollars ? asBigInt({ dollars }) : (getBigIntArg(skill.args, 'amount') ?? 0n);
 
 	return {
-		skillKey: skill.skillKey,
+		skillKey: ENERGY_SKILL_KEY,
 		args: { amount },
 		source: skill.source,
 	};
@@ -387,6 +368,14 @@ function getDollarsArg(args: Record<string, unknown> | undefined) {
 
 	const dollars = args['dollars'];
 	return typeof dollars === 'number' ? dollars : undefined;
+}
+
+function getBigIntArg(args: Record<string, unknown> | undefined, key: string) {
+	//
+	if (!args) return undefined;
+
+	const value = args[key];
+	return typeof value === 'bigint' ? value : undefined;
 }
 
 function addDollars(left: number, right: number) {

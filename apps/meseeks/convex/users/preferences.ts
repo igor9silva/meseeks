@@ -9,7 +9,7 @@ export const _getUserPreference = internalQuery({
 	handler: findUserPreference,
 });
 
-// used by skills/builtIn/setUserInfo.ts so the ai can persist learned user profile data
+// internal write path for trusted preference updates
 export const _setUserPreference = internalMutation({
 	args: setUserPreference.args.shape,
 	handler: setUserPreference,

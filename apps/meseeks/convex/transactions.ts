@@ -22,21 +22,10 @@ export const findAllPaginated = query({
 		paginationOpts: paginationOptionsSchema,
 		search: z.string().optional(),
 	},
-	handler: async (ctx, { paginationOpts, search }) => {
+	handler: async (ctx, { paginationOpts }) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
 
-		// Use search index if search term is provided
-		if (search && search.trim()) {
-			return await ctx.db
-				.query('transactions')
-				.withSearchIndex('search_transactions', (q) =>
-					q.search('description', search.trim()).eq('owner', currentUser._id),
-				)
-				.paginate(paginationOpts);
-		}
-
-		// Default query without search
 		return await ctx.db
 			.query('transactions')
 			.withIndex('by_owner', (q) => q.eq('owner', currentUser._id))

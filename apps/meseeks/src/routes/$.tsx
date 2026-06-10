@@ -1,10 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { track } from '@vercel/analytics/react';
+import { createFileRoute, useParams } from '@tanstack/react-router';
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { BasicError } from '~/components/BasicError';
-import MDX from '~/components/ui/mdx';
-import { useComposition } from '~/hooks/query/useComposition';
-import { useSplatParams } from '~/hooks/useSplatParams';
+import { RoutedFileSurface } from '~/components/reactor/RoutedFileSurface';
 
 const searchSchema = z.object({
 	q: z.string().optional(),
@@ -13,24 +11,19 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute('/$')({
-	component: MDXPage,
+	component: RoutedFilePage,
 	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
 	validateSearch: searchSchema,
 });
 
-function MDXPage() {
+function RoutedFilePage() {
 	//
-	const params = useSplatParams();
+	const params = useParams({ strict: false });
+	const parts = params?._splat?.split('/') ?? [];
+	const slug = parts.at(0) || '/';
+	const value = parts.at(1);
+	if (parts.length > 2) throw new Error('Invalid URL');
+	const parsedFile = slug === 'tasks' || slug === 'inbox' ? zid('files').safeParse(value) : undefined;
 
-	const slug = params.slug || 'list';
-	const { composition } = useComposition(slug);
-
-	const taskId = params.taskId || composition.defaultTaskId || 'inbox';
-
-	track('$', {
-		slug,
-		taskId,
-	});
-
-	return <MDX text={composition.body} shouldRenderComponents={true} />;
+	return <RoutedFileSurface slug={slug} fileId={parsedFile?.success ? parsedFile.data : undefined} />;
 }

@@ -1,22 +1,22 @@
 import type { ReactNode } from 'react';
 import type { ButtonProps } from '@reactor/ui/button';
 import { LoadingButton } from '@reactor/ui/loading-button';
-import { useSplatParams } from '~/hooks/useSplatParams';
-import { useReopen } from '~/hooks/useTaskMutations';
+import { useCurrentFileId } from '~/hooks/useCurrentFile';
+import { useReopen } from '~/hooks/useFileMutations';
 import { RotateCcw } from 'lucide-react';
 
 export function ReopenButton(props: { variant?: ButtonProps['variant']; text?: string; content?: ReactNode }) {
 	//
 	const { variant, text, content } = props;
-	const { taskId } = useSplatParams();
+	const fileId = useCurrentFileId();
 	const { reopen, isReopening } = useReopen();
 
-	if (!taskId) throw new Error('Must be used within a task');
+	if (!fileId) throw new Error('Must be used within a file');
 
 	const handleReopen = () => {
 		//
 		if (isReopening) return;
-		reopen({ taskId });
+		reopen({ fileId });
 	};
 
 	return (

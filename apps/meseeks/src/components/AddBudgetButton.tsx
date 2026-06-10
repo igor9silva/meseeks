@@ -6,7 +6,11 @@ import { useComposer } from '~/hooks/useComposer';
 export function AddCustomBudgetButton(props: { variant?: ButtonProps['variant']; text?: string; content?: ReactNode }) {
 	//
 	return (
-		<Link to="." search={(prev) => ({ ...prev, isEnergyDrawerOpen: true })} className="no-underline">
+		<Link
+			to="."
+			search={(prev: Record<string, unknown>) => ({ ...prev, isEnergyDrawerOpen: true })}
+			className="no-underline"
+		>
 			<Button size="sm" variant={props.variant ?? 'default'} className="flex items-center gap-1">
 				{props.content ?? (
 					<>

@@ -1,10 +1,12 @@
+import { convexQuery } from '@convex-dev/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Loader2, Sparkles } from 'lucide-react';
 import { Suspense, useTransition } from 'react';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { cn } from '@reactor/ui/lib/utils';
+import { api } from 'convex/_generated/api';
 
 interface SkillsLinkProps {
 	//
@@ -27,7 +29,7 @@ function SkillsLinkSkeleton({ className }: { className?: string }) {
 
 function SkillsLinkContent({ className }: { className?: string }) {
 	//
-	const { enabledSkills } = useEnabledSkillsPreference();
+	const skillKeys = useSkillKeys();
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
 
@@ -62,21 +64,28 @@ function SkillsLinkContent({ className }: { className?: string }) {
 					</Link>
 				</TooltipTrigger>
 				<TooltipContent className="p-2 max-w-xs">
-					{enabledSkills.length > 0 ? (
+					{skillKeys.length > 0 ? (
 						<>
-							<p className="font-semibold mb-1">Enabled skills</p>
+							<p className="font-semibold mb-1">Skills</p>
 							<ul className="ml-4 list-disc text-xs">
-								{enabledSkills.map((skill, index) => (
-									<li key={index}>{skill}</li>
+								{skillKeys.map((skill) => (
+									<li key={skill}>{skill}</li>
 								))}
 							</ul>
 							<p className="text-xs text-muted mt-2">click to manage</p>
 						</>
 					) : (
-						<p className="text-xs text-muted-foreground">No skills enabled</p>
+						<p className="text-xs text-muted-foreground">No skills</p>
 					)}
 				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	);
+}
+
+function useSkillKeys() {
+	//
+	const query = convexQuery(api.skills.findAll, {});
+	const { data } = useSuspenseQuery(query);
+	return data.instincts.map((skill) => skill.key).concat(data.skills.map((skill) => skill.key));
 }

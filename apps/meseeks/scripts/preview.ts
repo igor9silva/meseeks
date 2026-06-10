@@ -7,6 +7,7 @@ import {
 	getPreviewRun,
 	loadEnvLocal,
 	previewCommandEnv,
+	previewObjectStoragePrefix,
 	previewRef,
 	readDotenv,
 	removePreviewUnsafeEntries,
@@ -20,6 +21,7 @@ import {
 const convexProjectSelector = 'isPro:meseeks';
 const repoRoot = '../..';
 const previewSeededRefKey = 'CONVEX_PREVIEW_SEEDED_REF';
+const objectStoragePrefixKey = 'OBJECT_STORAGE_PREFIX';
 
 function main() {
 	assertAppRoot();
@@ -30,6 +32,7 @@ function main() {
 	const previewName = getPreviewName(args);
 	const deploymentRef = previewRef(previewName);
 	const createdDeployment = selectPreviewDeployment(previewName, deploymentRef);
+	setPreviewObjectStoragePrefix(deploymentRef, previewObjectStoragePrefix(previewName));
 	const entries = writePreviewEnv(previewName, deploymentRef);
 	const env = previewCommandEnv(entries);
 
@@ -86,6 +89,11 @@ function shouldRunPreviewSeed(createdDeployment: boolean, entries: Map<string, s
 function getPreviewExpiration() {
 	const expiration = process.env.CONVEX_PREVIEW_EXPIRATION?.trim();
 	return expiration || undefined;
+}
+
+function setPreviewObjectStoragePrefix(deploymentRef: string, prefix: string) {
+	console.log(`Setting ${objectStoragePrefixKey}=${prefix} for ${deploymentRef}`);
+	runConvex(['env', 'set', objectStoragePrefixKey, prefix, '--deployment', deploymentRef]);
 }
 
 function markPreviewSeeded(deploymentRef: string) {

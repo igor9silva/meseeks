@@ -58,6 +58,10 @@ export function previewRef(previewName: string) {
 	return `preview/${previewName}`;
 }
 
+export function previewObjectStoragePrefix(previewName: string) {
+	return `preview/${objectStoragePrefixSegment(previewName)}`;
+}
+
 export function loadEnvLocal() {
 	return readDotenv(envLocalFile);
 }
@@ -203,6 +207,15 @@ function readArg(args: string[], name: string) {
 
 function normalizePreviewName(value: string) {
 	return value.replace(/^preview\//, '').trim();
+}
+
+function objectStoragePrefixSegment(value: string) {
+	const normalized = value
+		.trim()
+		.replace(/[^A-Za-z0-9./_-]+/g, '-')
+		.replace(/^\/+|\/+$/g, '');
+
+	return normalized || 'unnamed';
 }
 
 function parseDotenvValue(rawValue: string) {

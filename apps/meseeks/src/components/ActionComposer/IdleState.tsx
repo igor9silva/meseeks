@@ -1,17 +1,11 @@
-import type { Doc } from 'convex/_generated/dataModel';
-import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { ArrowUp, Hourglass, Mic, Sparkles, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { z } from 'zod/v3';
-import { IntelligenceSelector } from '~/components/IntelligenceSelector';
 import { SkillsLink } from '~/components/SkillsLink';
 import { ActionButton } from '@reactor/ui/action-button';
-import { useSetPreferredIntelligence } from '~/hooks/useTaskMutations';
 import { KeyboardShortcutIndicator } from './KeyboardShortcutIndicator';
 
 interface IdleStateProps {
 	//
-	task: Doc<'tasks'>;
 	textareaRef: React.RefObject<HTMLTextAreaElement | null>;
 	message: string;
 	handleMessageChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -24,12 +18,11 @@ interface IdleStateProps {
 	isActing: boolean;
 	isComposing: boolean;
 	canRequestIteration: boolean;
-	intelligenceSelectorRef: React.RefObject<HTMLButtonElement | null>;
 	handleStop: () => void;
+	leftControl: React.ReactNode;
 }
 
 export function IdleState({
-	task,
 	textareaRef,
 	message,
 	handleMessageChange,
@@ -42,16 +35,10 @@ export function IdleState({
 	isActing,
 	isComposing,
 	canRequestIteration,
-	intelligenceSelectorRef,
 	handleStop,
+	leftControl,
 }: IdleStateProps) {
 	//
-	const { setPreferredIntelligence, isSettingPreferredIntelligence } = useSetPreferredIntelligence();
-	const handleIntelligenceChange = (key: z.infer<typeof intelligenceKeys>) => {
-		if (isSettingPreferredIntelligence) return;
-		setPreferredIntelligence({ taskId: task._id, preferredIntelligence: key });
-	};
-
 	return (
 		<>
 			<div className="flex flex-grow items-center justify-center px-2">
@@ -66,18 +53,14 @@ export function IdleState({
 
 			<div className="flex items-center justify-between gap-2 pt-2">
 				<div className="flex items-center gap-2">
-					<IntelligenceSelector
-						value={task.preferredIntelligence}
-						onChange={handleIntelligenceChange}
-						ref={intelligenceSelectorRef}
-					/>
+					{leftControl}
 					<SkillsLink />
 				</div>
 
 				<div className="flex items-center gap-2">
 					{/* Keyboard shortcut indicators */}
 					{isActing && <KeyboardShortcutIndicator modifier="^" keySymbol="C" text="to interrupt" />}
-					{isBlocked && <KeyboardShortcutIndicator modifier="⌥" keySymbol="⏎" text="to authorize" />}
+					{isBlocked && <span className="hidden text-xs text-muted-foreground md:flex">needs input</span>}
 					{!isEmpty && <KeyboardShortcutIndicator modifier="⌥" keySymbol="⏎" text="to enqueue" />}
 					{isComposing && <KeyboardShortcutIndicator modifier="⌘" keySymbol="⏎" text="to act" />}
 					{canRequestIteration && <KeyboardShortcutIndicator modifier="⌘" keySymbol="⏎" text="to iterate" />}

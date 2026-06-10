@@ -2,15 +2,19 @@ import { zodToConvex } from 'convex-helpers/server/zod3';
 import { defineSchema, defineTable } from 'convex/server';
 import { actionDetailSchema } from 'schemas/actionDetailSchema';
 import { actionSchema } from 'schemas/actionSchema';
-import { componentSchema } from 'schemas/componentSchema';
+import { boxSchema } from 'schemas/boxSchema';
 import { draftSchema } from 'schemas/draftSchema';
+import { fileContentSchema, fileSchema } from 'schemas/fileSchema';
+import { fileTagSchema } from 'schemas/fileTagSchema';
+import { loopSchema } from 'schemas/loopSchema';
 import { polarEventSchema } from 'schemas/polarEventSchema';
-import { scheduleSchema } from 'schemas/scheduleSchema';
+import { readSchema } from 'schemas/readSchema';
+import { routeSchema } from 'schemas/routeSchema';
 import { skillSchema } from 'schemas/skillSchema';
 import { subscriptionSchema } from 'schemas/subscriptionSchema';
-import { taskSchema } from 'schemas/taskSchema';
 import { topUpSchema } from 'schemas/topUpSchema';
 import { transactionSchema } from 'schemas/transactionSchema';
+import { triggerSchema } from 'schemas/triggerSchema';
 import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/userSchema';
 
 // oxfmt-ignore
@@ -43,83 +47,139 @@ export default defineSchema({
 	drafts: defineTable(
 		zodToConvex(draftSchema),
 	).index(
-		'by_owner_taskId', ['owner', 'taskId'],
+		'by_owner_fileId', ['owner', 'fileId'],
 	),
 
-	tasks: defineTable(
-		zodToConvex(taskSchema),
+	files: defineTable(
+		zodToConvex(fileSchema),
 	).index(
-		'by_owner_parentId_isActive', ['owner', 'parentId', 'isActive'],
+		'by_owner_parent_name', ['owner', 'parent', 'name'],
 	).index(
-		'by_parent_isActive', ['parentId', 'isActive'],
-	).index(
-		'by_owner_isActive', ['owner', 'isActive'],
-	).index(
-		'by_owner_status', ['owner', 'status'],
-	).index(
-		'by_owner_energyAvailable', ['owner', 'energyBudget.available'],
-	),
-	// .index(
-	// 	'by_embeddingId', ['embeddingId'],
-	// ),
-
-	// taskEmbeddings: defineTable(
-	// 	zodToConvex(taskEmbeddingsSchema),
-	// ).vectorIndex("by_embedding", {
-	// 	dimensions: 3072,
-	// 	vectorField: 'embedding',
-	// 	filterFields: ['isDone'],
-	// }),
-	
-	actions: defineTable(
-		zodToConvex(actionSchema),
-	).index(
-		'by_task', ['taskId'],
-	).index(
-		'by_task_status', ['taskId', 'status'],
-	).index(
-		'by_task_author_status', ['taskId', 'author', 'status'],
-	).index(
-		'by_status', ['status'],
-	),
-
-	action_details: defineTable(
-		zodToConvex(actionDetailSchema),
-	).index(
-		'by_action', ['actionId'],
-	),
-
-	schedules: defineTable(
-		zodToConvex(scheduleSchema),
-	).index(
-		'by_task', ['taskId'],
+		'by_parent', ['parent'],
 	).index(
 		'by_owner', ['owner'],
+	),
+
+	file_contents: defineTable(
+		zodToConvex(fileContentSchema),
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_owner_file', ['owner', 'file'],
+	),
+
+	file_tags: defineTable(
+		zodToConvex(fileTagSchema),
+	).index(
+		'by_file_key', ['file', 'key'],
+	).index(
+		'by_owner_key_value', ['owner', 'key', 'value'],
+	).index(
+		'by_owner_key', ['owner', 'key'],
+	).index(
+		'by_file', ['file'],
 	),
 
 	skills: defineTable(
 		zodToConvex(skillSchema),
 	).index(
+		'by_owner_key', ['owner', 'key'],
+	).index(
+		'by_owner_public_key', ['owner', 'isPublic', 'key'],
+	).index(
+		'by_public_key', ['isPublic', 'key'],
+	).index(
 		'by_owner_kind', ['owner', 'kind'],
 	).index(
-		'by_owner_key', ['owner', 'key'],
+		'by_file', ['file'],
+	).index(
+		'by_source_owner_key', ['sourceOwner', 'sourceKey'],
 	),
 
-	components: defineTable(
-		zodToConvex(componentSchema),
+	actions: defineTable(
+		zodToConvex(actionSchema),
+	).index(
+		'by_file_index', ['file', 'index'],
+	).index(
+		'by_file_status', ['file', 'status'],
+	).index(
+		'by_file_spark', ['file', 'spark'],
+	).index(
+		'by_status', ['status'],
+	).index(
+		'by_author', ['author'],
+	),
+
+	details: defineTable(
+		zodToConvex(actionDetailSchema),
+	).index(
+		'by_action', ['action'],
+	).index(
+		'by_skill', ['skill'],
+	),
+
+	triggers: defineTable(
+		zodToConvex(triggerSchema),
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_loop', ['loop'],
+	).index(
+		'by_author', ['author'],
+	).index(
+		'by_handler', ['handler'],
+	),
+
+	loops: defineTable(
+		zodToConvex(loopSchema),
+	).index(
+		'by_owner_key', ['owner', 'key'],
+	).index(
+		'by_owner_public_key', ['owner', 'isPublic', 'key'],
+	).index(
+		'by_public_key', ['isPublic', 'key'],
+	).index(
+		'by_source_owner_key', ['sourceOwner', 'sourceKey'],
+	),
+
+	reads: defineTable(
+		zodToConvex(readSchema),
+	).index(
+		'by_user_file', ['user', 'file'],
+	).index(
+		'by_file', ['file'],
+	),
+
+	routes: defineTable(
+		zodToConvex(routeSchema),
 	).index(
 		'by_owner_slug', ['owner', 'slug'],
+	).index(
+		'by_owner_public_slug', ['owner', 'isPublic', 'slug'],
+	).index(
+		'by_public_slug', ['isPublic', 'slug'],
+	).index(
+		'by_file', ['file'],
+	),
+
+	boxes: defineTable(
+		zodToConvex(boxSchema),
+	).index(
+		'by_owner_file', ['owner', 'file'],
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_status', ['status'],
 	),
 
 	transactions: defineTable(
 		zodToConvex(transactionSchema),
 	).index(
 		'by_owner', ['owner'],
-	).searchIndex(
-		'search_transactions', {
-			searchField: 'description',
-			filterFields: ['owner', 'kind'],
-		}
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_action', ['action'],
 	),
 
 	subscriptions: defineTable(

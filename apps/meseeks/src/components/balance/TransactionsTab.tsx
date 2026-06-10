@@ -52,15 +52,7 @@ export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 			{/* Transactions List */}
 			<div className="space-y-2">
 				{transactions.map((transaction) => (
-					<TransactionItem
-						key={transaction._id}
-						transaction={transaction}
-						taskId={
-							transaction.kind === 'fund task' || transaction.kind === 'refund from task'
-								? transaction.taskId
-								: undefined
-						}
-					/>
+					<TransactionItem key={transaction._id} transaction={transaction} />
 				))}
 				{transactions.length === 0 && status !== 'LoadingFirstPage' && (
 					<div className="text-muted-foreground text-center py-8">
