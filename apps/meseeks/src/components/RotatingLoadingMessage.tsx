@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { TextShimmer } from '@reactor/ui/text-shimmer';
-import { cn } from '@reactor/ui/lib/utils';
+import { TextShimmer } from '@pro/ui/text-shimmer';
+import { cn } from '@pro/ui/lib/utils';
 
 const LOADING_MESSAGES = [
 	'Teaching silicon to be conscious...',

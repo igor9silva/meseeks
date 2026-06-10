@@ -1,8 +1,8 @@
-import { useDebouncedValue } from '@reactor/ui/hooks/pacer';
+import { useDebouncedValue } from '@pro/ui/hooks/pacer';
 import { usePaginatedQuery } from 'convex/react';
 import { RefObject } from 'react';
 import { Loading } from '~/components/Loading';
-import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
+import { useInfiniteScroll } from '@pro/ui/hooks/useInfiniteScroll';
 import { TransactionItem } from './TransactionItem';
 import { api } from 'convex/_generated/api';
 
@@ -52,15 +52,7 @@ export function TransactionsTab({ scrollContainerRef }: TransactionsTabProps) {
 			{/* Transactions List */}
 			<div className="space-y-2">
 				{transactions.map((transaction) => (
-					<TransactionItem
-						key={transaction._id}
-						transaction={transaction}
-						taskId={
-							transaction.kind === 'fund task' || transaction.kind === 'refund from task'
-								? transaction.taskId
-								: undefined
-						}
-					/>
+					<TransactionItem key={transaction._id} transaction={transaction} />
 				))}
 				{transactions.length === 0 && status !== 'LoadingFirstPage' && (
 					<div className="text-muted-foreground text-center py-8">

@@ -18,5 +18,12 @@ export function CompositionFrame({ code, title, errorText }: CompositionFramePro
 	if (!iframeHtml) return <Loading className="h-svh" text="Rendering..." />;
 
 	// TODO: unify all <iframe>
-	return <iframe srcDoc={iframeHtml} title={title} className="fixed inset-0 z-50 h-full w-full border-none" />;
+	return (
+		<iframe
+			srcDoc={iframeHtml}
+			title={title}
+			sandbox="allow-scripts"
+			className="fixed inset-0 z-50 h-full w-full border-none"
+		/>
+	);
 }

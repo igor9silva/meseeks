@@ -103,12 +103,17 @@ export const findActiveSubscriptions = defineQuery({
 	handler: async (ctx, { owner }): Promise<Doc<'subscriptions'>[]> => {
 		//
 		const now = Date.now();
-
-		return await ctx.db
+		const activeSubscriptions = await ctx.db
 			.query('subscriptions')
 			.withIndex('by_owner_status', (q) => q.eq('owner', owner).eq('status', 'active'))
-			.collect()
-			.then((subs) => subs.filter((s) => (s.validUntil ?? 0) > now));
+			.collect();
+		const validSubscriptions: Doc<'subscriptions'>[] = [];
+
+		for (const subscription of activeSubscriptions) {
+			if ((subscription.validUntil ?? 0) > now) validSubscriptions.push(subscription);
+		}
+
+		return validSubscriptions;
 	},
 });
 

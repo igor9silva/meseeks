@@ -1,424 +1,706 @@
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
+import { defineMutation, defineQuery } from 'lib/convex';
+import { NotFound } from 'lib/errors';
+import { authorSchema } from 'schemas/authorSchema';
+import { actionResultSchema, actionStatusSchema, actionWarningSchema, costSchema } from 'schemas/actionSchema';
 import type { Doc, Id } from './_generated/dataModel';
-import type { ActionCtx, MutationCtx } from './_generated/server';
-import { internal } from './_generated/api';
-import { executeTool } from '@ai-sdk/provider-utils';
-import { isError, NOT_ENOUGH_BUDGET_ERROR, messageFrom, NotEnoughBudget } from 'lib/errors';
-import { asDollars } from 'lib/money';
-import { prepareContext, type MagicRockContext } from './magicRock.private';
-import { newActionSchema } from 'schemas/actionSchema';
-import type { AIToolResult } from 'schemas/toolSchema';
-import { env } from 'schemas/envSchema';
-import type { skillSchema } from 'schemas/skillSchema';
-import { builtInSkillSchema } from 'schemas/skillSchema';
-import { tokenSchema } from 'schemas/topUpSchema';
-import { estimateCostFor, extractSystemInstructions } from 'skills/createAITool';
-import { createReactions } from 'skills/createReactions';
-import { createTool } from 'skills/tools';
-import { ACTION_TIMEOUT_MS } from './reactor.constants';
+import type { MutationCtx } from './_generated/server';
+import { addSettlementTransaction } from './transactions.private';
 
-export async function perform(
-	ctx: ActionCtx,
-	{
-		taskId,
-		actionId,
-	}: {
-		taskId: Id<'tasks'>;
-		actionId: Id<'actions'>;
-	},
-) {
-	//
-	console.debug(`Executing action ${actionId} for task ${taskId}`);
+const interruptibleStatuses = ['pending authorization', 'enqueued', 'running'] as const;
+const actionBaseSchema = z.object({
+	owner: zid('users'),
+	file: zid('files'),
+	skillKey: z.string().min(1),
+	args: z.record(z.unknown()),
+	loopKey: z.string().min(1).optional(),
+	intelligenceKey: z.string().min(1).optional(),
+});
+const recordActionResultSchema = z.object({
+	result: actionResultSchema.optional(),
+	patch: z.string().optional(),
+});
 
-	const { task, action, skill } = await ctx.runQuery(internal.reactor._prepare, {
-		taskId,
-		actionId,
-	});
+type ActionBaseInput = z.output<typeof actionBaseSchema>;
+type SettledActionStatus = 'succeeded' | 'failed' | 'skipped';
 
-	console.debug(
-		`Using skill ${skill.key} with ${Object.keys(action.args).length} args: ${Object.keys(action.args).join(', ')}`,
-	);
+type ActionCause =
+	| {
+			kind: 'human';
+			author: Id<'users'>;
+	  }
+	| {
+			kind: 'reaction';
+			previousActionId: Id<'actions'>;
+	  }
+	| {
+			kind: 'trigger';
+			triggerId: Id<'triggers'>;
+	  }
+	| {
+			kind: 'authored';
+			author: z.infer<typeof authorSchema>;
+	  };
 
-	// create a timeout promise that rejects before convex's hard timeout
-	let timeoutId: ReturnType<typeof setTimeout> | undefined;
-	const timeoutPromise = new Promise<never>((_, reject) => {
-		timeoutId = setTimeout(() => {
-			reject(
-				new Error(
-					`Action execution timed out after ${ACTION_TIMEOUT_MS / 1000} seconds to handle Convex timeout`,
-				),
-			);
-		}, ACTION_TIMEOUT_MS);
-	});
+type ActionLifecycle =
+	| {
+			kind: 'enqueued';
+	  }
+	| {
+			kind: 'settled';
+			status: SettledActionStatus;
+			result?: z.infer<typeof actionResultSchema>;
+			patch?: string;
+			costs?: Array<z.infer<typeof costSchema>>;
+			settledAt?: number;
+	  };
 
-	// wrap the entire try block execution with timeout
-	const executeWithTimeout = async () => {
+export const nextActionIndex = defineQuery({
+	args: z.object({
+		file: zid('files'),
+	}),
+	handler: async (ctx, { file }) => {
 		//
-		// prepare context if needed
-		const context = skill.kind === 'soft' ? await prepareContext(ctx, task, action, skill) : undefined;
+		const latest = await ctx.db
+			.query('actions')
+			.withIndex('by_file_index', (q) => q.eq('file', file))
+			.order('desc')
+			.first();
 
-		// persist initial action details with request context
-		await persistInitialActionDetails(ctx, action, skill, context);
+		return latest ? latest.index + 1 : 0;
+	},
+});
 
-		// check budget
-		const expectedCost = await ensureWithinBudget(ctx, task, action, skill, context);
-
-		console.debug(`Expected cost ${asDollars({ bigInt: expectedCost, precision: 6 })} energy.`);
-
-		// if the action is not yet authorized, try auto-approving it
-		if (!action.approvedAt) {
-			//
-			const wasAutoApproved = await tryAutoApprove(ctx, task, action, skill, expectedCost);
-
-			// if failed, request human approval
-			if (!wasAutoApproved) return await requestHumanApproval(ctx, { actionId, taskId });
-		}
-
-		const tool = createTool(ctx, task, action, skill, context);
-		const args = parseArgs(tool, action.args);
-		const execute = tool.execute;
-		if (!execute) throw new Error(`Tool execute is not available for action ${action._id}.`);
-
-		const execution = executeTool({
-			execute,
-			input: args,
-			options: {
-				toolCallId: String(action._id),
-				messages: [],
+export const enqueueHumanAction = defineMutation({
+	args: actionBaseSchema.extend({
+		author: zid('users'),
+	}),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'human',
+				author: args.author,
+			},
+			lifecycle: {
+				kind: 'enqueued',
 			},
 		});
+	},
+});
 
-		let toolResult: AIToolResult | undefined;
-		for await (const part of execution) {
-			if (part.type === 'final') {
-				toolResult = part.output;
+export const enqueueReactionAction = defineMutation({
+	args: actionBaseSchema.extend({
+		previousActionId: zid('actions'),
+	}),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'reaction',
+				previousActionId: args.previousActionId,
+			},
+			lifecycle: {
+				kind: 'enqueued',
+			},
+		});
+	},
+});
+
+export const enqueueTriggerAction = defineMutation({
+	args: actionBaseSchema.extend({
+		triggerId: zid('triggers'),
+	}),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'trigger',
+				triggerId: args.triggerId,
+			},
+			lifecycle: {
+				kind: 'enqueued',
+			},
+		});
+	},
+});
+
+export const recordHumanAction = defineMutation({
+	args: actionBaseSchema
+		.extend({
+			author: zid('users'),
+			status: z.enum(['succeeded', 'failed', 'skipped']).default('succeeded'),
+		})
+		.merge(recordActionResultSchema),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'human',
+				author: args.author,
+			},
+			lifecycle: {
+				kind: 'settled',
+				status: args.status,
+				result: args.result,
+				patch: args.patch,
+			},
+		});
+	},
+});
+
+export const recordTriggerAction = defineMutation({
+	args: actionBaseSchema
+		.extend({
+			triggerId: zid('triggers'),
+			status: z.enum(['succeeded', 'failed', 'skipped']).default('succeeded'),
+		})
+		.merge(recordActionResultSchema),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'trigger',
+				triggerId: args.triggerId,
+			},
+			lifecycle: {
+				kind: 'settled',
+				status: args.status,
+				result: args.result,
+				patch: args.patch,
+			},
+		});
+	},
+});
+
+export const recordMutationAction = defineMutation({
+	args: actionBaseSchema
+		.pick({
+			owner: true,
+			file: true,
+			skillKey: true,
+			args: true,
+		})
+		.extend({
+			author: authorSchema,
+		})
+		.merge(recordActionResultSchema),
+	handler: async (ctx, args) => {
+		//
+		return await insertAction(ctx, {
+			...args,
+			cause: {
+				kind: 'authored',
+				author: args.author,
+			},
+			lifecycle: {
+				kind: 'settled',
+				status: 'succeeded',
+				result: args.result,
+				patch: args.patch,
+			},
+		});
+	},
+});
+
+export const interruptFileWork = defineMutation({
+	args: z.object({
+		file: zid('files'),
+		interruptedAt: z.number(),
+	}),
+	handler: async (ctx, { file, interruptedAt }) => {
+		//
+		let count = 0;
+
+		for (const status of interruptibleStatuses) {
+			const actions = await ctx.db
+				.query('actions')
+				.withIndex('by_file_status', (q) => q.eq('file', file).eq('status', status))
+				.collect();
+
+			for (const action of actions) {
+				if (action.interruptedAt !== undefined) continue;
+				await ctx.db.patch(action._id, { interruptedAt });
+				count += 1;
 			}
 		}
 
-		if (!toolResult) throw new Error(`Tool execution returned no result for action ${action._id}.`);
+		return count;
+	},
+});
 
-		const { result, costs } = toolResult;
+export const claimAction = defineMutation({
+	args: z.object({
+		actionId: zid('actions'),
+		expectedCost: z.bigint(),
+		maxCost: z.bigint(),
+	}),
+	handler: async (ctx, { actionId, expectedCost, maxCost }) => {
+		//
+		const now = Date.now();
+		const action = await ctx.db.get(actionId);
+		if (!action) throw NotFound();
 
-		await setFinished(ctx, {
-			actionId,
-			taskId,
-			result,
-			status: 'succeeded',
+		if (isSettledStatus(action.status)) {
+			return { status: 'settled' as const };
+		}
+
+		if (action.status === 'running') {
+			return {
+				status: 'already-running' as const,
+				reservedBudget: action.reservedBudget ?? 0n,
+			};
+		}
+
+		if (action.status === 'pending authorization') {
+			return { status: 'pending-authorization' as const };
+		}
+
+		if (action.status !== 'enqueued') {
+			return {
+				status: 'not-claimable' as const,
+				actionStatus: action.status,
+			};
+		}
+
+		const causalParent = await findCausalParentAction(ctx, { action });
+		if (causalParent && causalParent.settledAt === undefined) {
+			return { status: 'waiting-for-cause' as const };
+		}
+
+		const file = await ctx.db.get(action.file);
+		if (!file) throw NotFound();
+
+		const budget = file.budget;
+		if (maxCost > 0n && (!budget || budget.available < maxCost)) {
+			await ctx.db.patch(actionId, {
+				status: 'failed',
+				expectedCost,
+				maxCost,
+				result: {
+					text: 'Budget reservation failed.',
+					files: [],
+					metadata: {
+						kind: 'budget',
+						required: maxCost,
+						available: budget?.available ?? 0n,
+					},
+				},
+				settledAt: now,
+			});
+
+			return { status: 'budget-failed' as const };
+		}
+
+		if (budget && maxCost > 0n) {
+			await ctx.db.patch(file._id, {
+				budget: {
+					...budget,
+					available: budget.available - maxCost,
+					reserved: budget.reserved + maxCost,
+				},
+				updatedAt: now,
+			});
+		}
+
+		await ctx.db.patch(actionId, {
+			status: 'running',
+			expectedCost,
+			maxCost,
+			reservedBudget: maxCost,
+			claimedAt: now,
+			startedAt: now,
+		});
+
+		return { status: 'running' as const };
+	},
+});
+
+export const settleAction = defineMutation({
+	args: z.object({
+		actionId: zid('actions'),
+		status: z.enum(['succeeded', 'failed', 'skipped']),
+		result: actionResultSchema.optional(),
+		patch: z.string().optional(),
+		costs: z.array(costSchema).default([]),
+		warnings: z.array(actionWarningSchema).optional(),
+		shouldReleaseAvailableBudget: z.boolean().default(false),
+	}),
+	handler: async (ctx, { actionId, status, result, patch, costs, warnings, shouldReleaseAvailableBudget }) => {
+		//
+		const now = Date.now();
+		const action = await ctx.db.get(actionId);
+		if (!action) throw NotFound();
+
+		const file = await ctx.db.get(action.file);
+		if (!file) throw NotFound();
+
+		const actualCost = costs.reduce((total, cost) => total + cost.amount, 0n);
+		const reservedBudget = action.reservedBudget ?? 0n;
+		const budget = file.budget;
+		const needsAttention = budget
+			? settleFileBudget({ budget, reservedBudget, actualCost }).needsAttention
+			: actualCost > 0n;
+		const shouldReleaseAvailable = shouldReleaseAvailableBudget || shouldReleaseAvailableBudgetForResult(result);
+		let releasedAvailableBudget = 0n;
+		let patchToPersist = patch ?? action.patch;
+
+		if (budget) {
+			const settlement = settleFileBudget({ budget, reservedBudget, actualCost });
+			const settledBudget = shouldReleaseAvailable
+				? releaseAvailableBudget(settlement.budget)
+				: settlement.budget;
+			releasedAvailableBudget = settlement.budget.available - settledBudget.available;
+			if (releasedAvailableBudget > 0n) {
+				patchToPersist = combineActionPatches(patchToPersist, `~ budget -${releasedAvailableBudget}`);
+			}
+
+			await ctx.db.patch(file._id, {
+				budget: settledBudget,
+				updatedAt: now,
+			});
+		}
+
+		if (actualCost > 0n) {
+			await addSettlementTransaction(ctx, {
+				owner: action.owner,
+				file: action.file,
+				action: actionId,
+				value: {
+					symbol: 'USD',
+					amount: -actualCost,
+				},
+				description: `${action.skillKey} settlement`,
+			});
+			if (budget) {
+				await releaseCommittedBudget(ctx, {
+					owner: action.owner,
+					amount: actualCost,
+				});
+			}
+		}
+		if (releasedAvailableBudget > 0n) {
+			await releaseCommittedBudget(ctx, {
+				owner: action.owner,
+				amount: releasedAvailableBudget,
+			});
+		}
+
+		await ctx.db.patch(actionId, {
+			status,
+			result: withAttentionMetadata(result, needsAttention),
+			warnings,
+			patch: patchToPersist,
 			costs,
-			// TODO: also persist reactions
+			settledAt: now,
 		});
-	};
 
-	try {
+		return { needsAttention };
+	},
+});
+
+export const latestActionForFile = defineQuery({
+	args: z.object({
+		file: zid('files'),
+	}),
+	handler: async (ctx, { file }) => {
 		//
-		// race the entire execution against the timeout
-		await Promise.race([executeWithTimeout(), timeoutPromise]);
+		return await ctx.db
+			.query('actions')
+			.withIndex('by_file_index', (q) => q.eq('file', file))
+			.order('desc')
+			.first();
+	},
+});
+
+export const recentActionsForFile = defineQuery({
+	args: z.object({
+		file: zid('files'),
+		limit: z.number().int().positive().max(100).default(20),
+	}),
+	handler: async (ctx, { file, limit }) => {
 		//
-	} catch (error) {
-		//
-		const result = await handleActionError({ actionId, action, error });
+		return await ctx.db
+			.query('actions')
+			.withIndex('by_file_index', (q) => q.eq('file', file))
+			.order('desc')
+			.take(limit);
+	},
+});
 
-		await setFinished(ctx, {
-			actionId,
-			taskId,
-			status: 'failed',
-			costs: [],
-			result: result ?? { text: 'Max auto-fix attempts reached.', reactions: [] },
-		});
-		//
-	} finally {
-		//
-		if (timeoutId) clearTimeout(timeoutId);
-		await runNextActionIfNeeded(ctx, { taskId });
-	}
-}
-
-function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
-	//
-	// all our tools use Zod schemas, so inputSchema always has safeParse
-	const schema = tool.inputSchema;
-
-	// type guard: check that schema is a Zod schema with safeParse
-	if (!('safeParse' in schema)) {
-		throw new Error('Expected Zod schema but got something else');
-	}
-
-	const parsedArgs = schema.safeParse(args);
-
-	if (!parsedArgs.success) throw new Error(`Invalid skill args: ${parsedArgs.error.message}`);
-
-	return parsedArgs.data;
-}
-
-async function estimateAndPersistCost(
-	ctx: ActionCtx,
-	action: Doc<'actions'>,
-	task: Doc<'tasks'>,
-	skill: z.infer<typeof skillSchema>,
-	context?: MagicRockContext,
-) {
-	if (action.estimatedCost) return action.estimatedCost;
-
-	const estimatedCost = estimateCostFor(skill, task, action._id, context);
-
-	console.debug(
-		`Setting estimated cost for ${action._id}: ${asDollars({ bigInt: estimatedCost, precision: 6 })} energy`,
-	);
-
-	await ctx.runMutation(internal.reactor._setEstimatedCost, {
-		actionId: action._id,
-		estimatedCost,
-	});
-
-	return estimatedCost;
-}
-
-async function ensureWithinBudget(
-	ctx: ActionCtx,
-	task: Doc<'tasks'>,
-	action: Doc<'actions'>,
-	skill: z.infer<typeof skillSchema>,
-	context?: MagicRockContext,
-) {
-	//
-	const estimatedCost = await estimateAndPersistCost(ctx, action, task, skill, context);
-
-	if (estimatedCost > task.energyBudget.available) {
-		throw NotEnoughBudget(
-			`Not enough energy. Estimated cost: ${asDollars({ bigInt: estimatedCost })}.`,
-			action,
-			action.skillKey,
-			estimatedCost,
-		);
-	}
-
-	return estimatedCost;
-}
-
-async function autoApprove(
-	ctx: ActionCtx, //
-	task: Doc<'tasks'>,
-	action: Doc<'actions'>,
-) {
-	await ctx.runMutation(internal.action._authorize, {
-		taskId: task._id,
-		actionId: action._id,
-		approver: 'auto',
-		hasApproved: true,
-	});
-
-	return true;
-}
-
-async function tryAutoApprove(
-	ctx: ActionCtx,
-	task: Doc<'tasks'>,
-	action: Doc<'actions'>,
-	skill: z.infer<typeof skillSchema>,
-	expectedCost: bigint,
-) {
-	// auto approve if the author is the task owner
-	if (action.author === task.owner) return autoApprove(ctx, task, action);
-
-	// reject if requires more budget
-	if (skill.preApprovedCost === 'none') return false;
-	if (skill.preApprovedCost < expectedCost) return false;
-
-	// reject if too many consecutive actions are from Meseeks
-	if (expectedCost > 0n && (await hasReachedMaxConsecutiveCompanionActions(ctx, task))) {
-		//
-		console.debug(
-			`Skipping reacting for task ${task._id} because the last ${env.MAX_CONSECUTIVE_COMPANION_ACTIONS} actions are from Meseeks.`,
-		);
-
-		return false;
-	}
-
-	return autoApprove(ctx, task, action);
-}
-
-// ¡¡¡do not remove — this prevents machines from taking over!!!
-async function hasReachedMaxConsecutiveCompanionActions(
-	ctx: ActionCtx, //
-	task: Doc<'tasks'>,
-) {
-	//
-	const lastActions = await ctx.runQuery(internal.action._findLastActions, {
-		taskId: task._id,
-		amount: env.MAX_CONSECUTIVE_COMPANION_ACTIONS,
-	});
-
-	return lastActions.every((action: Doc<'actions'>) => action.author !== task.owner);
-}
-
-async function requestHumanApproval(
-	ctx: ActionCtx, //
-	{
-		actionId,
-		taskId,
-	}: {
-		actionId: Id<'actions'>;
-		taskId: Id<'tasks'>;
+async function insertAction(
+	ctx: MutationCtx,
+	args: ActionBaseInput & {
+		cause: ActionCause;
+		lifecycle: ActionLifecycle;
 	},
 ) {
 	//
-	await ctx.runMutation(internal.reactor._requestAuthorization, { actionId, taskId });
+	const now = Date.now();
+	const index = await nextActionIndex(ctx, { file: args.file });
+	const causal = await deriveActionLineage(ctx, {
+		owner: args.owner,
+		file: args.file,
+		loopKey: args.loopKey,
+		cause: args.cause,
+	});
+	const status = args.lifecycle.kind === 'enqueued' ? 'enqueued' : args.lifecycle.status;
+	const result = args.lifecycle.kind === 'enqueued' ? undefined : args.lifecycle.result;
+	const patch = args.lifecycle.kind === 'enqueued' ? undefined : args.lifecycle.patch;
+	const costs = args.lifecycle.kind === 'enqueued' ? [] : (args.lifecycle.costs ?? []);
+	const settledAt = args.lifecycle.kind === 'enqueued' ? undefined : (args.lifecycle.settledAt ?? Date.now());
+
+	const actionId = await ctx.db.insert('actions', {
+		owner: args.owner,
+		file: args.file,
+		index,
+		depth: causal.depth,
+		author: causal.author,
+		skillKey: args.skillKey,
+		loopKey: args.loopKey,
+		intelligenceKey: args.intelligenceKey,
+		args: args.args,
+		status,
+		result,
+		costs,
+		patch,
+		settledAt,
+		createdAt: now,
+	});
+
+	await ctx.db.patch(actionId, { spark: causal.spark ?? actionId });
+
+	return actionId;
 }
 
-async function handleActionError({
-	actionId,
-	action,
-	error,
-}: {
-	actionId: Id<'actions'>;
-	action: Doc<'actions'>;
-	error: unknown;
-}): Promise<{
-	text: string;
-	reactions: Array<z.infer<typeof newActionSchema>>;
-} | null> {
-	//
-	console.info(`action ${actionId} execution failed: ${error}`);
-
-	const result: {
-		text: string;
-		reactions: Array<z.infer<typeof newActionSchema>>;
-	} = {
-		text: messageFrom(error),
-		reactions: [],
-	};
-
-	// react with appropriate reactions
-	if (isNotEnoughBudgetError(error)) {
-		//
-		console.debug(`Lacking energy for action ${actionId}. Requesting more energy.`);
-
-		result.text = error.data.message;
-		result.reactions = createReactions(error.data.action, [
-			{
-				skillKey: 'requestBudget',
-				args: {
-					estimatedCost: error.data.estimatedCost,
-					previousActionKey: error.data.previousActionKey,
-				},
-			},
-		]);
-		//
-	} else {
-		//
-		// attempt auto-fix
-		result.reactions = createReactions(action, [
-			{
-				skillKey: 'iterate',
-				args: {},
-			},
-		]);
-	}
-
-	return result;
-}
-
-function isNotEnoughBudgetError(error: unknown): error is ReturnType<typeof NotEnoughBudget> {
-	//
-	return isError(NOT_ENOUGH_BUDGET_ERROR, error);
-}
-
-async function setFinished(
-	ctx: ActionCtx,
+async function deriveActionLineage(
+	ctx: MutationCtx,
 	args: {
-		actionId: Id<'actions'>;
-		taskId: Id<'tasks'>;
-		result: {
-			text?: string | undefined;
-			reactions: Array<z.infer<typeof newActionSchema>>;
+		owner: Id<'users'>;
+		file: Id<'files'>;
+		loopKey?: string;
+		cause: ActionCause;
+	},
+): Promise<{
+	author: z.infer<typeof authorSchema>;
+	depth: number;
+	spark: Id<'actions'> | undefined;
+}> {
+	//
+	if (args.cause.kind === 'human') {
+		return {
+			author: args.cause.author,
+			depth: 0,
+			spark: undefined,
 		};
-		status: 'succeeded' | 'failed';
-		costs: Array<{
-			symbol: z.infer<typeof tokenSchema>;
-			amount: bigint;
-			description: string;
-		}>;
+	}
+
+	if (args.cause.kind === 'reaction') {
+		const previous = await ctx.db.get(args.cause.previousActionId);
+		if (!previous) throw NotFound();
+		if (previous.owner !== args.owner || previous.file !== args.file) throw NotFound();
+
+		return {
+			author: args.cause.previousActionId,
+			depth: previous.depth + 1,
+			spark: previous.spark ?? previous._id,
+		};
+	}
+
+	if (args.cause.kind === 'trigger') {
+		await ensureTriggerCanAuthorAction(ctx, {
+			owner: args.owner,
+			file: args.file,
+			loopKey: args.loopKey,
+			triggerId: args.cause.triggerId,
+		});
+
+		return {
+			author: args.cause.triggerId,
+			depth: 0,
+			spark: undefined,
+		};
+	}
+
+	const userId = zid('users').safeParse(args.cause.author);
+	if (userId.success) {
+		const user = await ctx.db.get(userId.data);
+		if (user) {
+			if (user._id !== args.owner) throw NotFound();
+
+			return {
+				author: args.cause.author,
+				depth: 0,
+				spark: undefined,
+			};
+		}
+	}
+
+	const parentActionId = zid('actions').safeParse(args.cause.author);
+	if (parentActionId.success) {
+		const previous = await ctx.db.get(parentActionId.data);
+		if (!previous) throw NotFound();
+		if (previous.owner !== args.owner || previous.file !== args.file) throw NotFound();
+
+		return {
+			author: args.cause.author,
+			depth: previous.depth + 1,
+			spark: previous.spark ?? previous._id,
+		};
+	}
+
+	const triggerId = zid('triggers').safeParse(args.cause.author);
+	if (triggerId.success) {
+		await ensureTriggerCanAuthorAction(ctx, {
+			owner: args.owner,
+			file: args.file,
+			loopKey: args.loopKey,
+			triggerId: triggerId.data,
+		});
+
+		return {
+			author: args.cause.author,
+			depth: 0,
+			spark: undefined,
+		};
+	}
+
+	throw NotFound();
+}
+
+async function ensureTriggerCanAuthorAction(
+	ctx: MutationCtx,
+	args: {
+		owner: Id<'users'>;
+		file: Id<'files'>;
+		loopKey?: string;
+		triggerId: Id<'triggers'>;
 	},
 ) {
-	return await ctx.runMutation(internal.reactor._finish, args);
-}
+	//
+	const trigger = await ctx.db.get(args.triggerId);
+	if (!trigger) throw NotFound();
 
-async function persistInitialActionDetails(
-	ctx: ActionCtx,
-	action: Doc<'actions'>,
-	skill: Doc<'skills'> | z.infer<typeof builtInSkillSchema>,
-	context?: MagicRockContext,
-) {
-	try {
-		if (skill.kind === 'soft') {
-			//
-			if (!context) {
-				throw new Error('Context is required for soft skills during initial persistence');
-			}
-
-			const { model, provider } = (() => {
-				//
-				if (typeof context.model === 'string') {
-					const [provider, model] = context.model.split('/');
-					return { model, provider };
-				}
-
-				return {
-					model: context.model.modelId,
-					provider: context.model.provider,
-				};
-			})();
-
-			await ctx.runMutation(internal.action.details._persist, {
-				details: {
-					actionId: action._id,
-					skillKind: 'soft',
-					skillKey: skill.key,
-					skillDescription: skill.description,
-					llm: {
-						model,
-						provider,
-						temperature: context.temperature || 0.7,
-						maxTokens: context.maxOutputTokens, // TODO: rename on DB
-						systemInstructions: extractSystemInstructions(context.system),
-						historyLength: Array.isArray(context.messages) ? context.messages.length : 0,
-						history: Array.isArray(context.messages)
-							? context.messages
-									.filter((msg) => msg.role !== 'system')
-									.map((msg) => ({
-										role: msg.role,
-										content:
-											typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
-									}))
-							: [],
-						availableTools: context.tools ? Object.keys(context.tools) : [],
-					},
-				},
-			});
-		} else if (skill.kind === 'hard') {
-			//
-			await ctx.runMutation(internal.action.details._persist, {
-				details: {
-					actionId: action._id,
-					skillKind: 'hard',
-					skillKey: skill.key,
-					skillDescription: skill.description,
-					http: {
-						method: skill.config.method,
-						url: skill.config.url,
-					},
-				},
-			});
-		}
-	} catch (error) {
-		// If persistence fails, log but don't fail the action
-		console.warn(`Failed to persist initial action details for ${action._id}:`, error);
+	if (trigger.kind === 'file') {
+		if (trigger.owner !== args.owner || trigger.file !== args.file) throw NotFound();
+		return;
 	}
+
+	const loop = await ctx.db.get(trigger.loop);
+	if (!loop || loop.owner !== trigger.owner) throw NotFound();
+	if (trigger.owner === args.owner) return;
+	if (loop.isPublic === true && loop.key === args.loopKey) return;
+
+	throw NotFound();
 }
 
-export async function runNextActionIfNeeded(
-	ctx: ActionCtx | MutationCtx, //
-	{ taskId }: { taskId: Id<'tasks'> },
-) {
-	return await ctx.runMutation(internal.reactor._claimAndScheduleNext, { taskId });
+async function findCausalParentAction(
+	ctx: MutationCtx,
+	args: {
+		action: Doc<'actions'>;
+	},
+): Promise<Doc<'actions'> | null | undefined> {
+	//
+	const parsedAuthor = zid('actions').safeParse(args.action.author);
+	if (!parsedAuthor.success) return undefined;
+
+	const candidate = await ctx.db.get(parsedAuthor.data);
+	if (!candidate) return undefined;
+	if (candidate.owner !== args.action.owner) return undefined;
+	if (candidate.file !== args.action.file) return undefined;
+	if (typeof candidate.index !== 'number') return undefined;
+	if (typeof candidate.skillKey !== 'string') return undefined;
+	if (!isActionStatus(candidate.status)) return undefined;
+
+	return candidate;
+}
+
+function isSettledStatus(status: Doc<'actions'>['status']) {
+	return status === 'succeeded' || status === 'failed' || status === 'skipped';
+}
+
+function isActionStatus(status: unknown): status is Doc<'actions'>['status'] {
+	//
+	return actionStatusSchema.safeParse(status).success;
+}
+
+function settleFileBudget(args: {
+	budget: {
+		total: bigint;
+		available: bigint;
+		reserved: bigint;
+		spent: bigint;
+	};
+	reservedBudget: bigint;
+	actualCost: bigint;
+}) {
+	//
+	const { budget, reservedBudget, actualCost } = args;
+	const reservedAfterRelease = budget.reserved >= reservedBudget ? budget.reserved - reservedBudget : 0n;
+	const unusedReservation = reservedBudget > actualCost ? reservedBudget - actualCost : 0n;
+	const overrun = actualCost > reservedBudget ? actualCost - reservedBudget : 0n;
+	const availableWithRefund = budget.available + unusedReservation;
+	const availableAfterOverrun = availableWithRefund >= overrun ? availableWithRefund - overrun : 0n;
+
+	return {
+		budget: {
+			total: budget.total,
+			available: availableAfterOverrun,
+			reserved: reservedAfterRelease,
+			spent: budget.spent + actualCost,
+		},
+		needsAttention: overrun > availableWithRefund,
+	};
+}
+
+function releaseAvailableBudget(budget: { total: bigint; available: bigint; reserved: bigint; spent: bigint }) {
+	//
+	return {
+		...budget,
+		total: budget.total > budget.available ? budget.total - budget.available : 0n,
+		available: 0n,
+	};
+}
+
+function shouldReleaseAvailableBudgetForResult(result: z.infer<typeof actionResultSchema> | undefined) {
+	//
+	return result?.metadata?.['kind'] === 'seek' && result.metadata['seekState'] === 'done';
+}
+
+function combineActionPatches(...values: Array<string | undefined>) {
+	//
+	const patches = values.filter((value) => value && value.trim());
+
+	return patches.join('\n') || undefined;
+}
+
+function withAttentionMetadata(result: z.infer<typeof actionResultSchema> | undefined, needsAttention: boolean) {
+	//
+	if (!needsAttention) return result;
+
+	return {
+		text: result?.text,
+		files: result?.files ?? [],
+		metadata: {
+			...(result?.metadata ?? {}),
+			needsAttention,
+		},
+	};
+}
+
+async function releaseCommittedBudget(ctx: MutationCtx, args: { owner: Id<'users'>; amount: bigint }) {
+	//
+	const user = await ctx.db.get(args.owner);
+	if (!user) throw NotFound();
+
+	const committed = user.committedBudgetUSD ?? 0n;
+	await ctx.db.patch(args.owner, {
+		committedBudgetUSD: committed > args.amount ? committed - args.amount : 0n,
+	});
 }

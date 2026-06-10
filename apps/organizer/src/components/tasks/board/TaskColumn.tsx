@@ -1,4 +1,4 @@
-import { Badge } from '@reactor/ui';
+import { Badge } from '@pro/ui';
 import type { ExplorerTask } from '../taskExplorerTypes';
 import { TaskRow } from './TaskRow';
 import type { TaskListContext } from './taskListTypes';

@@ -1,17 +1,17 @@
-import * as Sentry from '@sentry/react';
+import { browserTracingIntegration, init, replayIntegration } from '@sentry/react';
 import { StartClient } from '@tanstack/react-start/client';
 import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import './lib/bigint-serialization';
 import { suppressViewTransitionErrors } from './lib/view-transitions';
 
-Sentry.init({
+init({
 	dsn: 'https://0c170522df4ac8c15f74d66ff6619146@o4508540750331904.ingest.us.sentry.io/4508540754591744',
 	enabled: import.meta.env.PROD,
 	environment: import.meta.env.MODE,
 	integrations: [
-		Sentry.browserTracingIntegration(), //
-		Sentry.replayIntegration(),
+		browserTracingIntegration(), //
+		replayIntegration(),
 	],
 	tracesSampleRate: 1.0, // Capture 100% of the transactions
 	// Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled

@@ -1,20 +1,8 @@
-import {
-	Button,
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from '@reactor/ui';
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@pro/ui';
 import { Plus, Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { TaskConfig, TaskConfigColumn } from '~/server/taskIndexSchemas';
-import {
-	createDefaultColumn,
-	normalizeColumns,
-	validateColumns,
-} from './boardColumns';
+import { createDefaultColumn, normalizeColumns, validateColumns } from './boardColumns';
 import { BoardColumnEditor } from './BoardColumnEditor';
 
 export function BoardColumnsDialog({

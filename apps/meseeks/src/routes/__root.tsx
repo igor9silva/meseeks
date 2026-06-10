@@ -2,20 +2,17 @@ import { QueryClient } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation } from '@tanstack/react-router';
-import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import { AccessDenied } from '~/components/AccessDenied';
-import { LauncherDialog } from '~/components/Launcher';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
+import { LauncherDialog, LauncherProvider } from '~/components/Launcher';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
-import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
-import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { seo } from '~/lib/seo';
 import {
 	baseThemeCssText,
@@ -30,7 +27,7 @@ import appCss from '~/styles/app.css?url';
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	head: () => ({
 		meta: [
-			{ title: 'Meseeks' },
+			{ title: 'PRO' },
 			{ charSet: 'utf-8' },
 			{
 				name: 'viewport',
@@ -44,8 +41,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				].join(','),
 			},
 			...seo({
-				title: 'Meseeks',
-				description: `Open platform to amplify yourself — be free. Open source, data and business. Research preview.`,
+				title: 'PRO',
+				description: 'your Personal Relentless Operator.',
 				image: '/og.webp',
 			}),
 
@@ -107,7 +104,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<RootLayout>{children}</RootLayout>
 				<Scripts />
 				<SpeedInsights />
-				<Analytics debug={false} />
 			</body>
 		</html>
 	);
@@ -122,20 +118,13 @@ function getPwaConfig(pathname: string) {
 	}
 
 	return {
-		title: 'Meseeks',
+		title: 'PRO',
 		manifestHref: '/static/site.webmanifest',
 	};
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	//
-	const { pathname } = useLocation();
-	const isShareRoute = pathname.startsWith('/share/');
-
-	if (isShareRoute) {
-		return <div className="h-dvh w-full">{children}</div>;
-	}
-
 	return (
 		<div>
 			<AuthLoading>
@@ -159,9 +148,9 @@ function Main({ children }: { children: React.ReactNode }) {
 
 	return (
 		<FeedbackDialogProvider>
-			<ScheduleDialogProvider>
+			<LauncherProvider>
 				<MainWithFeedback>{children}</MainWithFeedback>
-			</ScheduleDialogProvider>
+			</LauncherProvider>
 		</FeedbackDialogProvider>
 	);
 }
@@ -169,9 +158,7 @@ function Main({ children }: { children: React.ReactNode }) {
 function MainWithFeedback({ children }: { children: React.ReactNode }) {
 	//
 	const feedbackDialog = useFeedbackDialog();
-	const scheduleDialog = useScheduleDialog();
 	const toggleFeedback = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
-	const toggleSchedule = (isOpen: boolean) => (isOpen ? undefined : scheduleDialog.close());
 
 	return (
 		<div className="flex h-svh w-full">
@@ -185,13 +172,6 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 			<Toaster position="top-right" />
 			<LauncherDialog />
 			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
-			{scheduleDialog.taskId && (
-				<ScheduleIterationDialog
-					taskId={scheduleDialog.taskId}
-					open={scheduleDialog.isOpen}
-					onOpenChange={toggleSchedule}
-				/>
-			)}
 		</div>
 	);
 }
@@ -217,23 +197,23 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 // Define quick actions for users via long-press on the app icon (on supported devices).
 // "shortcuts": [
 //   {
-//     "name": "New Task",
-//     "short_name": "Task",
-//     "description": "Create a new task instantly",
-//     "url": "/new-task",
-//     "icons": [{ "src": "icons/shortcut-task.png", "sizes": "192x192" }]
+//     "name": "New File",
+//     "short_name": "File",
+//     "description": "Create a new file instantly",
+//     "url": "/new",
+//     "icons": [{ "src": "icons/shortcut-file.png", "sizes": "192x192" }]
 //   }
 // ]
 
 // other
-// •	share_target: Lets your PWA receive shared content.
-// •	protocol_handlers: Registers your app to handle custom URI schemes.
-// •	file_handlers: Allows your PWA to open or handle specific file types.
-// •	display_override: Overrides the display property with a fallback sequence.
-// •	capture_links: Specifies how links to your domain should open (e.g., in-app).
-// •	launch_handler: Manages how the app launches if it's already open.
-// •	prefer_related_applications and related_applications: Suggests native apps related to your PWA.
-// •	iarc_rating_id: International Age Rating Coalition identifier for store listings.
+// - share_target: lets your PWA receive shared content.
+// - protocol_handlers: registers your app to handle custom URI schemes.
+// - file_handlers: allows your PWA to open or handle specific file types.
+// - display_override: overrides the display property with a fallback sequence.
+// - capture_links: specifies how links to your domain should open, e.g. in-app.
+// - launch_handler: manages how the app launches if it's already open.
+// - prefer_related_applications and related_applications: suggests native apps related to your PWA.
+// - iarc_rating_id: international age rating coalition identifier for store listings.
 
 // TODO: add SEO Tags, e.g. from TanStack
 //     { title },

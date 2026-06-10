@@ -1,19 +1,19 @@
-# Privacy Policy for Meseeks
+# Privacy Policy for PRO
 
 Last Updated: May 2, 2025
 
-Meseeks, a product of **IgorSilvaPro OÜ**, headquartered in Tallinn, Estonia (“we”, “us”, “our”), respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application “Meseeks” (the “App”). This policy is required by Google and applies to all users of the App.
+PRO, a product of **IgorSilvaPro OÜ**, headquartered in Tallinn, Estonia (“we”, “us”, “our”), respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application “PRO” (the “App”). This policy is required by Google and applies to all users of the App.
 
 ## Research Preview and Limited Liability
 
-> **Important Notice:** Meseeks is currently offered as a **RESEARCH PREVIEW**. The App and its underlying AI systems are experimental and may change or be discontinued at any time. We provide the App on an **"AS IS"** and **"AS AVAILABLE"** basis, without warranties of any kind, and our liability is limited to the fullest extent permitted by applicable law.
+> **Important Notice:** PRO is currently offered as a **RESEARCH PREVIEW**. The App and its underlying AI systems are experimental and may change or be discontinued at any time. We provide the App on an **"AS IS"** and **"AS AVAILABLE"** basis, without warranties of any kind, and our liability is limited to the fullest extent permitted by applicable law.
 
 ### User Responsibilities
 
 - **Do not share sensitive, confidential, or personal data** with the App. Treat all inputs as potentially public and non‑secure.
 - **Maintain your own backups.** Do not rely on the App as the sole repository for important information or content.
 - **Validate critical outputs.** Responses may contain errors, be incomplete, or become outdated quickly. Always verify crucial information independently before acting on it.
-- **Use at your own risk.** By continuing to use the App during this research phase, you acknowledge these limitations and agree that Meseeks shall not be liable for any loss, damage, or harm arising from your reliance on the App.
+- **Use at your own risk.** By continuing to use the App during this research phase, you acknowledge these limitations and agree that PRO shall not be liable for any loss, damage, or harm arising from your reliance on the App.
 
 ## 1. Information We Collect
 
@@ -33,9 +33,9 @@ We automatically collect information about how you interact with the App, includ
 * Crash reports and performance data
 * Log information such as IP address, device identifiers, and timestamps
 
-### 1.3 Analytics and Cookies
+### 1.3 Diagnostics and Cookies
 
-We use Vercel Analytics to understand usage patterns and improve the App. This service may place cookies or similar technologies on your device to track usage.
+We may use error and performance diagnostics to understand crashes, latency, and reliability issues. These services may place cookies or similar technologies on your device where required for diagnostics.
 
 ## 2. How We Use Your Information
 
@@ -86,4 +86,3 @@ We may update this policy from time to time. We will notify you of any material 
 If you have questions or concerns about this Privacy Policy, please contact us at:
 
 * **Email:** [privacy@igorsilva.pro](mailto:privacy@igorsilva.pro)
-* **Twitter:** [@MeseeksApp](https://x.com/MeseeksApp)

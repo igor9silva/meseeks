@@ -1,9 +1,9 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@pro/ui/collapsible';
 import MDX from '~/components/ui/mdx';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { cn } from '@reactor/ui/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pro/ui/tooltip';
+import { cn } from '@pro/ui/lib/utils';
 
 export function CollapsibleSummary({ summary }: { summary: string }) {
 	//
@@ -20,7 +20,7 @@ export function CollapsibleSummary({ summary }: { summary: string }) {
 							</span>
 						</TooltipTrigger>
 						<TooltipContent className="text-xs">
-							A summary of all the task actions. Enables infinite conversations, managed by the loop.
+							A summary of all the file actions. Enables long conversations managed by the loop.
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>

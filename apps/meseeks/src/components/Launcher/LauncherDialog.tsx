@@ -1,8 +1,7 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { defaultFilter } from '@reactor/ui/command';
+import { defaultFilter } from '@pro/ui/command';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import {
-	Suspense,
 	startTransition,
 	type KeyboardEvent,
 	type UIEvent,
@@ -13,14 +12,12 @@ import {
 	useState,
 } from 'react';
 import { api } from 'convex/_generated/api';
-import { Loading } from '~/components/Loading';
-import TaskDetail from '~/components/TaskDetail';
 import { useTheme } from '~/components/ThemeProvider';
-import { DialogDescription, DialogTitle } from '@reactor/ui/dialog';
-import { CommandDialog, CommandInput, CommandList } from '@reactor/ui/command';
+import { DialogDescription, DialogTitle } from '@pro/ui/dialog';
+import { CommandDialog, CommandInput, CommandList } from '@pro/ui/command';
 import { useFeedbackDialog } from '~/hooks/useFeedbackDialog';
-import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
-import { useSplatParams } from '~/hooks/useSplatParams';
+import { useKeyboardShortcut } from '@pro/ui/hooks/useKeyboardShortcuts';
+import { useCurrentFileId } from '~/hooks/useCurrentFile';
 import { LauncherContent } from './LauncherContent';
 import { useLauncher } from './LauncherProvider';
 import { THEME_PICKER_SEARCH } from './themeSearch';
@@ -51,7 +48,6 @@ export function LauncherDialog() {
 	const defaultSearch = getDefaultLauncherSearch({ pathname, searchStr });
 
 	const feedbackDialog = useFeedbackDialog();
-	const [hasRequestedMobileList, setHasRequestedMobileList] = useState(false);
 	const [launcherState, setLauncherState] = useState<LauncherState>(() => ({
 		view: 'main',
 		mainSearch: defaultSearch,
@@ -67,7 +63,7 @@ export function LauncherDialog() {
 		openFeedbackDialogRef.current = feedbackDialog.open;
 	}, [feedbackDialog.open]);
 
-	// new task shortcut (⌘+J)
+	// new file shortcut (⌘+J)
 	useKeyboardShortcut({
 		global: true,
 		combo: { withCommand: true, key: 'j' },
@@ -117,13 +113,9 @@ export function LauncherDialog() {
 	const handleSearchChange = useCallback(
 		(nextSearch: string) => {
 			//
-			if (view === 'main' && nextSearch !== defaultSearch) {
-				setHasRequestedMobileList(true);
-			}
-
 			setSearch(nextSearch);
 		},
-		[defaultSearch, setSearch, view],
+		[setSearch],
 	);
 
 	const handleInputKeyDown = useCallback(
@@ -131,8 +123,6 @@ export function LauncherDialog() {
 			//
 			if (view !== 'main') return;
 			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-
-			setHasRequestedMobileList(true);
 		},
 		[view],
 	);
@@ -165,7 +155,6 @@ export function LauncherDialog() {
 
 	const closeAndResetLauncher = useCallback(() => {
 		clearThemePreview();
-		setHasRequestedMobileList(false);
 		setLauncherState({
 			view: 'main',
 			mainSearch: defaultSearch,
@@ -173,11 +162,6 @@ export function LauncherDialog() {
 		});
 		close();
 	}, [clearThemePreview, close, defaultSearch]);
-
-	useEffect(() => {
-		if (!isOpen) return;
-		setHasRequestedMobileList(false);
-	}, [isOpen]);
 
 	const handleEscapeKeyDown = useCallback(
 		(event: Event) => {
@@ -190,19 +174,17 @@ export function LauncherDialog() {
 	);
 
 	const {
-		results: tasks,
+		results: files,
 		status: paginationStatus,
 		loadMore,
 	} = usePaginatedQuery(
-		api.tasks.findAllPaginated,
+		api.fileViews.findAllPaginated,
 		{ paginationOpts: { numItems: PAGE_SIZE, cursor: null } },
 		{ initialNumItems: PAGE_SIZE },
 	);
-	const { taskId: currentTaskId } = useSplatParams();
+	const currentFileId = useCurrentFileId();
 	const hasMore = paginationStatus === 'CanLoadMore';
 	const isLoadingMore = paginationStatus === 'LoadingMore';
-	const shouldShowMobileTaskDetail =
-		view === 'main' && Boolean(currentTaskId) && !shouldFilter && !hasRequestedMobileList;
 
 	const handleScroll = useCallback(
 		(e: UIEvent<HTMLDivElement>) => {
@@ -263,25 +245,16 @@ export function LauncherDialog() {
 						themeSearch={themeSearch}
 					/>
 				) : (
-					<>
-						{shouldShowMobileTaskDetail && (
-							<Suspense fallback={<Loading className="py-4" />}>
-								<TaskDetail className="mb-4" />
-							</Suspense>
-						)}
-						<div hidden={shouldShowMobileTaskDetail}>
-							<LauncherContent
-								currentTaskId={currentTaskId}
-								isLoadingMore={isLoadingMore}
-								onClose={close}
-								onFeedback={handleFeedback}
-								onNavigate={onSelect}
-								onOpenThemePicker={openThemePicker}
-								shouldUseSearch={shouldFilter}
-								tasks={tasks}
-							/>
-						</div>
-					</>
+					<LauncherContent
+						currentFileId={currentFileId}
+						isLoadingMore={isLoadingMore}
+						onClose={close}
+						onFeedback={handleFeedback}
+						onNavigate={onSelect}
+						onOpenThemePicker={openThemePicker}
+						shouldUseSearch={shouldFilter}
+						files={files}
+					/>
 				)}
 			</CommandList>
 		</CommandDialog>

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@pro/ui/avatar';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -9,8 +9,8 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from '@reactor/ui/dropdown-menu';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@reactor/ui/sidebar';
+} from '@pro/ui/dropdown-menu';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@pro/ui/sidebar';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { signOutAndReload } from 'lib/auth-client';
 
@@ -72,9 +72,9 @@ export function UserMenuItem() {
 								Account
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Link to="/balance">
+								<Link to="/wallet">
 									<CreditCard />
-									Billing
+									Wallet
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>

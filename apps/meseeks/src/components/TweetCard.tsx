@@ -2,8 +2,8 @@ import { Calendar, Heart, MessageCircle, Play, Repeat2, User, Verified } from 'l
 import type { ReactNode } from 'react';
 import { z } from 'zod/v3';
 import { isRecord, isString } from 'lib/guards';
-import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
-import { cn } from '@reactor/ui/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@pro/ui/avatar';
+import { cn } from '@pro/ui/lib/utils';
 
 const optionalStringSchema = z
 	.preprocess(

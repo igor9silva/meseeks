@@ -1,11 +1,11 @@
-import type { Doc } from 'convex/_generated/dataModel';
 import { useState } from 'react';
 import { useComposer } from '~/hooks/useComposer';
+import type { FileView } from '~/hooks/query/useFile';
 import { BudgetStrip } from './BudgetStrip';
 import { DraftStrip } from './DraftStrip';
 import { QueueStrip } from './QueueStrip';
 
-export function StripContainer({ task }: { task: Doc<'tasks'> }) {
+export function StripContainer({ file }: { file: FileView }) {
 	//
 	const { queue, pendingSkills } = useComposer();
 
@@ -35,7 +35,7 @@ export function StripContainer({ task }: { task: Doc<'tasks'> }) {
 			<DraftStrip />
 
 			{/* budget strip - always visible */}
-			<BudgetStrip task={task} />
+			<BudgetStrip file={file} />
 
 			{/* queue strip - visible when there are queued or pending skills */}
 			{hasQueuedOrPendingSkills && (

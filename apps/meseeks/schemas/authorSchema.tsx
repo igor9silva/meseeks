@@ -5,5 +5,6 @@ export const authorSchema = z
 	.union([
 		zid('users'), //
 		zid('actions'),
+		zid('triggers'),
 	])
-	.describe('The author of an action is the user, when directly executed, or the action that led to it.');
+	.describe('The author is the immediate user, action, or trigger cause.');

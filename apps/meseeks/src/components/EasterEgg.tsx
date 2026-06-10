@@ -1,5 +1,5 @@
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 
 export function EasterEgg({ className }: { className?: string }) {
 	//

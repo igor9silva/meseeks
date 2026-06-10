@@ -1,10 +1,10 @@
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { JSX, KeyboardEvent, MouseEvent, TouchEvent } from 'react';
-import { Input } from '@reactor/ui/input';
-import { Textarea } from '@reactor/ui/textarea';
-import { useDoubleTap } from '@reactor/ui/hooks/useDoubleTap';
-import { cn } from '@reactor/ui/lib/utils';
+import { Input } from '@pro/ui/input';
+import { Textarea } from '@pro/ui/textarea';
+import { useDoubleTap } from '@pro/ui/hooks/useDoubleTap';
+import { cn } from '@pro/ui/lib/utils';
 
 type EditableContentProps = {
 	value: string;

@@ -2,21 +2,21 @@ import { useNavigate } from '@tanstack/react-router';
 import { AlignJustify, Bug, Expand, Minimize2, TextQuote } from 'lucide-react';
 import { useState } from 'react';
 import type { MouseEvent, TouchEvent } from 'react';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 
 import { ActionComponentProps } from '~/components/actions';
 import { CopyButton } from '~/components/CopyButton';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { Message, MessageContent } from '~/components/ui/message';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useFullscreenAction } from '@reactor/ui/hooks/useFullscreenAction';
-import { useSay } from '~/hooks/useTaskMutations';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pro/ui/tooltip';
+import { useFullscreenAction } from '@pro/ui/hooks/useFullscreenAction';
+import { useSay } from '~/hooks/useFileMutations';
 
 export function SayAction(props: ActionComponentProps & { shouldRenderComponents?: boolean; contentKey?: string }) {
 	//
 	const {
 		action,
-		taskId,
+		fileId,
 		isAuthorCurrentUser,
 		className,
 		shouldRenderComponents = false,
@@ -25,12 +25,13 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 	const fullscreen = useFullscreenAction();
 
 	const { say, isSaying } = useSay();
+	const message = stringArg(action.args, contentKey) ?? action.result?.text ?? '';
 
 	const onClickFix = (e: MouseEvent, error: Error) => {
 		e.stopPropagation();
 		if (isSaying) return;
 		say({
-			taskId,
+			fileId,
 			message: `The ${action.skillKey} action above failed. Error details: ${error.message}. Please fix it.`,
 		});
 	};
@@ -48,7 +49,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 					isMDX={true}
 					shouldRenderComponents={shouldRenderComponents}
 					onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
-					text={action.args[contentKey]}
+					text={message}
 					className={cn({
 						'bg-primary text-primary-foreground p-3': isAuthorCurrentUser,
 						'px-0': !isAuthorCurrentUser,
@@ -64,14 +65,14 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 					/>
 					<CopyButton
-						textToCopy={action.args[contentKey]}
+						textToCopy={message}
 						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 					/>
 				</div>
 			</Message>
 			{fullscreen.isFullscreen && (
 				<FullscreenMessage
-					message={action.args[contentKey]}
+					message={message}
 					onClose={fullscreen.close}
 					onDoubleTap={fullscreen.handleCloseDoubleTap}
 					action={action}
@@ -80,6 +81,12 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 			)}
 		</>
 	);
+}
+
+function stringArg(args: Record<string, unknown>, key: string) {
+	//
+	const value = args[key];
+	return typeof value === 'string' ? value : undefined;
 }
 
 function FullscreenMessage({

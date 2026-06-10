@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'lib/date';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 
 export function TimeAgo({
 	date, //

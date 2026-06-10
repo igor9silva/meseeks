@@ -1,6 +1,6 @@
-# @reactor/ui
+# @pro/ui
 
-Shared React UI primitives and UI-only hooks used by Meseeks apps.
+Shared React UI primitives and UI-only hooks used by PRO apps.
 
 Local workspace consumers see current source directly. Use a published package or git tag if a project needs opt-in version bumps.
 
@@ -11,7 +11,7 @@ This package owns shared shadcn primitives. Run shadcn commands from this direct
 The package keeps flat imports:
 
 ```ts
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 ```
 
 App-specific wrappers stay in the app that owns their dependencies.

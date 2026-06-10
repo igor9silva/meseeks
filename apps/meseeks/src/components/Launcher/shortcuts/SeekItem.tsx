@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCommandState } from '@reactor/ui/command';
+import { useCommandState } from '@pro/ui/command';
 import { useCallback, useMemo } from 'react';
 import { SquarePen } from 'lucide-react';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 import { useLauncher } from '../LauncherProvider';
 
 export function SeekItem({ shouldUseSearch }: { shouldUseSearch: boolean }) {

@@ -1,5 +1,5 @@
 import { NotebookPen } from 'lucide-react';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 
 export function FeedbackItem({ onSelect }: { onSelect: () => void }) {
 	//

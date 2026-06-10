@@ -1,91 +1,111 @@
+import { convexQuery } from '@convex-dev/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { track } from '@vercel/analytics/react';
-import { Id } from 'convex/_generated/dataModel';
-import { BasicError } from '~/components/BasicError';
-import { HardSkillForm } from '~/components/skills/HardSkillForm';
-import { SkillLearningInfoBox } from '~/components/skills/SkillLearningInfoBox';
-import { SoftSkillForm } from '~/components/skills/SoftSkillForm';
-import { Badge } from '@reactor/ui/badge';
-import { CardDescription, CardTitle } from '@reactor/ui/card';
-import { Skeleton } from '@reactor/ui/skeleton';
-import { useSkill } from '~/hooks/query/useSkills';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { FileCode2, Wrench } from 'lucide-react';
+import { api } from 'convex/_generated/api';
+import { managedSkills } from 'lib/proDefinitions';
+import { Badge } from '@pro/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pro/ui/card';
+import { SkillInputArguments } from '~/components/skills/SkillInputArguments';
+import { SkillRunCard } from '~/components/skills/SkillRunCard';
+import type { SkillInputArgument } from 'schemas/skillSchema';
 
 export const Route = createFileRoute('/skills_/$id')({
-	component: RouteComponent,
-	pendingComponent: Pending,
-	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
+	component: SkillPage,
 });
 
-function RouteComponent() {
+function SkillPage() {
 	//
 	const { id } = Route.useParams();
-	const { skill } = useSkill(id as Id<'skills'>);
 
-	track('skills/$id', { skillId: id });
+	return <SkillDetail id={id} />;
+}
 
-	if (skill.kind === 'built-in') return '🚫';
-
-	const getSkillTypeBadges = (kind: 'soft' | 'hard') => {
-		return kind === 'soft' ? ['soft'] : ['hard', 'HTTP'];
-	};
+function SkillDetail({ id }: { id: string }) {
+	//
+	const query = convexQuery(api.skills.findOne, { id });
+	const { data } = useSuspenseQuery(query);
 
 	return (
-		<div className="m-4">
-			<div className="flex flex-row items-center justify-between my-4">
-				<div className="flex flex-wrap items-center gap-3">
-					<CardTitle className="text-2xl">{skill.key}</CardTitle>
-					<div className="flex flex-wrap items-center gap-1">
-						{getSkillTypeBadges(skill.kind).map((badge) => (
-							<Badge key={badge} variant="secondary">
-								{badge}
+		<div className="h-full overflow-auto">
+			<div className="mx-auto flex w-full max-w-6xl flex-col gap-4 p-4 md:p-6">
+				<header className="flex flex-wrap items-start justify-between gap-3">
+					<div className="min-w-0 space-y-2">
+						<div className="flex items-center gap-2">
+							<Wrench className="size-5 shrink-0 text-primary" />
+							<h1 className="truncate text-2xl font-semibold">{data.name}</h1>
+						</div>
+						<div className="flex flex-wrap gap-2">
+							<Badge>{data.kind}</Badge>
+							<Badge variant="secondary" className="font-mono">
+								{data.key}
 							</Badge>
-						))}
+							{data.sourceKey && <Badge variant="outline">{data.sourceKey}</Badge>}
+						</div>
 					</div>
-				</div>
-			</div>
+					<Badge variant="outline" className="gap-1">
+						<FileCode2 className="size-3" />
+						{data.fileName ?? 'skill file'}
+					</Badge>
+				</header>
 
-			<div className="mb-4">
-				<CardDescription>
-					{!skill.isEditable && (
-						<>
-							This skill is managed by <span className="font-semibold">isPro</span> (the Meseeks team),
-							and therefore cannot be edited.
-						</>
-					)}
-				</CardDescription>
-			</div>
+				<section className="grid gap-4 lg:grid-cols-3">
+					<Card className="min-w-0 lg:col-span-2">
+						<CardHeader>
+							<CardTitle className="text-base">File</CardTitle>
+							<CardDescription>The file body used by this skill.</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<pre className="max-h-[60svh] overflow-auto rounded border bg-muted/30 p-3 text-sm leading-relaxed whitespace-pre-wrap break-words">
+								{data.body || 'No body.'}
+							</pre>
+						</CardContent>
+					</Card>
 
-			{skill.isEditable && <SkillLearningInfoBox query={`Hi. Please, update the skill '${skill.key}' to `} />}
+					<div className="space-y-4">
+						<SkillRunCard skillKey={data.key} />
 
-			<div>
-				{skill.kind === 'soft' ? (
-					<SoftSkillForm skill={skill} isEditable={skill.isEditable} />
-				) : (
-					<HardSkillForm skill={skill} isEditable={skill.isEditable} />
-				)}
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-base">Input Arguments</CardTitle>
+								<CardDescription>The arguments accepted by this skill.</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<SkillInputArguments input={effectiveManagedSkillInput(data)} />
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader>
+								<CardTitle className="text-base">Source</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<pre className="max-h-72 overflow-auto rounded border bg-muted/30 p-3 font-mono text-xs whitespace-pre-wrap break-words">
+									{JSON.stringify(
+										{
+											file: data.file,
+											fileName: data.fileName,
+											sourceOwner: data.sourceOwner,
+											sourceKey: data.sourceKey,
+											sourceFile: data.sourceFile,
+											isPublic: data.isPublic,
+										},
+										null,
+										2,
+									)}
+								</pre>
+							</CardContent>
+						</Card>
+					</div>
+				</section>
 			</div>
 		</div>
 	);
 }
 
-function Pending() {
+function effectiveManagedSkillInput(skill: { key: string; input?: SkillInputArgument[] }) {
 	//
-	return (
-		<div className="m-6">
-			<div className="flex flex-row items-center justify-between my-4">
-				<div className="flex items-center gap-3">
-					<Skeleton className="h-8 w-48" />
-					<Skeleton className="h-6 w-16" />
-				</div>
-			</div>
-			<div className="mb-4">
-				<Skeleton className="h-4 w-64" />
-			</div>
-			<div className="space-y-4">
-				<Skeleton className="h-10 w-full" />
-				<Skeleton className="h-20 w-full" />
-				<Skeleton className="h-10 w-full" />
-			</div>
-		</div>
-	);
+	if (skill.input && skill.input.length > 0) return skill.input;
+
+	return managedSkills.find((candidate) => candidate.key === skill.key)?.input ?? [];
 }

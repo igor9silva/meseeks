@@ -8,17 +8,18 @@ const sizeClasses = {
 type StatusIndicatorProps = {
 	size?: keyof typeof sizeClasses;
 	className?: string;
+	label?: string;
 };
 
-export function StatusIndicator({ size = 'sm', className = '' }: StatusIndicatorProps) {
+export function StatusIndicator({ size = 'sm', className = '', label = 'Status indicator' }: StatusIndicatorProps) {
+	//
 	return (
 		<div
 			className={`rounded-full flex-shrink-0 blur-[0.5px] ${sizeClasses[size]} ${className}`}
 			aria-live="polite"
-			aria-label="Status Indicator"
+			aria-label={label}
 		>
-			{/* TODO: write this 👇 */}
-			<span className="sr-only">Loading or active status</span>
+			<span className="sr-only">{label}</span>
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { CodeXml } from 'lucide-react';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 import { useLauncher } from '../LauncherProvider';
 
 export function DevModeItem() {

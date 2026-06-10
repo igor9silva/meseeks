@@ -2,22 +2,22 @@ import { useNavigate } from '@tanstack/react-router';
 import { Bug } from 'lucide-react';
 import { useMemo } from 'react';
 import { ActionComponentProps } from '~/components/actions';
-import { useKeyboardShortcut } from '@reactor/ui/hooks/useKeyboardShortcuts';
-import { cn } from '@reactor/ui/lib/utils';
+import { useKeyboardShortcut } from '@pro/ui/hooks/useKeyboardShortcuts';
+import { cn } from '@pro/ui/lib/utils';
 
 import { asDollars } from 'lib/money';
-import { Button } from '@reactor/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
-import { LoadingButton } from '@reactor/ui/loading-button';
+import { Button } from '@pro/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@pro/ui/collapsible';
+import { LoadingButton } from '@pro/ui/loading-button';
 import MDX from '~/components/ui/mdx';
 import { FailedMessage } from '~/components/ui/message';
-import { TextShimmer } from '@reactor/ui/text-shimmer';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useApproveAction, useRejectAction } from '~/hooks/useTaskMutations';
+import { TextShimmer } from '@pro/ui/text-shimmer';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pro/ui/tooltip';
+import { useApproveAction, useRejectAction } from '~/hooks/useFileMutations';
 
 export function GenericAction(props: ActionComponentProps) {
 	//
-	const { action, isAuthorCurrentUser, initialRenderDate, taskId, className, suppressAnchorId } = props;
+	const { action, isAuthorCurrentUser, initialRenderDate, fileId, className, suppressAnchorId } = props;
 	const { approveAction, isApprovingAction } = useApproveAction();
 	const { rejectAction, isRejectingAction } = useRejectAction();
 	const isNew = useMemo(() => {
@@ -26,12 +26,12 @@ export function GenericAction(props: ActionComponentProps) {
 
 	const handleApprove = () => {
 		if (isApprovingAction) return;
-		approveAction({ taskId, actionId: action._id });
+		approveAction({ fileId, actionId: action._id });
 	};
 
 	const handleReject = () => {
 		if (isRejectingAction) return;
-		rejectAction({ taskId, actionId: action._id });
+		rejectAction({ fileId, actionId: action._id });
 	};
 
 	// ⌥+Enter shortcut to authorize
@@ -64,9 +64,9 @@ export function GenericAction(props: ActionComponentProps) {
 					<div className="flex flex-col gap-2 p-2 rounded-3xl bg-muted">
 						<div className="flex flex-col">
 							<div className="text-md font-medium">{action.skillKey}()</div>
-							{typeof action.estimatedCost === 'bigint' && (
+							{typeof action.expectedCost === 'bigint' && (
 								<div className="text-sm text-muted-foreground">
-									Expected cost: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })} ⚡
+									Expected cost: ${asDollars({ bigInt: action.expectedCost, precision: 6 })} ⚡
 								</div>
 							)}
 						</div>
@@ -106,15 +106,15 @@ export function GenericAction(props: ActionComponentProps) {
 					</div>
 				) : (
 					<>
-						{action.result ? (
+						{action.status === 'enqueued' || action.status === 'running' ? (
+							<TextShimmer text={`Performing ${action.skillKey}(${formatArgs(action.args)})`} />
+						) : (
 							<Result
 								isAuthorCurrentUser={isAuthorCurrentUser}
-								result={action.result.text ?? ''}
+								result={action.result?.text ?? ''}
 								status={action.status}
 								skillKey={action.skillKey}
 								args={action.args}
-								reactions={action.result.reactions}
-								// reactions={action.reactions ?? []}
 								className={cn({
 									'bg-primary text-primary-foreground rounded-3xl border border-border p-2':
 										isAuthorCurrentUser && action.skillKey === 'say',
@@ -122,8 +122,6 @@ export function GenericAction(props: ActionComponentProps) {
 								})}
 								actionId={action._id}
 							/>
-						) : (
-							<TextShimmer text={`Performing ${action.skillKey}(${formatArgs(action.args)})`} />
 						)}
 					</>
 				)}
@@ -137,7 +135,6 @@ function Result({
 	isAuthorCurrentUser, //
 	skillKey,
 	args,
-	reactions,
 	className,
 	status,
 	actionId,
@@ -146,15 +143,10 @@ function Result({
 	isAuthorCurrentUser: boolean;
 	skillKey: string;
 	args: Record<string, unknown>;
-	reactions: Array<{ skillKey: string }>;
 	className?: string;
-	status: 'failed' | 'succeeded' | 'skipped';
+	status: ActionComponentProps['action']['status'];
 	actionId: string;
 }) {
-	// if the action failed because and we have a budget request,
-	// do not render the action; let the following budget request action do it
-	if (status === 'failed' && hasRequestBudgetReaction(reactions)) return null;
-
 	if (status === 'failed') {
 		return (
 			<FailedMessage text={`Failed to ${skillKey}()`} error={result} isAuthorCurrentUser={isAuthorCurrentUser} />
@@ -179,11 +171,6 @@ function Result({
 			</CollapsibleContent>
 		</Collapsible>
 	);
-}
-
-function hasRequestBudgetReaction(reactions: Array<{ skillKey: string }>) {
-	//
-	return reactions.some((reaction) => reaction.skillKey === 'requestBudget');
 }
 
 function InspectButton({ actionId }: { actionId: string }) {

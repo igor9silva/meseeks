@@ -8,6 +8,13 @@ This is the main v1 task.
 
 Meseeks v0 has been the exploration phase. Meseeks v1 is the first public-beta shape: new core execution engine, new pricing/accountability model, clearer branding, and a product surface that can support real users. The new Reactor is the gating piece. Most of the current reorganization exists so this work can be seen, planned, and executed cleanly.
 
+## Current Control Files
+
+- [PRO reference VFS runtime decisions](./pro-reference-vfs-runtime-decisions.md) is the durable decision log for the latest architecture discussion. Future AI agents should read it before touching this task.
+- [PRO reference-based VFS runtime plan](./pro-reference-vfs-runtime-plan.md) is the current implementation contract.
+
+Older notes below remain useful context, but they are historical or exploratory unless the control files repeat the decision.
+
 different implementations per provider?
 like GPT specific?
 
@@ -123,11 +130,11 @@ Dead concepts that should not come back:
 	- example failure: user asked "Qual deixa broxa, finasterida ou minoxidil? Responde só o nome mais nada."; the loop correctly researched, but replied with explanation and sources instead of only the medication name
 - skill grouping!
 	- this is very important
-	- every app feature should be exposed to Meseeks as a skill; no hidden human-only capability
-	- feedback/reporting is part of that: if the user complains that Meseeks is broken, the AI should be able to ask permission and call a feedback tool that reports the actual problem to us
-	- built-in stuff should be versioned btw
-		- innate/say@0.1.0
-		- core/say@0.1.0
+	- every app feature should be exposed to PRO as a skill; no hidden human-only capability
+	- feedback/reporting is part of that: if the user complains that PRO is broken, the AI should be able to ask permission and call a feedback tool that reports the actual problem to us
+	- instincts and managed skills should be versioned when we add versioning
+		- instinct/say@0.1.0
+		- reactor/say@0.1.0
 		- pro/searchWeb@0.1.0
 	- managed intelligence aliases/wrappers
 		- simpler picker names such as `@pro/efficient` instead of exposing the exact current model, provider, version, and reasoning mode
@@ -201,9 +208,16 @@ Dead concepts that should not come back:
 	- unresolved recurring maintenance costs
 		- how do we charge for costs that keep accruing over time, like file storage/R2?
 		- maybe "maintenance cost" is the thing we charge every X time, but the accounting model is still unclear
+		- important gap: storage rent cannot be enforced by a user-authored trigger because the user could delete or disable it
+		- needs a platform-owned accounting primitive that still traces customer-visible charges without introducing a fake `system` author
 	- unresolved low account balance behavior
 		- what happens when account balance is too low to fulfill work that has already been committed?
 		- maybe a `deactivate()` / `clearEnergy()`-style trigger when `accountBalance < threshold`, enforced on every loop as a protection
+	- implementation audit note, 2026-06-09
+		- do not let runtime pretend mutating instincts succeeded; `createFile`, `createLoop`, `createTrigger`, `createRoute`, endpoint management, tag/write/move/rename, etc. must dispatch through the real mutation helpers or fail loudly
+		- verified slice: `execute()` can run through Daytona, sync declared output files back into VFS, and persist the output action patch
+		- verified slice: skill detail pages expose a minimal run surface using the public `act()` API, and `createFile` / `createLoop` now create real ledger actions with patches instead of fake runtime success
+		- endpoint gap: `claimEndpoint` can create an opaque endpoint row plus file trigger and ledger patch, and invalid inbound requests return generic 202; however the skill-run path does not yet expose the generated one-time secret, so valid inbound endpoint firing is not fully testable from UI
 - multi-provider
 	- code sandbox
 	- LLM/AI
@@ -261,6 +275,7 @@ Dead concepts that should not come back:
 	- persistent file system on S3-like
 	- if we do git-versioning everything, consider `repositories` as a first-class primitive
 	- run multiple actions per invocation?
+	- important gap: many real runs are action sequences, so reusing one Daytona instance per task/run makes product sense even though it complicates final sandbox billing
 	- safe internet access and code running
 	- sandboxes could have a lifecycle independent of actions, priced after the used timeout; visible in a composer strip
 	- files also exist within the app, attached to the task

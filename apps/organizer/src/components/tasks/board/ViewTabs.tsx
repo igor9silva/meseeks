@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTrigger } from '@reactor/ui';
+import { Tabs, TabsList, TabsTrigger } from '@pro/ui';
 import { List, SquareKanban } from 'lucide-react';
 import type { TaskConfig } from '~/server/taskIndexSchemas';
 
