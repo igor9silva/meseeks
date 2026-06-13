@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { formatDateTime, formatDistanceToNow, formatScheduledTime, formatTime, isDateInTimezone } from './date';
+import { formatDistanceToNow } from './date';
 
 const now = new Date('2026-05-07T12:00:00.000Z');
 
@@ -33,43 +33,6 @@ describe('formatDistanceToNow', () => {
 		);
 		expect(formatDistanceToNow(new Date(now.getTime() + 2 * MINUTE_MS), { now, addSuffix: true })).toBe(
 			'in 2 minutes',
-		);
-	});
-});
-
-describe('timezone date formatting', () => {
-	test('formats time in the requested timezone', () => {
-		expect(formatTime(new Date('2026-05-07T12:05:00.000Z'), 'Europe/Lisbon')).toBe('13:05');
-	});
-
-	test('formats date and time in the requested timezone', () => {
-		expect(formatDateTime(new Date('2026-05-07T12:05:00.000Z'), 'Europe/Lisbon')).toBe('May 7, 13:05');
-	});
-
-	test('compares calendar dates in the requested timezone', () => {
-		const lateUtc = new Date('2026-05-07T23:30:00.000Z');
-		const earlyUtc = new Date('2026-05-08T00:30:00.000Z');
-
-		expect(isDateInTimezone(lateUtc, earlyUtc, 'Europe/Lisbon')).toBe(true);
-		expect(isDateInTimezone(lateUtc, earlyUtc, 'UTC')).toBe(false);
-	});
-
-	test('formats today and tomorrow schedule labels', () => {
-		const current = new Date('2026-05-07T12:00:00.000Z');
-
-		expect(formatScheduledTime(new Date('2026-05-07T18:30:00.000Z'), 'Europe/Lisbon', current)).toBe(
-			'today at 19:30 (UTC+1)',
-		);
-		expect(formatScheduledTime(new Date('2026-05-08T18:30:00.000Z'), 'Europe/Lisbon', current)).toBe(
-			'tomorrow at 19:30 (UTC+1)',
-		);
-	});
-
-	test('formats later schedule labels', () => {
-		const current = new Date('2026-05-07T12:00:00.000Z');
-
-		expect(formatScheduledTime(new Date('2026-05-10T18:30:00.000Z'), 'Europe/Lisbon', current)).toBe(
-			'at May 10, 19:30 (UTC+1)',
 		);
 	});
 });

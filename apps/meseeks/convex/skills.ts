@@ -12,11 +12,11 @@ import {
 	findAllSkillKeys,
 	findEnabledSkillsWithDetails,
 	findSkill,
+	innateSkills,
 	isBuiltInSkillKey,
 	replaceProSkills,
 	updateSkill,
 } from './skills.private';
-import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
 
 // used by skills/tools.ts to load hard/soft skill docs before building ai tool definitions
@@ -116,9 +116,7 @@ export const findAllInnate = query({
 	args: {},
 	handler: async () => {
 		//
-		const builtInTools = Object.entries(_builtInSkills)
-			.filter(([_, tool]) => !tool.hidden)
-			.sort(([_, a], [__, b]) => a.priority - b.priority);
+		const builtInTools = Object.entries(innateSkills).sort(([_, a], [__, b]) => a.priority - b.priority);
 
 		return builtInTools.map(([key, tool]) => buildInSkillToDoc(key, tool));
 	},
@@ -128,11 +126,11 @@ export const findOneInnate = query({
 	args: {
 		skillKey: z.string(),
 	},
-	handler: async (ctx, { skillKey }) => {
+	handler: async (_ctx, { skillKey }) => {
 		//
 		if (!isBuiltInSkillKey(skillKey)) throw NotFound();
 
-		const skill = _builtInSkills[skillKey];
+		const skill = innateSkills[skillKey];
 
 		return buildInSkillToDoc(skillKey, skill);
 	},

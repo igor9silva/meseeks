@@ -4,7 +4,6 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
 import { isString } from 'lib/guards';
-import { zodToString } from 'lib/zodToString';
 import {
 	builtInSkillSchema,
 	newSkillSchema,
@@ -12,18 +11,97 @@ import {
 	skillOwnerSchema,
 	skillSchema,
 } from 'schemas/skillSchema';
-import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
-import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
+
+const inputSchemaFor = (properties: Record<string, unknown> = {}) =>
+	JSON.stringify({
+		type: 'object',
+		properties,
+		additionalProperties: true,
+	});
+
+export const innateSkills = {
+	say: {
+		description: 'Record a human message in the current directory.',
+		inputSchema: inputSchemaFor({ message: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 0,
+	},
+	think: {
+		description: 'Run a trusted intelligence action and write the result to an MDX file.',
+		inputSchema: inputSchemaFor({ prompt: { type: 'string' }, intelligenceKey: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 1,
+	},
+	request: {
+		description: 'Run a trusted HTTP/API request skill from Reactor.',
+		inputSchema: inputSchemaFor(),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 2,
+	},
+	execute: {
+		description: 'Run code in a Daytona box and sync clean filesystem changes back through Reactor.',
+		inputSchema: inputSchemaFor({ code: { type: 'string' }, language: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 3,
+	},
+	create: {
+		description: 'Create a file or folder in the current directory.',
+		inputSchema: inputSchemaFor({
+			kind: { type: 'string' },
+			name: { type: 'string' },
+			content: { type: 'string' },
+		}),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 4,
+	},
+	write: {
+		description: 'Write text content to an existing file.',
+		inputSchema: inputSchemaFor({ file: { type: 'string' }, content: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 5,
+	},
+	tag: {
+		description: 'Set a tag on a file or directory.',
+		inputSchema: inputSchemaFor({ file: { type: 'string' }, key: { type: 'string' }, value: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 6,
+	},
+	createTask: {
+		description: 'Create the v1 task directory convention.',
+		inputSchema: inputSchemaFor({ name: { type: 'string' }, body: { type: 'string' } }),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 7,
+	},
+	interrupt: {
+		description: 'Interrupt or skip a running Reactor action.',
+		inputSchema: inputSchemaFor(),
+		preApprovedCost: 'none',
+		knownReactions: [],
+		priority: 8,
+	},
+} as const;
+
+const ensureInputSchemaIsValid = (inputSchema: string) => {
+	JSON.parse(inputSchema);
+};
 
 export function buildInSkillToDoc(
 	key: string, //
-	skill: (typeof _builtInSkills)[keyof typeof _builtInSkills],
+	skill: (typeof innateSkills)[keyof typeof innateSkills],
 ) {
 	return builtInSkillSchema.parse({
 		key,
 		description: skill.description,
-		inputSchema: zodToString(skill.parameters),
+		inputSchema: skill.inputSchema,
 		preApprovedCost: skill.preApprovedCost,
 		knownReactions: skill.knownReactions,
 		kind: 'built-in',
@@ -35,9 +113,9 @@ export function buildInSkillToDoc(
 
 export function isBuiltInSkillKey(
 	skillKey: string, //
-): skillKey is keyof typeof _builtInSkills {
+): skillKey is keyof typeof innateSkills {
 	//
-	return skillKey in _builtInSkills;
+	return skillKey in innateSkills;
 }
 
 export const ensureSkillOwner = defineQuery({
@@ -116,7 +194,7 @@ export const findAllSkillKeys = defineQuery({
 			})),
 		);
 
-		const builtInList = Object.entries(_builtInSkills).map(([key, builtInTool]) => ({
+		const builtInList = Object.entries(innateSkills).map(([key, builtInTool]) => ({
 			key,
 			description: builtInTool.description,
 		}));
@@ -149,11 +227,11 @@ export const findEnabledSkillsWithDetails = defineQuery({
 		}
 
 		// Add built-in skills
-		for (const [key, builtInTool] of Object.entries(_builtInSkills)) {
+		for (const [key, builtInTool] of Object.entries(innateSkills)) {
 			allSkillsMap.set(key, {
 				key,
 				description: builtInTool.description,
-				inputSchema: zodToString(builtInTool.parameters),
+				inputSchema: builtInTool.inputSchema,
 			});
 		}
 
@@ -388,7 +466,7 @@ export const findSkill = defineQuery({
 		const userSkill = await findSkillByOwner(ctx, { key, owner });
 		if (userSkill) return userSkill;
 
-		const builtInSkillEntry = Object.entries(_builtInSkills).find(([skillKey]) => skillKey === key);
+		const builtInSkillEntry = Object.entries(innateSkills).find(([skillKey]) => skillKey === key);
 
 		if (builtInSkillEntry) {
 			//
@@ -397,7 +475,7 @@ export const findSkill = defineQuery({
 			return builtInSkillSchema.parse({
 				key,
 				description: builtInTool.description,
-				inputSchema: zodToString(builtInTool.parameters),
+				inputSchema: builtInTool.inputSchema,
 				preApprovedCost: builtInTool.preApprovedCost,
 				kind: 'built-in',
 				owner: 'built-in',

@@ -5,7 +5,15 @@
 		"enabled": false
 	},
 	"node": {
-		"externalPackages": ["@babel/core", "@babel/preset-react"],
+		"externalPackages": [
+			"@babel/core",
+			"@babel/preset-react",
+			"@aws-sdk/client-s3",
+			"@daytona/sdk",
+			"quickjs-emscripten",
+			"quickjs-emscripten-core",
+			"tslib"
+		],
 		"nodeVersion": "24"
 	}
 }

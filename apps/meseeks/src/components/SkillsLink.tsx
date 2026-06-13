@@ -1,6 +1,6 @@
-import { Link, useNavigate } from '@tanstack/react-router';
-import { Loader2, Sparkles } from 'lucide-react';
-import { Suspense, useTransition } from 'react';
+import { Link } from '@tanstack/react-router';
+import { Sparkles } from 'lucide-react';
+import { Suspense } from 'react';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useEnabledSkillsPreference } from '~/hooks/preferences';
@@ -28,15 +28,6 @@ function SkillsLinkSkeleton({ className }: { className?: string }) {
 function SkillsLinkContent({ className }: { className?: string }) {
 	//
 	const { enabledSkills } = useEnabledSkillsPreference();
-	const navigate = useNavigate();
-	const [isNavigating, startTransition] = useTransition();
-
-	const handleClick = () => {
-		if (isNavigating) return;
-		startTransition(() => {
-			navigate({ to: '/skills' });
-		});
-	};
 
 	return (
 		<TooltipProvider>
@@ -44,21 +35,15 @@ function SkillsLinkContent({ className }: { className?: string }) {
 				<TooltipTrigger asChild>
 					<Link
 						to="/skills"
-						onClick={handleClick}
 						className={cn(
 							'flex h-9 w-9 items-center justify-center flex-shrink-0',
 							'rounded-full border border-input bg-transparent',
 							'shadow-sm ring-offset-background hover:bg-accent hover:text-accent-foreground',
 							'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-							isNavigating && 'pointer-events-none',
 							className,
 						)}
 					>
-						{isNavigating ? (
-							<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-						) : (
-							<Sparkles className="size-4 text-muted-foreground" />
-						)}
+						<Sparkles className="size-4 text-muted-foreground" />
 					</Link>
 				</TooltipTrigger>
 				<TooltipContent className="p-2 max-w-xs">

@@ -7,21 +7,6 @@ import type { MutationCtx } from './_generated/server';
 
 const isPro = 'isPro';
 
-const defaultComponents = [
-	{
-		slug: 'list',
-		body: '<Inbox />',
-	},
-	{
-		slug: 'task',
-		body: '<Task />',
-	},
-	{
-		slug: 'new',
-		body: '<QuickSeek />',
-	},
-];
-
 const defaultSkills = [
 	skillSchema.parse({
 		kind: 'soft',
@@ -56,7 +41,6 @@ const defaultSkills = [
 				`  <userInfo>{{userInfo}}</userInfo>`,
 				`  <activeSkills>{{activeSkills}}</activeSkills>`,
 				`  <currentTask>{{task}}</currentTask>`,
-				`  <activeSchedules>{{taskSchedules}}</activeSchedules>`,
 				`  <currentDate>{{currentDate}}</currentDate>`,
 				`</context>`,
 			].join('\n'),
@@ -75,7 +59,7 @@ const defaultSkills = [
 		config: {
 			model: 'auto',
 			historyMode: 'since last instructed',
-			availableSkills: ['{{taskSkills}}', 'done', 'say', 'reason', 'setUserInfo', 'schedule', 'cancelSchedule'],
+			availableSkills: ['{{taskSkills}}', 'done', 'say', 'reason', 'setUserInfo'],
 			temperature: 0.7,
 			instructions: [
 				`Progress the task by calling exactly one tool.`,
@@ -83,7 +67,6 @@ const defaultSkills = [
 				`For direct questions, translations, simple explanations, and small decisions, call say() with a compact answer, then call done() on the next iteration if the answer is sufficient.`,
 				`Use task-selected skills when they are clearly useful. Skills with empty input schemas are valid; call them with {}.`,
 				`Use reason() when a short reasoning step would help decide the next action.`,
-				`Use schedule() for reminders, delayed work, recurring checks, and monitoring. After scheduling, stop the loop with done() unless more immediate work is required.`,
 				`Call done({ reason: "resolved" }) when the task is complete.`,
 				`Call done({ reason: "blocked", message }) when progress requires user input or external access you do not have.`,
 				`Do not repeat a previous say() unless there is new information.`,
@@ -91,7 +74,6 @@ const defaultSkills = [
 				`  <userInfo>{{userInfo}}</userInfo>`,
 				`  <activeSkills>{{activeSkills}}</activeSkills>`,
 				`  <currentTask>{{task}}</currentTask>`,
-				`  <activeSchedules>{{taskSchedules}}</activeSchedules>`,
 				`  <currentDate>{{currentDate}}</currentDate>`,
 				`</context>`,
 			].join('\n'),
@@ -103,49 +85,16 @@ export const _all = internalMutation({
 	args: z.object({}),
 	handler: async (ctx) => {
 		//
-		const components = await seedComponents(ctx);
 		const skills = await seedSkills(ctx);
 
-		return { components, skills };
+		return { skills };
 	},
 });
-
-async function seedComponents(ctx: MutationCtx) {
-	//
-	let inserted = 0;
-	let updated = 0;
-
-	for (const component of defaultComponents) {
-		//
-		const existing = await ctx.db
-			.query('components')
-			.withIndex('by_owner_slug', (q) => q.eq('owner', isPro).eq('slug', component.slug))
-			.unique();
-
-		if (existing) {
-			await ctx.db.patch(existing._id, { body: component.body, isPublic: false });
-			updated += 1;
-			continue;
-		}
-
-		await ctx.db.insert('components', {
-			owner: isPro,
-			slug: component.slug,
-			body: component.body,
-			isPublic: false,
-		});
-
-		inserted += 1;
-	}
-
-	return { inserted, updated };
-}
 
 async function seedSkills(ctx: MutationCtx) {
 	//
 	let inserted = 0;
 	let updated = 0;
-
 	for (const skill of defaultSkills) {
 		//
 		const existing = await ctx.db

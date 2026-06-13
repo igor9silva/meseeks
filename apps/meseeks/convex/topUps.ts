@@ -16,7 +16,7 @@ import {
 	finishTopUp,
 	persistPolarEvent,
 } from './topUps.private';
-import { getCurrentUser, isProSubscriber } from './users.private';
+import { getCurrentUser } from './users.private';
 
 // called by startTopUp action after checkout creation to persist a waiting top-up record
 export const _add = internalMutation({
@@ -41,8 +41,7 @@ export const _getStartTopUpContext = internalQuery({
 	handler: async (ctx) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
-		const isCurrentUserProSubscriber = await isProSubscriber(ctx, { owner: currentUser._id });
-		return { currentUser, isProSubscriber: isCurrentUserProSubscriber };
+		return { currentUser };
 	},
 });
 
@@ -55,8 +54,7 @@ export const startTopUp = action({
 	},
 	handler: async (ctx, { chain, symbol, amount, description }): Promise<Id<'topUps'>> => {
 		//
-		const { currentUser, isProSubscriber } = await ctx.runQuery(internal.topUps._getStartTopUpContext, {});
-		if (!isProSubscriber) throw new Error('User is not Pro.');
+		const { currentUser } = await ctx.runQuery(internal.topUps._getStartTopUpContext, {});
 
 		console.debug(`Starting top up at Polar '${env.POLAR_SERVER}' environment.`);
 

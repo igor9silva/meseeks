@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
 import {
 	DropdownMenu,
@@ -61,20 +61,13 @@ export function UserMenuItem() {
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
 							<DropdownMenuItem>
-								<Sparkles />
-								Upgrade to Pro
-							</DropdownMenuItem>
-						</DropdownMenuGroup>
-						<DropdownMenuSeparator />
-						<DropdownMenuGroup>
-							<DropdownMenuItem>
 								<BadgeCheck />
 								Account
 							</DropdownMenuItem>
 							<DropdownMenuItem>
-								<Link to="/balance">
+								<Link to="/wallet">
 									<CreditCard />
-									Billing
+									Wallet
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem>

@@ -18,17 +18,19 @@ export const betterAuthComponent = createClient<DataModel, typeof authSchema>(co
 			onCreate: async (ctx, user) => {
 				await ctx.runMutation(internal.users._addUser, {
 					authUserId: user._id,
-					email: user.email,
+					email: user.email || undefined,
 					name: user.name ?? undefined,
 					image: user.image ?? undefined,
+					isAnonymous: Boolean(user.isAnonymous),
 				});
 			},
 			onUpdate: async (ctx, user) => {
 				await ctx.runMutation(internal.users._updateUser, {
 					authUserId: user._id,
-					email: user.email,
+					email: user.email || undefined,
 					name: user.name ?? undefined,
 					image: user.image ?? undefined,
+					isAnonymous: Boolean(user.isAnonymous),
 				});
 			},
 		},

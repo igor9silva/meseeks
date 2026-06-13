@@ -93,6 +93,18 @@ export function generateThemeStyles(themeVariables: ThemeVariables): string {
 	`;
 }
 
+// srcdoc renderers still need inline scripts and babel eval, but this blocks app-origin data and network APIs.
+const rendererCsp = [
+	"default-src 'none'",
+	"script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.tailwindcss.com",
+	"style-src 'unsafe-inline'",
+	'img-src data: blob: https:',
+	'font-src data: https:',
+	"connect-src 'none'",
+	"base-uri 'none'",
+	"form-action 'none'",
+].join('; ');
+
 /**
  * Generate complete HTML document for iframe
  */
@@ -106,6 +118,7 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 			<head>
 				<meta charset="utf-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<meta http-equiv="Content-Security-Policy" content="${rendererCsp}">
 				
 				<!-- External dependencies -->
 				<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -225,4 +238,125 @@ export function generateIframeHtml(code: string, themeVariables: ThemeVariables)
 			</body>
 		</html>
 	`;
+}
+
+export function generateTsxIframeHtml(source: string, themeVariables: ThemeVariables): string {
+	//
+	const safeSource = normalizeRenderableTsxSource(source).replace(/<\/script/gi, '<\\/script');
+
+	return `
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1">
+				<meta http-equiv="Content-Security-Policy" content="${rendererCsp}">
+
+				<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+				<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+				<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+				<script src="https://cdn.tailwindcss.com"></script>
+
+				<style>
+					${generateThemeStyles(themeVariables)}
+					#root { align-items: stretch; justify-content: flex-start; }
+				</style>
+			</head>
+			<body>
+				<div id="root">
+					<div style="color: #666; padding: 16px; text-align: center; font-family: sans-serif;">
+						Rendering...
+					</div>
+				</div>
+				<script>
+					const rootElement = document.getElementById('root');
+					const escapeHtml = (value) =>
+						String(value)
+							.replace(/&/g, '&amp;')
+							.replace(/</g, '&lt;')
+							.replace(/>/g, '&gt;')
+							.replace(/"/g, '&quot;')
+							.replace(/'/g, '&#39;');
+
+					const renderMessage = (message, color = '#666') => {
+						if (!rootElement) return;
+						rootElement.innerHTML =
+							'<div style="color: ' +
+							color +
+							'; padding: 16px; text-align: center; font-family: sans-serif;">' +
+							escapeHtml(message) +
+							'</div>';
+					};
+
+					const renderError = (error) => {
+						console.error('Error in TSX file render:', error);
+						if (error instanceof Error) {
+							renderMessage('Error during render: ' + error.message, '#ef4444');
+							return;
+						}
+						renderMessage('Error during render: ' + String(error), '#ef4444');
+					};
+
+					window.addEventListener('error', (event) => {
+						renderError(event.error ?? event.message);
+					});
+
+					window.addEventListener('unhandledrejection', (event) => {
+						renderError(event.reason);
+					});
+				</script>
+				<script type="text/babel" data-presets="typescript,react">
+					try {
+						if (typeof window.React === 'undefined' || typeof window.ReactDOM === 'undefined') {
+							throw new Error('Renderer runtime failed to load.');
+						}
+
+						const React = window.React;
+						const {
+							Fragment,
+							useEffect,
+							useMemo,
+							useRef,
+							useState,
+						} = React;
+
+						${safeSource}
+
+						const ComponentToRender =
+							typeof Composition !== 'undefined'
+								? Composition
+								: typeof Page !== 'undefined'
+									? Page
+									: null;
+
+						if (!ComponentToRender) {
+							renderMessage('Nothing to render.');
+						} else if (!rootElement) {
+							throw new Error('Renderer root was not found.');
+						} else if (typeof window.ReactDOM.createRoot === 'function') {
+							const root = window.ReactDOM.createRoot(rootElement);
+							root.render(React.createElement(ComponentToRender));
+						} else if (typeof window.ReactDOM.render === 'function') {
+							window.ReactDOM.render(React.createElement(ComponentToRender), rootElement);
+						} else {
+							throw new Error('React renderer was not available.');
+						}
+					} catch (error) {
+						renderError(error);
+					}
+				</script>
+			</body>
+		</html>
+	`;
+}
+
+function normalizeRenderableTsxSource(source: string) {
+	//
+	return source
+		.replace(/^\s*import\s+[^;]+;\s*$/gm, '')
+		.replace(/export\s+default\s+function\s+\w*\s*\(/, 'function Composition(')
+		.replace(/export\s+default\s+function\s*\(/, 'function Composition(')
+		.replace(/export\s+default\s+/, 'const Composition = ')
+		.replace(/export\s+const\s+(\w+)\s*=/g, 'const $1 =')
+		.replace(/export\s+function\s+(\w+)\s*\(/g, 'function $1(');
 }

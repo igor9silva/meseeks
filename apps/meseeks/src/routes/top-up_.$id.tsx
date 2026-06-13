@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { track } from '@vercel/analytics/react';
-import { Id } from 'convex/_generated/dataModel';
+import { zid } from 'convex-helpers/server/zod3';
 import { useMutation } from 'convex/react';
 import { usePayment } from '~/hooks/usePayment';
 import { cn } from '@reactor/ui/lib/utils';
@@ -21,7 +21,8 @@ export const Route = createFileRoute('/top-up_/$id')({
 export function RouteComponent({ className }: { className?: string }) {
 	//
 	const { id } = Route.useParams();
-	const { topUp } = useTopUp(id as Id<'topUps'>);
+	const topUpId = zid('topUps').parse(id);
+	const { topUp } = useTopUp(topUpId);
 
 	const discard = useMutation(api.topUps.discard);
 
@@ -96,7 +97,7 @@ export function RouteComponent({ className }: { className?: string }) {
 						className="w-full sm:w-24"
 						variant="destructive"
 						disabled={isPending}
-						onClick={() => discard({ topUpId: id as Id<'topUps'> })}
+						onClick={() => discard({ topUpId })}
 					>
 						Discard
 					</Button>

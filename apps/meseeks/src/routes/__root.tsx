@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation } from '@tanstack/react-router';
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
@@ -11,11 +11,9 @@ import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
 import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
-import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
 import { Toaster } from '~/components/ui/sonner';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
-import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { seo } from '~/lib/seo';
 import {
 	baseThemeCssText,
@@ -30,7 +28,7 @@ import appCss from '~/styles/app.css?url';
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	head: () => ({
 		meta: [
-			{ title: 'Meseeks' },
+			{ title: 'PRO' },
 			{ charSet: 'utf-8' },
 			{
 				name: 'viewport',
@@ -44,8 +42,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				].join(','),
 			},
 			...seo({
-				title: 'Meseeks',
-				description: `Open platform to amplify yourself — be free. Open source, data and business. Research preview.`,
+				title: 'PRO',
+				description: `Personal operating substrate for AI work.`,
 				image: '/og.webp',
 			}),
 
@@ -82,8 +80,6 @@ function RootComponent() {
 function RootDocument({ children }: { children: React.ReactNode }) {
 	//
 	const rootDocumentTheme = getRootDocumentTheme();
-	const { pathname } = useLocation();
-	const pwa = getPwaConfig(pathname);
 
 	return (
 		<html
@@ -98,9 +94,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				 */}
 				<style>{baseThemeCssText}</style>
 				<script dangerouslySetInnerHTML={{ __html: getThemeInitScript() }} />
-				<meta name="application-name" content={pwa.title} />
-				<meta name="apple-mobile-web-app-title" content={pwa.title} />
-				<link rel="manifest" href={pwa.manifestHref} />
+				<meta name="application-name" content="PRO" />
+				<meta name="apple-mobile-web-app-title" content="PRO" />
+				<link rel="manifest" href="/static/site.webmanifest" />
 				<HeadContent />
 			</head>
 			<body>
@@ -113,29 +109,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function getPwaConfig(pathname: string) {
-	if (pathname === '/translate') {
-		return {
-			title: 'Translate',
-			manifestHref: '/static/translate.webmanifest',
-		};
-	}
-
-	return {
-		title: 'Meseeks',
-		manifestHref: '/static/site.webmanifest',
-	};
-}
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	//
-	const { pathname } = useLocation();
-	const isShareRoute = pathname.startsWith('/share/');
-
-	if (isShareRoute) {
-		return <div className="h-dvh w-full">{children}</div>;
-	}
-
 	return (
 		<div>
 			<AuthLoading>
@@ -159,9 +134,7 @@ function Main({ children }: { children: React.ReactNode }) {
 
 	return (
 		<FeedbackDialogProvider>
-			<ScheduleDialogProvider>
-				<MainWithFeedback>{children}</MainWithFeedback>
-			</ScheduleDialogProvider>
+			<MainWithFeedback>{children}</MainWithFeedback>
 		</FeedbackDialogProvider>
 	);
 }
@@ -169,29 +142,20 @@ function Main({ children }: { children: React.ReactNode }) {
 function MainWithFeedback({ children }: { children: React.ReactNode }) {
 	//
 	const feedbackDialog = useFeedbackDialog();
-	const scheduleDialog = useScheduleDialog();
 	const toggleFeedback = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
-	const toggleSchedule = (isOpen: boolean) => (isOpen ? undefined : scheduleDialog.close());
 
 	return (
 		<div className="flex h-svh w-full">
 			{/* <div className="hidden md:block">
 				<MainSidebar />
 			</div> */}
-			<main className="flex-1 flex flex-col-reverse md:flex-col overflow-hidden p-1 pb-3 md:p-0">
+			<main className="flex-1 flex flex-col overflow-hidden">
 				<MainHeader className="mt-0" />
 				<div className="flex-1 overflow-auto">{children}</div>
 			</main>
 			<Toaster position="top-right" />
 			<LauncherDialog />
 			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
-			{scheduleDialog.taskId && (
-				<ScheduleIterationDialog
-					taskId={scheduleDialog.taskId}
-					open={scheduleDialog.isOpen}
-					onOpenChange={toggleSchedule}
-				/>
-			)}
 		</div>
 	);
 }
@@ -213,17 +177,6 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 
 // SEO
 // "categories": ["productivity", "utilities", "ai"]
-
-// Define quick actions for users via long-press on the app icon (on supported devices).
-// "shortcuts": [
-//   {
-//     "name": "New Task",
-//     "short_name": "Task",
-//     "description": "Create a new task instantly",
-//     "url": "/new-task",
-//     "icons": [{ "src": "icons/shortcut-task.png", "sizes": "192x192" }]
-//   }
-// ]
 
 // other
 // •	share_target: Lets your PWA receive shared content.

@@ -1,5 +1,4 @@
 import { askForClarification } from './askForClarification';
-import { cancelSchedule } from './cancelSchedule';
 import { createSkill } from './createSkill';
 import { decreaseBudget } from './decreaseBudget';
 import { discard } from './discard';
@@ -15,8 +14,6 @@ import { requestBudget } from './requestBudget';
 import { requestIteration } from './requestIteration';
 import { resolve } from './resolve';
 import { say } from './say';
-import { schedule } from './schedule';
-import { scheduledIteration } from './scheduledIteration';
 import { setUserInfo } from './setUserInfo';
 import { stop } from './stop';
 import { updateInstructions } from './updateInstructions';
@@ -27,12 +24,6 @@ export const _builtInSkills = {
 	// loop entry
 	askForClarification,
 	updateInstructions,
-
-	// math
-	// sum,
-	// multiply,
-	// divide,
-	// subtract,
 
 	// lifecycle
 	say,
@@ -50,11 +41,6 @@ export const _builtInSkills = {
 	requestIteration,
 	lookAtMe,
 
-	// scheduling
-	schedule,
-	scheduledIteration,
-	cancelSchedule,
-
 	// skills
 	createSkill,
 	updateSkill,
@@ -63,6 +49,3 @@ export const _builtInSkills = {
 	// user info
 	setUserInfo,
 };
-
-// moveTask,
-// createSubtask,

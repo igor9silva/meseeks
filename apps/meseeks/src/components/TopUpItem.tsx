@@ -3,10 +3,11 @@ import { Doc } from 'convex/_generated/dataModel';
 import { TimeAgo } from '~/components/TimeAgo';
 
 export const topUpStatusColors = {
-	waiting: 'bg-yellow-100 text-yellow-800',
-	pending: 'bg-yellow-100 text-yellow-800',
-	confirmed: 'bg-green-100 text-green-800',
-	failed: 'bg-red-100 text-red-800',
+	'waiting': 'bg-yellow-100 text-yellow-800',
+	'pending': 'bg-yellow-100 text-yellow-800',
+	'confirmed': 'bg-green-100 text-green-800',
+	'failed': 'bg-red-100 text-red-800',
+	'discarded by user': 'bg-muted text-muted-foreground',
 };
 
 export function TopUpItem({ topUp }: { topUp: Doc<'topUps'> }) {
@@ -22,9 +23,7 @@ export function TopUpItem({ topUp }: { topUp: Doc<'topUps'> }) {
 					</div>
 
 					<span
-						className={`shrink-0 px-3 py-1 rounded-full text-sm font-medium ${
-							topUpStatusColors[topUp.status as keyof typeof topUpStatusColors]
-						}`}
+						className={`shrink-0 px-3 py-1 rounded-full text-sm font-medium ${topUpStatusColors[topUp.status]}`}
 					>
 						{topUp.status}
 					</span>

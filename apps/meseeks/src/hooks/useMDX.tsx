@@ -35,7 +35,7 @@ export function useMDX(mdx: string, shouldRenderComponents = false) {
 		isPending,
 	} = useQuery({
 		retry: false,
-		queryKey: ['mdx', mdx],
+		queryKey: ['mdx', mdx, shouldRenderComponents],
 		queryFn: async () => {
 			const code = await compileMDX(mdx, shouldRenderComponents);
 			return await runMDX(code);

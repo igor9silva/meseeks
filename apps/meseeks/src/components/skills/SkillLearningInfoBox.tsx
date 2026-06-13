@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import { Info } from 'lucide-react';
 import { Card, CardContent } from '@reactor/ui/card';
 
-export function SkillLearningInfoBox({ query }: { query: string }) {
+export function SkillLearningInfoBox() {
 	//
 	return (
 		<Card className="text-sm border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/20 my-4 w-fit">
@@ -12,8 +12,8 @@ export function SkillLearningInfoBox({ query }: { query: string }) {
 					<div className="flex-1">
 						<span className="font-medium">Tip: </span>
 						Instead of filling everything manually, you can{' '}
-						<Link to="/$" params={{ _splat: 'new' }} search={{ q: query }} className="underline">
-							just ask Meseeks
+						<Link to="/" className="underline">
+							open PRO
 						</Link>
 						. Tell it what you want and let it shine.
 					</div>

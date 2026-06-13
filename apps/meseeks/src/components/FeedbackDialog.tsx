@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from '@reactor/ui/textarea';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { useHandleSubmit } from '@reactor/ui/hooks/useHandleSubmit';
-import { useSplatParams } from '~/hooks/useSplatParams';
 import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
@@ -35,14 +34,12 @@ export function FeedbackDialog({
 	const submitHotkey = useSubmitHotkey();
 
 	const { pathname, searchStr } = useLocation();
-	const { taskId } = useSplatParams();
 	const user = useCurrentUser();
 
 	const gatherContext = () => {
 		return {
 			timestamp: new Date().toISOString(),
 			currentPath: pathname + searchStr,
-			currentTaskId: taskId || null,
 			userAgent: navigator.userAgent,
 			viewportSize: {
 				width: window.innerWidth,
@@ -52,7 +49,6 @@ export function FeedbackDialog({
 			userInfo: {
 				id: user._id,
 				email: user.email,
-				isFounder: user.isFounder,
 			},
 		};
 	};

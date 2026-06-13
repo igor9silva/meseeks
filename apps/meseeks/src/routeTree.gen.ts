@@ -9,28 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TranslateRouteImport } from './routes/translate'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TopUpRouteImport } from './routes/top-up'
-import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as SkillsRouteImport } from './routes/skills'
-import { Route as SchedulesRouteImport } from './routes/schedules'
-import { Route as BalanceRouteImport } from './routes/balance'
+import { Route as FilesRouteImport } from './routes/files'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as PolarRouteRouteImport } from './routes/polar/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TopUpIdRouteImport } from './routes/top-up_.$id'
 import { Route as SkillsNewRouteImport } from './routes/skills_.new'
 import { Route as SkillsIdRouteImport } from './routes/skills_.$id'
-import { Route as ShareIdRouteImport } from './routes/share_.$id'
 import { Route as PolarToppedRouteImport } from './routes/polar/topped'
-import { Route as PolarSubscribedRouteImport } from './routes/polar/subscribed'
-import { Route as ActionIdRouteImport } from './routes/action_.$id'
+import { Route as FilesSplatRouteImport } from './routes/files_.$'
 import { Route as SkillsInnateKeyRouteImport } from './routes/skills_.innate_.$key'
-import { Route as ApiTranslateSessionRouteImport } from './routes/api/translate/session'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
-const TranslateRoute = TranslateRouteImport.update({
-  id: '/translate',
-  path: '/translate',
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TopUpRoute = TopUpRouteImport.update({
@@ -38,24 +34,14 @@ const TopUpRoute = TopUpRouteImport.update({
   path: '/top-up',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SubscribeRoute = SubscribeRouteImport.update({
-  id: '/subscribe',
-  path: '/subscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SchedulesRoute = SchedulesRouteImport.update({
-  id: '/schedules',
-  path: '/schedules',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BalanceRoute = BalanceRouteImport.update({
-  id: '/balance',
-  path: '/balance',
+const FilesRoute = FilesRouteImport.update({
+  id: '/files',
+  path: '/files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -66,6 +52,11 @@ const SplatRoute = SplatRouteImport.update({
 const PolarRouteRoute = PolarRouteRouteImport.update({
   id: '/polar',
   path: '/polar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TopUpIdRoute = TopUpIdRouteImport.update({
@@ -83,34 +74,19 @@ const SkillsIdRoute = SkillsIdRouteImport.update({
   path: '/skills/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShareIdRoute = ShareIdRouteImport.update({
-  id: '/share_/$id',
-  path: '/share/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PolarToppedRoute = PolarToppedRouteImport.update({
   id: '/topped',
   path: '/topped',
   getParentRoute: () => PolarRouteRoute,
 } as any)
-const PolarSubscribedRoute = PolarSubscribedRouteImport.update({
-  id: '/subscribed',
-  path: '/subscribed',
-  getParentRoute: () => PolarRouteRoute,
-} as any)
-const ActionIdRoute = ActionIdRouteImport.update({
-  id: '/action_/$id',
-  path: '/action/$id',
+const FilesSplatRoute = FilesSplatRouteImport.update({
+  id: '/files_/$',
+  path: '/files/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SkillsInnateKeyRoute = SkillsInnateKeyRouteImport.update({
   id: '/skills_/innate_/$key',
   path: '/skills/innate/$key',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTranslateSessionRoute = ApiTranslateSessionRouteImport.update({
-  id: '/api/translate/session',
-  path: '/api/translate/session',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -120,155 +96,128 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
-  '/schedules': typeof SchedulesRoute
+  '/files': typeof FilesRoute
   '/skills': typeof SkillsRoute
-  '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
-  '/translate': typeof TranslateRoute
-  '/action/$id': typeof ActionIdRoute
-  '/polar/subscribed': typeof PolarSubscribedRoute
+  '/wallet': typeof WalletRoute
+  '/files/$': typeof FilesSplatRoute
   '/polar/topped': typeof PolarToppedRoute
-  '/share/$id': typeof ShareIdRoute
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
   '/top-up/$id': typeof TopUpIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/translate/session': typeof ApiTranslateSessionRoute
   '/skills/innate/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
-  '/schedules': typeof SchedulesRoute
+  '/files': typeof FilesRoute
   '/skills': typeof SkillsRoute
-  '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
-  '/translate': typeof TranslateRoute
-  '/action/$id': typeof ActionIdRoute
-  '/polar/subscribed': typeof PolarSubscribedRoute
+  '/wallet': typeof WalletRoute
+  '/files/$': typeof FilesSplatRoute
   '/polar/topped': typeof PolarToppedRoute
-  '/share/$id': typeof ShareIdRoute
   '/skills/$id': typeof SkillsIdRoute
   '/skills/new': typeof SkillsNewRoute
   '/top-up/$id': typeof TopUpIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/translate/session': typeof ApiTranslateSessionRoute
   '/skills/innate/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/polar': typeof PolarRouteRouteWithChildren
   '/$': typeof SplatRoute
-  '/balance': typeof BalanceRoute
-  '/schedules': typeof SchedulesRoute
+  '/files': typeof FilesRoute
   '/skills': typeof SkillsRoute
-  '/subscribe': typeof SubscribeRoute
   '/top-up': typeof TopUpRoute
-  '/translate': typeof TranslateRoute
-  '/action_/$id': typeof ActionIdRoute
-  '/polar/subscribed': typeof PolarSubscribedRoute
+  '/wallet': typeof WalletRoute
+  '/files_/$': typeof FilesSplatRoute
   '/polar/topped': typeof PolarToppedRoute
-  '/share_/$id': typeof ShareIdRoute
   '/skills_/$id': typeof SkillsIdRoute
   '/skills_/new': typeof SkillsNewRoute
   '/top-up_/$id': typeof TopUpIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/translate/session': typeof ApiTranslateSessionRoute
   '/skills_/innate_/$key': typeof SkillsInnateKeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/polar'
     | '/$'
-    | '/balance'
-    | '/schedules'
+    | '/files'
     | '/skills'
-    | '/subscribe'
     | '/top-up'
-    | '/translate'
-    | '/action/$id'
-    | '/polar/subscribed'
+    | '/wallet'
+    | '/files/$'
     | '/polar/topped'
-    | '/share/$id'
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
     | '/api/auth/$'
-    | '/api/translate/session'
     | '/skills/innate/$key'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/polar'
     | '/$'
-    | '/balance'
-    | '/schedules'
+    | '/files'
     | '/skills'
-    | '/subscribe'
     | '/top-up'
-    | '/translate'
-    | '/action/$id'
-    | '/polar/subscribed'
+    | '/wallet'
+    | '/files/$'
     | '/polar/topped'
-    | '/share/$id'
     | '/skills/$id'
     | '/skills/new'
     | '/top-up/$id'
     | '/api/auth/$'
-    | '/api/translate/session'
     | '/skills/innate/$key'
   id:
     | '__root__'
+    | '/'
     | '/polar'
     | '/$'
-    | '/balance'
-    | '/schedules'
+    | '/files'
     | '/skills'
-    | '/subscribe'
     | '/top-up'
-    | '/translate'
-    | '/action_/$id'
-    | '/polar/subscribed'
+    | '/wallet'
+    | '/files_/$'
     | '/polar/topped'
-    | '/share_/$id'
     | '/skills_/$id'
     | '/skills_/new'
     | '/top-up_/$id'
     | '/api/auth/$'
-    | '/api/translate/session'
     | '/skills_/innate_/$key'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   PolarRouteRoute: typeof PolarRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
-  BalanceRoute: typeof BalanceRoute
-  SchedulesRoute: typeof SchedulesRoute
+  FilesRoute: typeof FilesRoute
   SkillsRoute: typeof SkillsRoute
-  SubscribeRoute: typeof SubscribeRoute
   TopUpRoute: typeof TopUpRoute
-  TranslateRoute: typeof TranslateRoute
-  ActionIdRoute: typeof ActionIdRoute
-  ShareIdRoute: typeof ShareIdRoute
+  WalletRoute: typeof WalletRoute
+  FilesSplatRoute: typeof FilesSplatRoute
   SkillsIdRoute: typeof SkillsIdRoute
   SkillsNewRoute: typeof SkillsNewRoute
   TopUpIdRoute: typeof TopUpIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiTranslateSessionRoute: typeof ApiTranslateSessionRoute
   SkillsInnateKeyRoute: typeof SkillsInnateKeyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/translate': {
-      id: '/translate'
-      path: '/translate'
-      fullPath: '/translate'
-      preLoaderRoute: typeof TranslateRouteImport
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/top-up': {
@@ -278,13 +227,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TopUpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/subscribe': {
-      id: '/subscribe'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof SubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/skills': {
       id: '/skills'
       path: '/skills'
@@ -292,18 +234,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/schedules': {
-      id: '/schedules'
-      path: '/schedules'
-      fullPath: '/schedules'
-      preLoaderRoute: typeof SchedulesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/balance': {
-      id: '/balance'
-      path: '/balance'
-      fullPath: '/balance'
-      preLoaderRoute: typeof BalanceRouteImport
+    '/files': {
+      id: '/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof FilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -318,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/polar'
       fullPath: '/polar'
       preLoaderRoute: typeof PolarRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/top-up_/$id': {
@@ -341,13 +283,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/share_/$id': {
-      id: '/share_/$id'
-      path: '/share/$id'
-      fullPath: '/share/$id'
-      preLoaderRoute: typeof ShareIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/polar/topped': {
       id: '/polar/topped'
       path: '/topped'
@@ -355,18 +290,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PolarToppedRouteImport
       parentRoute: typeof PolarRouteRoute
     }
-    '/polar/subscribed': {
-      id: '/polar/subscribed'
-      path: '/subscribed'
-      fullPath: '/polar/subscribed'
-      preLoaderRoute: typeof PolarSubscribedRouteImport
-      parentRoute: typeof PolarRouteRoute
-    }
-    '/action_/$id': {
-      id: '/action_/$id'
-      path: '/action/$id'
-      fullPath: '/action/$id'
-      preLoaderRoute: typeof ActionIdRouteImport
+    '/files_/$': {
+      id: '/files_/$'
+      path: '/files/$'
+      fullPath: '/files/$'
+      preLoaderRoute: typeof FilesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/skills_/innate_/$key': {
@@ -374,13 +302,6 @@ declare module '@tanstack/react-router' {
       path: '/skills/innate/$key'
       fullPath: '/skills/innate/$key'
       preLoaderRoute: typeof SkillsInnateKeyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/translate/session': {
-      id: '/api/translate/session'
-      path: '/api/translate/session'
-      fullPath: '/api/translate/session'
-      preLoaderRoute: typeof ApiTranslateSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -394,12 +315,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface PolarRouteRouteChildren {
-  PolarSubscribedRoute: typeof PolarSubscribedRoute
   PolarToppedRoute: typeof PolarToppedRoute
 }
 
 const PolarRouteRouteChildren: PolarRouteRouteChildren = {
-  PolarSubscribedRoute: PolarSubscribedRoute,
   PolarToppedRoute: PolarToppedRoute,
 }
 
@@ -408,21 +327,18 @@ const PolarRouteRouteWithChildren = PolarRouteRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   PolarRouteRoute: PolarRouteRouteWithChildren,
   SplatRoute: SplatRoute,
-  BalanceRoute: BalanceRoute,
-  SchedulesRoute: SchedulesRoute,
+  FilesRoute: FilesRoute,
   SkillsRoute: SkillsRoute,
-  SubscribeRoute: SubscribeRoute,
   TopUpRoute: TopUpRoute,
-  TranslateRoute: TranslateRoute,
-  ActionIdRoute: ActionIdRoute,
-  ShareIdRoute: ShareIdRoute,
+  WalletRoute: WalletRoute,
+  FilesSplatRoute: FilesSplatRoute,
   SkillsIdRoute: SkillsIdRoute,
   SkillsNewRoute: SkillsNewRoute,
   TopUpIdRoute: TopUpIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ApiTranslateSessionRoute: ApiTranslateSessionRoute,
   SkillsInnateKeyRoute: SkillsInnateKeyRoute,
 }
 export const routeTree = rootRouteImport

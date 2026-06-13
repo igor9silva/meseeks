@@ -9,7 +9,7 @@ export const _transpileCode = internalAction({
 	args: {
 		code: z.string(),
 	},
-	handler: async (ctx, { code }) => {
+	handler: async (_ctx, { code }) => {
 		//
 		const result = transform(code, {
 			presets: [require('@babel/preset-react')],

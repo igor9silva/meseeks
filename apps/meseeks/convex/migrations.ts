@@ -28,26 +28,5 @@ export const enableMissingSkillsFour = migrations.define({
 	},
 });
 
-// Migration to backfill action_details with empty history array
-export const backfillActionDetailsHistory = migrations.define({
-	table: 'action_details',
-	migrateOne: async (_ctx, doc) => {
-		// Only add history field to soft skill documents
-		if (doc.skillKind === 'soft') {
-			if (!doc.llm?.history) {
-				return {
-					...doc,
-					llm: {
-						...doc.llm,
-						history: [],
-					},
-				};
-			}
-		}
-		return doc; // return unchanged for hard skills or if history already exists
-	},
-});
-
 // Runner function to execute the migration
 export const runEnableMissingSkillsFour = migrations.runner(internal.migrations.enableMissingSkillsFour);
-export const runBackfillActionDetailsHistory = migrations.runner(internal.migrations.backfillActionDetailsHistory);

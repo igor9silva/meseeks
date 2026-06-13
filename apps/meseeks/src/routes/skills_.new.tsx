@@ -28,7 +28,7 @@ export default function RouteComponent() {
 				</div>
 			</div>
 
-			<SkillLearningInfoBox query="Hi. Please, I want you to learn a new skill. It should " />
+			<SkillLearningInfoBox />
 
 			<Tabs value={skillType} onValueChange={(value) => setSkillType(value as 'soft' | 'hard')}>
 				<TabsList>

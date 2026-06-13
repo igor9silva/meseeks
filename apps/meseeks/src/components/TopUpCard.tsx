@@ -3,7 +3,6 @@ import { asBigInt } from 'lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
 import { z } from 'zod/v3';
-import { EnergyTooltip } from '~/components/EnergyTooltip';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent } from '@reactor/ui/card';
 import { Input } from '@reactor/ui/input';
@@ -48,7 +47,7 @@ export function TopUpCard() {
 		<Card className="max-h-fit border-none rounded-none prose">
 			<CardContent className="p-0">
 				<form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-row items-center gap-2">
-					<EnergyTooltip>⚡</EnergyTooltip>
+					<span className="text-sm text-muted-foreground">USD</span>
 					<Input type="string" name="amount" placeholder="Amount" required defaultValue={50} />
 					<Button variant="default" type="submit">
 						Top up

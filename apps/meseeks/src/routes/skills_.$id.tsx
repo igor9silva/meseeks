@@ -55,7 +55,7 @@ function RouteComponent() {
 				</CardDescription>
 			</div>
 
-			{skill.isEditable && <SkillLearningInfoBox query={`Hi. Please, update the skill '${skill.key}' to `} />}
+			{skill.isEditable && <SkillLearningInfoBox />}
 
 			<div>
 				{skill.kind === 'soft' ? (

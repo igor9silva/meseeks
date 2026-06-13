@@ -22,38 +22,11 @@ export const topUpTransactionSchema = z.object({
 	description: z.string().optional(),
 });
 
-export const taskCostTransactionSchema = z.object({
-	kind: z.literal('fund task'),
-	value: valueSchema,
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	description: z.string().optional(),
-});
-
-export const refundTaskTransactionSchema = z.object({
-	kind: z.literal('refund from task'),
-	value: valueSchema,
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	description: z.string().optional(),
-});
-
-export const subscriptionTransactionSchema = z.object({
-	kind: z.literal('subscription'),
-	value: valueSchema,
-	subscriptionId: zid('subscriptions'),
-	owner: zid('users'),
-	description: z.string().optional(),
-});
-
 export const transactionSchema = z
 	.union([
 		freeCreditsTransactionSchema, //
 		topUpTransactionSchema,
-		taskCostTransactionSchema,
-		refundTaskTransactionSchema,
-		subscriptionTransactionSchema,
 	])
 	.describe(
-		'A financial transaction. Top ups, pay outs and task/action execution costs.', //
+		'A wallet transaction for credits granted or added by top-up.', //
 	);

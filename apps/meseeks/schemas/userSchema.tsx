@@ -3,20 +3,19 @@ import { z } from 'zod/v3';
 
 export const userSchema = z.object({
 	authUserId: z.string().optional(),
+	rootFile: zid('files').optional(),
 	name: z.string().optional(),
 	image: z.string().optional(),
 	email: z.string().optional(),
 	emailVerificationTime: z.number().optional(),
 	phone: z.string().optional(),
 	phoneVerificationTime: z.number().optional(),
-	isAnonymous: z.literal(false).default(false),
+	isAnonymous: z.boolean().default(false),
 	verificationLevel: z.enum(['orb', 'device']).optional(),
 	walletAddress: z.string().optional(), // TODO: write a validator
 	walletChain: z.enum(['worldchain']).optional(),
 	isReady: z.boolean().default(false),
 	balanceUSD: z.bigint().default(0n),
-	isFounder: z.boolean().default(false),
-	initialTaskId: zid('tasks').optional(),
 });
 
 export const userPreferencesSchema = z.object({

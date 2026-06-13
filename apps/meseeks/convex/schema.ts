@@ -1,14 +1,17 @@
 import { zodToConvex } from 'convex-helpers/server/zod3';
 import { defineSchema, defineTable } from 'convex/server';
-import { actionDetailSchema } from 'schemas/actionDetailSchema';
-import { actionSchema } from 'schemas/actionSchema';
-import { componentSchema } from 'schemas/componentSchema';
-import { draftSchema } from 'schemas/draftSchema';
 import { polarEventSchema } from 'schemas/polarEventSchema';
-import { scheduleSchema } from 'schemas/scheduleSchema';
+import {
+	actionDetailSchema,
+	actionSchema,
+	boxSchema,
+	changesetSchema,
+	fileRevisionSchema,
+	fileSchema,
+	fileTagSchema,
+	triggerSchema,
+} from 'schemas/workspaceSchema';
 import { skillSchema } from 'schemas/skillSchema';
-import { subscriptionSchema } from 'schemas/subscriptionSchema';
-import { taskSchema } from 'schemas/taskSchema';
 import { topUpSchema } from 'schemas/topUpSchema';
 import { transactionSchema } from 'schemas/transactionSchema';
 import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/userSchema';
@@ -40,61 +43,70 @@ export default defineSchema({
 		'by_owner_key', ['owner', 'key'],
 	),
 
-	drafts: defineTable(
-		zodToConvex(draftSchema),
+	files: defineTable(
+		zodToConvex(fileSchema),
 	).index(
-		'by_owner_taskId', ['owner', 'taskId'],
+		'by_owner_parent_isDeleted', ['owner', 'parent', 'isDeleted'],
+	).index(
+		'by_owner_parent_name', ['owner', 'parent', 'name'],
+	).index(
+		'by_owner_path', ['owner', 'path'],
 	),
 
-	tasks: defineTable(
-		zodToConvex(taskSchema),
+	file_tags: defineTable(
+		zodToConvex(fileTagSchema),
 	).index(
-		'by_owner_parentId_isActive', ['owner', 'parentId', 'isActive'],
+		'by_file_key', ['file', 'key'],
 	).index(
-		'by_parent_isActive', ['parentId', 'isActive'],
-	).index(
-		'by_owner_isActive', ['owner', 'isActive'],
-	).index(
-		'by_owner_status', ['owner', 'status'],
-	).index(
-		'by_owner_energyAvailable', ['owner', 'energyBudget.available'],
+		'by_owner_key_value', ['owner', 'key', 'value'],
 	),
-	// .index(
-	// 	'by_embeddingId', ['embeddingId'],
-	// ),
 
-	// taskEmbeddings: defineTable(
-	// 	zodToConvex(taskEmbeddingsSchema),
-	// ).vectorIndex("by_embedding", {
-	// 	dimensions: 3072,
-	// 	vectorField: 'embedding',
-	// 	filterFields: ['isDone'],
-	// }),
-	
+	file_revisions: defineTable(
+		zodToConvex(fileRevisionSchema),
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_directory', ['directory'],
+	),
+
+	changesets: defineTable(
+		zodToConvex(changesetSchema),
+	).index(
+		'by_directory', ['directory'],
+	).index(
+		'by_action', ['action'],
+	),
+
 	actions: defineTable(
 		zodToConvex(actionSchema),
 	).index(
-		'by_task', ['taskId'],
+		'by_directory', ['directory'],
 	).index(
-		'by_task_status', ['taskId', 'status'],
+		'by_directory_status', ['directory', 'status'],
 	).index(
-		'by_task_author_status', ['taskId', 'author', 'status'],
-	).index(
-		'by_status', ['status'],
+		'by_directory_index', ['directory', 'index'],
 	),
 
 	action_details: defineTable(
 		zodToConvex(actionDetailSchema),
 	).index(
-		'by_action', ['actionId'],
+		'by_action', ['action'],
 	),
 
-	schedules: defineTable(
-		zodToConvex(scheduleSchema),
+	triggers: defineTable(
+		zodToConvex(triggerSchema),
 	).index(
-		'by_task', ['taskId'],
+		'by_directory', ['directory'],
 	).index(
-		'by_owner', ['owner'],
+		'by_sourceFile', ['sourceFile'],
+	),
+
+	boxes: defineTable(
+		zodToConvex(boxSchema),
+	).index(
+		'by_directory', ['directory'],
+	).index(
+		'by_providerSandboxId', ['providerSandboxId'],
 	),
 
 	skills: defineTable(
@@ -103,12 +115,6 @@ export default defineSchema({
 		'by_owner_kind', ['owner', 'kind'],
 	).index(
 		'by_owner_key', ['owner', 'key'],
-	),
-
-	components: defineTable(
-		zodToConvex(componentSchema),
-	).index(
-		'by_owner_slug', ['owner', 'slug'],
 	),
 
 	transactions: defineTable(
@@ -120,16 +126,6 @@ export default defineSchema({
 			searchField: 'description',
 			filterFields: ['owner', 'kind'],
 		}
-	),
-
-	subscriptions: defineTable(
-		zodToConvex(subscriptionSchema),
-	).index(
-		'by_owner_status', ['owner', 'status'],
-	).index(
-		'by_paymentId', ['paymentId'],
-	).index(
-		'by_polarSubscriptionId', ['polarSubscriptionId'],
 	),
 
 	topUps: defineTable(
