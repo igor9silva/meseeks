@@ -88,7 +88,7 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 ### Formatting
 
 - Add blank `//` comment lines after function declarations for readability when the formatter would otherwise collapse the visual separation
-- Do not remove existing comments - user reviews manually
+- Do not remove existing `TODO:` markers or explanatory comments unless Igor explicitly asks, or you have verified the comment is no longer relevant. When in doubt, preserve it and call it out.
 - Do not change indentation
 - Prefer `Boolean()` over `!!`
 - Prefer `const` over `let`
