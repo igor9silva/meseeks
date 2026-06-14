@@ -1,0 +1,4 @@
+interface:
+  display_name: "Main chat handoff"
+  short_description: "Write paste-ready prompts for the main chat"
+  default_prompt: "Use $main-chat-handoff to turn the side-chat conclusion into a raw, copy-paste prompt for the main chat with settled instructions, no hedging, no references to side-chat context, and no wrapper text."
