@@ -23,7 +23,7 @@ export const seo = ({
 		{ name: 'og:type', content: 'website' },
 		{ name: 'og:title', content: title },
 		{ name: 'og:description', content: description },
-		{ name: 'og:site_name', content: 'Meseeks' },
+		{ name: 'og:site_name', content: 'PRO' },
 		{ name: 'og:url', content: URL },
 		...(image
 			? [

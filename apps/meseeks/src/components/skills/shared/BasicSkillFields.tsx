@@ -42,7 +42,7 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="description"
 				render={({ field }) => (
 					<FormItem>
-						<LabelWithTooltip tooltip="This description is exposed to the AI when selecting skills. It should clearly explain what the skill does and when to use it, as the AI uses this information to decide whether to use this skill during task execution.">
+						<LabelWithTooltip tooltip="This description is exposed to the AI when selecting skills. It should clearly explain what the skill does and when to use it, as the AI uses this information to decide whether to use this skill during action execution.">
 							Description
 						</LabelWithTooltip>
 						<FormControl>
@@ -66,7 +66,7 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="inputSchema"
 				render={({ field }) => (
 					<FormItem>
-						<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly. You if have no idea what this is, you'll be better served by asking Meseeks to learn it, instead of trying to fill manually.">
+						<LabelWithTooltip tooltip="Serialized schema that defines the expected input parameters for this skill. If you have no idea what this is, you'll be better served by asking PRO to learn it, instead of trying to fill manually.">
 							Input Schema
 						</LabelWithTooltip>
 						<FormControl>
@@ -103,7 +103,7 @@ function AuthorizationField({ form, isEditable }: Pick<BasicSkillFieldsProps, 'f
 			name="preApprovedCost"
 			render={({ field }) => (
 				<FormItem>
-					<LabelWithTooltip tooltip="Controls when this skill requires human approval. You can allow it to be executed by Meseeks with no human approval (up to a certain cost), but it'll still be subject to other limits, such as maximum amount of consecutive actions.">
+					<LabelWithTooltip tooltip="Controls when this skill requires human approval. You can allow Reactor to execute it with no human approval up to a certain cost, but it is still subject to runtime limits such as maximum consecutive actions.">
 						Authorization
 					</LabelWithTooltip>
 					<div className="flex flex-row items-center gap-3 w-full">

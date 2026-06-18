@@ -4,17 +4,20 @@ import { api } from 'convex/_generated/api';
 
 export function useAct() {
 	//
-	const act = useMutation(api.action.act);
+	const act = useMutation(api.actions.act);
+
+	type Args = Parameters<typeof act>[0];
+	type Action = Args['actions'][number];
 
 	const mutation = useTanStackMutation({
-		mutationFn: async (args: Parameters<typeof act>[0]) => {
-			return await act(args);
+		mutationFn: async (actions: Array<Action>) => {
+			return await act({ actions });
 		},
 	});
 
 	return {
+		...mutation,
 		act: mutation.mutateAsync,
 		isActing: mutation.isPending,
-		...mutation,
 	};
 }

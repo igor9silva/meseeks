@@ -1,5 +1,3 @@
-import { useConvexAuth, useMutation, useQuery } from 'convex/react';
-import { api } from 'convex/_generated/api';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
 	applyThemeToDocument,
@@ -15,11 +13,6 @@ import type { AppThemeId, ThemeMode } from '~/lib/themes/catalog';
 // - persist config to server, load during SSR toghether with user data
 // - mode = dark, light or system (auto, tied with OS)
 // - theme = customizable everything (from corner radius to spacing)
-
-type ThemeSelection = {
-	customThemeId: AppThemeId | null;
-	previewThemeId: AppThemeId | null;
-};
 
 type ThemeProviderContextType = {
 	theme: ThemeMode;
@@ -41,11 +34,6 @@ type ThemeProviderProps = {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
 	//
-	const { isAuthenticated } = useConvexAuth();
-	const userTheme = useQuery(api.users.themes.get, isAuthenticated ? {} : 'skip');
-	const setThemeMutation = useMutation(api.users.themes.set);
-	const resetThemeMutation = useMutation(api.users.themes.reset);
-
 	const [customThemeId, setCustomThemeId] = useState<AppThemeId | null>(() => getInitialCustomThemeId());
 
 	// launcher hover previews should not change the persisted selection marker.
@@ -62,21 +50,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 		syncThemeSnapshot(themeId ? getRequiredTheme(themeId) : null);
 	}, []);
 
-	const restoreThemeSelection = useCallback(
-		(selection: ThemeSelection) => {
-			syncPersistedCustomTheme(selection.customThemeId);
-			setPreviewThemeId(selection.previewThemeId);
-		},
-		[syncPersistedCustomTheme],
-	);
-
-	useEffect(() => {
-		// Convex is the source of truth after hydration. The stored snapshot only bridges first paint.
-		if (userTheme === undefined) return;
-
-		syncPersistedCustomTheme(userTheme.themeId ?? null);
-	}, [syncPersistedCustomTheme, userTheme]);
-
 	useEffect(() => subscribeToSystemThemeMode(setSystemThemeMode), []);
 
 	useEffect(() => {
@@ -90,40 +63,16 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
 	const setThemeById = useCallback(
 		async (themeId: AppThemeId) => {
-			const previousSelection: ThemeSelection = {
-				customThemeId,
-				previewThemeId,
-			};
-
 			syncPersistedCustomTheme(themeId);
 			setPreviewThemeId(null);
-
-			try {
-				await setThemeMutation({ themeId });
-			} catch (error) {
-				restoreThemeSelection(previousSelection);
-				throw error;
-			}
 		},
-		[customThemeId, previewThemeId, restoreThemeSelection, setThemeMutation, syncPersistedCustomTheme],
+		[syncPersistedCustomTheme],
 	);
 
 	const resetTheme = useCallback(async () => {
-		const previousSelection: ThemeSelection = {
-			customThemeId,
-			previewThemeId,
-		};
-
 		syncPersistedCustomTheme(null);
 		setPreviewThemeId(null);
-
-		try {
-			await resetThemeMutation({});
-		} catch (error) {
-			restoreThemeSelection(previousSelection);
-			throw error;
-		}
-	}, [customThemeId, previewThemeId, resetThemeMutation, restoreThemeSelection, syncPersistedCustomTheme]);
+	}, [syncPersistedCustomTheme]);
 
 	const previewThemeById = useCallback((themeId: AppThemeId) => {
 		setPreviewThemeId(themeId);

@@ -13,7 +13,7 @@ export function SkillLearningInfoBox({ query }: { query: string }) {
 						<span className="font-medium">Tip: </span>
 						Instead of filling everything manually, you can{' '}
 						<Link to="/$" params={{ _splat: 'new' }} search={{ q: query }} className="underline">
-							just ask Meseeks
+							just ask PRO
 						</Link>
 						. Tell it what you want and let it shine.
 					</div>

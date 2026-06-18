@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { CodeXml } from 'lucide-react';
 import { CommandItem } from '@reactor/ui/command';
 import { useLauncher } from '../LauncherProvider';
@@ -6,16 +6,21 @@ import { useLauncher } from '../LauncherProvider';
 export function DevModeItem() {
 	//
 	const { close } = useLauncher();
-	const navigate = useNavigate();
-	const { pathname, search } = useLocation();
-	const isDebugMode = Boolean(search.debug);
+	const router = useRouter();
+	const search = new URLSearchParams(router.state.location.searchStr);
+	const isDebugMode = search.get('debug') === 'true';
 
 	const handleToggleDebug = () => {
 		//
-		navigate({
-			to: pathname,
-			search: (prev) => ({ ...prev, debug: isDebugMode ? undefined : true }),
-		});
+		if (isDebugMode) {
+			search.delete('debug');
+		} else {
+			search.set('debug', 'true');
+		}
+
+		const nextSearch = search.toString();
+		const nextUrl = `${router.state.location.pathname}${nextSearch ? `?${nextSearch}` : ''}`;
+		router.history.push(nextUrl);
 		close();
 	};
 

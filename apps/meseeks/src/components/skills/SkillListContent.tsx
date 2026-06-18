@@ -1,8 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Doc } from 'convex/_generated/dataModel';
-import { useCallback } from 'react';
 import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
-import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { SkillCard } from './SkillCard';
 
 type SkillListContentProps = {
@@ -46,26 +44,6 @@ function SkillList({
 	skills: Doc<'skills'>[];
 }) {
 	//
-	const { enabledSkills, setEnabledSkills } = useEnabledSkillsPreference();
-
-	const onToggle = useCallback(
-		(skillKey: string, isEnabled: boolean) => {
-			//
-			let nextEnabledSkills = enabledSkills;
-
-			if (isEnabled && !enabledSkills.includes(skillKey)) {
-				nextEnabledSkills = enabledSkills.concat(skillKey);
-			}
-
-			if (!isEnabled && enabledSkills.includes(skillKey)) {
-				nextEnabledSkills = enabledSkills.filter((enabledSkill) => enabledSkill !== skillKey);
-			}
-
-			setEnabledSkills(nextEnabledSkills);
-		},
-		[enabledSkills, setEnabledSkills],
-	);
-
 	// Filter skills based on search term
 	const filteredSkills = skills.filter(
 		(skill) =>
@@ -95,13 +73,7 @@ function SkillList({
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{filteredSkills.map((skill) => (
-				<SkillCard
-					key={skill._id}
-					skill={skill}
-					isEnabled={enabledSkills.includes(skill.key)}
-					onToggle={(isEnabled) => onToggle(skill.key, isEnabled)}
-					onShareSkill={onShareSkill}
-				/>
+				<SkillCard key={skill._id} skill={skill} onShareSkill={onShareSkill} />
 			))}
 		</div>
 	);

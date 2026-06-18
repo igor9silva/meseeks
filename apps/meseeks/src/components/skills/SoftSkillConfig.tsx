@@ -80,7 +80,7 @@ export default function SoftSkillConfig({
 				<div className="space-y-2 col-span-2">
 					<LabelWithTooltip
 						htmlFor="instructions"
-						tooltip="Detailed instructions that will guide the AI model in making decisions and performing tasks."
+						tooltip="Detailed instructions that guide the AI model in making decisions and performing actions."
 					>
 						Instructions
 					</LabelWithTooltip>
@@ -98,7 +98,7 @@ export default function SoftSkillConfig({
 				<div className="space-y-2 col-span-1">
 					<LabelWithTooltip
 						htmlFor="model"
-						tooltip="Choose whether to use the task's selected intelligence automatically, or specify a particular model for this skill."
+						tooltip="Choose whether to use the action's selected intelligence automatically, or specify a particular model for this skill."
 					>
 						Intelligence
 					</LabelWithTooltip>
@@ -110,7 +110,7 @@ export default function SoftSkillConfig({
 						>
 							<TabsList className="grid grid-cols-2 min-w-fit">
 								<TabsTrigger value="automatic" disabled={!isEditable} className="px-4">
-									From task
+									From action
 								</TabsTrigger>
 								<TabsTrigger value="specific" disabled={!isEditable} className="px-4">
 									Specific
@@ -159,7 +159,7 @@ export default function SoftSkillConfig({
 			<div className="space-y-2">
 				<LabelWithTooltip
 					htmlFor="availableSkills"
-					tooltip="Skills that the AI model can choose to use during task execution."
+					tooltip="Skills that the AI model can choose to use during action execution."
 				>
 					Available Skills
 				</LabelWithTooltip>

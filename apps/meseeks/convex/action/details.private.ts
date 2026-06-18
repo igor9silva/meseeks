@@ -1,56 +1,87 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
-import { NotFound } from 'lib/errors';
-import { actionDetailSchema, actionDetailUpdateSchema } from 'schemas/actionDetailSchema';
+import {
+	actionDetailSchema,
+	preparationActionDetailSchema,
+	uploadActionDetailSchema,
+} from 'schemas/actionDetailSchema';
 
 export const findActionDetails = defineQuery({
 	args: z.object({
-		actionId: zid('actions'),
+		action: zid('actions'),
 	}),
-	handler: async (ctx, { actionId }) => {
+	handler: async (ctx, { action }) => {
 		//
 		return await ctx.db
 			.query('action_details')
-			.withIndex('by_action', (q) => q.eq('actionId', actionId))
-			.unique();
+			.withIndex('by_action', (q) => q.eq('action', action))
+			.collect();
 	},
 });
 
-export const persistActionDetails = defineMutation({
+export const recordActionDetail = defineMutation({
 	args: z.object({
-		details: actionDetailSchema,
+		detail: actionDetailSchema,
 	}),
-	handler: async (ctx, { details }) => {
+	handler: async (ctx, { detail }) => {
 		//
-		const existing = await findActionDetails(ctx, { actionId: details.actionId });
-		if (existing) throw new Error('Action detail already exists');
-
-		return await ctx.db.insert('action_details', details);
+		return await ctx.db.insert('action_details', detail);
 	},
 });
 
-export const updateActionDetails = defineMutation({
+export const recordActionPreparation = defineMutation({
 	args: z.object({
-		actionId: zid('actions'),
-		updates: actionDetailUpdateSchema,
+		detail: preparationActionDetailSchema,
 	}),
-	handler: async (ctx, { actionId, updates }) => {
+	handler: async (ctx, { detail }) => {
 		//
-		const existing = await findActionDetails(ctx, { actionId });
-		if (!existing) throw NotFound();
+		const details = await ctx.db
+			.query('action_details')
+			.withIndex('by_action', (q) => q.eq('action', detail.action))
+			.collect();
+		const existing = details.find((item) => item.kind === 'preparation');
 
-		// Merge updates with existing data to maintain complete object structure
-		if ('llm' in updates && 'llm' in existing) {
-			const updatedLlm = { ...existing.llm, ...updates.llm };
-			return await ctx.db.patch(existing._id, { llm: updatedLlm });
+		if (existing) {
+			await ctx.db.patch(existing._id, detail);
+
+			return existing._id;
 		}
 
-		if ('http' in updates && 'http' in existing) {
-			const updatedHttp = { ...existing.http, ...updates.http };
-			return await ctx.db.patch(existing._id, { http: updatedHttp });
-		}
+		return await ctx.db.insert('action_details', detail);
+	},
+});
 
-		throw new Error('Update type does not match existing document type');
+export const findActionPreparation = defineQuery({
+	args: z.object({
+		action: zid('actions'),
+	}),
+	handler: async (ctx, { action }) => {
+		//
+		const details = await ctx.db
+			.query('action_details')
+			.withIndex('by_action', (q) => q.eq('action', action))
+			.collect();
+		const detail = details.find((item) => item.kind === 'preparation');
+		if (!detail) throw new Error('Action is not prepared.');
+
+		return preparationActionDetailSchema.parse(detail);
+	},
+});
+
+export const findUploadTicket = defineQuery({
+	args: z.object({
+		action: zid('actions'),
+	}),
+	handler: async (ctx, { action }) => {
+		//
+		const details = await ctx.db
+			.query('action_details')
+			.withIndex('by_action', (q) => q.eq('action', action))
+			.collect();
+		const detail = details.find((item) => item.kind === 'upload');
+		if (!detail) throw new Error('Upload ticket was not prepared.');
+
+		return uploadActionDetailSchema.parse(detail);
 	},
 });

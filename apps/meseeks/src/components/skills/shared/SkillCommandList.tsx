@@ -1,5 +1,5 @@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@reactor/ui/command';
-import { useEnabledSkillsPreference } from '~/hooks/preferences';
+import { usePersonalSkills, usePublicSkills } from '~/hooks/query/useSkills';
 
 interface SkillCommandListProps {
 	//
@@ -16,15 +16,19 @@ export function SkillCommandList({
 	listId,
 }: SkillCommandListProps) {
 	//
-	const { enabledSkills } = useEnabledSkillsPreference();
-	const availableSkills = enabledSkills.filter((skillKey) => !excludeSkills.includes(skillKey));
+	const { skills: personalSkills } = usePersonalSkills();
+	const { skills: publicSkills } = usePublicSkills();
+	const availableSkills = publicSkills
+		.concat(personalSkills)
+		.map((skill) => skill.key)
+		.filter((skillKey) => !excludeSkills.includes(skillKey));
 
 	return (
 		<Command>
 			{/* oxlint-disable-next-line jsx-a11y/no-autofocus -- so far better than introducing an useEffect() */}
 			<CommandInput placeholder={placeholder} autoFocus />
 			<CommandList id={listId} className="max-h-72">
-				<CommandEmpty>No enabled skills found.</CommandEmpty>
+				<CommandEmpty>No skills found.</CommandEmpty>
 				<CommandGroup>
 					{availableSkills.map((skillKey) => (
 						<CommandItem

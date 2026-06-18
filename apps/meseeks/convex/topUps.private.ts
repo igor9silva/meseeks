@@ -3,14 +3,7 @@ import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { authorSchema } from 'schemas/authorSchema';
-import { polarEventSchema } from 'schemas/polarEventSchema';
-import {
-	blockchainSchema,
-	tokenSchema,
-	topUpAmountSchema,
-	topUpStatusSchema,
-	walletAddressSchema,
-} from 'schemas/topUpSchema';
+import { topUpAmountSchema, topUpStatusSchema } from 'schemas/topUpSchema';
 import { addTopUpTransaction } from './transactions.private';
 
 export const findTopUpByPaymentId = defineQuery({
@@ -20,7 +13,7 @@ export const findTopUpByPaymentId = defineQuery({
 	handler: async (ctx, { paymentId }) => {
 		//
 		return await ctx.db
-			.query('topUps')
+			.query('top_ups')
 			.withIndex('by_paymentId', (q) => q.eq('paymentId', paymentId))
 			.first();
 	},
@@ -30,30 +23,25 @@ export const addTopUp = defineMutation({
 	args: z.object({
 		owner: zid('users'),
 		author: authorSchema,
-		to: walletAddressSchema,
-		description: z.string(),
-		chain: blockchainSchema,
-		symbol: tokenSchema,
 		amount: topUpAmountSchema,
+		fee: z.bigint(),
+		totalCharged: z.bigint(),
 		paymentUrl: z.string().url(),
 		paymentId: z.string(),
 	}),
-	handler: async (ctx, { author, owner, to, description, chain, symbol, amount, paymentUrl, paymentId }) => {
+	handler: async (ctx, args) => {
 		//
-		const topUpId = await ctx.db.insert('topUps', {
-			to,
-			description,
-			chain,
-			symbol,
-			amount,
+		return await ctx.db.insert('top_ups', {
+			owner: args.owner,
+			author: args.author,
+			amount: args.amount,
+			fee: args.fee,
+			totalCharged: args.totalCharged,
 			status: 'waiting',
-			author,
-			owner,
-			paymentUrl,
-			paymentId,
+			paymentUrl: args.paymentUrl,
+			paymentId: args.paymentId,
+			provider: 'polar',
 		});
-
-		return topUpId;
 	},
 });
 
@@ -66,37 +54,21 @@ export const finishTopUp = defineMutation({
 		//
 		const topUp = await findTopUpByPaymentId(ctx, { paymentId: checkoutId });
 		if (!topUp) throw NotFound();
-
 		if (topUp.status !== 'waiting') throw new Error('Top up is not waiting');
 
 		await ctx.db.patch(topUp._id, { status: 'confirmed' });
-
 		await addTopUpTransaction(ctx, {
-			topUpId: topUp._id,
 			owner: topUp.owner,
-			value: {
-				symbol: topUp.symbol,
-				amount,
-			},
+			value: amount,
+			topUp: topUp._id,
+			description: 'Top up',
 		});
 	},
 });
 
-export const persistPolarEvent = defineMutation({
-	args: z.object({
-		polarEvent: polarEventSchema,
-	}),
-	handler: async (ctx, { polarEvent }) => {
-		//
-		await ctx.db.insert('polarEvents', polarEvent);
-	},
-});
-
-// TODO: add automatic timeout for waiting top ups
-
 export const findTopUp = defineQuery({
 	args: z.object({
-		topUpId: zid('topUps'),
+		topUpId: zid('top_ups'),
 	}),
 	handler: async (ctx, { topUpId }) => {
 		return await ctx.db.get(topUpId);
@@ -109,7 +81,7 @@ export const findWaitingTopUps = defineQuery({
 	}),
 	handler: async (ctx, { owner }) => {
 		return await ctx.db
-			.query('topUps')
+			.query('top_ups')
 			.withIndex('by_status_owner', (q) =>
 				q
 					.eq('status', 'waiting') //
@@ -126,7 +98,7 @@ export const findTopUpsByStatus = defineQuery({
 	}),
 	handler: async (ctx, { owner, status }) => {
 		return await ctx.db
-			.query('topUps')
+			.query('top_ups')
 			.withIndex('by_status_owner', (q) =>
 				q
 					.eq('status', status) //

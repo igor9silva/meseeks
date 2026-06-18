@@ -3,13 +3,13 @@ import { Doc } from 'convex/_generated/dataModel';
 import { TimeAgo } from '~/components/TimeAgo';
 
 export const topUpStatusColors = {
-	waiting: 'bg-yellow-100 text-yellow-800',
-	pending: 'bg-yellow-100 text-yellow-800',
-	confirmed: 'bg-green-100 text-green-800',
-	failed: 'bg-red-100 text-red-800',
+	'waiting': 'bg-yellow-100 text-yellow-800',
+	'confirmed': 'bg-green-100 text-green-800',
+	'failed': 'bg-red-100 text-red-800',
+	'discarded by user': 'bg-gray-100 text-gray-800',
 };
 
-export function TopUpItem({ topUp }: { topUp: Doc<'topUps'> }) {
+export function TopUpItem({ topUp }: { topUp: Doc<'top_ups'> }) {
 	//
 
 	return (

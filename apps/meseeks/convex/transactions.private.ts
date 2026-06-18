@@ -1,59 +1,58 @@
-import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { defineMutation } from 'lib/convex';
-import { transactionSchema, valueSchema } from 'schemas/transactionSchema';
+import { transactionSchema } from 'schemas/transactionSchema';
 import { adjustUserBalance } from './users.private';
 
 export const addFreeCredits = defineMutation({
 	args: z.object({
-		value: valueSchema,
-		owner: zid('users'),
+		owner: transactionSchema.shape.owner,
+		value: transactionSchema.shape.value,
 		description: z.string(),
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'free credits', ...args }),
+	handler: async (ctx, args) => addTransaction(ctx, { kind: 'free energy', ...args }),
 });
 
 export const addTopUpTransaction = defineMutation({
 	args: z.object({
-		value: valueSchema,
-		topUpId: zid('topUps'),
-		owner: zid('users'),
-		description: z.string().optional(),
+		owner: transactionSchema.shape.owner,
+		value: transactionSchema.shape.value,
+		topUp: transactionSchema.shape.topUp.unwrap(),
+		description: transactionSchema.shape.description,
 	}),
 	handler: async (ctx, args) => addTransaction(ctx, { kind: 'top up', ...args }),
 });
 
-export const addTaskFundingTransaction = defineMutation({
+export const addActionCostTransaction = defineMutation({
 	args: z.object({
-		value: valueSchema,
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		description: z.string().optional(),
+		owner: transactionSchema.shape.owner,
+		value: transactionSchema.shape.value,
+		action: transactionSchema.shape.action.unwrap(),
+		description: transactionSchema.shape.description,
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'fund task', ...args }),
+	handler: async (ctx, args) => addTransaction(ctx, { kind: 'action cost', ...args }),
 });
 
-export const addTaskRefundTransaction = defineMutation({
+export const addStorageCostTransaction = defineMutation({
 	args: z.object({
-		value: valueSchema,
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		description: z.string().optional(),
+		owner: transactionSchema.shape.owner,
+		value: transactionSchema.shape.value,
+		file: transactionSchema.shape.file.unwrap(),
+		description: transactionSchema.shape.description,
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'refund from task', ...args }),
+	handler: async (ctx, args) => addTransaction(ctx, { kind: 'storage cost', ...args }),
 });
 
-export const addSubscriptionCreditsTransaction = defineMutation({
+export const addRefundTransaction = defineMutation({
 	args: z.object({
-		value: valueSchema,
-		subscriptionId: zid('subscriptions'),
-		owner: zid('users'),
-		description: z.string().optional(),
+		owner: transactionSchema.shape.owner,
+		value: transactionSchema.shape.value,
+		action: transactionSchema.shape.action,
+		topUp: transactionSchema.shape.topUp,
+		description: transactionSchema.shape.description,
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'subscription', ...args }),
+	handler: async (ctx, args) => addTransaction(ctx, { kind: 'refund', ...args }),
 });
 
-// helper, not exported
 const addTransaction = defineMutation({
 	args: transactionSchema,
 	handler: async (ctx, transaction) => {
@@ -62,7 +61,7 @@ const addTransaction = defineMutation({
 
 		await adjustUserBalance(ctx, {
 			userId: transaction.owner,
-			value: transaction.value,
+			amount: transaction.value,
 		});
 
 		return transactionId;

@@ -1,9 +1,25 @@
+import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
+
+export const polarEventReceiptSchema = z
+	.object({
+		owner: zid('users').optional(),
+		action: zid('actions').optional(),
+		type: z.string().min(1),
+		eventId: z.string().optional(),
+		data: z.record(z.unknown()).describe('Polar payload after secret stripping.'),
+		receivedAt: z.number(),
+	})
+	.describe('Polar webhook receipt row.');
 
 export const polarEventSchema = z.object({
 	type: z.string(),
 	timestamp: z.string().optional(),
-	data: z.record(z.any()),
+	data: z
+		.object({
+			id: z.string().optional(),
+		})
+		.catchall(z.unknown()),
 });
 
 export const orderDataSchema = z.object({
@@ -19,37 +35,13 @@ export const orderDataSchema = z.object({
 	billing_reason: z
 		.enum([
 			'purchase', //
-			'subscription_create',
-			'subscription_cycle',
-			'subscription_update',
 		])
 		.optional(),
 	product_id: z.string(),
 	checkout_id: z.string(),
-	subscription_id: z.string().optional(),
 	customer: z.object({
 		external_id: z.string(),
 	}),
-});
-
-export const subscriptionDataSchema = z.object({
-	id: z.string(),
-	status: z.enum([
-		'incomplete', //
-		'active',
-		'past_due',
-		'canceled',
-		'unpaid',
-		'incomplete_expired',
-		'trialing',
-	]),
-	customer: z.object({
-		external_id: z.string(),
-	}),
-	product_id: z.string(),
-	cancel_at_period_end: z.boolean(),
-	current_period_end: z.string(),
-	ended_at: z.string().optional().nullable(),
 });
 
 export const orderPaidSchema = z.object({
@@ -62,13 +54,4 @@ export const orderRefundedSchema = z.object({
 	data: orderDataSchema,
 });
 
-export const subscriptionRevokedSchema = z.object({
-	type: z.literal('subscription.revoked'),
-	data: subscriptionDataSchema,
-});
-
-export const webhookEventSchema = z.discriminatedUnion('type', [
-	orderPaidSchema,
-	orderRefundedSchema,
-	subscriptionRevokedSchema,
-]);
+export const webhookEventSchema = z.discriminatedUnion('type', [orderPaidSchema, orderRefundedSchema]);

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { track } from '@vercel/analytics/react';
-import { Id } from 'convex/_generated/dataModel';
+import { zid } from 'convex-helpers/server/zod3';
 import { useMutation } from 'convex/react';
 import { usePayment } from '~/hooks/usePayment';
 import { cn } from '@reactor/ui/lib/utils';
@@ -15,17 +14,22 @@ import { Card, CardContent, CardFooter } from '@reactor/ui/card';
 import { useTopUp } from '~/hooks/query/useTopUps';
 
 export const Route = createFileRoute('/top-up_/$id')({
+	params: {
+		parse: (params) => ({
+			id: zid('top_ups').parse(params.id),
+		}),
+	},
 	component: RouteComponent,
 });
 
 export function RouteComponent({ className }: { className?: string }) {
 	//
 	const { id } = Route.useParams();
-	const { topUp } = useTopUp(id as Id<'topUps'>);
+	const { topUp } = useTopUp(id);
 
 	const discard = useMutation(api.topUps.discard);
 
-	const { pay, isPending, error } = usePayment(topUp);
+	const { pay, isPending, error } = usePayment({ paymentUrl: topUp.paymentUrl ?? '' });
 
 	if (error) {
 		//
@@ -35,10 +39,6 @@ export function RouteComponent({ className }: { className?: string }) {
 			</div>
 		);
 	}
-
-	track('top-up/$id', {
-		topUpId: id,
-	});
 
 	return (
 		<Card className={cn('max-h-fit border-none rounded-none', className)}>
@@ -65,9 +65,7 @@ export function RouteComponent({ className }: { className?: string }) {
 					{/* Amount Section */}
 					<div className="flex flex-col gap-2 p-4 bg-muted rounded-xl">
 						<div className="flex items-center justify-between">
-							<span className="text-sm sm:text-base font-medium text-muted-foreground">
-								{topUp.symbol}
-							</span>
+							<span className="text-sm sm:text-base font-medium text-muted-foreground">Energy</span>
 							<span className="text-lg sm:text-xl font-bold tabular-nums">
 								{asDollars({ bigInt: topUp.amount })}
 							</span>
@@ -84,8 +82,8 @@ export function RouteComponent({ className }: { className?: string }) {
 							<span className="text-muted-foreground whitespace-nowrap">Recipient</span>
 							<span className="font-medium break-all">{topUp.to}</span> */}
 
-							<span className="text-muted-foreground whitespace-nowrap">Description</span>
-							<span className="font-medium break-normal hyphens-auto">{topUp.description}</span>
+							<span className="text-muted-foreground whitespace-nowrap">Provider</span>
+							<span className="font-medium break-normal hyphens-auto">{topUp.provider}</span>
 						</div>
 					</div>
 				</div>
@@ -96,11 +94,16 @@ export function RouteComponent({ className }: { className?: string }) {
 						className="w-full sm:w-24"
 						variant="destructive"
 						disabled={isPending}
-						onClick={() => discard({ topUpId: id as Id<'topUps'> })}
+						onClick={() => discard({ topUpId: id })}
 					>
 						Discard
 					</Button>
-					<Button className="w-full sm:w-24" variant="default" disabled={isPending} onClick={() => pay()}>
+					<Button
+						className="w-full sm:w-24"
+						variant="default"
+						disabled={isPending || !topUp.paymentUrl}
+						onClick={() => pay()}
+					>
 						{isPending ? 'Paying...' : 'Pay'}
 					</Button>
 				</CardFooter>

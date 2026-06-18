@@ -1,18 +1,8 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 
-export const blockchainSchema = z.enum([
-	'ethereum', //
-	'base',
-	'worldchain',
-	'optimism',
-]);
-
-export const tokenSchema = z.enum([
-	'USD', //
-]);
+export const tokenSchema = z.literal('energy');
 
 export const topUpStatusSchema = z.enum([
 	'waiting', //
@@ -21,24 +11,18 @@ export const topUpStatusSchema = z.enum([
 	'discarded by user',
 ]);
 
-export const walletAddressSchema = z.string().describe('The address of the recipient.');
-
-export const topUpAmountSchema = z
-	.bigint()
-	.min(asBigInt({ dollars: 10 }), 'Minimum amount is 10 USD')
-	.max(asBigInt({ dollars: 100000 }), 'That much? Are you sure?');
+export const topUpAmountSchema = z.bigint().min(1n).describe('Usable energy amount.');
 
 export const topUpSchema = z
 	.object({
-		chain: blockchainSchema,
-		symbol: tokenSchema,
-		amount: topUpAmountSchema,
-		to: walletAddressSchema,
-		description: z.string(),
-		status: topUpStatusSchema,
 		owner: zid('users'),
 		author: authorSchema,
-		paymentUrl: z.string().url().describe('The URL the user will be redirected to pay.'),
-		paymentId: z.string().describe('The ID of the Polar checkout.'),
+		amount: topUpAmountSchema,
+		fee: z.bigint(),
+		totalCharged: z.bigint(),
+		status: topUpStatusSchema,
+		paymentUrl: z.string().url().optional(),
+		paymentId: z.string().optional(),
+		provider: z.literal('polar'),
 	})
-	.describe('A topUp to be executed on the blockchain.');
+	.describe('One-time energy deposit checkout state.');

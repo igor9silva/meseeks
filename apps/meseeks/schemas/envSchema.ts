@@ -6,68 +6,15 @@ export const env = createEnv({
 	runtimeEnv: process.env,
 
 	server: {
-		//
+		// app
 		SITE_URL: z.string().min(1).describe('The app public URL.'),
-		ENV_TYPE: z.enum(['production', 'preview', 'development']).describe('Deployment environment.'),
+		ENV_TYPE: z.enum(['production', 'preview', 'development']),
+		NODE_ENV: z.enum(['development', 'production']).default('development'),
+
+		// auth
 		BETTER_AUTH_SECRET: z.string().min(1).describe('Better Auth application secret.'),
-
-		POLAR_SERVER: z.enum(['sandbox', 'production']).default('sandbox').describe('Polar server.'),
-		POLAR_ACCESS_TOKEN: z.string().min(1).describe('Polar Access Token for payment processing.'),
-		POLAR_WEBHOOK_SECRET: z.string().min(1).describe('Polar webhook secret for payment verification.'),
-		POLAR_SUBSCRIPTION_ID: z.string().min(1).describe('Pro subscription product ID.'),
-		POLAR_FOUNDER_PACK_ID: z.string().min(1).describe('Founder pack product ID.'),
-		POLAR_TOP_UP_ID: z.string().min(1).describe('Top up product ID.'),
-		PAYMENT_ETH_ADDRESS_BASE_CHAIN: z.string().min(1).describe('The Base wallet address to receive payments.'),
-
-		ACTION_COST_USD: z
-			.string()
-			.min(1)
-			.transform((s) => BigInt(s))
-			.pipe(z.bigint())
-			.describe('The cost of one action in USD.'),
-
-		CHAR_PER_TOKEN: z
-			.string()
-			.min(1)
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('The number of characters per token to account for in cost prediction.'),
-
-		COST_PREDICTION_MARGIN: z
-			.string()
-			.min(1)
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('The cost prediction margin, in percentage (e.g. "50" for 50%).'),
-
-		MAX_HTTP_RESPONSE_BODY_BYTES: z
-			.string()
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('Maximum HTTP response body size to store in action details (in bytes).')
-			.default('819200'), // 800KiB in bytes
-
 		AUTH_GOOGLE_ID: z.string().min(1).describe('Google OAuth client ID.'),
 		AUTH_GOOGLE_SECRET: z.string().min(1).describe('Google OAuth client secret.'),
-
-		ALLOWED_DOMAINS: z
-			.string()
-			.min(1)
-			// transform to array
-			.transform((s) => s.split(','))
-			// make sure transform worked
-			.pipe(z.array(z.string()))
-			.describe('Comma-separated list of allowed domains to sign in with.'),
-
-		ALLOWED_EMAILS: z
-			.string()
-			.min(1)
-			// transform to array
-			.transform((s) => s.split(','))
-			// make sure transform worked
-			.pipe(z.array(z.string()))
-			.describe('Comma-separated list of allowed emails to sign in with.'),
-
 		JWT_SESSION_DURATION_MS: z
 			.string()
 			.min(1)
@@ -86,27 +33,26 @@ export const env = createEnv({
 			.pipe(z.number())
 			.describe('Session update age in milliseconds (how often to refresh rolling sessions in background).'),
 
-		MAX_CONSECUTIVE_COMPANION_ACTIONS: z
-			.string()
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('The maximum number of consecutive companion actions.')
-			.default('20'),
+		// object storage
+		OBJECT_STORAGE_BUCKET: z.string().min(1),
+		OBJECT_STORAGE_ENDPOINT: z.string().min(1),
+		OBJECT_STORAGE_REGION: z.string().min(1).default('auto'),
+		OBJECT_STORAGE_ACCESS_KEY_ID: z.string().min(1),
+		OBJECT_STORAGE_SECRET_ACCESS_KEY: z.string().min(1),
+		OBJECT_STORAGE_ROOT_PREFIX: z.string().min(1),
 
-		MAX_CONTEXT_ACTIONS: z
-			.string()
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('The maximum number of actions to load before token-based cropping.')
-			.default('40'),
+		// payments
+		POLAR_SERVER: z.enum(['sandbox', 'production']).default('sandbox'),
+		POLAR_ACCESS_TOKEN: z.string().min(1),
+		POLAR_WEBHOOK_SECRET: z.string().min(1),
+		POLAR_TOP_UP_ID: z.string().min(1),
 
-		MAX_CONTEXT_TOKENS: z
-			.string()
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number().int().min(1))
-			.describe('The maximum estimated tokens to keep in model context.')
-			.default('128000'),
+		// boxes
+		DAYTONA_API_KEY: z.string().min(1),
+		DAYTONA_API_URL: z.string().min(1).optional(),
+		DAYTONA_TARGET: z.string().min(1).describe('Region/environment, e.g. `us` or `eu`.'),
 
+		// reactor
 		ACTION_TIMEOUT_BUFFER_MS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
@@ -114,19 +60,10 @@ export const env = createEnv({
 			.describe('How much earlier than Convex hard timeout actions should abort, in milliseconds.')
 			.default('120000'),
 
-		ACTIVE_TASKS_RENDER_LIMIT: z
-			.string()
-			.transform((s) => Number.parseInt(s, 10))
-			.pipe(z.number())
-			.describe('Maximum number of active tasks to show in activeTasks variable.')
-			.default('20'),
-
-		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
-		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
-		MISTRAL_API_KEY: z.string().min(1).describe('Mistral API key.'),
-		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
-
-		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
+		// intelligence providers
+		DEEPSEEK_API_KEY: z.string().min(1),
+		MOONSHOT_API_KEY: z.string().min(1),
+		OPENAI_API_KEY: z.string().min(1),
 	},
 
 	/**

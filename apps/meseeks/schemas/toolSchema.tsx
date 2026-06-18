@@ -3,7 +3,7 @@ import type { z } from 'zod/v3';
 import type { newActionSchema } from './actionSchema';
 import type { tokenSchema } from './topUpSchema';
 
-// standardized tool result type for all Meseeks tools
+// standardized tool result type for all PRO tools.
 export type AIToolResult = {
 	result: {
 		text?: string | undefined;

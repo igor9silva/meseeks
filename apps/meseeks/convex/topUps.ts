@@ -1,22 +1,16 @@
 import { Polar } from '@polar-sh/sdk';
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
-import { Id } from './_generated/dataModel';
-import { action, internalMutation, internalQuery, mutation, query } from 'lib/convex';
+import type { Id } from './_generated/dataModel';
+import { action, internalMutation, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { asDollars, asNumber } from 'lib/money';
+import { asNumber } from 'lib/money';
 import { env } from 'schemas/envSchema';
-import { blockchainSchema, tokenSchema, topUpAmountSchema } from 'schemas/topUpSchema';
-import { internal } from './_generated/api';
-import {
-	addTopUp,
-	findTopUp,
-	findTopUpsByStatus,
-	findWaitingTopUps,
-	finishTopUp,
-	persistPolarEvent,
-} from './topUps.private';
-import { getCurrentUser, isProSubscriber } from './users.private';
+import { topUpAmountSchema } from 'schemas/topUpSchema';
+import { api, internal } from './_generated/api';
+import { addTopUp, findTopUp, findTopUpsByStatus, findWaitingTopUps, finishTopUp } from './topUps.private';
+import { getCurrentUser } from './users.private';
+
+const FEE_RATE_PERCENT = 2n;
 
 // called by startTopUp action after checkout creation to persist a waiting top-up record
 export const _add = internalMutation({
@@ -24,39 +18,21 @@ export const _add = internalMutation({
 	handler: addTopUp,
 });
 
-// called from lib/polar.ts on order.paid webhook to mark top-up confirmed and credit balance
+// called from lib/polar.ts on order.paid webhook to mark top-up confirmed and credit energy
 export const _finish = internalMutation({
 	args: finishTopUp.args.shape,
 	handler: finishTopUp,
 });
 
-// called from lib/polar.ts to persist raw webhook events for audit/debug before branching logic
-export const _persistPolarEvent = internalMutation({
-	args: persistPolarEvent.args.shape,
-	handler: persistPolarEvent,
-});
-
-export const _getStartTopUpContext = internalQuery({
-	args: {},
-	handler: async (ctx) => {
-		//
-		const currentUser = await getCurrentUser(ctx, {});
-		const isCurrentUserProSubscriber = await isProSubscriber(ctx, { owner: currentUser._id });
-		return { currentUser, isProSubscriber: isCurrentUserProSubscriber };
-	},
-});
-
 export const startTopUp = action({
 	args: {
-		chain: blockchainSchema,
-		symbol: tokenSchema,
 		amount: topUpAmountSchema,
-		description: z.string().optional(),
 	},
-	handler: async (ctx, { chain, symbol, amount, description }): Promise<Id<'topUps'>> => {
+	handler: async (ctx, { amount }): Promise<Id<'top_ups'>> => {
 		//
-		const { currentUser, isProSubscriber } = await ctx.runQuery(internal.topUps._getStartTopUpContext, {});
-		if (!isProSubscriber) throw new Error('User is not Pro.');
+		const currentUser = await ctx.runQuery(api.users.current, {});
+		const fee = (amount * FEE_RATE_PERCENT) / 100n;
+		const totalCharged = amount + fee;
 
 		console.debug(`Starting top up at Polar '${env.POLAR_SERVER}' environment.`);
 
@@ -66,7 +42,7 @@ export const startTopUp = action({
 		});
 
 		const checkout = await polar.checkouts.create({
-			amount: asNumber({ bigInt: amount }) * 100, // Polar requires USD cents ¢
+			amount: asNumber({ bigInt: totalCharged }) * 100,
 			allowDiscountCodes: false,
 			successUrl: `${env.SITE_URL}/polar/topped?checkout_id={CHECKOUT_ID}`,
 			customerName: currentUser.name,
@@ -75,25 +51,21 @@ export const startTopUp = action({
 			products: [env.POLAR_TOP_UP_ID],
 		});
 
-		const topUpId = await ctx.runMutation(internal.topUps._add, {
+		return await ctx.runMutation(internal.topUps._add, {
 			author: currentUser._id,
 			owner: currentUser._id,
-			to: env.PAYMENT_ETH_ADDRESS_BASE_CHAIN,
-			description: description || `Add ${asDollars({ bigInt: amount })} energy to your account balance.`,
-			chain,
-			symbol,
 			amount,
+			fee,
+			totalCharged,
 			paymentUrl: checkout.url,
 			paymentId: checkout.id,
 		});
-
-		return topUpId;
 	},
 });
 
 export const discard = mutation({
 	args: {
-		topUpId: zid('topUps'),
+		topUpId: zid('top_ups'),
 	},
 	handler: async (ctx, { topUpId }) => {
 		//
@@ -102,8 +74,7 @@ export const discard = mutation({
 
 		if (!topUp) throw NotFound();
 		if (topUp.owner !== currentUser._id) throw NotFound();
-
-		if (topUp.status !== 'waiting') throw new Error('TopUp cannot be discarded anymore');
+		if (topUp.status !== 'waiting') throw new Error('Top-up cannot be discarded anymore');
 
 		return await ctx.db.patch(topUpId, { status: 'discarded by user' });
 	},
@@ -111,7 +82,7 @@ export const discard = mutation({
 
 export const findOne = query({
 	args: {
-		topUpId: zid('topUps'),
+		topUpId: zid('top_ups'),
 	},
 	handler: async (ctx, { topUpId }) => {
 		//

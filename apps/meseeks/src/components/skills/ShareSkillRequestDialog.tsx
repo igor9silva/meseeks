@@ -78,8 +78,8 @@ export function ShareSkillRequestDialog({
 							Fill below to request access.
 							<br />
 							<br />
-							Sharing skills enable other users to use skills you taught your Meseeks (for free, or for a
-							fee — it's up to you)!
+							Sharing skills lets other users use skills you taught PRO (for free, or for a fee — it's up
+							to you)!
 						</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">

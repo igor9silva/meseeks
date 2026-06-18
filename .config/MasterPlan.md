@@ -109,6 +109,10 @@ We do not use or support anything Microsoft. This is a GLOBAL STRICT UNNEGOTIABL
 - Prefer short, exact names over verbose names. Do not repeat the containing concept in the identifier.
   - bad: `task.loopBinding`, `reactionTrigger`, `buildMagicRockContextFromActionDetails`, `SeekLoop@12`
   - good: `task.loop`, `trigger`, `buildContext({ details })`, `Seek@12`
+- If a field value is an id but the schema cannot type it with `zid(...)`, include `Id` in the field name.
+  - bad: serialized skill input `{ file: "..." }` when `file` is only `z.string()`
+  - good: serialized skill input `{ fileId: "..." }`, then parse with `zid('files')` at the server boundary
+  - good: typed Convex args may still use semantic names like `file: zid('files')`
 
 ### Ternaries
 
@@ -291,6 +295,16 @@ Do not run `bunx convex deploy` - this deploys to production.
 - Always use indexes for queries
 - Never use `filter()` without explicit user consent
 - Use `zid('tableName')` for typed IDs
+- Persist domain rows through their owning Convex module. Other modules call semantic helpers instead of writing foreign tables directly.
+  - bad: `topUps.private.ts` writes the transactions table directly
+  - good: `topUps.private.ts` calls `addTopUpTransaction(...)` from `transactions.private.ts`
+- Add schema fields and indexes only for known current reads/writes. They are maintenance cost, not free preparedness.
+- Use `author` for row causality/authorship. Do not invent `createdBy` or `updatedBy` fields unless a current workflow needs those exact fields.
+  - bad: add `createdBy` and `updatedBy` to a table because they sound complete
+  - good: store `author` when that is the actual causality field, and add later fields only when a real workflow needs them
+- When a schema concept is renamed, apply the same name across similar schemas and docs in the same pass. If the rename conflicts with another settled term, stop and call out the conflict.
+  - bad: use `directory` in actions and `root` in boxes for the same action runtime boundary
+  - good: use `root` consistently when the field means "where this action/runtime runs"
 
 ### Environment Variables
 
@@ -300,7 +314,7 @@ Do not run `bunx convex deploy` - this deploys to production.
   - bad: run Convex scripts through `bunx convex@latest` or another CLI version that can drift away from the app dependency
   - good: run `bun preview`, then run `bun dev:web` in the terminal/session that should stay open
   - good: run Convex scripts through the app-installed `convex` binary so CLI behavior and app runtime stay on the same package version
-  - preview seed runs after the first successful deploy for a worktree/branch and is tracked in `apps/meseeks/.env.local`; set `CONVEX_PREVIEW_RUN=none` only when the preview should not be seeded
+  - preview runs can execute `CONVEX_PREVIEW_RUN` after the first successful deploy for a worktree/branch and are tracked in `apps/meseeks/.env.local`; the default is `none` until a real seed exists
 - Never run `bunx convex env set`, `bunx convex env unset`, or similar Convex env mutation commands unless the user explicitly asks. If backend code needs a new Convex env var, tell the user the exact variable name, where it is read, and ask them to set it.
   - bad: silently add `BETTER_AUTH_SECRET` to `.env.local` or mutate Convex envs during a migration
   - good: say `convex/auth.ts` now reads `BETTER_AUTH_SECRET`; ask the user to set it in the Convex environment they own
@@ -310,6 +324,7 @@ Do not run `bunx convex deploy` - this deploys to production.
 ### Types
 
 - Use Zod schemas for all custom types
+- When docs define schema field descriptions, mirror those descriptions in the Zod schema with `.describe()` unless the field name and type already fully describe the field.
 - Avoid rewriting schemas - import and use `z.infer()`
 - Use generated types: `Doc<'tableName'>`, `Id<'tableName'>`
 - Never re-declare enum/literal sets that already exist in domain schemas; derive from existing exported schemas.
@@ -358,6 +373,17 @@ One file per hook in `src/hooks/`.
 - If a named skill is not loaded in the Codex app, check repo-local `.config/skills/<name>/SKILL.md` before claiming it cannot be used. Use the on-disk source manually when present.
 - If the user invokes a repo skill by name or path, run that skill workflow instead of only acknowledging it.
 
+## Documentation
+
+- Root `docs/` is the canonical technical documentation for the product architecture, runtime behavior, schemas, APIs, provider integrations, operations, security boundaries, and file conventions.
+- At the start of every substantial round, read the entire `docs/` tree before changing code or docs. Do not rely on targeted searches as a substitute for reading the docs.
+- Before the final response of every substantial round, do a full documentation pass: reread the entire `docs/` tree, update anything made stale by the round, and resolve conflicts. Targeted searches are useful only after the full read.
+- Docs may be written before code when they describe the implementation being built in the same round. If the matching code does not land in that round, clearly mark the behavior as planned, deferred, or not implemented.
+- If code and docs conflict, fix the conflict in the same round or stop and report the mismatch directly. Docs that lie are worse than no docs.
+- Update `.config/MasterPlan.md` when a round changes agent behavior or repo rules. After changing MasterPlan, run `bun run config:build` so generated assistant instructions stay in sync.
+- Product docs describe the product, not branch strategy, migration status, implementation plans, or agent instructions. Temporary plans belong in chat or a non-docs planning artifact.
+- Treat PRO as the product root. Do not create `docs/pro/`, `components/pro/`, `api.pro`, or prose that frames PRO as a sub-area inside another product model unless the user explicitly introduces a new boundary.
+
 ## Making Changes
 
 - Every line of code has a maintenance cost. Crush unnecessary complexity.
@@ -381,6 +407,7 @@ One file per hook in `src/hooks/`.
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
+- Manual user edits are authoritative. Do not remove, rewrite, or "clean up" user-added text or code just because it looks like it violates an earlier assumption. If it conflicts with instructions, stop and ask; do not silently revert it.
 - Never drop stashes. Use `git stash apply`, not `git stash pop`, and leave stash entries intact unless the user explicitly says to drop or clear them.
 - The user may already have a dev account session available for browser checks. If a flow needs sign-in and the session is missing, expired, or lands on auth UI, stop and ask the user to sign in before continuing.
 - When removing code, review the surrounding context for leftover artifacts (dead variables, unnecessary wrappers, orphaned blank lines)
@@ -414,6 +441,9 @@ One file per hook in `src/hooks/`.
 - Avoid unnecessary layers. Only add wrappers or indirection if they do real work or are truly needed.
   - bad: pointless config/function wrappers that just forward calls
   - good: direct, honest factories with clear purpose
+- Do not add duplicate runtime schemas to compensate for serializer/tooling limitations. Keep one source schema when possible, document the limitation, and stop if the clean path is blocked.
+  - bad: define parallel public and runtime schemas only because `zid()` cannot serialize
+  - good: use one serializable schema with explicit `fileId` fields, parse with `zid()` at the server boundary, and track the serializer limitation as a debt
 - Before changing an existing workaround patch or local tooling fix, read why it exists and confirm the current task actually requires touching it. If not, leave it alone.
   - bad: rewrite an existing `patches/*.patch` workaround because a migration regenerated files nearby
   - good: read the existing patch rationale first and only touch it when the task genuinely depends on changing that workaround
@@ -428,6 +458,7 @@ One file per hook in `src/hooks/`.
 - Never present assumptions as facts; if uncertain, say it's an assumption and verify before claiming behavior
 - Do not invent justifications (such as "compatibility" or existing constraints) that are not explicitly present in code, docs, or user requirements
 - Always clearly communicate tradeoffs you make
+- If you do something different from an agreed decision because implementation exposed an unexpected obstacle, highlight that deviation in the final answer and explain the obstacle.
 - If scope shifts or the user says the execution is off-track, restate the exact requested outcome and complete that before proposing extras
 - Preserve exact user-specified literals (names/tags/phrases/UI labels) when implementing instructions; do not substitute near-synonyms.
   - bad: user asks for `<instructions>` and assistant writes `<justInstructions>`

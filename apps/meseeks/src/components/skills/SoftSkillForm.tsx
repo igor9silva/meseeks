@@ -37,8 +37,8 @@ export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) 
 
 				{/* Soft skill specific configuration */}
 				<SoftSkillConfig
-					model={form.watch('config.model') as IntelligenceKey | 'auto'}
-					onModelChange={(value: IntelligenceKey | 'auto') => form.setValue('config.model', value as any)}
+					model={form.watch('config.model') ?? 'auto'}
+					onModelChange={(value: IntelligenceKey | 'auto') => form.setValue('config.model', value)}
 					temperature={form.watch('config.temperature')}
 					onTemperatureChange={(value: number) => form.setValue('config.temperature', value)}
 					instructions={form.watch('config.instructions')}

@@ -1,29 +1,23 @@
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
-import { SkillSelector } from '~/components/skills/shared/SkillSelector';
+import { z } from 'zod/v3';
 import { Badge } from '@reactor/ui/badge';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent } from '@reactor/ui/card';
 import { LabelWithTooltip } from '@reactor/ui/form-tooltip';
 import { Input } from '@reactor/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@reactor/ui/table';
 import { Textarea } from '@reactor/ui/textarea';
 
+const parameterTypeSchema = z.enum(['search', 'header', 'path', 'body', 'bodyPath']);
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-export type ParameterType = 'search' | 'header' | 'path' | 'body' | 'bodyPath';
-export type ReactionCondition = 'owner' | 'companion' | 'any';
+export type ParameterType = z.infer<typeof parameterTypeSchema>;
 
 export interface ParamMapping {
 	type: ParameterType;
 	source: string;
 	target: string;
-}
-
-export interface KnownReaction {
-	skillKey: string;
-	args: Record<string, any>;
-	condition: ReactionCondition;
 }
 
 export interface HardSkillConfigProps {
@@ -44,10 +38,6 @@ export interface HardSkillConfigProps {
 	// Body Template
 	bodyTemplate?: string;
 	onBodyTemplateChange?: (value: string) => void;
-
-	// Known Reactions
-	knownReactions?: KnownReaction[];
-	onKnownReactionsChange?: (reactions: KnownReaction[]) => void;
 
 	// Editability
 	isEditable?: boolean;
@@ -72,10 +62,6 @@ export function HardSkillConfig({
 	bodyTemplate = '{}',
 	onBodyTemplateChange = () => {},
 
-	// Known Reactions
-	knownReactions = [],
-	onKnownReactionsChange = () => {},
-
 	// Editability
 	isEditable = true,
 }: HardSkillConfigProps) {
@@ -92,10 +78,6 @@ export function HardSkillConfig({
 		source: '',
 		target: '',
 	});
-
-	// State for reactions
-	const [newSkillKey, setNewSkillKey] = useState('');
-	const [newReactionCondition, setNewReactionCondition] = useState<ReactionCondition>('any');
 
 	// Header handlers
 	const handleAddHeader = () => {
@@ -129,37 +111,6 @@ export function HardSkillConfig({
 
 	const handleRemoveParamMapping = (index: number) => {
 		onParamMappingsChange(paramMappings.filter((_, i) => i !== index));
-	};
-
-	// Condition labels - defined once and reused
-	const CONDITION_LABELS: Record<ReactionCondition, string> = {
-		owner: 'if performed by you',
-		companion: 'if performed by Meseeks',
-		any: 'always',
-	};
-
-	const getConditionLabel = (condition: ReactionCondition) => {
-		return CONDITION_LABELS[condition] || condition;
-	};
-
-	// Reaction handlers
-	const handleAddReaction = () => {
-		if (!newSkillKey) return;
-
-		onKnownReactionsChange([
-			...knownReactions,
-			{
-				skillKey: newSkillKey,
-				args: {},
-				condition: newReactionCondition,
-			},
-		]);
-
-		setNewSkillKey('');
-	};
-
-	const handleRemoveReaction = (index: number) => {
-		onKnownReactionsChange(knownReactions.filter((_, i) => i !== index));
 	};
 
 	return (
@@ -326,7 +277,7 @@ export function HardSkillConfig({
 										onValueChange={(value) =>
 											setNewParamMapping({
 												...newParamMapping,
-												type: value as ParameterType,
+												type: parameterTypeSchema.parse(value),
 											})
 										}
 										disabled={!isEditable}
@@ -410,84 +361,6 @@ export function HardSkillConfig({
 							</div>
 						</CardContent>
 					</Card>
-				</div>
-
-				{/* Known Reactions */}
-				<div className="space-y-2">
-					<LabelWithTooltip
-						htmlFor="Known Reactions"
-						tooltip="Skills that should automatically run after this skill is used."
-					>
-						Known reactions
-					</LabelWithTooltip>
-					{isEditable && (
-						<div className="flex gap-2 items-center">
-							<div className="flex-1">
-								<SkillSelector
-									value={newSkillKey}
-									onValueChange={setNewSkillKey}
-									placeholder="Select a skill"
-								/>
-							</div>
-
-							<Select
-								value={newReactionCondition}
-								onValueChange={(value) => setNewReactionCondition(value as ReactionCondition)}
-							>
-								<SelectTrigger className="w-40">
-									<SelectValue placeholder="Condition" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="owner">{CONDITION_LABELS.owner}</SelectItem>
-									<SelectItem value="companion">{CONDITION_LABELS.companion}</SelectItem>
-									<SelectItem value="any">{CONDITION_LABELS.any}</SelectItem>
-								</SelectContent>
-							</Select>
-
-							<Button type="button" onClick={handleAddReaction} disabled={!newSkillKey}>
-								Add
-							</Button>
-						</div>
-					)}
-
-					{knownReactions.length > 0 ? (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Skill</TableHead>
-									<TableHead>Condition</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{knownReactions.map((reaction, index) => (
-									<TableRow key={index}>
-										<TableCell className="font-medium">{reaction.skillKey}</TableCell>
-										<TableCell>
-											<Badge variant="outline">{getConditionLabel(reaction.condition)}</Badge>
-										</TableCell>
-										<TableCell className="text-right">
-											{isEditable && (
-												<Button
-													type="button"
-													variant="ghost"
-													size="icon"
-													className="h-4 w-4 p-0"
-													onClick={() => handleRemoveReaction(index)}
-												>
-													<Trash className="h-3 w-3" />
-												</Button>
-											)}
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					) : (
-						<div className="text-center p-4 border rounded-3xl text-muted-foreground mt-2">
-							No reactions defined
-						</div>
-					)}
 				</div>
 			</div>
 		</div>

@@ -5,12 +5,12 @@ export function BalanceItem({ onSelect }: { onSelect: (value: string) => void })
 	//
 	return (
 		<CommandItem
-			value="/balance"
-			keywords={['balance', 'top', 'up', 'top-up', 'transactions', 'expenses', 'energy', 'account']}
+			value="/wallet"
+			keywords={['wallet', 'top', 'up', 'top-up', 'energy', 'account']}
 			onSelect={onSelect}
 		>
 			<Wallet className="mr-2" />
-			Balance & account
+			Wallet
 		</CommandItem>
 	);
 }

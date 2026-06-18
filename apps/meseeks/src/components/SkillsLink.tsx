@@ -3,7 +3,6 @@ import { Loader2, Sparkles } from 'lucide-react';
 import { Suspense, useTransition } from 'react';
 import { Skeleton } from '@reactor/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useEnabledSkillsPreference } from '~/hooks/preferences';
 import { cn } from '@reactor/ui/lib/utils';
 
 interface SkillsLinkProps {
@@ -27,14 +26,13 @@ function SkillsLinkSkeleton({ className }: { className?: string }) {
 
 function SkillsLinkContent({ className }: { className?: string }) {
 	//
-	const { enabledSkills } = useEnabledSkillsPreference();
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
 
 	const handleClick = () => {
 		if (isNavigating) return;
 		startTransition(() => {
-			navigate({ to: '/skills' });
+			navigate({ to: '/$', params: { _splat: '.pro/skills' } });
 		});
 	};
 
@@ -43,7 +41,8 @@ function SkillsLinkContent({ className }: { className?: string }) {
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Link
-						to="/skills"
+						to="/$"
+						params={{ _splat: '.pro/skills' }}
 						onClick={handleClick}
 						className={cn(
 							'flex h-9 w-9 items-center justify-center flex-shrink-0',
@@ -62,19 +61,7 @@ function SkillsLinkContent({ className }: { className?: string }) {
 					</Link>
 				</TooltipTrigger>
 				<TooltipContent className="p-2 max-w-xs">
-					{enabledSkills.length > 0 ? (
-						<>
-							<p className="font-semibold mb-1">Enabled skills</p>
-							<ul className="ml-4 list-disc text-xs">
-								{enabledSkills.map((skill, index) => (
-									<li key={index}>{skill}</li>
-								))}
-							</ul>
-							<p className="text-xs text-muted mt-2">click to manage</p>
-						</>
-					) : (
-						<p className="text-xs text-muted-foreground">No skills enabled</p>
-					)}
+					<p className="text-xs text-muted-foreground">Open skills</p>
 				</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
