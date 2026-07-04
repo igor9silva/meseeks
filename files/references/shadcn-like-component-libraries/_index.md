@@ -5,6 +5,7 @@ tags: [tech, ux, source:ticktick, ticktick-list:references, ticktick-list:meseek
 
 Searchable reference collection for shadcn-like components, AI UI components, blocks, themes, and patterns we may want to reuse or study.
 
+- [beUI](beui-motion-toolkit-react-nextjs/_index.md) — animated shadcn registry and blocks built with Framer Motion and Tailwind.
 - https://21st.dev/ - collection
 - https://retroui.dev
 - https://reactflow.dev/components
