@@ -144,6 +144,8 @@ Current behavior:
 
 When expanding or organizing an imported task after import, write from the preserved source body/link/attachment, not from the stale TickTick title alone. If the imported item is only a URL, that URL is the content until it is backed up locally.
 
+TickTick task titles/content are user-authored by Igor by default. Treat them as explicit intent/definition unless they are obviously just a raw URL, social preview/card, handle, or import debris. After expansion, update local title/slug only for non-meaningful source labels; preserve meaningful TickTick titles and add discovered details in the body. Keep the raw TickTick title in the source payload.
+
 ### Reshape imported link files
 
 Rewrites already-imported link task files into the flat format used now:

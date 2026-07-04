@@ -270,6 +270,11 @@ Do not run `bunx convex deploy` - this deploys to production.
 
 - Helpers should receive `(ctx, argsObject)` so call sites stay labeled.
 - Define Zod args at helper declaration time; avoid separate `argsSchema` constants unless the exact schema is reused in multiple declarations.
+- Domain rows must be persisted through their owning domain module. Other modules call semantic helpers instead of writing those tables directly.
+  - bad: `topUps.private.ts` calls `ctx.db.insert('transactions', ...)`
+  - good: `topUps.private.ts` calls `recordTransaction(...)` from the transactions module
+  - bad: a payment webhook calls `ctx.db.insert('provider_events', ...)`
+  - good: the webhook calls `recordEvent(...)` from the provider-events module
 - Do not rename helper imports unless required by a real collision.
   - bad: `import { findActive as findActiveSubscriptions } from './subscriptions.private'`
   - good: `import { findActive } from './subscriptions.private'`
@@ -364,16 +369,6 @@ One file per hook in `src/hooks/`.
 - If the requested change, cleanup, check, or task is already satisfied, say so and stop. Do not invent adjacent work just to make a diff.
   - bad: user asks to add a rule that already exists, and the assistant rewrites nearby rules anyway
   - good: verify the rule exists, report where it lives, and leave the tree untouched
-- In classification or cleanup work, treat explicit per-item user decisions as labeled examples: execute the requested move/delete/fold exactly now, and capture reusable reasoning in the relevant skill memory when it should improve future autonomous cleanup. Do not reinterpret the immediate command into broader cleanup.
-  - bad: user says `delete stale`, and the assistant creates or preserves a reference because the content looked interesting
-  - good: delete it
-  - bad: user says `done` on a private task, and the assistant promotes it to public with a "Done already" note
-  - good: keep it private, move it under `private/files/tasks/`, add `status:completed`, and leave the body alone
-- In task-system work, follow `files/TAGS.md` for tag semantics and preserve explicit section/status/tag semantics instead of inferring a "better" taxonomy from the content.
-  - bad: user says a link is just `human:to-read`, and the assistant moves it to `references/` or adds `demand` because the article mentions a relevant market trend
-  - good: keep it in the private saved-reading queue and only improve title/source/content backup in place
-- Treat `files/TAGS.md` as executable cleanup guidance. Apply its section, lifecycle, visibility, and canonical-task constraints directly when the move is mechanical and safe.
-- Do not apply current tag cleanup to `status:completed` tasks. Completed tasks are history; leave their paths, visibility, tags, and bodies alone unless the user explicitly asks.
 - Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
   - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
   - good: review the staged snapshot, say whether it is ready to commit, and let the user commit

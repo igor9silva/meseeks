@@ -548,6 +548,10 @@ function buildTags(task: TaskRow, projectConfig: ProjectConfig) {
 	//
 	const tags = ['source:ticktick', `ticktick-list:${buildTagValue(projectConfig.label)}`];
 
+	if (projectConfig.label === 'References') {
+		tags.push('class:reference');
+	}
+
 	if (projectConfig.label === 'Meseeks' && task.columnName.trim().length > 0) {
 		tags.push(`ticktick-status:${buildTagValue(task.columnName)}`);
 	}

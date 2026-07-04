@@ -90,7 +90,7 @@ Demand references are raw market signals. If Igor provides the title/body, use t
 
 Do not add classification boilerplate. A file in `references/` does not need "reference" in its title/body. A file tagged `demand` does not need to explain that it is a demand signal. A task under `tasks/` should be named as the actual action, not "build a backlog idea around...".
 
-If the source was expanded from a link, write from the expanded source, not the stale import title. If the source names a specific model, library, product, or request, use that exact name in the title. Keep dated caveats in the body with "we" when the note is about our project state.
+If the source was expanded from a link, first decide whether the existing title/body is user-authored intent or source/import debris. Preserve meaningful user titles exactly and put discovered specifics in the body. Rename title/slug only when the existing label is a raw URL, social card, handle, hash, import artifact, or otherwise not meaningful. Keep dated caveats in the body with "we" when the note is about our project state.
 
 Dictated Meseeks planning notes often contain speech-to-text artifacts. Treat `m6` and `me6` as transcription errors for "Meseeks". Do not create product names, task titles, or GTM/architecture notes from those artifacts.
 
