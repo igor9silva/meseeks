@@ -487,6 +487,13 @@ function firstMeaningfulLine(...values: string[]) {
 
 function getTaskTitle(task: TaskRow) {
 	//
+	if (titleHasOnlyLinkValue(task.title)) {
+		return (
+			firstMeaningfulLine(task.content, task.description, task.notionBlockString, task.title) ??
+			`TickTick task ${task.entityId.slice(-8)}`
+		);
+	}
+
 	return (
 		firstMeaningfulLine(task.title, task.content, task.description, task.notionBlockString) ??
 		`TickTick task ${task.entityId.slice(-8)}`

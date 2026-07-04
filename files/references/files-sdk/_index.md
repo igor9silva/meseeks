@@ -16,6 +16,10 @@ A unified storage SDK for object and blob backends. One small, honest API. Web-s
 - Works in Node, Bun, Deno, edge runtimes, and browsers.
 - Includes tools for OpenAI, Vercel AI, and Claude Agents SDKs.
 
+## Related
+
+- [Storage SDK](../storage-sdk/_index.md): same unified storage SDK concept, with snapshots/forks as first-class primitives for agent sandboxes and reproducible runs.
+
 [Source tweet](https://x.com/haydenbleasel/status/2053883406459740532?s=20)
 
 [Downloaded video](attachments/files-sdk-demo.mp4)
