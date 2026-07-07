@@ -13,7 +13,7 @@ Sentry.init({
 		Sentry.browserTracingIntegration(), //
 		Sentry.replayIntegration(),
 	],
-	tracesSampleRate: 1.0, // Capture 100% of the transactions
+	tracesSampleRate: 1.0, // capture all performance traces.
 	// Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
 	tracePropagationTargets: [
 		/^https:\/\/meeseeks\.app/,

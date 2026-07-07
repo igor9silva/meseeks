@@ -1,20 +1,20 @@
 import { Migrations } from '@convex-dev/migrations';
-import { components, internal } from './_generated/api.js';
-import { DataModel } from './_generated/dataModel.js';
-import { enableSkill } from './skills.private';
+import { components } from './_generated/api.js';
+import type { DataModel } from './_generated/dataModel.js';
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 
-// TODO: break down into files, stop removing them thats dumb
+/*
+pre-existing migration reference:
 
-// Migration to enable specific skills for all existing users
+import { internal } from './_generated/api.js';
+import { enableSkill } from './skills.private';
+
 export const enableMissingSkillsFour = migrations.define({
 	table: 'users',
 	migrateOne: async (ctx, doc) => {
-		//
 		const skillsToEnable = ['transcribeYouTube', 'describeYouTube', 'compose'];
 
-		// Enable each skill for this user
 		for (const skillKey of skillsToEnable) {
 			await enableSkill(ctx, {
 				userId: doc._id,
@@ -24,15 +24,21 @@ export const enableMissingSkillsFour = migrations.define({
 
 		console.info(`Enabled ${skillsToEnable.length} skills for user ${doc._id}`);
 
-		return doc; // return unchanged
+		return doc;
 	},
 });
 
-// Migration to backfill action_details with empty history array
+export const runEnableMissingSkillsFour = migrations.runner(internal.migrations.enableMissingSkillsFour);
+*/
+
+/*
+pre-existing migration reference:
+
+import { internal } from './_generated/api.js';
+
 export const backfillActionDetailsHistory = migrations.define({
 	table: 'action_details',
 	migrateOne: async (_ctx, doc) => {
-		// Only add history field to soft skill documents
 		if (doc.skillKind === 'soft') {
 			if (!doc.llm?.history) {
 				return {
@@ -44,10 +50,10 @@ export const backfillActionDetailsHistory = migrations.define({
 				};
 			}
 		}
-		return doc; // return unchanged for hard skills or if history already exists
+
+		return doc;
 	},
 });
 
-// Runner function to execute the migration
-export const runEnableMissingSkillsFour = migrations.runner(internal.migrations.enableMissingSkillsFour);
 export const runBackfillActionDetailsHistory = migrations.runner(internal.migrations.backfillActionDetailsHistory);
+*/

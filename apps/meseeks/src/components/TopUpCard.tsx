@@ -24,9 +24,7 @@ export function TopUpCard() {
 			//
 			try {
 				const topUpId = await startTopUp({
-					symbol: 'USD',
 					amount: asBigInt({ dollars: amount }),
-					chain: 'base',
 				});
 
 				navigate({ to: '/top-up/$id', params: { id: topUpId } });

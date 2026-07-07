@@ -1,12 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 
-export const usePayment = (record: { paymentUrl: string }) => {
+export function usePayment({ paymentUrl }: { paymentUrl: string }) {
 	//
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: async () => {
-			window.location.href = record.paymentUrl;
+			if (!paymentUrl) throw new Error('Payment URL is missing.');
+			window.location.href = paymentUrl;
 		},
 	});
 
 	return { pay: mutate, isPending, error };
-};
+}

@@ -1,43 +1,40 @@
 import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import type { Doc } from './_generated/dataModel';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { newSkillSchema, simplifiedSkillKindSchema } from 'schemas/skillSchema';
+import { newSkillSchema, skillKeySchema, skillKindSchema } from 'schemas/skillSchema';
 import {
-	buildInSkillToDoc,
 	createSkill,
-	enableSkill,
 	findAllSkills,
 	findAllSkillsByOwner,
 	findAllSkillKeys,
-	findEnabledSkillsWithDetails,
+	findAllSkillsWithDetails,
 	findSkill,
-	isBuiltInSkillKey,
+	findSkillsForRoot,
 	replaceProSkills,
 	updateSkill,
 } from './skills.private';
-import { _builtInSkills } from 'skills/builtIn/index';
+import { ensureScopeOwner } from './files.private';
 import { getCurrentUser } from './users.private';
+import { findInstinct, listInstincts } from './instincts/index.private';
 
-// used by skills/tools.ts to load hard/soft skill docs before building ai tool definitions
 export const _findAll = internalQuery({
 	args: {
 		owner: zid('users'),
-		kind: simplifiedSkillKindSchema.optional().describe('Filter by skill kind. Grab all if unspecified.'),
+		kind: skillKindSchema.optional(),
 	},
 	handler: findAllSkills,
 });
 
-// used by builtIn/getSkillDetails.ts so the ai can inspect one skill by key/owner
 export const _findOne = internalQuery({
 	args: {
-		key: z.string(),
+		key: skillKeySchema,
 		owner: zid('users'),
+		root: zid('files').optional(),
 	},
 	handler: findSkill,
 });
 
-// used by magicRock.private.ts to expand {{allSkills}} in system instructions
 export const _findAllKeys = internalQuery({
 	args: {
 		userId: zid('users'),
@@ -45,42 +42,13 @@ export const _findAllKeys = internalQuery({
 	handler: findAllSkillKeys,
 });
 
-// used by magicRock.private.ts to expand {{activeSkills}} with enabled skill schemas
-export const _findEnabledSkillsWithDetails = internalQuery({
+export const _findAllSkillsWithDetails = internalQuery({
 	args: {
 		userId: zid('users'),
 	},
-	handler: findEnabledSkillsWithDetails,
+	handler: findAllSkillsWithDetails,
 });
 
-// called by builtIn/createSkill.ts to persist a generated skill from tool execution
-export const _create = internalMutation({
-	args: {
-		skill: newSkillSchema,
-		userId: zid('users'),
-	},
-	handler: createSkill,
-});
-
-// called by builtIn/updateSkill.ts to patch a skill from tool execution
-export const _update = internalMutation({
-	args: {
-		skill: newSkillSchema,
-		userId: zid('users'),
-	},
-	handler: updateSkill,
-});
-
-// called by builtIn/createSkill.ts and builtIn/updateSkill.ts to enable the created/updated skill
-export const _enableSkill = internalMutation({
-	args: {
-		userId: zid('users'),
-		skillKey: z.string(),
-	},
-	handler: enableSkill,
-});
-
-// called by private/skills/deploy.ts to sync the db-backed isPro skill catalog
 export const _replaceProSkills = internalMutation({
 	args: replaceProSkills.args,
 	handler: replaceProSkills,
@@ -92,14 +60,7 @@ export const findAllPublic = query({
 		//
 		const skills = await findAllSkillsByOwner(ctx, { owner: 'isPro' });
 
-		// remove headers from isPro hard skills, as they may contain passwords
-		for (const skill of skills) {
-			if (skill.owner === 'isPro' && skill.kind === 'hard') {
-				skill.config.headers = {};
-			}
-		}
-
-		return skills;
+		return skills.map((skill) => redactSkill(skill));
 	},
 });
 
@@ -112,29 +73,58 @@ export const findAllPersonal = query({
 	},
 });
 
-export const findAllInnate = query({
-	args: {},
-	handler: async () => {
+export const findByRoot = query({
+	args: {
+		root: zid('files'),
+	},
+	handler: async (ctx, { root }) => {
 		//
-		const builtInTools = Object.entries(_builtInSkills)
-			.filter(([_, tool]) => !tool.hidden)
-			.sort(([_, a], [__, b]) => a.priority - b.priority);
+		const currentUser = await getCurrentUser(ctx, {});
+		const actionRoot = await ensureScopeOwner(ctx, {
+			owner: currentUser._id,
+			directory: root,
+		});
 
-		return builtInTools.map(([key, tool]) => buildInSkillToDoc(key, tool));
+		const skills = await findSkillsForRoot(ctx, {
+			owner: currentUser._id,
+			root: actionRoot._id,
+		});
+
+		return skills.map((skill) => redactSkill(skill));
 	},
 });
 
-export const findOneInnate = query({
-	args: {
-		skillKey: z.string(),
-	},
-	handler: async (ctx, { skillKey }) => {
+export const findAllInstincts = query({
+	args: {},
+	handler: async () => {
 		//
-		if (!isBuiltInSkillKey(skillKey)) throw NotFound();
+		return listInstincts().map((skill) => ({
+			key: skill.key,
+			kind: skill.kind,
+			description: skill.description,
+			inputSchema: skill.inputSchema,
+			outputSchema: skill.outputSchema,
+		}));
+	},
+});
 
-		const skill = _builtInSkills[skillKey];
+export const findOneInstinct = query({
+	args: {
+		skillKey: skillKeySchema,
+	},
+	handler: async (_ctx, { skillKey }) => {
+		//
+		const skill = findInstinct(skillKey);
+		if (!skill) throw NotFound();
 
-		return buildInSkillToDoc(skillKey, skill);
+		return {
+			key: skill.key,
+			kind: skill.key,
+			description: skill.description,
+			inputSchema: skill.inputSchema,
+			outputSchema: skill.outputSchema,
+			isEditable: false,
+		};
 	},
 });
 
@@ -148,19 +138,10 @@ export const findOne = query({
 		const skill = await ctx.db.get(skillId);
 
 		if (!skill) throw NotFound();
-
-		if (skill.owner !== currentUser._id && skill.owner !== 'isPro') {
-			// purposefully do not mention authorization
-			throw NotFound();
-		}
-
-		// remove headers from isPro hard skills, as they may contain passwords
-		if (skill.owner === 'isPro' && skill.kind === 'hard') {
-			skill.config.headers = {};
-		}
+		if (skill.owner !== currentUser._id && skill.owner !== 'isPro') throw NotFound();
 
 		return {
-			...skill,
+			...redactSkill(skill),
 			isEditable: skill.owner === currentUser._id,
 		};
 	},
@@ -187,3 +168,19 @@ export const update = mutation({
 		return await updateSkill(ctx, { skill, userId: currentUser._id });
 	},
 });
+
+function redactSkill(skill: Doc<'skills'>) {
+	//
+	if (skill.owner !== 'isPro') return skill;
+	if (skill.source === 'instinct') return skill;
+	if (skill.kind !== 'request') return skill;
+	if (!skill.config || typeof skill.config !== 'object' || !('headers' in skill.config)) return skill;
+
+	return {
+		...skill,
+		config: {
+			...skill.config,
+			headers: undefined,
+		},
+	};
+}

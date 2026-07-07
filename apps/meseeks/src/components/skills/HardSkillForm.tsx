@@ -46,8 +46,6 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 					onParamMappingsChange={(mappings) => form.setValue('config.paramMappings', mappings)}
 					bodyTemplate={form.watch('bodyTemplate')}
 					onBodyTemplateChange={(value) => form.setValue('bodyTemplate', value)}
-					knownReactions={form.watch('knownReactions')}
-					onKnownReactionsChange={(reactions) => form.setValue('knownReactions', reactions)}
 					isEditable={isEditable}
 				/>
 

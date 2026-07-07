@@ -14,6 +14,23 @@ import {
 	SunMedium,
 	Wine,
 } from 'lucide-react';
+import type { AppThemeId } from '~/lib/themes/catalog';
+
+export const themeIconNameById = {
+	'default-dark': 'moon-star',
+	'default-light': 'sun-medium',
+	'pastel-de-nata': 'cake-slice',
+	'graphite-ledger': 'book-open-text',
+	'ink-well': 'pen-tool',
+	'moss-study': 'leaf',
+	'oxblood-club': 'wine',
+	'fjord-dusk': 'mountain',
+	'limestone': 'landmark',
+	'paper-and-ink': 'newspaper',
+	'sage-receipt': 'receipt',
+	'terracotta-desk': 'pencil-ruler',
+	'harbor-mist': 'cloud',
+} satisfies Record<AppThemeId, string>;
 
 export function ThemeIcon({ iconName }: { iconName: string | undefined }) {
 	//

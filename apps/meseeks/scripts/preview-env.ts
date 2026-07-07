@@ -2,7 +2,7 @@ import { spawnSync, type SpawnSyncOptions } from 'node:child_process';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const appPackageName = '@meseeks/app';
-const defaultPreviewRun = 'internal.seed._all';
+const defaultPreviewRun = 'none';
 
 export const envLocalFile = '.env.local';
 

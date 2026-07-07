@@ -1,40 +1,8 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { authorSchema } from './authorSchema';
-import { tokenSchema } from './topUpSchema';
-
-export const newActionSchema = z.object({
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	author: authorSchema,
-	skillKey: z.string().describe('The key of the skill to use'),
-	args: z.record(z.any()),
-	depth: z.number().min(0).max(1000),
-	status: z.enum(['enqueued', 'succeeded']).default('enqueued').optional(),
-	result: z.string().optional(),
-});
-
-const coreActionSchema = z.object({
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	author: authorSchema,
-	depth: z.number().min(0).max(1000),
-	skillKey: z.string(),
-	args: z.record(z.any()),
-	// TODO: idea: inherit the argsSchema from the skill, so we can drill types
-	estimatedCost: z.bigint().optional(),
-	startedAt: z.number().optional(),
-	scheduledFunctionId: zid('_scheduled_functions')
-		.optional()
-		.describe('Internal Convex scheduler id for the action execution function.'),
-	approvedAt: z.number().optional(),
-	approvedBy: z
-		.union([
-			zid('users'), //
-			z.literal('auto'),
-		])
-		.optional(),
-});
+import { intelligenceKeys } from './intelligenceSchema';
+import { skillKeySchema } from './skillSchema';
 
 export const pendingActionStatusSchema = z.enum([
 	'pending authorization', //
@@ -50,25 +18,47 @@ export const resolvedActionStatusSchema = z.enum([
 
 export const actionStatusSchema = pendingActionStatusSchema.or(resolvedActionStatusSchema);
 
+export const actionSkillSchema = skillKeySchema;
+export const actionSparkSchema = zid('actions').or(z.literal('self'));
+
+export const actionCostSchema = z.object({
+	kind: z.string().min(1),
+	amount: z.bigint(),
+	description: z.string().optional(),
+});
+
+export const newActionSchema = z
+	.object({
+		skill: actionSkillSchema,
+		input: z.record(z.unknown()),
+	})
+	.describe('Proposed follow-up action.');
+
+const coreActionSchema = z.object({
+	owner: zid('users'),
+	root: zid('files'),
+	index: z.number().int().min(1),
+	author: authorSchema,
+	spark: actionSparkSchema,
+	skill: actionSkillSchema,
+	intelligence: intelligenceKeys.optional(),
+	input: z.record(z.unknown()),
+	claimedAt: z.number().optional(),
+	scheduledFunctionId: zid('_scheduled_functions').optional(),
+	startedAt: z.number().optional(),
+	interruptedAt: z.number().optional(),
+	output: zid('files').optional(),
+	costs: z.array(actionCostSchema).optional(),
+	warnings: z.array(z.string()).optional(),
+});
+
 export const pendingActionSchema = coreActionSchema.extend({
 	status: pendingActionStatusSchema,
-	result: z.null().optional().default(null), // <------
 });
 
 export const resolvedActionSchema = coreActionSchema.extend({
 	status: resolvedActionStatusSchema,
-	result: z.object({
-		text: z.string().optional(),
-		// setAt: z.number(),
-		reactions: z.array(newActionSchema),
-	}),
-	costs: z.array(
-		z.object({
-			symbol: tokenSchema,
-			amount: z.bigint(),
-			description: z.string(),
-		}),
-	),
+	finishedAt: z.number(),
 });
 
 export const actionSchema = z
@@ -76,6 +66,4 @@ export const actionSchema = z
 		pendingActionSchema, //
 		resolvedActionSchema,
 	])
-	.describe(
-		'An Action is any occurrence within a Task.', //
-	);
+	.describe('Durable ledger row for work.');

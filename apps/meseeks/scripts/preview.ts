@@ -31,10 +31,8 @@ function main() {
 	const deploymentRef = previewRef(previewName);
 	const createdDeployment = selectPreviewDeployment(previewName, deploymentRef);
 	const entries = writePreviewEnv(previewName, deploymentRef);
+	ensurePreviewDeploymentEnv(entries, deploymentRef);
 	const env = previewCommandEnv(entries);
-
-	runConvex(['codegen'], { env });
-
 	const deployArgs = ['deploy', '--preview-name', previewName, '--env-file', envLocalFile, '--codegen', 'disable'];
 	const previewRun = shouldRunPreviewSeed(createdDeployment, entries, deploymentRef)
 		? getPreviewRun(entries)
@@ -42,13 +40,17 @@ function main() {
 
 	const deployOutput = runConvexDeploy(deployArgs, { env });
 	updatePreviewEnvFromDeployOutput(entries, deployOutput);
+
+	let deployedEntries = loadEnvLocal();
+	assertPreviewDeployment(deployedEntries, deploymentRef);
+	runConvex(['codegen'], { env: previewCommandEnv(deployedEntries) });
+
 	if (previewRun) {
-		runConvex(['run', previewRun], { env });
+		runConvex(['run', previewRun], { env: previewCommandEnv(deployedEntries) });
 		markPreviewSeeded(deploymentRef);
+		deployedEntries = loadEnvLocal();
 	}
 
-	const deployedEntries = loadEnvLocal();
-	assertPreviewDeployment(deployedEntries, deploymentRef);
 	if (!shouldStartDevServer) return;
 
 	run('bun', ['run', 'dev:web'], { env: previewCommandEnv(deployedEntries) });
@@ -94,6 +96,17 @@ function markPreviewSeeded(deploymentRef: string) {
 	writeDotenv(envLocalFile, entries);
 }
 
+function ensurePreviewDeploymentEnv(entries: Map<string, string>, deploymentRef: string) {
+	const rootPrefix = entries.get('OBJECT_STORAGE_ROOT_PREFIX');
+	if (!rootPrefix) throw new Error(`Missing OBJECT_STORAGE_ROOT_PREFIX in ${envLocalFile}.`);
+
+	const deploymentSelector = `${convexProjectSelector}:${deploymentRef}`;
+	console.log(`Setting Convex preview Object Storage root prefix to ${rootPrefix}`);
+	runConvex(['env', 'set', '--deployment', deploymentSelector, 'OBJECT_STORAGE_ROOT_PREFIX', rootPrefix], {
+		env: previewCommandEnv(entries),
+	});
+}
+
 function updatePreviewEnvFromDeployOutput(entries: Map<string, string>, deployOutput: string) {
 	const cloudUrl = extractDeployedCloudUrl(deployOutput);
 	if (!cloudUrl) return;
@@ -121,6 +134,7 @@ function writePreviewEnv(previewName: string, deploymentRef: string) {
 
 	entries.set('CONVEX_PREVIEW_NAME', previewName);
 	entries.set('CONVEX_PREVIEW_REF', deploymentRef);
+	entries.set('OBJECT_STORAGE_ROOT_PREFIX', deploymentRef);
 	entries.set('VERCEL_ENV', 'preview');
 	entries.set('VERCEL_GIT_COMMIT_REF', previewName);
 	removePreviewUnsafeEntries(entries);

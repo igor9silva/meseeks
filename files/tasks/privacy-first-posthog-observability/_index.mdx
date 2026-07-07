@@ -8,8 +8,9 @@ tags: [observability, status:backlog, class:task]
 
 Current observability is split across weak or noisy tooling:
 
-- `@vercel/analytics` is wired into the app shell and several route/components, but the current signal is low-value enough to treat as basically nonexistent.
-- several analytics events are fired directly during render instead of lifecycle-safe points, so counts are likely dirty even before any vendor-specific issues.
+- the old Vercel product analytics package, `<Analytics />` mount, and scattered `track()` calls have been removed from the app.
+- the old Vercel Analytics event stream is not part of the product model anymore; product events are ledger rows such as actions, action details, file revisions, provider events, and transactions.
+- Vercel Speed Insights still exists as performance telemetry. It is separate from product-event analytics and should get its own keep/remove decision.
 - Sentry exists today, but the current setup is noisy and low-trust: dev activity leaks into notifications, handled problems are counted like real failures, and the instrumentation quality is not good enough to judge the tool fairly yet.
 - the next step is **hosted PostHog**, not self-hosted PostHog.
 - privacy is a hard constraint: use as much of PostHog as is actually useful, but do it intentionally instead of defaulting into creepy full-capture sludge.
@@ -17,27 +18,16 @@ Current observability is split across weak or noisy tooling:
 
 Current in-repo touchpoints already known from the scan:
 
-- app shell: `src/routes/__root.tsx`
+- Speed Insights app shell mount: `src/routes/__root.tsx`
 - client error/replay init: `src/client.tsx`
 - build/release upload config: `vite.config.ts`
-- manual Vercel analytics calls:
-  - `src/routes/skills.tsx`
-  - `src/routes/skills_.innate_.$key.tsx`
-  - `src/routes/$.tsx`
-  - `src/routes/balance.tsx`
-  - `src/routes/skills_.new.tsx`
-  - `src/routes/top-up_.$id.tsx`
-  - `src/routes/top-up.tsx`
-  - `src/routes/skills_.$id.tsx`
-  - `src/routes/action_.$id.tsx`
-  - `src/components/subscribe/SubscribePage.tsx`
-- package/dependency surface: `package.json`
+- Speed Insights package/dependency surface: `package.json`
 - privacy copy that still names Vercel Analytics: `public/static/privacy-policy.md`
 
 The repo scan undercounted Sentry scope once already. Treat "Sentry is client-only" as false unless a fresh rollout audit proves otherwise.
 
 ## Objective
-Make PostHog the primary observability stack for Meseeks with privacy-first defaults, remove `@vercel/analytics` from the app, clean up bad instrumentation patterns that create fake signal, and leave a concrete keep-or-remove decision for Sentry based on real signal quality instead of vibes.
+Make PostHog the primary observability stack for Meseeks with privacy-first defaults, keep product events aligned with the durable ledger model, clean up bad instrumentation patterns that create fake signal, and leave a concrete keep-or-remove decision for Sentry based on real signal quality instead of vibes.
 
 ## Subtasks
 - [ ] Inventory the real observability surface before swapping vendors:
@@ -53,11 +43,15 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
   - move analytics/event emission out of render paths into route lifecycle or event handlers
   - define one app-owned analytics/observability entrypoint instead of vendor calls scattered through routes
   - distinguish expected handled failures from reportable exceptions so noisy "errors" stop polluting alerts
-- [ ] Replace the current Vercel analytics wiring:
-  - remove `<Analytics />` from `src/routes/__root.tsx`
-  - remove `@vercel/analytics` imports/usages from the current route/component call sites
-  - remove `@vercel/analytics` from `package.json`
-  - decide whether `@vercel/speed-insights` stays temporarily or is removed in the same pass; do not let it silently linger without a reason
+- [x] Remove the old Vercel product analytics wiring:
+  - removed `<Analytics />` from `src/routes/__root.tsx`
+  - removed old Vercel product analytics imports/usages from route/component call sites
+  - removed the old Vercel product analytics package from `package.json`
+  - kept `@vercel/speed-insights` as separate performance telemetry, not product-event analytics
+- [ ] Decide the Speed Insights boundary:
+  - decide whether `@vercel/speed-insights` stays as lightweight performance telemetry
+  - if it stays, document why it is not product analytics and what it is allowed to collect
+  - if it goes, remove the package and app-shell mount in one pass
 - [ ] Roll out PostHog as primary observability:
   - initialize PostHog in the client with privacy-preserving defaults
   - migrate existing product events to PostHog and dedupe route/page tracking
@@ -75,12 +69,16 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
   - document the actual PostHog data policy shipped in code
   - make replay/error capture language match reality
 - [ ] Verify the rollout with concrete checks:
-  - no `@vercel/analytics` imports remain
+  - no old Vercel product analytics imports remain
   - route/page events no longer fire from render
   - production-only reporting rules are explicit and tested manually
   - event names and properties have one documented source of truth
 
 ## Progress Log
+### 2026-06-14
+- Removed `@vercel/analytics`, the app-shell `<Analytics />` mount, and scattered `track()` calls. Product-event analytics now belong to the ledger model, not a lossy external event stream.
+- Kept `@vercel/speed-insights` separate as performance telemetry. Its final boundary still needs an explicit keep/remove decision.
+
 ### 2026-05-12
 - Merged the old private `Better monitoring and error handling` task into this public PostHog/observability task and removed the private duplicate.
 
@@ -90,7 +88,7 @@ Make PostHog the primary observability stack for Meseeks with privacy-first defa
 
 ## Notes
 - Do not treat this as a blind vendor swap. Bad instrumentation is the first bug.
-- At minimum, `@vercel/analytics` must be removed in this scope.
+- The old Vercel product analytics package is already removed. Do not reintroduce a no-op analytics wrapper or a second product-event stream.
 - Axiom supports monitoring AI SDK directly: https://x.com/njpatel/status/1970217382955360417
 - If PostHog feature flags or experiments are added, do it only after the analytics/replay/error baseline is stable. Do not turn this into a kitchen-sink rollout on day one.
 - Preserve rejected assumptions from this planning pass:

@@ -2,16 +2,16 @@ import { zodToConvex } from 'convex-helpers/server/zod3';
 import { defineSchema, defineTable } from 'convex/server';
 import { actionDetailSchema } from 'schemas/actionDetailSchema';
 import { actionSchema } from 'schemas/actionSchema';
-import { componentSchema } from 'schemas/componentSchema';
-import { draftSchema } from 'schemas/draftSchema';
-import { polarEventSchema } from 'schemas/polarEventSchema';
-import { scheduleSchema } from 'schemas/scheduleSchema';
+import { boxSchema } from 'schemas/boxSchema';
+import { fileRevisionSchema } from 'schemas/fileRevisionSchema';
+import { fileSchema, fileTagSchema } from 'schemas/fileSchema';
+import { pageSchema } from 'schemas/pageSchema';
+import { polarEventReceiptSchema } from 'schemas/polarEventSchema';
 import { skillSchema } from 'schemas/skillSchema';
-import { subscriptionSchema } from 'schemas/subscriptionSchema';
-import { taskSchema } from 'schemas/taskSchema';
 import { topUpSchema } from 'schemas/topUpSchema';
 import { transactionSchema } from 'schemas/transactionSchema';
-import { userPreferencesSchema, userRequestSchema, userSchema } from 'schemas/userSchema';
+import { triggerSchema } from 'schemas/triggerSchema';
+import { userRequestSchema, userSchema } from 'schemas/userSchema';
 
 // oxfmt-ignore
 export default defineSchema({
@@ -24,14 +24,6 @@ export default defineSchema({
 		'email', ['email'],
 	).index(
 		'phone', ['phone'],
-	).index(
-		'walletAddress_chain', ['walletAddress', 'walletChain'],
-	),
-
-	user_preferences: defineTable(
-		zodToConvex(userPreferencesSchema),
-	).index(
-		'by_owner_key', ['owner', 'key'],
 	),
 
 	user_requests: defineTable(
@@ -40,45 +32,44 @@ export default defineSchema({
 		'by_owner_key', ['owner', 'key'],
 	),
 
-	drafts: defineTable(
-		zodToConvex(draftSchema),
+	files: defineTable(
+		zodToConvex(fileSchema),
 	).index(
-		'by_owner_taskId', ['owner', 'taskId'],
+		'by_owner_parent_name', ['owner', 'parent', 'name'],
 	),
 
-	tasks: defineTable(
-		zodToConvex(taskSchema),
+	file_tags: defineTable(
+		zodToConvex(fileTagSchema),
 	).index(
-		'by_owner_parentId_isActive', ['owner', 'parentId', 'isActive'],
+		'by_file_key', ['file', 'key'],
 	).index(
-		'by_parent_isActive', ['parentId', 'isActive'],
-	).index(
-		'by_owner_isActive', ['owner', 'isActive'],
-	).index(
-		'by_owner_status', ['owner', 'status'],
-	).index(
-		'by_owner_energyAvailable', ['owner', 'energyBudget.available'],
+		'by_owner_key_value', ['owner', 'key', 'value'],
 	),
-	// .index(
-	// 	'by_embeddingId', ['embeddingId'],
-	// ),
 
-	// taskEmbeddings: defineTable(
-	// 	zodToConvex(taskEmbeddingsSchema),
-	// ).vectorIndex("by_embedding", {
-	// 	dimensions: 3072,
-	// 	vectorField: 'embedding',
-	// 	filterFields: ['isDone'],
-	// }),
-	
+	file_revisions: defineTable(
+		zodToConvex(fileRevisionSchema),
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_file_previousRevision', ['file', 'previousRevision'],
+	).index(
+		'by_action', ['action'],
+	).index(
+		'by_owner_file', ['owner', 'file'],
+	),
+
 	actions: defineTable(
 		zodToConvex(actionSchema),
 	).index(
-		'by_task', ['taskId'],
+		'by_root_index', ['root', 'index'],
 	).index(
-		'by_task_status', ['taskId', 'status'],
+		'by_root_status', ['root', 'status'],
 	).index(
-		'by_task_author_status', ['taskId', 'author', 'status'],
+		'by_owner_root', ['owner', 'root'],
+	).index(
+		'by_author', ['author'],
+	).index(
+		'by_spark', ['spark'],
 	).index(
 		'by_status', ['status'],
 	),
@@ -86,15 +77,45 @@ export default defineSchema({
 	action_details: defineTable(
 		zodToConvex(actionDetailSchema),
 	).index(
-		'by_action', ['actionId'],
+		'by_action', ['action'],
+	).index(
+		'by_owner_action', ['owner', 'action'],
+	).index(
+		'by_kind', ['kind'],
 	),
 
-	schedules: defineTable(
-		zodToConvex(scheduleSchema),
+	triggers: defineTable(
+		zodToConvex(triggerSchema),
 	).index(
-		'by_task', ['taskId'],
+		'by_root_kind_status', ['root', 'kind', 'status'],
+	).index(
+		'by_owner_root', ['owner', 'root'],
+	).index(
+		'by_nextRunAt', ['nextRunAt'],
+	).index(
+		'by_author', ['author'],
+	),
+
+	boxes: defineTable(
+		zodToConvex(boxSchema),
+	).index(
+		'by_root_status', ['root', 'status'],
+	).index(
+		'by_owner_root', ['owner', 'root'],
+	).index(
+		'by_providerBoxId', ['providerBoxId'],
+	),
+
+	transactions: defineTable(
+		zodToConvex(transactionSchema),
 	).index(
 		'by_owner', ['owner'],
+	).index(
+		'by_action', ['action'],
+	).index(
+		'by_file', ['file'],
+	).index(
+		'by_topUp', ['topUp'],
 	),
 
 	skills: defineTable(
@@ -103,36 +124,19 @@ export default defineSchema({
 		'by_owner_kind', ['owner', 'kind'],
 	).index(
 		'by_owner_key', ['owner', 'key'],
+	).index(
+		'by_owner_root_key', ['owner', 'root', 'key'],
 	),
 
-	components: defineTable(
-		zodToConvex(componentSchema),
+	pages: defineTable(
+		zodToConvex(pageSchema),
 	).index(
-		'by_owner_slug', ['owner', 'slug'],
+		'by_owner_root_route', ['owner', 'root', 'route'],
+	).index(
+		'by_file', ['file'],
 	),
 
-	transactions: defineTable(
-		zodToConvex(transactionSchema),
-	).index(
-		'by_owner', ['owner'],
-	).searchIndex(
-		'search_transactions', {
-			searchField: 'description',
-			filterFields: ['owner', 'kind'],
-		}
-	),
-
-	subscriptions: defineTable(
-		zodToConvex(subscriptionSchema),
-	).index(
-		'by_owner_status', ['owner', 'status'],
-	).index(
-		'by_paymentId', ['paymentId'],
-	).index(
-		'by_polarSubscriptionId', ['polarSubscriptionId'],
-	),
-
-	topUps: defineTable(
+	top_ups: defineTable(
 		zodToConvex(topUpSchema),
 	).index(
 		'by_status_owner', ['status', 'owner'],
@@ -140,7 +144,13 @@ export default defineSchema({
 		'by_paymentId', ['paymentId'],
 	),
 
-	polarEvents: defineTable(
-		zodToConvex(polarEventSchema),
+	polar_events: defineTable(
+		zodToConvex(polarEventReceiptSchema),
+	).index(
+		'by_eventId', ['eventId'],
+	).index(
+		'by_owner', ['owner'],
+	).index(
+		'by_action', ['action'],
 	),
 });

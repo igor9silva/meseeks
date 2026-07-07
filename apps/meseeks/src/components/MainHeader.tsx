@@ -1,39 +1,33 @@
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
-import { useQuery } from 'convex/react';
-import { ArrowLeft, Inbox, Loader2, Search, SquarePen } from 'lucide-react';
+import { ArrowLeft, Home, Search, Wallet } from 'lucide-react';
 import { useTransition } from 'react';
 import { cn } from '@reactor/ui/lib/utils';
 
-import { api } from 'convex/_generated/api';
-import { Balance } from '~/components/Balance';
 import { useLauncher } from '~/components/Launcher';
 import { Button } from '@reactor/ui/button';
 import { TooltipButton, TooltipProvider } from '@reactor/ui/tooltip';
-import { useSplatParams } from '~/hooks/useSplatParams';
 
 export function MainHeader({ className }: { className?: string }) {
 	//
 	const { history } = useRouter();
 	const { pathname, searchStr } = useLocation();
 	const { open: openLauncher } = useLauncher();
-	const { taskId } = useSplatParams();
-	const currentTask = useQuery(api.tasks.findOne, taskId ? { taskId } : 'skip');
 	const navigate = useNavigate();
 	const [isNavigating, startTransition] = useTransition();
 
-	const taskTitle = currentTask?.title;
-	const fallbackTitle = pathname + searchStr || 'Untitled task';
+	const title = pathname + searchStr || '/';
 
 	const goBack = () => history.back();
 
-	const goUp = () => {
+	const goHome = () => {
 		startTransition(() => {
-			navigate({ to: '/$', params: { _splat: `` } });
+			navigate({ to: '/$', params: { _splat: '' } });
 		});
 	};
-	const goToNewTask = () => {
+
+	const goToWallet = () => {
 		startTransition(() => {
-			navigate({ to: '/$', params: { _splat: 'new' } });
+			navigate({ to: '/wallet' });
 		});
 	};
 
@@ -56,52 +50,36 @@ export function MainHeader({ className }: { className?: string }) {
 						className="p-2 [&_svg]:size-5"
 						variant="ghost"
 						size="lg"
-						onClick={goUp}
-						tooltipContent="Inbox"
+						onClick={goHome}
+						tooltipContent="Home"
 						disabled={isNavigating}
 					>
-						{isNavigating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Inbox />}
+						<Home />
 					</TooltipButton>
 				</div>
 
 				<div className="w-1/2 flex gap-1">
-					<LauncherTrigger fallbackTitle={fallbackTitle} taskTitle={taskTitle} onClick={openLauncher} />
+					<LauncherTrigger title={title} onClick={openLauncher} />
 				</div>
 
 				<div className="flex gap-1">
-					<Balance />
 					<TooltipButton
 						className="p-2 [&_svg]:size-5"
 						variant="ghost"
 						size="lg"
-						onClick={goToNewTask}
-						tooltipContent="New task"
+						onClick={goToWallet}
+						tooltipContent="Wallet"
 						disabled={isNavigating}
 					>
-						{isNavigating ? <Loader2 className="h-5 w-5 animate-spin" /> : <SquarePen />}
+						<Wallet />
 					</TooltipButton>
-					{/* {taskId && (
-						<Suspense fallback={null}>
-							<div className="flex items-center p-1">
-								<TaskStatusIndicatorProvider taskId={taskId} />
-							</div>
-						</Suspense>
-					)} */}
 				</div>
 			</header>
 		</TooltipProvider>
 	);
 }
 
-function LauncherTrigger({
-	fallbackTitle, //
-	taskTitle,
-	onClick,
-}: {
-	fallbackTitle: string;
-	taskTitle?: string;
-	onClick: () => void;
-}) {
+function LauncherTrigger({ title, onClick }: { title: string; onClick: () => void }) {
 	//
 	return (
 		<Button
@@ -110,7 +88,7 @@ function LauncherTrigger({
 			className="w-full relative flex items-center justify-start gap-2 truncate bg-muted/40 py-2 pr-3 pl-9 text-muted-foreground hover:bg-accent"
 		>
 			<Search className="absolute left-3 size-4 shrink-0" aria-hidden="true" />
-			<HeaderTitle fallbackTitle={fallbackTitle} taskTitle={taskTitle} />
+			<span className="truncate text-xs md:text-sm">{title}</span>
 			<kbd
 				className={cn(
 					'hidden md:inline-flex absolute right-2 h-5 items-center gap-0.5 rounded-md border border-border/70 bg-background/80 px-1.5 font-mono text-xs font-medium leading-none text-muted-foreground/80 shadow-sm',
@@ -121,32 +99,3 @@ function LauncherTrigger({
 		</Button>
 	);
 }
-
-function HeaderTitle({
-	taskTitle, //
-	fallbackTitle,
-}: {
-	taskTitle?: string;
-	fallbackTitle: string;
-}) {
-	//
-	if (!taskTitle) return <span className="truncate text-xs md:text-sm">{fallbackTitle}</span>;
-
-	return (
-		<span className="inline-flex min-w-0 flex-1 justify-center gap-1 text-xs md:pr-12 md:text-sm">
-			<span className="shrink-0 text-muted-foreground/60">Task:</span>
-			<span className="truncate">{taskTitle}</span>
-		</span>
-	);
-}
-
-// function TaskStatusIndicatorProvider({
-// 	taskId, //
-// }: {
-// 	taskId: Id<'tasks'>;
-// }) {
-// 	//
-// 	const { task } = useTask(taskId);
-
-// 	return <TaskStatusIndicator className="" task={task} />;
-// }

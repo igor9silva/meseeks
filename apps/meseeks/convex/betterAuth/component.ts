@@ -21,6 +21,7 @@ export const betterAuthComponent = createClient<DataModel, typeof authSchema>(co
 					email: user.email,
 					name: user.name ?? undefined,
 					image: user.image ?? undefined,
+					isAnonymous: Boolean(user.isAnonymous),
 				});
 			},
 			onUpdate: async (ctx, user) => {
@@ -29,6 +30,7 @@ export const betterAuthComponent = createClient<DataModel, typeof authSchema>(co
 					email: user.email,
 					name: user.name ?? undefined,
 					image: user.image ?? undefined,
+					isAnonymous: Boolean(user.isAnonymous),
 				});
 			},
 		},

@@ -2,7 +2,6 @@ import { QueryClient } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 // import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation } from '@tanstack/react-router';
-import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthLoading, Authenticated, Unauthenticated } from 'convex/react';
 import { AccessDenied } from '~/components/AccessDenied';
@@ -10,12 +9,8 @@ import { LauncherDialog } from '~/components/Launcher';
 import { FeedbackDialog } from '~/components/FeedbackDialog';
 import { Loading } from '~/components/Loading';
 import { MainHeader } from '~/components/MainHeader';
-import { RotatingLoadingMessage } from '~/components/RotatingLoadingMessage';
-import { ScheduleIterationDialog } from '~/components/ScheduleIterationDialog';
 import { Toaster } from '~/components/ui/sonner';
-import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { FeedbackDialogProvider, useFeedbackDialog } from '~/hooks/useFeedbackDialog';
-import { ScheduleDialogProvider, useScheduleDialog } from '~/hooks/useScheduleDialog';
 import { seo } from '~/lib/seo';
 import {
 	baseThemeCssText,
@@ -30,7 +25,7 @@ import appCss from '~/styles/app.css?url';
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
 	head: () => ({
 		meta: [
-			{ title: 'Meseeks' },
+			{ title: 'PRO' },
 			{ charSet: 'utf-8' },
 			{
 				name: 'viewport',
@@ -44,7 +39,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				].join(','),
 			},
 			...seo({
-				title: 'Meseeks',
+				title: 'PRO',
 				description: `Open platform to amplify yourself — be free. Open source, data and business. Research preview.`,
 				image: '/og.webp',
 			}),
@@ -107,7 +102,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<RootLayout>{children}</RootLayout>
 				<Scripts />
 				<SpeedInsights />
-				<Analytics debug={false} />
 			</body>
 		</html>
 	);
@@ -122,7 +116,7 @@ function getPwaConfig(pathname: string) {
 	}
 
 	return {
-		title: 'Meseeks',
+		title: 'PRO',
 		manifestHref: '/static/site.webmanifest',
 	};
 }
@@ -153,15 +147,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 function Main({ children }: { children: React.ReactNode }) {
 	//
-	const user = useCurrentUser();
-
-	if (!user.isReady) return <RotatingLoadingMessage />;
-
 	return (
 		<FeedbackDialogProvider>
-			<ScheduleDialogProvider>
-				<MainWithFeedback>{children}</MainWithFeedback>
-			</ScheduleDialogProvider>
+			<MainWithFeedback>{children}</MainWithFeedback>
 		</FeedbackDialogProvider>
 	);
 }
@@ -169,9 +157,7 @@ function Main({ children }: { children: React.ReactNode }) {
 function MainWithFeedback({ children }: { children: React.ReactNode }) {
 	//
 	const feedbackDialog = useFeedbackDialog();
-	const scheduleDialog = useScheduleDialog();
 	const toggleFeedback = (isOpen: boolean) => (isOpen ? feedbackDialog.open() : feedbackDialog.close());
-	const toggleSchedule = (isOpen: boolean) => (isOpen ? undefined : scheduleDialog.close());
 
 	return (
 		<div className="flex h-svh w-full">
@@ -185,13 +171,6 @@ function MainWithFeedback({ children }: { children: React.ReactNode }) {
 			<Toaster position="top-right" />
 			<LauncherDialog />
 			<FeedbackDialog open={feedbackDialog.isOpen} onOpenChange={toggleFeedback} />
-			{scheduleDialog.taskId && (
-				<ScheduleIterationDialog
-					taskId={scheduleDialog.taskId}
-					open={scheduleDialog.isOpen}
-					onOpenChange={toggleSchedule}
-				/>
-			)}
 		</div>
 	);
 }

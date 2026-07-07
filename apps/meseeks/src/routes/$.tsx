@@ -1,36 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { track } from '@vercel/analytics/react';
-import { z } from 'zod/v3';
-import { BasicError } from '~/components/BasicError';
-import MDX from '~/components/ui/mdx';
-import { useComposition } from '~/hooks/query/useComposition';
-import { useSplatParams } from '~/hooks/useSplatParams';
-
-const searchSchema = z.object({
-	q: z.string().optional(),
-	isEnergyDrawerOpen: z.boolean().optional(),
-	debug: z.boolean().optional(),
-});
+import { FilesystemRoute } from '~/components/TestConsole/FilesystemRoute';
 
 export const Route = createFileRoute('/$')({
-	component: MDXPage,
-	errorComponent: () => <BasicError text="Not found (or something else went wrong)." />,
-	validateSearch: searchSchema,
+	component: RootRoute,
 });
 
-function MDXPage() {
+function RootRoute() {
 	//
-	const params = useSplatParams();
+	const { _splat } = Route.useParams();
 
-	const slug = params.slug || 'list';
-	const { composition } = useComposition(slug);
-
-	const taskId = params.taskId || composition.defaultTaskId || 'inbox';
-
-	track('$', {
-		slug,
-		taskId,
-	});
-
-	return <MDX text={composition.body} shouldRenderComponents={true} />;
+	return <FilesystemRoute path={_splat ?? ''} />;
 }

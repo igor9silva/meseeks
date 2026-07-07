@@ -88,7 +88,7 @@ export function QuestionDialog({ className }: { className?: string }) {
 					<div className="py-4">
 						<Textarea
 							name="message"
-							placeholder="What would you like to know about Meseeks?"
+							placeholder="What would you like to know about PRO?"
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
 							className="min-h-32"

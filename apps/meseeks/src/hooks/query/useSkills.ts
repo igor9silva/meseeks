@@ -1,7 +1,7 @@
 import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
-import { Id } from 'convex/_generated/dataModel';
+import type { Id } from 'convex/_generated/dataModel';
 
 const byPriority = (a: { priority?: number }, b: { priority?: number }) => {
 	return (a.priority ?? 999999999) - (b.priority ?? 999999999);
@@ -33,6 +33,19 @@ export function usePublicSkills() {
 	};
 }
 
+export function useRootSkills(root: Id<'files'>) {
+	//
+	const query = convexQuery(api.skills.findByRoot, { root });
+	const result = useSuspenseQuery(query);
+
+	result.data = result.data?.filter((skill) => !skill.isHidden).sort(byPriority);
+
+	return {
+		...result,
+		skills: result.data,
+	};
+}
+
 export function useSkill(skillId: Id<'skills'>) {
 	//
 	const query = convexQuery(api.skills.findOne, { skillId });
@@ -44,9 +57,9 @@ export function useSkill(skillId: Id<'skills'>) {
 	};
 }
 
-export function useInnateSkill(skillKey: string) {
+export function useInstinct(skillKey: string) {
 	//
-	const query = convexQuery(api.skills.findOneInnate, { skillKey });
+	const query = convexQuery(api.skills.findOneInstinct, { skillKey });
 	const result = useSuspenseQuery(query);
 
 	return {
@@ -55,9 +68,9 @@ export function useInnateSkill(skillKey: string) {
 	};
 }
 
-export function useInnateSkills() {
+export function useInstincts() {
 	//
-	const query = convexQuery(api.skills.findAllInnate, {});
+	const query = convexQuery(api.skills.findAllInstincts, {});
 	const result = useSuspenseQuery(query);
 
 	return {

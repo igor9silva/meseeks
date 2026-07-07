@@ -28,7 +28,13 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 		// TODO: Make webhook persistence and side effects idempotent before relying on Polar retries.
 
 		// persist all events
-		await ctx.runMutation(internal.topUps._persistPolarEvent, { polarEvent: json });
+		await ctx.runMutation(internal.polarEvents._recordPolarEvent, {
+			event: {
+				type: json.type,
+				eventId: json.data?.id,
+				data: json.data,
+			},
+		});
 
 		// will throw if invalid schema
 		const parsed = webhookEventSchema.safeParse(json);
@@ -47,18 +53,12 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 				const paidPayload = orderPaidSchema.parse(json);
 
 				const billingReason = paidPayload.data.billing_reason;
-				const isRenewal = billingReason === 'subscription_cycle';
-				const isNewSubscription = billingReason === 'subscription_create';
 
 				console.debug('Processing order.paid', {
 					productId: paidPayload.data.product_id,
 					billingReason,
-					isRenewal,
-					isNewSubscription,
-					subscriptionId: paidPayload.data.subscription_id,
 				});
 
-				// TODO: Use product-specific schemas so subscription products require subscription_id and top-ups do not.
 				switch (paidPayload.data.product_id) {
 					//
 					case env.POLAR_TOP_UP_ID:
@@ -66,34 +66,6 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 							ctx,
 							checkoutId: paidPayload.data.checkout_id,
 							amount: paidPayload.data.net_amount / 100, // cents to dollars
-						});
-						break;
-
-					case env.POLAR_SUBSCRIPTION_ID:
-						await activateSubscription({
-							ctx,
-							// TODO: For renewal events, look up the existing subscription by subscription_id instead of checkout_id.
-							checkoutId: paidPayload.data.checkout_id,
-							amount: paidPayload.data.net_amount / 100, // cents to dollars
-							// TODO: Use Polar current_period_end instead of local 30-day month math.
-							durationMonths: 1,
-							isFounder: false,
-							isRenewal,
-							polarSubscriptionId: paidPayload.data.subscription_id,
-						});
-						break;
-
-					case env.POLAR_FOUNDER_PACK_ID:
-						await activateSubscription({
-							ctx,
-							// TODO: For renewal events, look up the existing subscription by subscription_id instead of checkout_id.
-							checkoutId: paidPayload.data.checkout_id,
-							amount: paidPayload.data.net_amount / 100, // cents to dollars
-							// TODO: Use Polar current_period_end instead of local 30-day month math.
-							durationMonths: 24,
-							isFounder: true,
-							isRenewal,
-							polarSubscriptionId: paidPayload.data.subscription_id,
 						});
 						break;
 
@@ -105,18 +77,6 @@ export const handlePolarWebhook = httpAction(async (ctx, request) => {
 			case 'order.refunded':
 				// TODO: implement automatic refund handling
 				console.error('Not implemented: order.refunded', event);
-				break;
-
-			// case 'subscription.canceled':
-			// just let it expire naturally
-			// this will work but subscriptions will appear "active" but won't be treated as valid because of `validUntil`
-			// TODO: schedule a mutation to set 'canceled'
-
-			case 'subscription.revoked':
-				await handleImmediateRevocation({
-					ctx,
-					polarSubscriptionId: event.data.id,
-				});
 				break;
 		}
 
@@ -151,50 +111,6 @@ async function finishTopUp({
 	return await ctx.runMutation(internal.topUps._finish, {
 		checkoutId,
 		amount: asBigInt({ dollars: amount }),
-	});
-}
-
-async function activateSubscription(params: {
-	ctx: ActionCtx;
-	checkoutId: string;
-	amount: number;
-	durationMonths: number;
-	isFounder: boolean;
-	isRenewal: boolean;
-	polarSubscriptionId?: string;
-}) {
-	const { ctx, checkoutId, amount, durationMonths, isFounder, isRenewal, polarSubscriptionId } = params;
-
-	console.debug('Activating subscription', {
-		checkoutId,
-		amount,
-		durationMonths,
-		isFounder,
-		isRenewal,
-		polarSubscriptionId,
-	});
-
-	return await ctx.runMutation(internal.subscriptions._activate, {
-		checkoutId,
-		months: durationMonths,
-		credits: asBigInt({ dollars: amount }),
-		isFounder,
-		isRenewal,
-		polarSubscriptionId,
-	});
-}
-
-async function handleImmediateRevocation({
-	ctx, //
-	polarSubscriptionId,
-}: {
-	ctx: ActionCtx;
-	polarSubscriptionId: string;
-}) {
-	console.debug('Processing subscription revocation', { polarSubscriptionId });
-
-	return await ctx.runMutation(internal.subscriptions._handleRevocation, {
-		polarSubscriptionId,
 	});
 }
 

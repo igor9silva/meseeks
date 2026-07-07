@@ -1,162 +1,155 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
-import { skillKindSchema } from './skillSchema';
+import { newActionSchema } from './actionSchema';
+import { intelligenceKeys } from './intelligenceSchema';
+import { skillKeySchema } from './skillSchema';
 
-const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
-const httpStatusCodeSchema = z.number().min(100).max(599);
-const bodySizeSchema = z.number().min(0);
-
-const toolCallSchema = z.object({
-	toolName: z.string(),
-	input: z.record(z.unknown()),
+const coreActionDetailSchema = z.object({
+	owner: zid('users'),
+	action: zid('actions'),
+	createdAt: z.number(),
 });
 
-const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');
+export const providerActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('provider'),
+	provider: z.string().min(1),
+	model: z.string().optional(),
+	request: z.record(z.unknown()).optional(),
+	response: z.record(z.unknown()).optional(),
+	usage: z.record(z.unknown()).optional(),
+	cost: z.bigint().optional(),
+});
 
-const tokenUsageSchema = z
-	.object({
-		input: z
-			.object({
-				total: z.number().min(0).describe('Total input tokens used'),
-				cached: z.number().min(0).optional().describe('Number of cached input tokens'),
-			})
-			.describe('Input token usage breakdown'),
-		output: z
-			.object({
-				total: z.number().min(0).describe('Total output tokens generated'),
-				cached: z.number().min(0).optional().describe('Number of cached output tokens'),
-			})
-			.describe('Output token usage breakdown'),
-	})
-	.describe('Comprehensive token usage statistics');
+export const boxActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('box'),
+	provider: z.literal('daytona'),
+	providerBoxId: z.string().min(1),
+	command: z.string().optional(),
+	exitCode: z.number().int().optional(),
+	stdout: z.string().optional(),
+	stderr: z.string().optional(),
+	logs: z.string().optional(),
+	changedPaths: z.array(z.string()).optional(),
+});
 
-const baseActionDetailSchema = z
-	.object({
-		actionId: zid('actions').describe('Reference to the action this detail belongs to'),
-		skillKind: skillKindSchema.exclude(['built-in']).describe('Type of skill that was executed'),
-		skillKey: z.string().describe('Unique identifier of the skill'),
-		skillDescription: z.string().describe('Human-readable description of what the skill does'),
-	})
-	.describe('Base information for any action execution');
+export const triggerActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('trigger'),
+	trigger: zid('triggers').optional(),
+	sourceFile: zid('files').optional(),
+	sourcePath: z.string().optional(),
+	sourceHash: z.string().optional(),
+	sourceAction: zid('actions').optional(),
+	compiledBy: zid('actions').optional(),
+	compiledAt: z.number().optional(),
+	matchedRevisions: z.array(zid('file_revisions')).optional(),
+	matchedPaths: z.array(z.string()).optional(),
+	proposals: z.array(newActionSchema).optional(),
+	acceptedActions: z.array(zid('actions')).optional(),
+	error: z.string().optional(),
+});
 
-// For hard actions (HTTP calls)
-const httpActionDetailSchema = baseActionDetailSchema
-	.extend({
-		skillKind: z.literal('hard'),
-		http: z
-			.object({
-				// request details (sanitized for security)
-				method: httpMethodSchema.optional().describe('HTTP method used'),
-				url: z.string().url().optional().describe('Full URL that was called (including query params)'),
-				requestBodySize: bodySizeSchema.optional().describe('Size of request body in bytes'),
+export const reactionActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('reaction'),
+	proposals: z.array(newActionSchema),
+	acceptedActions: z.array(zid('actions')),
+});
 
-				// note: request headers and body are not stored as they may contain sensitive information
+export const fileActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('file'),
+	file: zid('files').optional(),
+	revisions: z.array(zid('file_revisions')).optional(),
+	paths: z.array(z.string()).optional(),
+	warnings: z.array(z.string()).optional(),
+});
 
-				// response details
-				statusCode: httpStatusCodeSchema.optional().describe('HTTP response status code'),
-				statusText: z.string().optional().describe('HTTP response status message'),
-				responseBodySize: bodySizeSchema.optional().describe('Size of response body in bytes'),
-				responseBody: z
-					.string()
-					.optional()
-					.describe(
-						'Full HTTP response body (truncated based on MAX_HTTP_RESPONSE_BODY_BYTES env setting for safety within Convex 1MB document limit)',
-					),
-				responseHeaders: z
-					.record(z.string())
-					.optional()
-					.describe('HTTP response headers (generally safe to store)'),
-			})
-			.describe('HTTP request/response details with security-conscious data filtering'),
-	})
-	.describe('Debugging information for HTTP-based skill executions');
+export const uploadActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('upload'),
+	ticketAction: zid('actions'),
+	parent: zid('files'),
+	name: z.string().min(1),
+	contentType: z.string().min(1),
+	size: z.number().int().min(0),
+	hash: z.string().min(1),
+	checksum: z.string().min(1),
+	stagedStorageKey: z.string().min(1),
+	uploadUrl: z.string().url(),
+	expiresAt: z.number(),
+});
 
-// For soft actions (LLM calls)
-const llmActionDetailSchema = baseActionDetailSchema
-	.extend({
-		skillKind: z.literal('soft'),
-		llm: z
-			.object({
-				// model configuration
-				model: z.string().describe('Specific model that was used for this execution'),
-				provider: z.string().describe('AI provider (extracted from model)'),
-				temperature: temperatureSchema.describe('Temperature setting used for this call'),
-				maxTokens: z.number().min(1).optional().describe('Maximum tokens limit set for generation'),
+export const errorActionDetailSchema = coreActionDetailSchema.extend({
+	kind: z.literal('error'),
+	code: z.string().optional(),
+	message: z.string().min(1),
+	stack: z.string().optional(),
+});
 
-				// context information
-				systemInstructions: z.string().describe('System prompt that was provided to the model'),
-				historyLength: z.number().min(0).describe('Number of conversation messages in context'),
-				history: z
-					.array(
-						z
-							.object({
-								role: z
-									.enum([
-										'system', //
-										'user',
-										'assistant',
-										'tool',
-										'data',
-										'function',
-									])
-									.describe('Role of the message sender'),
-								content: z.string().describe('Content of the message'),
-							})
-							.describe('Individual message in the conversation history'),
-					)
-					.describe('Complete conversation history that was sent to the model'),
-				availableTools: z.array(z.string()).describe('List of tool keys that were made available to the model'),
+const preparationCoreSchema = coreActionDetailSchema.extend({
+	kind: z.literal('preparation'),
+	skill: skillKeySchema,
+	preparedAt: z.number(),
+	warnings: z.array(z.string()).optional(),
+});
 
-				// execution results
-				finishReason: z
-					.string()
-					.optional()
-					.describe('Why the model stopped generating (stop, length, tool-calls, etc.)'),
+export const thinkPreparationActionDetailSchema = preparationCoreSchema.extend({
+	skillKind: z.literal('think'),
+	intelligence: intelligenceKeys,
+	provider: z.string().min(1),
+	model: z.string().min(1),
+	system: z.string().min(1),
+	prompt: z.string().min(1),
+	estimated: z.record(z.unknown()).optional(),
+});
 
-				text: z.string().optional().describe('Direct text response from the model'),
+export const requestPreparationActionDetailSchema = preparationCoreSchema.extend({
+	skillKind: z.literal('request'),
+	url: z.string().url(),
+	method: z.enum([
+		'GET', //
+		'POST',
+		'PUT',
+		'PATCH',
+		'DELETE',
+	]),
+	headers: z.record(z.string()).optional(),
+	body: z.unknown().optional(),
+	timeoutMs: z.number().int().positive().optional(),
+});
 
-				toolCalls: z.array(toolCallSchema).optional().describe('List of tool calls made by the model'),
+export const executePreparationActionDetailSchema = preparationCoreSchema.extend({
+	skillKind: z.literal('execute'),
+	root: zid('files'),
+	code: z.string().min(1),
+	language: z.enum([
+		'javascript', //
+		'python',
+	]),
+	timeoutSeconds: z.number().int().positive().optional(),
+});
 
-				// comprehensive usage statistics
-				usage: tokenUsageSchema.optional().describe('Detailed token usage breakdown for cost analysis'),
+export const instinctPreparationActionDetailSchema = preparationCoreSchema.extend({
+	skillKind: z.literal('instinct'),
+	context: z.record(z.unknown()).optional(),
+});
 
-				// warnings and metadata (preserved as-is for debugging)
-				warnings: z.array(z.unknown()).optional().describe('AI SDK warnings (can be complex objects)'),
-
-				providerMetadata: z.record(z.unknown()).optional().describe('Provider-specific metadata for debugging'),
-			})
-			.describe('Comprehensive LLM execution details including model config, context, and results'),
-	})
-	.describe('Debugging information for LLM-based skill executions');
+export const preparationActionDetailSchema = z.discriminatedUnion('skillKind', [
+	thinkPreparationActionDetailSchema,
+	requestPreparationActionDetailSchema,
+	executePreparationActionDetailSchema,
+	instinctPreparationActionDetailSchema,
+]);
 
 export const actionDetailSchema = z
-	.union([httpActionDetailSchema, llmActionDetailSchema])
-	.describe('Complete action execution details for debugging and transparency');
-
-const llmUpdateFields = z.object({
-	finishReason: z.string().optional(),
-	text: z.string().optional(),
-	toolCalls: z.array(toolCallSchema).optional(),
-	usage: tokenUsageSchema.optional(),
-	warnings: z.array(z.unknown()).optional(),
-	providerMetadata: z.record(z.unknown()).optional(),
-});
-
-const httpUpdateFields = z.object({
-	requestBodySize: bodySizeSchema.optional(),
-	statusCode: httpStatusCodeSchema.optional(),
-	statusText: z.string().optional(),
-	responseBodySize: bodySizeSchema.optional(),
-	responseBody: z.string().optional(),
-	responseHeaders: z.record(z.string()).optional(),
-});
-
-// Update schema - only mutable fields can be updated
-export const actionDetailUpdateSchema = z.union([
-	z.object({
-		llm: llmUpdateFields,
-	}),
-	z.object({
-		http: httpUpdateFields,
-	}),
-]);
+	.union([
+		thinkPreparationActionDetailSchema,
+		requestPreparationActionDetailSchema,
+		executePreparationActionDetailSchema,
+		instinctPreparationActionDetailSchema,
+		providerActionDetailSchema,
+		boxActionDetailSchema,
+		triggerActionDetailSchema,
+		reactionActionDetailSchema,
+		fileActionDetailSchema,
+		uploadActionDetailSchema,
+		errorActionDetailSchema,
+	])
+	.describe('Technical detail for action execution.');

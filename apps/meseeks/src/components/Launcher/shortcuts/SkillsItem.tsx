@@ -4,7 +4,7 @@ import { CommandItem } from '@reactor/ui/command';
 export function SkillsItem({ onSelect }: { onSelect: (value: string) => void }) {
 	//
 	return (
-		<CommandItem value="/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
+		<CommandItem value="/.pro/skills" keywords={['skills', 'manage']} onSelect={onSelect}>
 			<Sparkles className="mr-2" />
 			Manage skills
 		</CommandItem>

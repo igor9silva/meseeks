@@ -2,156 +2,34 @@ import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound, Unauthorized } from 'lib/errors';
-import { asBigInt } from 'lib/money';
-import { tokenSchema } from 'schemas/topUpSchema';
-import { findActiveSubscriptions } from './subscriptions.private';
-import { addTaskWithActions } from './tasks.private';
-import { addFreeCredits } from './transactions.private';
-import { setUserPreference } from './users/preferences.private';
 import { components } from './_generated/api';
+import { ensureUserRootDirectory } from './files.private';
 
-const addInitialTask = defineMutation({
+export const ensureUserRoot = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 	}),
 	handler: async (ctx, { userId }) => {
 		//
-		const initialTaskId = await addTaskWithActions(ctx, {
-			author: userId,
-			owner: userId,
-			title: 'Look at me!',
-			instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
-
-I'd like you to gather details such as:
-- My name and background
-- Where I'm from (birth place, where I grew up, current location)
-- My citizenship/nationality
-- My profession and interests
-- Languages I speak and proficiency levels
-- My social media handles
-- Any other personal information I share that might be helpful for future interactions
-
-Please update my user information each time you learn something new about me, and make sure to never remove information that is still valid when adding new details. Write everything from my perspective, as if I'm describing myself.
-
-I'm also curious about Meseeks and would love to learn more about its capabilities, features, and how it can help me. Feel free to encourage me to ask questions about what Meseeks can do, how it works, or any other aspects I might be interested in exploring.`,
-			skills: [
-				{
-					skillKey: 'increaseBudget',
-					args: {
-						amount: asBigInt({ dollars: 1 }),
-						shouldIterate: false,
-					},
-				},
-				{
-					skillKey: 'lookAtMe',
-					args: {},
-				},
-			],
-		});
-
-		await ctx.db.patch(userId, { initialTaskId });
-
-		return initialTaskId;
-	},
-});
-
-const setDefaultPreferences = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		// TODO: unhack
-		const defaultEnabledSkills = [
-			'searchWeb',
-			'valyu_search',
-			'github_search',
-			'twitter_search',
-			'searchIdealista',
-			'scrapeLink',
-			'scrapeTweet',
-			'searchPlaces',
-			'analyze',
-			'compose',
-			'transcribeYouTube',
-			'describeYouTube',
-		];
-
-		// TODO: this also brings idealista_* (inner skills)
-		// const proSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
-		// const defaultEnabledSkills = proSkills.map((skill) => skill.key);
-
-		await setUserPreference(ctx, {
-			userId,
-			key: 'enabledSkills',
-			value: defaultEnabledSkills,
-		});
-	},
-});
-
-export const seedUserIfNeeded = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		const user = await findUser(ctx, { userId });
-		if (user?.isReady) return;
-
-		console.info('new user!', userId);
-
-		// const isVerified = user?.verificationLevel === 'orb';
-
-		await addFreeCredits(ctx, {
-			owner: userId,
-			value: {
-				symbol: 'USD',
-				amount: asBigInt({ dollars: 2 }),
-			},
-			description: 'Welcome credits',
-		});
-
-		// TODO: users should be able to spawn their own Convex instance for full isolation and control
-
-		// await addInitialTask(ctx, { userId });
-		await setDefaultPreferences(ctx, { userId });
-
-		await ctx.db.patch(userId, { isReady: true });
+		return await ensureUserRootDirectory(ctx, { owner: userId });
 	},
 });
 
 export const adjustUserBalance = defineMutation({
 	args: z.object({
 		userId: zid('users'),
-		value: z.object({
-			symbol: tokenSchema,
-			amount: z.bigint(),
-		}),
+		amount: z.bigint(),
 	}),
-	handler: async (ctx, { userId, value }) => {
+	handler: async (ctx, { userId, amount }) => {
 		//
 		const user = await findUser(ctx, { userId });
 		if (!user) throw NotFound();
 
-		console.debug('adjust account balance', userId, value.amount);
+		console.debug('adjust account balance', userId, amount);
 
-		if (value.symbol !== 'USD') throw new Error('Only USD is supported for now');
+		const energyBalance = user.energyBalance ?? 0n;
 
-		return await ctx.db.patch(userId, { balanceUSD: (user.balanceUSD ?? 0n) + value.amount });
-	},
-});
-
-export const setUserIsFounder = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-		isFounder: z.boolean(),
-	}),
-	handler: async (ctx, { userId, isFounder }) => {
-		//
-		const user = await findUser(ctx, { userId });
-		if (!user) throw NotFound();
-
-		await ctx.db.patch(userId, { isFounder });
+		return await ctx.db.patch(userId, { energyBalance: energyBalance + amount });
 	},
 });
 
@@ -195,6 +73,7 @@ const addUserArgs = z.object({
 	email: z.string().min(1),
 	name: z.string().optional(),
 	image: z.string().optional(),
+	isAnonymous: z.boolean().optional(),
 });
 
 const updateExistingUserArgs = addUserArgs.extend({
@@ -208,7 +87,7 @@ export const addUser = defineMutation({
 		const { authUserId, email } = authUser;
 		const linkedUser = await findUserByAuthUserId(ctx, { authUserId });
 
-		if (linkedUser) return await patchUser(ctx, { ...authUser, userId: linkedUser._id });
+		if (linkedUser) return await syncAuthUser(ctx, { ...authUser, userId: linkedUser._id });
 
 		const userWithEmail = await findUserByEmail(ctx, { email });
 		if (!userWithEmail) return await createUser(ctx, authUser);
@@ -223,7 +102,7 @@ export const addUser = defineMutation({
 			throw new Error(`Could not safely link auth user for ${email}`);
 		}
 
-		return await linkUser(ctx, { ...authUser, userId: userWithEmail._id });
+		return await syncAuthUser(ctx, { ...authUser, userId: userWithEmail._id });
 	},
 });
 
@@ -234,9 +113,9 @@ export const updateUser = defineMutation({
 		const { authUserId } = authUser;
 		const user = await findUserByAuthUserId(ctx, { authUserId });
 
-		if (!user) return addUser(ctx, authUser);
+		if (!user) return await addUser(ctx, authUser);
 
-		return await patchUser(ctx, { ...authUser, userId: user._id });
+		return await syncAuthUser(ctx, { ...authUser, userId: user._id });
 	},
 });
 
@@ -268,18 +147,6 @@ export const getCurrentUser = defineQuery({
 	},
 });
 
-export const isProSubscriber = defineQuery({
-	args: z.object({
-		owner: zid('users'),
-	}),
-	handler: async (ctx, { owner }) => {
-		//
-		const activeSubscriptions = await findActiveSubscriptions(ctx, { owner });
-
-		return activeSubscriptions.length > 0;
-	},
-});
-
 const setAuthUserAppUserId = defineMutation({
 	args: z.object({
 		authUserId: z.string().min(1),
@@ -301,29 +168,30 @@ const createUser = defineMutation({
 	args: addUserArgs,
 	handler: async (ctx, authUser) => {
 		//
-		const { authUserId, email, name, image } = authUser;
+		const { authUserId, email, name, image, isAnonymous } = authUser;
 		const userId = await ctx.db.insert('users', {
 			authUserId,
 			email,
 			name,
 			image,
-			isReady: false,
-			balanceUSD: 0n,
-			isFounder: false,
+			isAnonymous: Boolean(isAnonymous),
+			energyBalance: 0n,
 		});
 
+		console.info('new user!', userId);
+
 		await setAuthUserAppUserId(ctx, { authUserId, userId });
-		await seedUserIfNeeded(ctx, { userId });
+		await ensureUserRootDirectory(ctx, { owner: userId });
 
 		return userId;
 	},
 });
 
-const linkUser = defineMutation({
+const syncAuthUser = defineMutation({
 	args: updateExistingUserArgs,
 	handler: async (ctx, args) => {
 		//
-		const { userId, authUserId, email, name, image } = args;
+		const { userId, authUserId, email, name, image, isAnonymous } = args;
 
 		const user = await findUser(ctx, { userId });
 		if (!user) throw NotFound();
@@ -334,28 +202,9 @@ const linkUser = defineMutation({
 			email,
 			name,
 			image,
+			isAnonymous: Boolean(isAnonymous),
 		});
-
-		return userId;
-	},
-});
-
-const patchUser = defineMutation({
-	args: updateExistingUserArgs,
-	handler: async (ctx, args) => {
-		//
-		const { userId, authUserId, email, name, image } = args;
-
-		const user = await findUser(ctx, { userId });
-		if (!user) throw NotFound();
-
-		await setAuthUserAppUserId(ctx, { authUserId, userId });
-		await ctx.db.patch(userId, {
-			authUserId,
-			email,
-			name,
-			image,
-		});
+		await ensureUserRootDirectory(ctx, { owner: userId });
 
 		return userId;
 	},

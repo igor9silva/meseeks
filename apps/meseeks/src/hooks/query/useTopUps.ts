@@ -25,7 +25,7 @@ export function useTopUpHistory() {
 	};
 }
 
-export function useTopUp(topUpId: Id<'topUps'>) {
+export function useTopUp(topUpId: Id<'top_ups'>) {
 	//
 	const query = convexQuery(api.topUps.findOne, { topUpId });
 	const result = useSuspenseQuery(query);
