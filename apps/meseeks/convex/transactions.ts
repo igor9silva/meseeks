@@ -1,7 +1,14 @@
 import { z } from 'zod/v3';
-import { query } from 'lib/convex';
+import { internalMutation, query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
+import { addFreeCredits } from './transactions.private';
 import { getCurrentUser } from './users.private';
+
+// exposed internally so we can call from the Convex dashboard to grant free credits manually
+export const _addFreeCredits = internalMutation({
+	args: addFreeCredits.args.shape,
+	handler: addFreeCredits,
+});
 
 export const findAll = query({
 	args: {},
