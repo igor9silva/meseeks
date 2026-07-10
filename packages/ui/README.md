@@ -1,6 +1,6 @@
 # @reactor/ui
 
-Shared React UI primitives and UI-only hooks used by Meseeks apps.
+Shared React UI primitives and UI-only hooks used by PRO apps.
 
 Local workspace consumers see current source directly. Use a published package or git tag if a project needs opt-in version bumps.
 

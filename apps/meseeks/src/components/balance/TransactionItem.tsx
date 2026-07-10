@@ -7,11 +7,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@react
 
 interface TransactionItemProps {
 	transaction: Doc<'transactions'>;
-	taskId?: Id<'tasks'>;
+	fileId?: Id<'files'>;
 }
 
-export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
+export function TransactionItem({ transaction, fileId }: TransactionItemProps) {
 	//
+	const linkedFile = fileId ?? transactionFile(transaction);
+
 	return (
 		<div className="flex items-center justify-between gap-1 rounded-3xl border bg-card p-3 transition-all hover:shadow-sm">
 			<div className="flex items-center gap-3">
@@ -48,14 +50,14 @@ export function TransactionItem({ transaction, taskId }: TransactionItemProps) {
 				</span>
 
 				<div className="mt-1 flex items-center gap-2">
-					{taskId && (
+					{linkedFile && (
 						<Link
 							to="/$"
-							params={{ _splat: `task/${taskId}` }}
+							params={{ _splat: `tasks/${linkedFile}` }}
 							className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground"
 						>
-							<span className="hidden md:block">See task</span>
-							<span className="md:hidden">Task</span>
+							<span className="hidden md:block">See file</span>
+							<span className="md:hidden">File</span>
 							<ExternalLink className="size-3" />
 						</Link>
 					)}
@@ -82,9 +84,9 @@ function getTransactionBgColor(transaction: Doc<'transactions'>): string {
 			return 'bg-indigo-100 dark:bg-indigo-950/30';
 		case 'top up':
 			return 'bg-emerald-100 dark:bg-emerald-950/30';
-		case 'fund task':
+		case 'action settlement':
 			return 'bg-gray-100 dark:bg-gray-950/30';
-		case 'refund from task':
+		case 'subscription':
 			return 'bg-emerald-100 dark:bg-teal-950/30';
 		default:
 			return 'bg-muted';
@@ -98,9 +100,9 @@ function TransactionIcon({ transaction }: { transaction: Doc<'transactions'> }) 
 			return <Wallet className="size-5 text-indigo-500" />;
 		case 'top up':
 			return <ArrowUp className="size-5 text-emerald-500" />;
-		case 'fund task':
+		case 'action settlement':
 			return <ArrowDown className="size-5 text-gray-500" />;
-		case 'refund from task':
+		case 'subscription':
 			return <RefreshCw className="size-5 text-emerald-500" />;
 		default:
 			return <Clock className="size-5 text-gray-500" />;
@@ -118,11 +120,18 @@ function TransactionKind({ transaction }: { transaction: Doc<'transactions'> }) 
 			return <h3 className="font-medium">Free credits 🎉</h3>;
 		case 'top up':
 			return <h3 className="font-medium">Added funds to account</h3>;
-		case 'fund task':
-			return <h3 className="font-medium">Added energy to task</h3>;
-		case 'refund from task':
-			return <h3 className="font-medium">Refunded unused funds from task</h3>;
+		case 'action settlement':
+			return <h3 className="font-medium">Settled action cost</h3>;
+		case 'subscription':
+			return <h3 className="font-medium">Subscription credits</h3>;
 		default:
 			return <h3 className="font-medium">Unknown</h3>;
 	}
+}
+
+function transactionFile(transaction: Doc<'transactions'>) {
+	//
+	if (transaction.kind !== 'action settlement') return undefined;
+
+	return transaction.file;
 }

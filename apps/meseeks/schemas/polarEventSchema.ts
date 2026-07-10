@@ -3,7 +3,7 @@ import { z } from 'zod/v3';
 export const polarEventSchema = z.object({
 	type: z.string(),
 	timestamp: z.string().optional(),
-	data: z.record(z.any()),
+	data: z.record(z.unknown()),
 });
 
 export const orderDataSchema = z.object({

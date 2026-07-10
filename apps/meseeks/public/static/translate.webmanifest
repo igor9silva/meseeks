@@ -4,7 +4,7 @@
   "description": "Live speech translation.",
   "start_url": "/translate",
   "scope": "/",
-  "id": "/translate?pro.igorsilva.meseeks.translate=v0",
+  "id": "/translate?pro.igorsilva.pro.translate=v0",
   "orientation": "any",
   "display": "fullscreen",
   "lang": "en",

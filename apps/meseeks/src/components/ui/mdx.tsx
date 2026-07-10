@@ -4,16 +4,7 @@ import { useMDX } from '~/hooks/useMDX';
 
 import { ErrorBoundary } from '@reactor/ui/error-boundary';
 
-import { ActionTest } from '~/components/ActionTest';
-import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
-import { Balance } from '~/components/Balance';
-import { EasterEgg } from '~/components/EasterEgg';
-import { Inbox } from '~/components/Inbox';
-import { Task } from '~/components/layout/Task';
 import { Loading } from '~/components/Loading';
-import { QuickSeek } from '~/components/QuickSeek';
-import { RenderActionTestSuite } from '~/components/RenderActionTestSuite';
-import { TopUpCard } from '~/components/TopUpCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@reactor/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@reactor/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
@@ -106,7 +97,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
 import { Textarea } from '@reactor/ui/textarea';
 import { Toggle } from '@reactor/ui/toggle';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useSetupWindowGlobals } from '~/hooks/useSetupWindowGlobals';
 import { cn } from '@reactor/ui/lib/utils';
 
 function toError(value: unknown): Error {
@@ -115,9 +105,6 @@ function toError(value: unknown): Error {
 }
 
 const components = {
-	AddBudgetButton,
-	AddCustomBudgetButton,
-	Balance,
 	Separator,
 	Button,
 	Card,
@@ -126,16 +113,7 @@ const components = {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-	// TaskConversation,
-	// TaskDetail,
-	QuickSeek,
-	// TaskDetailAndConversation,
-	Inbox,
-	Task,
 	ScrollArea,
-	EasterEgg,
-	TopUpCard,
-	ActionTest,
 	// UI Components
 	Accordion,
 	AccordionContent,
@@ -245,7 +223,6 @@ const components = {
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-	RenderActionTestSuite,
 };
 
 export default function MDX({
@@ -253,7 +230,7 @@ export default function MDX({
 	onClickFix,
 	errorFallback,
 	className,
-	shouldRenderComponents = true,
+	shouldRenderComponents = false,
 }: {
 	text: string;
 	onClickFix?: (e: MouseEvent, error: Error) => void;
@@ -262,8 +239,6 @@ export default function MDX({
 	shouldRenderComponents?: boolean;
 }) {
 	//
-	useSetupWindowGlobals();
-
 	const { Component, error, isPending } = useMDX(text.trim(), shouldRenderComponents);
 
 	if (isPending) return <Loading />;
@@ -355,7 +330,7 @@ export default function MDX({
 						strong: ({ children }) => <span className="font-bold">{children}</span>,
 						em: ({ children }) => <span className="italic">{children}</span>,
 						del: ({ children }) => <span className="line-through">{children}</span>,
-						...components,
+						...(shouldRenderComponents ? components : {}),
 					}}
 				/>
 			</ErrorBoundary>

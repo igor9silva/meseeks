@@ -1,8 +1,8 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { defineMutation } from 'lib/convex';
-import { transactionSchema, valueSchema } from 'schemas/transactionSchema';
-import { adjustUserBalance } from './users.private';
+import { NotFound } from 'lib/errors';
+import { newTransactionSchema, valueSchema } from 'schemas/transactionSchema';
 
 export const addFreeCredits = defineMutation({
 	args: z.object({
@@ -20,27 +20,24 @@ export const addTopUpTransaction = defineMutation({
 		owner: zid('users'),
 		description: z.string().optional(),
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'top up', ...args }),
+	handler: async (ctx, { topUpId, ...args }) =>
+		addTransaction(ctx, {
+			kind: 'top up',
+			...args,
+			topUpId,
+			description: args.description ?? `Top up ${topUpId}`,
+		}),
 });
 
-export const addTaskFundingTransaction = defineMutation({
+export const addSettlementTransaction = defineMutation({
 	args: z.object({
 		value: valueSchema,
-		taskId: zid('tasks'),
+		file: zid('files'),
+		action: zid('actions'),
 		owner: zid('users'),
-		description: z.string().optional(),
+		description: z.string(),
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'fund task', ...args }),
-});
-
-export const addTaskRefundTransaction = defineMutation({
-	args: z.object({
-		value: valueSchema,
-		taskId: zid('tasks'),
-		owner: zid('users'),
-		description: z.string().optional(),
-	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'refund from task', ...args }),
+	handler: async (ctx, args) => addTransaction(ctx, { kind: 'action settlement', ...args }),
 });
 
 export const addSubscriptionCreditsTransaction = defineMutation({
@@ -50,19 +47,31 @@ export const addSubscriptionCreditsTransaction = defineMutation({
 		owner: zid('users'),
 		description: z.string().optional(),
 	}),
-	handler: async (ctx, args) => addTransaction(ctx, { kind: 'subscription', ...args }),
+	handler: async (ctx, { subscriptionId, ...args }) =>
+		addTransaction(ctx, {
+			kind: 'subscription',
+			...args,
+			subscriptionId,
+			description: args.description ?? `Subscription credits ${subscriptionId}`,
+		}),
 });
 
 // helper, not exported
 const addTransaction = defineMutation({
-	args: transactionSchema,
-	handler: async (ctx, transaction) => {
+	args: newTransactionSchema,
+	handler: async (ctx, args) => {
 		//
-		const transactionId = await ctx.db.insert('transactions', transaction);
+		const transactionId = await ctx.db.insert('transactions', {
+			...args,
+			createdAt: Date.now(),
+		});
 
-		await adjustUserBalance(ctx, {
-			userId: transaction.owner,
-			value: transaction.value,
+		const user = await ctx.db.get(args.owner);
+		if (!user) throw NotFound();
+		if (args.value.symbol !== 'USD') throw new Error('Only USD is supported for now');
+
+		await ctx.db.patch(args.owner, {
+			balanceUSD: (user.balanceUSD ?? 0n) + args.value.amount,
 		});
 
 		return transactionId;

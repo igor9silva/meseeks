@@ -1,9 +1,9 @@
 {
-  "name": "Meseeks",
-  "short_name": "Meseeks",
-  "description": "AI-powered engine.",
+  "name": "PRO",
+  "short_name": "PRO",
+  "description": "your Personal Relentless Operator.",
   "start_url": "/",
-  "id": "?pro.igorsilva.meseeks=v0",
+  "id": "?pro.igorsilva.pro=v0",
   "orientation": "any",
   "display": "fullscreen",
   "lang": "en",

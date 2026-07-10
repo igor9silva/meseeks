@@ -1,429 +1,491 @@
 import { zid } from 'convex-helpers/server/zod3';
 import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
-import { bigIntFromJSON } from 'lib/bigintJson';
-import { NotFound } from 'lib/errors';
-import { isString } from 'lib/guards';
-import { zodToString } from 'lib/zodToString';
-import {
-	builtInSkillSchema,
-	newSkillSchema,
-	simplifiedSkillKindSchema,
-	skillOwnerSchema,
-	skillSchema,
-} from 'schemas/skillSchema';
-import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
-import { _builtInSkills } from 'skills/builtIn/index';
-import { getCurrentUser } from './users.private';
+import { managedSkills } from 'lib/proDefinitions';
+import { instinctSkills, referenceInstinctSkill } from 'lib/reactor/instincts';
+import { authorSchema } from 'schemas/authorSchema';
+import { intelligenceKeys } from 'schemas/intelligenceSchema';
+import { requestHeaderSchema, skillInputArgumentSchema } from 'schemas/skillSchema';
+import type { Doc, Id } from './_generated/dataModel';
+import type { MutationCtx, QueryCtx } from './_generated/server';
+import { catFile, createFile, findChildByName, writeFileContent } from './files.private';
+import { recordMutationAction } from './reactor.private';
 
-export function buildInSkillToDoc(
-	key: string, //
-	skill: (typeof _builtInSkills)[keyof typeof _builtInSkills],
-) {
-	return builtInSkillSchema.parse({
-		key,
-		description: skill.description,
-		inputSchema: zodToString(skill.parameters),
-		preApprovedCost: skill.preApprovedCost,
-		knownReactions: skill.knownReactions,
-		kind: 'built-in',
-		owner: 'built-in',
-		author: 'built-in',
-		cost: 0n,
-	});
-}
+const createSkillCoreArgsSchema = z.object({
+	owner: zid('users'),
+	key: z.string().min(1),
+	name: z.string().min(1),
+	description: z.string().default(''),
+	input: z.array(skillInputArgumentSchema).optional(),
+	file: zid('files'),
+	isPublic: z.boolean().optional(),
+	sourceOwner: zid('users').optional(),
+	sourceKey: z.string().min(1).optional(),
+	sourceFile: zid('files').optional(),
+	author: authorSchema,
+});
 
-export function isBuiltInSkillKey(
-	skillKey: string, //
-): skillKey is keyof typeof _builtInSkills {
-	//
-	return skillKey in _builtInSkills;
-}
-
-export const ensureSkillOwner = defineQuery({
-	args: z.object({
-		skillId: zid('skills'),
+const createSkillArgsSchema = z.union([
+	createSkillCoreArgsSchema.extend({
+		kind: z.literal('think'),
+		intelligence: z.union([z.literal('auto'), intelligenceKeys]).default('auto'),
+		temperature: z.number().min(0).max(2).optional(),
+		toolPolicy: z
+			.object({
+				skillKeys: z.array(z.string().min(1)).default([]),
+				includeFileSkills: z.boolean().default(true),
+			})
+			.optional(),
 	}),
-	handler: async (ctx, { skillId }) => {
+	createSkillCoreArgsSchema.extend({
+		kind: z.literal('request'),
+		method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+		url: z.string().min(1),
+		headers: z.array(requestHeaderSchema).default([]),
+	}),
+	createSkillCoreArgsSchema.extend({
+		kind: z.literal('execute'),
+		command: z.string().min(1),
+		timeoutMs: z.number().int().positive().optional(),
+		env: z.record(z.string()).optional(),
+	}),
+]);
+
+export const findSkills = defineQuery({
+	args: z.object({
+		owner: zid('users'),
+	}),
+	handler: async (ctx, { owner }) => {
 		//
-		const currentUser = await getCurrentUser(ctx, {});
-		const skill = await ctx.db.get(skillId);
+		const ownerSkills = await ctx.db
+			.query('skills')
+			.withIndex('by_owner_key', (q) => q.eq('owner', owner))
+			.collect();
+		const proSkills = await publicProSkills(ctx, { owner });
+		const keys = new Set(ownerSkills.map((skill) => skill.key));
+		const visible = ownerSkills.slice();
 
-		if (!skill) throw NotFound();
-		if (skill.owner !== currentUser._id) throw NotFound(); // purposefully do not mention authorization
+		for (const skill of proSkills) {
+			if (keys.has(skill.key)) continue;
+			visible.push(skill);
+		}
 
-		return { currentUser, skill };
+		return visible;
 	},
 });
 
-const getUserPreference = defineQuery({
+export const findSkillById = defineQuery({
 	args: z.object({
-		userId: zid('users'),
-		key: z.string(),
+		owner: zid('users'),
+		skill: zid('skills'),
 	}),
-	handler: async (ctx, { userId, key }) => {
+	handler: async (ctx, { owner, skill }) => {
 		//
-		return await ctx.db
-			.query('user_preferences')
-			.withIndex('by_owner_key', (q) => q.eq('owner', userId).eq('key', key))
+		const row = await ctx.db.get(skill);
+		if (!row || !isSkillVisibleToOwner({ skill: row, owner })) return undefined;
+
+		return row;
+	},
+});
+
+export const findSkillByFile = defineQuery({
+	args: z.object({
+		owner: zid('users'),
+		file: zid('files'),
+	}),
+	handler: async (ctx, { owner, file }) => {
+		//
+		const row = await ctx.db
+			.query('skills')
+			.withIndex('by_file', (q) => q.eq('file', file))
 			.unique();
+		if (!row || !isSkillVisibleToOwner({ skill: row, owner })) return undefined;
+
+		return row;
 	},
 });
 
-const setUserPreference = defineMutation({
+export const findSkillByKey = defineQuery({
 	args: z.object({
-		userId: zid('users'),
-		key: z.string(),
-		value: z.unknown(),
+		owner: zid('users'),
+		key: z.string().min(1),
 	}),
-	handler: async (ctx, { userId, key, value }) => {
-		//
-		const preference = await getUserPreference(ctx, { userId, key });
+	handler: async (ctx, { owner, key }) =>
+		await ctx.db
+			.query('skills')
+			.withIndex('by_owner_key', (q) => q.eq('owner', owner).eq('key', key))
+			.unique(),
+});
 
-		if (!preference) {
-			await ctx.db.insert('user_preferences', { owner: userId, key, value });
-		} else {
-			await ctx.db.patch(preference._id, { value });
+export const findSkillWithBody = defineQuery({
+	args: z.object({
+		owner: zid('users'),
+		skill: zid('skills'),
+	}),
+	handler: async (ctx, { owner, skill }) => {
+		//
+		const row = await findSkillById(ctx, { owner, skill });
+		if (!row) return undefined;
+
+		return await withBody(ctx, { skill: row });
+	},
+});
+
+export const findSkillWithBodyByRouteId = defineQuery({
+	args: z.object({
+		owner: zid('users'),
+		id: z.string().min(1),
+	}),
+	handler: async (ctx, { owner, id }) => {
+		//
+		const skillId = ctx.db.normalizeId('skills', id);
+		if (skillId) {
+			const row = await findSkillById(ctx, { owner, skill: skillId });
+			if (row) return await withBody(ctx, { skill: row });
 		}
+
+		const fileId = ctx.db.normalizeId('files', id);
+		if (!fileId) return undefined;
+
+		const row = await findSkillByFile(ctx, { owner, file: fileId });
+		if (!row) return undefined;
+
+		return await withBody(ctx, { skill: row });
 	},
 });
 
-export const findEnabledSkillKeys = defineQuery({
+export const resolveSkillForRuntime = defineQuery({
 	args: z.object({
-		userId: zid('users'),
+		owner: zid('users'),
+		skillKey: z.string().min(1),
 	}),
-	handler: async (ctx, { userId }) => {
+	handler: async (ctx, { owner, skillKey }) => {
 		//
-		const enabledSkills = await getUserPreference(ctx, {
-			key: 'enabledSkills',
-			userId,
+		const instinct = referenceInstinctSkill(skillKey);
+		if (instinct) {
+			return {
+				key: instinct.key,
+				name: instinct.name,
+				description: instinct.description,
+				kind: 'instinct',
+				body: instinct.body,
+			};
+		}
+
+		const row = await findSkillByKey(ctx, { owner, key: skillKey });
+		if (row) return await withBody(ctx, { skill: row });
+
+		const publicSkill = await publicProSkillByKey(ctx, { owner, key: skillKey });
+		if (publicSkill) return await withBody(ctx, { skill: publicSkill });
+
+		return undefined;
+	},
+});
+
+export const seedManagedSkills = defineMutation({
+	args: z.object({
+		owner: zid('users'),
+		author: authorSchema,
+		parent: zid('files'),
+	}),
+	handler: async (ctx, { owner, author, parent }) => {
+		//
+		const existingSkillsDir = await findChildByName(ctx, {
+			owner,
+			parent,
+			name: 'skills',
 		});
+		const skillsDirId =
+			existingSkillsDir?._id ??
+			(await createFile(ctx, {
+				owner,
+				parent,
+				name: 'skills',
+				author,
+				tags: [{ key: 'kind', value: 'directory' }],
+				shouldAddInboxTag: false,
+			}));
+		const skillIds: Id<'skills'>[] = [];
 
-		return Array.isArray(enabledSkills?.value) ? enabledSkills.value.filter(isString) : [];
-	},
-});
-
-export const findAllSkillKeys = defineQuery({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		const dbList = await findAllSkills(ctx, { owner: userId }).then((list) =>
-			list.map((skill) => ({
+		for (const skill of managedSkills) {
+			const fileId = await upsertManagedSkillFile(ctx, {
+				owner,
+				author,
+				parent: skillsDirId,
 				key: skill.key,
-				description: skill.description,
-			})),
-		);
-
-		const builtInList = Object.entries(_builtInSkills).map(([key, builtInTool]) => ({
-			key,
-			description: builtInTool.description,
-		}));
-
-		return dbList.concat(builtInList);
-	},
-});
-
-export const findEnabledSkillsWithDetails = defineQuery({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		const [enabledSkillKeys, allSkills] = await Promise.all([
-			findEnabledSkillKeys(ctx, { userId }),
-			findAllSkills(ctx, { owner: userId }),
-		]);
-
-		// Create a map of all available skills for fast lookup
-		const allSkillsMap = new Map<string, { key: string; description: string; inputSchema: string }>();
-
-		// Add database skills (user + global)
-		for (const skill of allSkills) {
-			allSkillsMap.set(skill.key, {
+				body: skill.body,
+			});
+			const rowId = await upsertSkill(ctx, {
+				owner,
 				key: skill.key,
+				name: skill.name,
 				description: skill.description,
-				inputSchema: skill.inputSchema,
+				kind: skill.kind,
+				input: skill.input,
+				file: fileId,
+				intelligence: 'auto',
+				isPublic: true,
+				author,
 			});
+			skillIds.push(rowId);
 		}
 
-		// Add built-in skills
-		for (const [key, builtInTool] of Object.entries(_builtInSkills)) {
-			allSkillsMap.set(key, {
-				key,
-				description: builtInTool.description,
-				inputSchema: zodToString(builtInTool.parameters),
-			});
-		}
-
-		// Filter to only enabled skills
-		const enabledSkillsSet = new Set(enabledSkillKeys);
-		const skillDetails = [];
-
-		for (const [key, skill] of allSkillsMap) {
-			if (enabledSkillsSet.has(key)) {
-				skillDetails.push(skill);
-			}
-		}
-
-		return skillDetails;
+		return skillIds;
 	},
 });
 
 export const createSkill = defineMutation({
-	args: z.object({
-		skill: newSkillSchema,
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { skill, userId }) => {
-		//
-		// TODO: bad logic, improve this
-		const existing = await findSkillSafe(ctx, { key: skill.key, owner: userId });
-		if (existing) throw new Error(`Skill key '${skill.key}' in use.`);
-
-		ensureInputSchemaIsValid(skill.inputSchema);
-
-		return await ctx.db.insert('skills', {
-			...skill,
-			owner: userId,
-			author: userId,
-		});
-	},
-});
-
-export const updateSkill = defineMutation({
-	args: z.object({
-		skill: newSkillSchema,
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { skill, userId }) => {
-		//
-		const existing = await findSkill(ctx, { key: skill.key, owner: userId });
-
-		if (!existing) throw NotFound();
-		if (existing.owner !== userId) throw NotFound();
-		if (!('_id' in existing)) throw NotFound(); // built-in skills do not have an _id
-
-		ensureInputSchemaIsValid(skill.inputSchema);
-
-		return await ctx.db.patch(existing._id, {
-			...skill,
-		});
-	},
+	args: createSkillArgsSchema,
+	handler: async (ctx, args) => await upsertSkill(ctx, args),
 });
 
 export const enableSkill = defineMutation({
 	args: z.object({
 		userId: zid('users'),
-		skillKey: z.string(),
+		skillKey: z.string().min(1),
 	}),
 	handler: async (ctx, { userId, skillKey }) => {
 		//
-		const enabledSkills = await getUserPreference(ctx, {
-			userId,
-			key: 'enabledSkills',
+		const existing = await findSkillByKey(ctx, { owner: userId, key: skillKey });
+		if (existing) return existing._id;
+
+		const file = await createFile(ctx, {
+			owner: userId,
+			name: `${skillKey}.skill.md`,
+			author: userId,
+			content: '',
+			tags: [{ key: 'kind', value: 'skill-source' }],
+			shouldAddInboxTag: false,
 		});
 
-		const currentSkills = Array.isArray(enabledSkills?.value) ? enabledSkills.value.filter(isString) : [];
-		if (currentSkills.includes(skillKey)) return;
-
-		await setUserPreference(ctx, {
-			userId,
-			key: 'enabledSkills',
-			value: currentSkills.concat(skillKey),
+		return await upsertSkill(ctx, {
+			owner: userId,
+			key: skillKey,
+			name: skillKey,
+			description: '',
+			kind: 'think',
+			file,
+			intelligence: 'auto',
+			author: userId,
 		});
 	},
 });
 
-export const replaceProSkills = defineMutation({
-	args: z.object({
-		skills: z.array(z.unknown()),
-		deleteUnspecified: z.boolean().optional().default(false),
-	}),
-	handler: async (ctx, { skills: rawSkills, deleteUnspecified }) => {
-		//
-		// convert __bigint__ markers back to BigInt
-		const skills = rawSkills.map((skill: unknown) => {
-			//
-			const converted = bigIntFromJSON(skill);
-			return skillSchema.parse(converted);
-		});
-
-		console.info(`Replacing Pro-managed skills (deleteUnspecified: ${deleteUnspecified})`);
-
-		// Validate all skills have the correct owner
-		for (const skill of skills) {
-			if (skill.owner !== 'isPro') {
-				throw new Error(`All skills must have owner "isPro", found: ${skill.owner}`);
-			}
-		}
-
-		// Validate no duplicate keys in new skills
-		const newSkillKeys = new Set<string>();
-		for (const skill of skills) {
-			if (newSkillKeys.has(skill.key)) {
-				throw new Error(`Duplicate skill key found: ${skill.key}`);
-			}
-			newSkillKeys.add(skill.key);
-		}
-		console.info(`Validated ${skills.length} new skills with unique keys`);
-
-		// Get all existing "isPro" skills
-		const existingSkills = await findAllSkillsByOwner(ctx, { owner: 'isPro' });
-		console.info(`Found ${existingSkills.length} existing "isPro" skills`);
-
-		// Create maps for easier lookup
-		const existingSkillsByKey = new Map(existingSkills.map((skill) => [skill.key, skill]));
-
-		let insertedCount = 0;
-		let updatedCount = 0;
-		let deletedCount = 0;
-		const insertedSkillIds: string[] = [];
-
-		// Process each new skill: insert if new, update if exists
-		for (const skill of skills) {
-			//
-			const existingSkill = existingSkillsByKey.get(skill.key);
-
-			if (existingSkill) {
-				await ctx.db.patch(existingSkill._id, skill);
-				updatedCount++;
-			} else {
-				const skillId = await ctx.db.insert('skills', skill);
-				insertedSkillIds.push(skillId);
-				insertedCount++;
-				console.debug(`Inserted skill: ${skill.key}`);
-			}
-		}
-
-		// Delete skills that exist but are not in the new list (only if explicitly requested)
-		for (const existingSkill of existingSkills) {
-			if (!newSkillKeys.has(existingSkill.key)) {
-				if (deleteUnspecified) {
-					await ctx.db.delete(existingSkill._id);
-					deletedCount++;
-					console.warn(`Deleted skill: ${existingSkill.key}`);
-				} else {
-					throw new Error(
-						`Skill ${existingSkill.key} is not in the new list and deleteUnspecified is false. DID NOTHING.`,
-					);
-				}
-			}
-		}
-
-		console.info(
-			`Operation completed: ${insertedCount} inserted, ${updatedCount} updated, ${deletedCount} deleted`,
-		);
-
-		return {
-			success: true,
-			inserted: insertedCount,
-			updated: updatedCount,
-			deleted: deletedCount,
-			skillKeys: skills.map((skill) => skill.key),
-			deletedUnspecified: deleteUnspecified,
-		};
+async function upsertManagedSkillFile(
+	ctx: MutationCtx,
+	args: {
+		owner: Id<'users'>;
+		author: z.infer<typeof authorSchema>;
+		parent: Id<'files'>;
+		key: string;
+		body: string;
 	},
-});
+) {
+	//
+	const name = `${args.key}.skill.md`;
+	const existing = await findChildByName(ctx, {
+		owner: args.owner,
+		parent: args.parent,
+		name,
+	});
 
-export const findAllSkillsByOwner = defineQuery({
-	args: z.object({
-		owner: skillOwnerSchema,
-		kind: simplifiedSkillKindSchema.optional(),
-	}),
-	handler: async (ctx, { owner, kind }) => {
-		//
-		return await ctx.db
-			.query('skills')
-			.withIndex('by_owner_kind', (q) =>
-				kind
-					? q.eq('owner', owner).eq('kind', kind) //
-					: q.eq('owner', owner),
-			)
-			.collect();
-	},
-});
-
-export const findSkillByOwner = defineQuery({
-	args: z.object({
-		key: z.string(),
-		owner: skillOwnerSchema,
-	}),
-	handler: async (ctx, { key, owner }) => {
-		//
-		return await ctx.db
-			.query('skills')
-			.withIndex('by_owner_key', (q) => q.eq('owner', owner).eq('key', key))
-			.unique();
-	},
-});
-
-export const findAllSkills = defineQuery({
-	args: z.object({
-		owner: zid('users'),
-		kind: simplifiedSkillKindSchema.optional(),
-	}),
-	handler: async (ctx, { owner, kind }) => {
-		//
-		const [globals, users] = await Promise.all([
-			findAllSkillsByOwner(ctx, { owner: 'isPro', kind }), // global skills
-			findAllSkillsByOwner(ctx, { owner, kind }), // user-defined skills
-		]);
-
-		return globals.concat(users);
-	},
-});
-
-export const findSkill = defineQuery({
-	args: z.object({
-		key: z.string(),
-		owner: zid('users'),
-	}),
-	handler: async (ctx, { key, owner }) => {
-		//
-		const globalSkill = await findSkillByOwner(ctx, { key, owner: 'isPro' });
-		if (globalSkill) return globalSkill;
-
-		const userSkill = await findSkillByOwner(ctx, { key, owner });
-		if (userSkill) return userSkill;
-
-		const builtInSkillEntry = Object.entries(_builtInSkills).find(([skillKey]) => skillKey === key);
-
-		if (builtInSkillEntry) {
-			//
-			const [, builtInTool] = builtInSkillEntry;
-
-			return builtInSkillSchema.parse({
-				key,
-				description: builtInTool.description,
-				inputSchema: zodToString(builtInTool.parameters),
-				preApprovedCost: builtInTool.preApprovedCost,
-				kind: 'built-in',
-				owner: 'built-in',
-				author: 'built-in',
-				cost: 0n,
+	if (existing) {
+		if (existing.isPublic !== true) {
+			await ctx.db.patch(existing._id, {
+				isPublic: true,
+				updatedAt: Date.now(),
+			});
+		}
+		const previous = await catFile(ctx, { fileId: existing._id, owner: args.owner });
+		if (previous !== args.body) {
+			await writeFileContent(ctx, {
+				owner: args.owner,
+				fileId: existing._id,
+				author: args.author,
+				content: args.body,
 			});
 		}
 
-		throw new Error(`Unknown skill: ${key}`);
-	},
-});
+		return existing._id;
+	}
 
-export const findSkillSafe = defineQuery({
-	args: z.object({
-		key: z.string(),
-		owner: zid('users'),
-	}),
-	handler: async (ctx, { key, owner }) => {
-		//
-		try {
-			return await findSkill(ctx, { key, owner });
-		} catch (error) {
-			if (error instanceof Error && error.message === `Unknown skill: ${key}`) {
-				return undefined;
-			}
-			throw error;
-		}
-	},
-});
+	return await createFile(ctx, {
+		owner: args.owner,
+		parent: args.parent,
+		name,
+		author: args.author,
+		content: args.body,
+		isPublic: true,
+		tags: [{ key: 'kind', value: 'skill-source' }],
+		shouldAddInboxTag: false,
+	});
+}
+
+async function upsertSkill(ctx: MutationCtx, args: z.infer<typeof createSkillArgsSchema>) {
+	//
+	const now = Date.now();
+	const existing = await findSkillByKey(ctx, { owner: args.owner, key: args.key });
+	const value = skillRowValue(args, now);
+
+	if (existing) {
+		await ctx.db.patch(existing._id, value);
+		await recordMutationAction(ctx, {
+			owner: args.owner,
+			file: args.file,
+			author: args.author,
+			skillKey: 'updateSkill',
+			args: {
+				skill: existing._id,
+				key: args.key,
+			},
+			result: {
+				text: `Updated skill ${args.key}.`,
+				files: [
+					{
+						file: args.file,
+						path: args.name,
+					},
+				],
+			},
+		});
+		return existing._id;
+	}
+
+	const skillId = await ctx.db.insert('skills', {
+		...value,
+		createdAt: now,
+	});
+	await recordMutationAction(ctx, {
+		owner: args.owner,
+		file: args.file,
+		author: args.author,
+		skillKey: 'createSkill',
+		args: {
+			skill: skillId,
+			key: args.key,
+		},
+		result: {
+			text: `Created skill ${args.key}.`,
+			files: [
+				{
+					file: args.file,
+					path: args.name,
+				},
+			],
+		},
+	});
+
+	return skillId;
+}
+
+function skillRowValue(args: z.infer<typeof createSkillArgsSchema>, updatedAt: number) {
+	//
+	const core = {
+		owner: args.owner,
+		key: args.key,
+		name: args.name,
+		description: args.description,
+		input: args.input,
+		file: args.file,
+		isPublic: args.isPublic,
+		sourceOwner: args.sourceOwner,
+		sourceKey: args.sourceKey,
+		sourceFile: args.sourceFile,
+		author: args.author,
+		updatedAt,
+	};
+
+	if (args.kind === 'think') {
+		return {
+			...core,
+			kind: args.kind,
+			intelligence: args.intelligence,
+			temperature: args.temperature,
+			toolPolicy: args.toolPolicy,
+		};
+	}
+
+	if (args.kind === 'request') {
+		return {
+			...core,
+			kind: args.kind,
+			method: args.method,
+			url: args.url,
+			headers: args.headers,
+		};
+	}
+
+	return {
+		...core,
+		kind: args.kind,
+		command: args.command,
+		timeoutMs: args.timeoutMs,
+		env: args.env,
+	};
+}
+
+export function listInstinctSkills() {
+	//
+	return instinctSkills.map((skill) => ({
+		key: skill.key,
+		name: skill.name,
+		description: skill.description,
+		kind: 'instinct',
+		input: skill.input,
+		body: skill.body,
+	}));
+}
+
+async function publicProSkills(ctx: QueryCtx, args: { owner: Id<'users'> }) {
+	//
+	const skills = await ctx.db
+		.query('skills')
+		.withIndex('by_public_key', (q) => q.eq('isPublic', true))
+		.collect();
+
+	return dedupePublicSkills(skills).filter((skill) => skill.owner !== args.owner);
+}
+
+async function publicProSkillByKey(ctx: QueryCtx, args: { owner: Id<'users'>; key: string }) {
+	//
+	const skills = await ctx.db
+		.query('skills')
+		.withIndex('by_public_key', (q) => q.eq('isPublic', true).eq('key', args.key))
+		.collect();
+
+	return dedupePublicSkills(skills).find((skill) => skill.owner !== args.owner);
+}
+
+function isSkillVisibleToOwner(args: { skill: Doc<'skills'>; owner: Id<'users'> }) {
+	//
+	if (args.skill.owner === args.owner) return true;
+
+	return args.skill.isPublic === true;
+}
+
+function dedupePublicSkills(skills: Doc<'skills'>[]) {
+	//
+	const byKey = new Map<string, Doc<'skills'>>();
+	const ordered = skills
+		.slice()
+		.sort((left, right) => right.updatedAt - left.updatedAt || right._creationTime - left._creationTime);
+
+	for (const skill of ordered) {
+		if (byKey.has(skill.key)) continue;
+		byKey.set(skill.key, skill);
+	}
+
+	return Array.from(byKey.values());
+}
+
+async function withBody(ctx: QueryCtx, args: { skill: Doc<'skills'> }) {
+	//
+	const file = await ctx.db.get(args.skill.file);
+
+	return {
+		...args.skill,
+		fileName: file?.name,
+		input: args.skill.input ?? [],
+		body: await catFile(ctx, { fileId: args.skill.file, owner: args.skill.owner }),
+	};
+}

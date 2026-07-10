@@ -7,53 +7,45 @@ export const valueSchema = z.object({
 	amount: z.bigint(),
 });
 
-export const freeCreditsTransactionSchema = z.object({
+const transactionBaseSchema = z.object({
+	owner: zid('users'),
+	value: valueSchema,
+	description: z.string().min(1),
+	createdAt: z.number(),
+});
+
+export const freeCreditsTransactionSchema = transactionBaseSchema.extend({
 	kind: z.literal('free credits'),
-	value: valueSchema,
-	owner: zid('users'),
-	description: z.string().optional(),
 });
 
-export const topUpTransactionSchema = z.object({
+export const topUpTransactionSchema = transactionBaseSchema.extend({
 	kind: z.literal('top up'),
-	value: valueSchema,
 	topUpId: zid('topUps'),
-	owner: zid('users'),
-	description: z.string().optional(),
 });
 
-export const taskCostTransactionSchema = z.object({
-	kind: z.literal('fund task'),
-	value: valueSchema,
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	description: z.string().optional(),
+export const actionSettlementTransactionSchema = transactionBaseSchema.extend({
+	kind: z.literal('action settlement'),
+	file: zid('files'),
+	action: zid('actions'),
 });
 
-export const refundTaskTransactionSchema = z.object({
-	kind: z.literal('refund from task'),
-	value: valueSchema,
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	description: z.string().optional(),
-});
-
-export const subscriptionTransactionSchema = z.object({
+export const subscriptionTransactionSchema = transactionBaseSchema.extend({
 	kind: z.literal('subscription'),
-	value: valueSchema,
 	subscriptionId: zid('subscriptions'),
-	owner: zid('users'),
-	description: z.string().optional(),
 });
+
+export const newTransactionSchema = z.union([
+	freeCreditsTransactionSchema.omit({ createdAt: true }),
+	topUpTransactionSchema.omit({ createdAt: true }),
+	actionSettlementTransactionSchema.omit({ createdAt: true }),
+	subscriptionTransactionSchema.omit({ createdAt: true }),
+]);
 
 export const transactionSchema = z
 	.union([
 		freeCreditsTransactionSchema, //
 		topUpTransactionSchema,
-		taskCostTransactionSchema,
-		refundTaskTransactionSchema,
+		actionSettlementTransactionSchema,
 		subscriptionTransactionSchema,
 	])
-	.describe(
-		'A financial transaction. Top ups, pay outs and task/action execution costs.', //
-	);
+	.describe('The account wallet ledger. Settlement creates transactions; reservations do not charge the wallet.');

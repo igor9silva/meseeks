@@ -1,32 +1,105 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import type { Id } from 'convex/_generated/dataModel';
 import { Loading } from '~/components/Loading';
-import { QuickSeek } from '~/components/QuickSeek';
-import { TaskItem } from '~/components/TaskItem';
+import { FileItem } from '~/components/FileItem';
 import { useInfiniteScroll } from '@reactor/ui/hooks/useInfiniteScroll';
-import { usePaginatedSubtasks } from '~/hooks/useSuspensePaginatedQuery';
+import { usePaginatedConventionFiles, usePaginatedFiles } from '~/hooks/useSuspensePaginatedQuery';
+import type { FileView } from '~/hooks/query/useFile';
 
 const PAGE_SIZE = 50;
 const THRESHOLD = 0.5;
 
-// Unified TaskList component used by both Inbox and Task components
-export function TaskList({
-	parentTaskId = 'inbox',
-	currentTaskId,
+// unified file list used by inbox and file workspace surfaces
+export function FileList({
+	parentFileId = 'inbox',
+	currentFileId,
+	filter = 'inbox',
 	className,
 }: {
-	parentTaskId?: Id<'tasks'> | 'inbox';
-	currentTaskId?: string;
+	parentFileId?: Id<'files'> | 'inbox';
+	currentFileId?: string;
+	filter?: 'inbox' | 'tasks';
 	className?: string;
 }) {
 	//
-	const scrollContainerRef = useRef<HTMLDivElement>(null);
-	const parentId = parentTaskId === 'inbox' ? undefined : parentTaskId;
+	if (filter === 'tasks') return <ConventionFileList currentFileId={currentFileId} className={className} />;
 
-	const { subtasks, loadMore, hasMore, isLoadingMore, isLoadingFirstPage } = usePaginatedSubtasks({
+	const parentId = parentFileId === 'inbox' ? undefined : parentFileId;
+	const query = usePaginatedFiles({
 		parentId,
 		initialNumItems: PAGE_SIZE,
 	});
+
+	return (
+		<FileListContent
+			files={query.files}
+			loadMore={query.loadMore}
+			hasMore={query.hasMore}
+			isLoadingMore={query.isLoadingMore}
+			isLoadingFirstPage={query.isLoadingFirstPage}
+			currentFileId={currentFileId}
+			className={className}
+			emptyContent={
+				<EmptyFileList title="No inbox files" description="New unclassified files will appear here." />
+			}
+		/>
+	);
+}
+
+function ConventionFileList({ currentFileId, className }: { currentFileId?: string; className?: string }) {
+	//
+	const query = usePaginatedConventionFiles({
+		convention: 'task',
+		initialNumItems: PAGE_SIZE,
+	});
+
+	return (
+		<FileListContent
+			files={query.files}
+			loadMore={query.loadMore}
+			hasMore={query.hasMore}
+			isLoadingMore={query.isLoadingMore}
+			isLoadingFirstPage={query.isLoadingFirstPage}
+			currentFileId={currentFileId}
+			className={className}
+			emptyContent={
+				<EmptyFileList title="No task files" description="Task files tagged kind=task will appear here." />
+			}
+		/>
+	);
+}
+
+function EmptyFileList({ title, description }: { title: string; description: string }) {
+	//
+	return (
+		<div className="flex h-full min-h-40 flex-col items-center justify-center gap-1 px-6 text-center">
+			<p className="text-sm font-medium text-foreground">{title}</p>
+			<p className="max-w-64 text-sm text-muted-foreground">{description}</p>
+		</div>
+	);
+}
+
+function FileListContent({
+	files,
+	loadMore,
+	hasMore,
+	isLoadingMore,
+	isLoadingFirstPage,
+	currentFileId,
+	className,
+	emptyContent,
+}: {
+	files: FileView[];
+	loadMore: (numItems: number) => void;
+	hasMore: boolean;
+	isLoadingMore: boolean;
+	isLoadingFirstPage: boolean;
+	currentFileId?: string;
+	className?: string;
+	emptyContent?: ReactNode;
+}) {
+	//
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
 	useInfiniteScroll({
 		loadMore: (numItems) => loadMore(numItems),
@@ -43,15 +116,15 @@ export function TaskList({
 			{isLoadingFirstPage && <Loading className="mt-4" />}
 
 			{/* Content */}
-			{!isLoadingFirstPage && subtasks.length === 0 && parentTaskId === 'inbox' && <QuickSeek />}
+			{!isLoadingFirstPage && files.length === 0 && emptyContent}
 
-			{!isLoadingFirstPage && subtasks.length > 0 && (
+			{!isLoadingFirstPage && files.length > 0 && (
 				<>
-					{subtasks.map((task) => (
-						<TaskItem
-							key={task._id}
-							task={task}
-							className={currentTaskId === task._id ? 'bg-muted' : undefined}
+					{files.map((file) => (
+						<FileItem
+							key={file._id}
+							file={file}
+							className={currentFileId === file._id ? 'bg-muted' : undefined}
 						/>
 					))}
 
@@ -69,5 +142,5 @@ export function TaskList({
 
 export function Inbox() {
 	//
-	return <TaskList />;
+	return <FileList />;
 }

@@ -7,8 +7,7 @@
 		"paths": {
 			"convex/*": ["./*"],
 			"lib/*": ["../lib/*"],
-			"schemas/*": ["../schemas/*"],
-			"skills/*": ["../skills/*"]
+			"schemas/*": ["../schemas/*"]
 		},
 		/* These settings are not required by Convex and can be modified. */
 		"allowJs": false,

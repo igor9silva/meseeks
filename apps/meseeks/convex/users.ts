@@ -1,6 +1,8 @@
-import { internalMutation, query } from 'lib/convex';
-import { findActiveTasks } from './tasks.private';
-import { addUser, getCurrentUser, isProSubscriber, updateUser } from './users.private';
+import { zid } from 'convex-helpers/server/zod3';
+import { z } from 'zod/v3';
+import { internalMutation, internalQuery, query } from 'lib/convex';
+import { Unauthorized } from 'lib/errors';
+import { addUser, findUser, findUserByAuthUserId, getCurrentUser, isProSubscriber, updateUser } from './users.private';
 
 // called by the better auth user.onCreate trigger to add the app user row or
 // link the auth user to an existing one.
@@ -13,6 +15,25 @@ export const _addUser = internalMutation({
 export const _updateUser = internalMutation({
 	args: updateUser.args.shape,
 	handler: updateUser,
+});
+
+export const _findCurrentByIdentity = internalQuery({
+	args: {
+		authUserId: z.string().min(1),
+		appUserId: zid('users').optional(),
+	},
+	handler: async (ctx, { authUserId, appUserId }) => {
+		//
+		if (appUserId) {
+			const user = await findUser(ctx, { userId: appUserId });
+			if (user) return user;
+		}
+
+		const user = await findUserByAuthUserId(ctx, { authUserId });
+		if (!user) throw Unauthorized();
+
+		return user;
+	},
 });
 
 // public entrypoint used by the app; keeps auth + allowlist logic centralized in users.private.getCurrentUser
@@ -42,8 +63,7 @@ export const findLockedBalance = query({
 	handler: async (ctx) => {
 		//
 		const currentUser = await getCurrentUser(ctx, {});
-		const activeTasks = await findActiveTasks(ctx, { owner: currentUser._id });
 
-		return activeTasks.reduce((acc, task) => acc + task.energyBudget.available, 0n);
+		return currentUser.committedBudgetUSD ?? 0n;
 	},
 });

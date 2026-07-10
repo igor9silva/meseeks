@@ -3,7 +3,6 @@ import { QueryClient } from '@tanstack/react-query';
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
 import { ConvexAuthProvider } from '~/components/ConvexAuthProvider';
-import { LauncherProvider } from '~/components/Launcher';
 import { Loading } from '~/components/Loading';
 import { ThemeProvider } from '~/components/ThemeProvider';
 import { DefaultCatchBoundary } from './components/DefaultCatchBoundary';
@@ -35,7 +34,6 @@ export function createRouter() {
 	const router = createTanStackRouter({
 		routeTree,
 		scrollRestoration: true,
-		defaultViewTransition: true,
 		defaultPreload: 'intent',
 		defaultPreloadDelay: 50, // 50ms is the default, just making it explicit here
 		defaultPreloadStaleTime: 0, // 0 so we don't cache at the loader level, leaving it all to TanStack Query
@@ -46,9 +44,7 @@ export function createRouter() {
 		Wrap: ({ children }) => {
 			return (
 				<ConvexAuthProvider client={convexQueryClient.convexClient}>
-					<ThemeProvider>
-						<LauncherProvider>{children}</LauncherProvider>
-					</ThemeProvider>
+					<ThemeProvider>{children}</ThemeProvider>
 				</ConvexAuthProvider>
 			);
 		},

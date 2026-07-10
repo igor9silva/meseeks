@@ -6,59 +6,46 @@ import { draftQueueItemSchema } from 'schemas/draftSchema';
 export const findDraft = defineQuery({
 	args: z.object({
 		owner: zid('users'),
-		taskId: zid('tasks'),
+		fileId: zid('files'),
 	}),
-	handler: async (ctx, { owner, taskId }) => {
+	handler: async (ctx, { owner, fileId }) => {
 		//
 		return await ctx.db
 			.query('drafts')
-			.withIndex('by_owner_taskId', (q) => q.eq('owner', owner).eq('taskId', taskId))
+			.withIndex('by_owner_fileId', (q) => q.eq('owner', owner).eq('fileId', fileId))
 			.unique();
 	},
 });
 
-// export const _findAll: ReturnType<typeof internalQuery> = internalQuery({
-// 	args: {
-// 		owner: zid('users'),
-// 	},
-// 	handler: async (ctx, { owner }) => {
-// 		//
-// 		return await ctx.db
-// 			.query('drafts')
-// 			.withIndex('by_owner_taskId', (q) => q.eq('owner', owner))
-// 			.order('desc')
-// 			.collect();
-// 	},
-// });
-
 export const saveDraft = defineMutation({
 	args: z.object({
 		owner: zid('users'),
-		taskId: zid('tasks'),
+		fileId: zid('files'),
 		queue: z.array(draftQueueItemSchema),
 		message: z.string(),
 	}),
-	handler: async (ctx, { owner, taskId, queue, message }) => {
+	handler: async (ctx, { owner, fileId, queue, message }) => {
 		//
-		const existing = await findDraft(ctx, { owner, taskId });
-		const data = { owner, taskId, queue, message, updatedAt: Date.now() };
+		const existing = await findDraft(ctx, { owner, fileId });
+		const data = { owner, fileId, queue, message, updatedAt: Date.now() };
 
 		if (existing) {
 			await ctx.db.patch(existing._id, data);
-		} else {
-			await ctx.db.insert('drafts', data);
+			return existing._id;
 		}
+
+		return await ctx.db.insert('drafts', data);
 	},
 });
 
 export const clearDraft = defineMutation({
 	args: z.object({
 		owner: zid('users'),
-		taskId: zid('tasks'),
+		fileId: zid('files'),
 	}),
-	handler: async (ctx, { owner, taskId }) => {
+	handler: async (ctx, { owner, fileId }) => {
 		//
-		const existing = await findDraft(ctx, { owner, taskId });
+		const existing = await findDraft(ctx, { owner, fileId });
 
 		if (existing) await ctx.db.delete(existing._id);
 	},

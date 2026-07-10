@@ -17,23 +17,25 @@ export function bigIntFromJSON(value: unknown): unknown {
 		return value.map(bigIntFromJSON);
 	}
 
-	if (typeof value === 'object') {
+	if (isRecord(value)) {
 		//
-		const obj = value as Record<string, unknown>;
-
 		// check for BigInt marker
-		if ('__bigint__' in obj && typeof obj['__bigint__'] === 'string') {
-			return BigInt(obj['__bigint__']);
+		if (typeof value['__bigint__'] === 'string') {
+			return BigInt(value['__bigint__']);
 		}
 
 		// recursively process object properties
 		const result: Record<string, unknown> = {};
-		for (const key in obj) {
-			result[key] = bigIntFromJSON(obj[key]);
+		for (const key in value) {
+			result[key] = bigIntFromJSON(value[key]);
 		}
 
 		return result;
 	}
 
 	return value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

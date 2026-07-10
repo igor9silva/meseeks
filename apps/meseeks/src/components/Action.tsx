@@ -1,7 +1,6 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
 
-import index from './actions';
-import { GenericAction } from './actions/GenericAction';
+import { componentForActionSkill } from './actions';
 
 export function Action(props: {
 	className?: string;
@@ -9,16 +8,10 @@ export function Action(props: {
 	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
 	suppressAnchorId?: boolean;
-	taskId: Id<'tasks'>;
+	fileId: Id<'files'>;
 }) {
 	//
-	if (props.action.skillKey in index) {
-		//
-		const Component = index[props.action.skillKey as keyof typeof index];
-		if (Component === null) return null;
+	const Component = componentForActionSkill({ skillKey: props.action.skillKey });
 
-		return <Component {...props} />;
-	}
-
-	return <GenericAction {...props} />;
+	return <Component {...props} />;
 }
