@@ -1,3 +1,5 @@
+import { z } from 'zod/v3';
+
 export interface SchemaProperty {
 	name: string;
 	type: string;
@@ -6,18 +8,44 @@ export interface SchemaProperty {
 	constraints?: string[];
 }
 
+const propertySchema = z
+	.object({
+		type: z.string().optional(),
+		description: z.string().optional(),
+		minimum: z.unknown().optional(),
+		maximum: z.unknown().optional(),
+		min: z.unknown().optional(),
+		max: z.unknown().optional(),
+		minLength: z.unknown().optional(),
+		maxLength: z.unknown().optional(),
+		pattern: z.unknown().optional(),
+		enum: z.array(z.unknown()).optional(),
+		default: z.unknown().optional(),
+		defaultValue: z.unknown().optional(),
+		isOptional: z.boolean().optional(),
+	})
+	.passthrough();
+
+const schemaSchema = z
+	.object({
+		type: z.string().optional(),
+		properties: z.record(propertySchema).optional(),
+		required: z.array(z.string()).optional(),
+	})
+	.passthrough();
+
 export function parseJsonSchemaToProperties(schema: string): SchemaProperty[] {
 	//
 	try {
-		const parsed = JSON.parse(schema);
+		const parsed = schemaSchema.parse(JSON.parse(schema));
 		const properties: SchemaProperty[] = [];
 
 		if (parsed.type === 'object' && parsed.properties) {
 			//
 			// Get explicitly required fields from schema
-			const explicitlyRequired = parsed.required || [];
+			const explicitlyRequired = parsed.required ?? [];
 
-			Object.entries(parsed.properties).forEach(([name, propSchema]: [string, any]) => {
+			Object.entries(parsed.properties).forEach(([name, propSchema]) => {
 				//
 				const constraints: string[] = [];
 
@@ -28,8 +56,8 @@ export function parseJsonSchemaToProperties(schema: string): SchemaProperty[] {
 				if (propSchema.max !== undefined) constraints.push(`max: ${propSchema.max}`);
 				if (propSchema.minLength !== undefined) constraints.push(`min length: ${propSchema.minLength}`);
 				if (propSchema.maxLength !== undefined) constraints.push(`max length: ${propSchema.maxLength}`);
-				if (propSchema.pattern) constraints.push(`pattern: ${propSchema.pattern}`);
-				if (propSchema.enum) constraints.push(`options: ${propSchema.enum.join(', ')}`);
+				if (propSchema.pattern) constraints.push(`pattern: ${String(propSchema.pattern)}`);
+				if (propSchema.enum) constraints.push(`options: ${propSchema.enum.map(String).join(', ')}`);
 
 				// Handle both standard JSON Schema default and zodex defaultValue
 				const defaultValue = propSchema.default !== undefined ? propSchema.default : propSchema.defaultValue;
@@ -68,7 +96,7 @@ export function parseJsonSchemaToProperties(schema: string): SchemaProperty[] {
 	}
 }
 
-function getHumanReadableType(propSchema: any): string {
+function getHumanReadableType(propSchema: z.infer<typeof propertySchema>): string {
 	if (propSchema.type) {
 		switch (propSchema.type) {
 			case 'string':

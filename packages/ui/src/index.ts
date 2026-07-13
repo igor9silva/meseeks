@@ -1,5 +1,6 @@
 export * from './accordion';
 export * from './action-button';
+export * from './action-row';
 export * from './alert';
 export * from './avatar';
 export * from './badge';

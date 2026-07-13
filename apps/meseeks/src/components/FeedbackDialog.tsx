@@ -4,14 +4,14 @@ import { userRequestSchema } from 'schemas/userSchema';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v3';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { api } from 'convex/_generated/api';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@reactor/ui/dialog';
-import { Textarea } from '@reactor/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@pro/ui/dialog';
+import { Textarea } from '@pro/ui/textarea';
+import { useCurrentFileId } from '~/hooks/useCurrentFile';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { useHandleSubmit } from '@reactor/ui/hooks/useHandleSubmit';
-import { useSplatParams } from '~/hooks/useSplatParams';
-import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
+import { useHandleSubmit } from '@pro/ui/hooks/useHandleSubmit';
+import { useSubmitHotkey } from '@pro/ui/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 
@@ -35,14 +35,14 @@ export function FeedbackDialog({
 	const submitHotkey = useSubmitHotkey();
 
 	const { pathname, searchStr } = useLocation();
-	const { taskId } = useSplatParams();
+	const fileId = useCurrentFileId();
 	const user = useCurrentUser();
 
 	const gatherContext = () => {
 		return {
 			timestamp: new Date().toISOString(),
 			currentPath: pathname + searchStr,
-			currentTaskId: taskId || null,
+			currentFileId: fileId || null,
 			userAgent: navigator.userAgent,
 			viewportSize: {
 				width: window.innerWidth,
@@ -100,7 +100,7 @@ export function FeedbackDialog({
 					<DialogHeader>
 						<DialogTitle>Send feedback</DialogTitle>
 						<DialogDescription>
-							Help us improve Meseeks! Share your thoughts, report bugs, or suggest new features.
+							Help us improve PRO. Share your thoughts, report bugs, or suggest new features.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="py-4">

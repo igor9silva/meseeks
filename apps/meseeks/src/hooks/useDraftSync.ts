@@ -1,4 +1,4 @@
-import { useDebouncer } from '@reactor/ui/hooks/pacer';
+import { useDebouncer } from '@pro/ui/hooks/pacer';
 import type { Id } from 'convex/_generated/dataModel';
 import { api } from 'convex/_generated/api';
 import { useMutation, useQuery } from 'convex/react';
@@ -14,7 +14,7 @@ type DraftState = {
 };
 
 type UseDraftSyncOptions = {
-	taskId: Id<'tasks'>;
+	fileId: Id<'files'>;
 	getLocalState: () => DraftState;
 	onServerDraftReceived: (draft: DraftState) => void;
 	isSaveBlocked?: boolean;
@@ -32,17 +32,17 @@ type UseDraftSyncReturn = {
 };
 
 export function useDraftSync({
-	taskId,
+	fileId,
 	getLocalState,
 	onServerDraftReceived,
 	isSaveBlocked = false,
 }: UseDraftSyncOptions): UseDraftSyncReturn {
 	//
-	const serverDraft = useQuery(api.drafts.findOne, { taskId });
+	const serverDraft = useQuery(api.drafts.findOne, { fileId });
 	const saveDraftMutation = useMutation(api.drafts.save);
 	const clearDraftMutation = useMutation(api.drafts.clear);
 
-	const lastTaskIdRef = useRef(taskId);
+	const lastFileIdRef = useRef(fileId);
 	const hasPendingSaveRef = useRef(false);
 	const hasReceivedInitialDraftRef = useRef(false);
 	const hasLoadedServerDraftRef = useRef(false);
@@ -59,14 +59,14 @@ export function useDraftSync({
 
 	// debounced save
 	const saveDebouncer = useDebouncer(
-		(taskIdToSave: Id<'tasks'>, queue: QueueItem[], msg: string) => {
+		(fileIdToSave: Id<'files'>, queue: QueueItem[], msg: string) => {
 			//
 			const isEmpty = queue.length === 0 && !msg.trim();
 
 			if (isEmpty) {
-				clearDraftMutation({ taskId: taskIdToSave });
+				clearDraftMutation({ fileId: fileIdToSave });
 			} else {
-				saveDraftMutation({ taskId: taskIdToSave, queue, message: msg });
+				saveDraftMutation({ fileId: fileIdToSave, queue, message: msg });
 			}
 
 			hasPendingSaveRef.current = false;
@@ -79,17 +79,17 @@ export function useDraftSync({
 	const cancelPendingSave = saveDebouncer.cancel;
 	const queueSave = saveDebouncer.maybeExecute;
 
-	// handle task change: reset state
+	// handle file change: reset state
 	useEffect(() => {
 		//
-		if (taskId !== lastTaskIdRef.current) {
+		if (fileId !== lastFileIdRef.current) {
 			cancelPendingSave();
 			hasPendingSaveRef.current = false;
 			hasReceivedInitialDraftRef.current = false;
-			lastTaskIdRef.current = taskId;
+			lastFileIdRef.current = fileId;
 			hasLoadedServerDraftRef.current = false;
 		}
-	}, [taskId, cancelPendingSave]);
+	}, [fileId, cancelPendingSave]);
 
 	// handle initial server draft load
 	useEffect(() => {
@@ -104,7 +104,7 @@ export function useDraftSync({
 			//
 			if (hasPendingSaveRef.current && !isSaveBlockedRef.current) {
 				const { queue, message } = getLocalStateRef.current();
-				queueSave(taskId, queue, message);
+				queueSave(fileId, queue, message);
 			}
 			return;
 		}
@@ -116,7 +116,7 @@ export function useDraftSync({
 			queue: serverDraft.queue,
 			message: serverDraft.message,
 		});
-	}, [serverDraft, taskId, queueSave]);
+	}, [serverDraft, fileId, queueSave]);
 
 	// save on unmount
 	useEffect(() => {
@@ -131,12 +131,12 @@ export function useDraftSync({
 			const isEmpty = queue.length === 0 && !message.trim();
 
 			if (isEmpty) {
-				clearDraftMutation({ taskId });
+				clearDraftMutation({ fileId });
 			} else {
-				saveDraftMutation({ taskId, queue, message });
+				saveDraftMutation({ fileId, queue, message });
 			}
 		};
-	}, [taskId, cancelPendingSave, clearDraftMutation, saveDraftMutation]);
+	}, [fileId, cancelPendingSave, clearDraftMutation, saveDraftMutation]);
 
 	// prompt before unload
 	useEffect(() => {
@@ -158,17 +158,17 @@ export function useDraftSync({
 			if (!hasLoadedServerDraftRef.current) return;
 			if (isSaveBlockedRef.current) return;
 
-			queueSave(taskId, queue, message);
+			queueSave(fileId, queue, message);
 		},
-		[taskId, queueSave],
+		[fileId, queueSave],
 	);
 
 	const clear = useCallback(() => {
 		//
 		cancelPendingSave();
 		hasPendingSaveRef.current = false;
-		clearDraftMutation({ taskId });
-	}, [taskId, cancelPendingSave, clearDraftMutation]);
+		clearDraftMutation({ fileId });
+	}, [fileId, cancelPendingSave, clearDraftMutation]);
 
 	const cancel = useCallback(() => {
 		//

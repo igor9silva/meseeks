@@ -1,28 +1,23 @@
-/**
- * Sync Convex env vars from 'development' to 'preview' (default one, used for every new environment).
- */
-
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
-
-// This script is intentionally app-local. Convex resolves project config from the
-// current directory, so running from the repo root would target the wrong shape.
-const appPackageName = '@meseeks/app';
+import { chmodSync, writeFileSync } from 'node:fs';
+import { assertAppRoot, envLocalFile, loadEnvLocal, previewObjectStoragePrefix } from './preview-env';
 
 // Keep the intermediate file predictable so it can be inspected when the sync
 // gets more complicated, but never commit it: it contains copied secret values.
 const envFile = '.env.convex.dev';
+const args = process.argv.slice(2);
 
 // We are maintaining the project-level defaults used by freshly-created Convex
-// preview deployments, not a single already-created preview deployment.
+// preview deployments and, when available, the currently selected preview too.
 const targetType = 'preview';
 
 // Preview deployments mostly inherit development values today, with a small set
 // of intentional differences. Keep those differences in one object so future
 // preview-specific values can be added without changing the rewrite flow.
-const previewOverrides = {
+const defaultPreviewOverrides: Record<string, string> = {
 	ENV_TYPE: 'preview',
-} satisfies Record<string, string>;
+	OBJECT_STORAGE_PREFIX: 'preview',
+};
 
 function main() {
 	assertAppRoot();
@@ -30,15 +25,14 @@ function main() {
 	// Convex prints env vars in dotenv format already. Capture stdout instead of
 	// shell-redirecting so this script works the same in local shells and CI.
 	console.log(`Reading current Convex environment variables into ${envFile}`);
-	const devEnv = runConvex(['env', 'list'], 'capture');
-	const previewEnv = applyPreviewOverrides(devEnv);
+	const devEnv = runConvex(['env', 'list', '--deployment', 'dev'], 'capture');
+	const defaultPreviewEnv = applyPreviewOverrides(devEnv, defaultPreviewOverrides);
 
 	// `mode` only applies when the file is created. chmod after writing as well
 	// so repeated runs keep the copied secrets readable only by this user.
-	writeFileSync(envFile, previewEnv, { encoding: 'utf8', mode: 0o600 });
-	chmodSync(envFile, 0o600);
+	writeEnvFile(defaultPreviewEnv);
 
-	console.log(`Applying preview overrides: ${Object.keys(previewOverrides).join(', ')}`);
+	console.log(`Applying default preview overrides: ${Object.keys(defaultPreviewOverrides).join(', ')}`);
 	console.log(`Setting default ${targetType} Convex environment variables with --force`);
 
 	// `env default set` updates the template used for future deployments. `--force`
@@ -46,22 +40,25 @@ function main() {
 	runConvex(['env', 'default', 'set', '--type', targetType, '--from-file', envFile, '--force']);
 
 	console.log(`Synced ${envFile} to default ${targetType} Convex environment variables.`);
-}
 
-function assertAppRoot() {
-	// A lightweight guard catches the common mistake: running from the workspace
-	// root because most other commands are invoked as `bun --cwd apps/meseeks`.
-	if (!existsSync('package.json') || !existsSync('convex.json')) {
-		throw new Error('Run this from apps/meseeks.');
+	const currentPreview = currentPreviewTarget();
+	if (!currentPreview) {
+		console.log(`No current preview deployment found in ${envLocalFile}; skipped deployment env sync.`);
+		return;
 	}
 
-	const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { name?: string };
+	const deploymentOverrides = {
+		...defaultPreviewOverrides,
+		OBJECT_STORAGE_PREFIX: previewObjectStoragePrefix(currentPreview.previewName),
+	};
+	const deploymentEnv = applyPreviewOverrides(devEnv, deploymentOverrides);
+	writeEnvFile(deploymentEnv);
 
-	// The package name is the final check that this is the main app, not another
-	// workspace that happens to have a Convex config later.
-	if (packageJson.name !== appPackageName) {
-		throw new Error('Run this from apps/meseeks.');
-	}
+	console.log(
+		`Setting ${currentPreview.deploymentRef} Convex environment variables with ${deploymentOverrides.OBJECT_STORAGE_PREFIX}`,
+	);
+	runConvex(['env', 'set', '--deployment', currentPreview.deploymentRef, '--from-file', envFile, '--force']);
+	console.log(`Synced ${envFile} to ${currentPreview.deploymentRef}.`);
 }
 
 function runConvex(args: string[], mode: 'capture' | 'inherit' = 'inherit') {
@@ -84,7 +81,7 @@ function runConvex(args: string[], mode: 'capture' | 'inherit' = 'inherit') {
 	return typeof result.stdout === 'string' ? result.stdout : '';
 }
 
-function applyPreviewOverrides(contents: string) {
+function applyPreviewOverrides(contents: string, overrides: Record<string, string>) {
 	// Convex's `env list` output is dotenv-like text, not JSON. Preserve unknown
 	// lines so comments/formatting from future CLI output are not accidentally
 	// discarded while we surgically replace only keys we own.
@@ -95,7 +92,7 @@ function applyPreviewOverrides(contents: string) {
 
 	for (const line of lines) {
 		const key = parseEnvKey(line);
-		const override = key ? getPreviewOverride(key) : undefined;
+		const override = key ? getOverride(overrides, key) : undefined;
 
 		if (key && override !== undefined) {
 			// If the source file ever has duplicate keys, keep the first overridden
@@ -113,7 +110,7 @@ function applyPreviewOverrides(contents: string) {
 
 	// Add preview-only defaults even when the development deployment does not have
 	// the key yet. This is what lets ENV_TYPE diverge cleanly for previews.
-	for (const [key, value] of Object.entries(previewOverrides)) {
+	for (const [key, value] of Object.entries(overrides)) {
 		if (!seenOverrides.has(key)) {
 			nextLines.push(`${key}=${formatDotenvValue(value)}`);
 		}
@@ -131,12 +128,50 @@ function parseEnvKey(line: string) {
 	return match?.[1];
 }
 
-function getPreviewOverride(key: string) {
+function getOverride(overrides: Record<string, string>, key: string) {
 	// Avoid indexing inherited properties. Env names are external text, so keep
 	// the lookup explicit even though the current override object is tiny.
-	if (Object.prototype.hasOwnProperty.call(previewOverrides, key)) {
-		return previewOverrides[key as keyof typeof previewOverrides];
+	if (Object.prototype.hasOwnProperty.call(overrides, key)) {
+		return overrides[key];
 	}
+
+	return undefined;
+}
+
+function writeEnvFile(contents: string) {
+	writeFileSync(envFile, contents, { encoding: 'utf8', mode: 0o600 });
+	chmodSync(envFile, 0o600);
+}
+
+function currentPreviewTarget() {
+	const explicitDeployment = readArg('--deployment');
+	const explicitPreviewName = readArg('--preview-name') ?? readArg('--branch');
+	if (explicitDeployment) {
+		return {
+			deploymentRef: explicitDeployment,
+			previewName: explicitPreviewName ?? explicitDeployment.replace(/^preview\//, ''),
+		};
+	}
+
+	const entries = loadEnvLocal();
+	const deploymentRef = entries.get('CONVEX_PREVIEW_REF');
+	const previewName =
+		explicitPreviewName ?? entries.get('CONVEX_PREVIEW_NAME') ?? deploymentRef?.replace(/^preview\//, '');
+	if (!deploymentRef || !previewName) return undefined;
+
+	return {
+		deploymentRef,
+		previewName,
+	};
+}
+
+function readArg(name: string) {
+	const prefix = `${name}=`;
+	const inline = args.find((arg) => arg.startsWith(prefix));
+	if (inline) return inline.slice(prefix.length);
+
+	const index = args.indexOf(name);
+	if (index >= 0) return args[index + 1];
 
 	return undefined;
 }

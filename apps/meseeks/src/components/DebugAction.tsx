@@ -1,1037 +1,74 @@
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import { asDollars } from 'lib/money';
 import { Bug, ChevronDown, ChevronRight, Eye } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Action } from '~/components/Action';
 import { CopyButton } from '~/components/CopyButton';
 import { Loading } from '~/components/Loading';
 import { TimeAgo } from '~/components/TimeAgo';
-import { Badge } from '@reactor/ui/badge';
-import { Button } from '@reactor/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
 import { useActionDetails } from '~/hooks/query/useActionDetails';
-import { cn } from '@reactor/ui/lib/utils';
+import { Badge } from '@pro/ui/badge';
+import { Button } from '@pro/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pro/ui/tooltip';
+import { cn } from '@pro/ui/lib/utils';
 
-// Copy to clipboard helper
-const copyToClipboard = (text: string) => {
-	navigator.clipboard.writeText(text);
+type ActionDocument = Doc<'actions'>;
+type ActionDetailsDocument = Doc<'action_details'>;
+
+const statusDotClasses: Record<ActionDocument['status'], string> = {
+	'pending authorization': 'bg-yellow-500',
+	'enqueued': 'bg-slate-400',
+	'running': 'bg-blue-500',
+	'succeeded': 'bg-green-500',
+	'failed': 'bg-red-500',
+	'skipped': 'bg-muted-foreground',
+	'interrupted': 'bg-orange-500',
 };
-
-// Format date for tooltip
-const formatLocalDate = (timestamp: number) => {
-	const date = new Date(timestamp);
-	return date.toLocaleDateString('en-US', {
-		weekday: 'long',
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		timeZoneName: 'short',
-	});
-};
-
-const getStatusDot = (status: string) => {
-	const statusMap: Record<string, string> = {
-		'succeeded': 'bg-green-500',
-		'failed': 'bg-red-500',
-		'running': 'bg-blue-500',
-		'skipped': 'bg-gray-500',
-		'pending authorization': 'bg-yellow-500',
-	};
-	return statusMap[status] || 'bg-gray-500';
-};
-
-function DisclosureButton({
-	isOpen,
-	onClick,
-	children,
-	className,
-}: {
-	isOpen: boolean;
-	onClick: () => void;
-	children: React.ReactNode;
-	className?: string;
-}) {
-	return (
-		<button
-			type="button"
-			className={cn(
-				'flex items-baseline gap-2 text-sm font-medium mb-2 cursor-pointer bg-transparent p-0 text-left hover:text-blue-600 dark:hover:text-blue-400',
-				className,
-			)}
-			onClick={onClick}
-		>
-			{isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-			{children}
-		</button>
-	);
-}
-
-// Approval display component
-function ApprovalSection({ action }: { action: Doc<'actions'> }) {
-	//
-	const hasApprovalInfo = action.approvedAt || action.approvedBy;
-
-	if (!hasApprovalInfo) return null;
-	// if (action.status === 'skipped') return null;
-
-	const handleApprovedAtClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		if (action.approvedAt) {
-			copyToClipboard(new Date(action.approvedAt).toISOString());
-			toast.success('Copied approval timestamp to clipboard');
-		}
-	};
-
-	const handleApprovedByClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		if (action.approvedBy && action.approvedBy !== 'auto') {
-			copyToClipboard(action.approvedBy);
-			toast.success('Copied approver ID to clipboard');
-		}
-	};
-
-	const getApprovalStatusText = () => {
-		return 'Approved';
-	};
-
-	const isApprovedByCurrentUser = action.approvedBy === action.owner;
-	const isAutoApproval = action.approvedBy === 'auto';
-	const isClickable = action.approvedBy && !isAutoApproval;
-
-	return (
-		<div className="text-xs text-muted-foreground">
-			{getApprovalStatusText()}{' '}
-			{action.approvedBy && (
-				<>
-					{isAutoApproval ? (
-						<span>automatically</span>
-					) : (
-						<button
-							type="button"
-							className="font-mono hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
-							onClick={isClickable ? handleApprovedByClick : undefined}
-						>
-							by {isApprovedByCurrentUser ? 'you' : action.approvedBy}
-						</button>
-					)}
-					{action.approvedAt && ' '}
-				</>
-			)}
-			{action.approvedAt && (
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<button
-							type="button"
-							className="hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
-							onClick={handleApprovedAtClick}
-						>
-							<TimeAgo date={action.approvedAt} />
-						</button>
-					</TooltipTrigger>
-					<TooltipContent side="top" className="max-w-sm">
-						<div className="space-y-1">
-							<div className="font-mono text-xs">{new Date(action.approvedAt).toISOString()}</div>
-							<div className="text-xs">{formatLocalDate(action.approvedAt)}</div>
-						</div>
-					</TooltipContent>
-				</Tooltip>
-			)}
-			.
-		</div>
-	);
-}
-
-function AuthorSection({ action, isAuthorCurrentUser }: { action: Doc<'actions'>; isAuthorCurrentUser: boolean }) {
-	//
-	if (!action.author) return null;
-
-	const handleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-
-		if (!isAuthorCurrentUser) {
-			const authorElement = document.getElementById(`action-${action.author}`);
-			if (authorElement) {
-				authorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-				window.location.hash = `#action-${action.author}`;
-			}
-		}
-
-		copyToClipboard(action.author);
-		toast.success('Copied ID to clipboard');
-	};
-
-	// Get status-specific text
-	const getStatusText = () => {
-		if (isAuthorCurrentUser) {
-			switch (action.status) {
-				case 'succeeded':
-					return 'Performed by';
-				case 'skipped':
-					return 'Scheduled by';
-				case 'failed':
-					return 'Attempted to perform by';
-				case 'running':
-					return 'Performing by';
-				default:
-					return 'Performed by';
-			}
-		} else {
-			switch (action.status) {
-				case 'succeeded':
-					return 'Performed as a reaction from';
-				case 'skipped':
-					return 'Scheduled as a reaction from';
-				case 'failed':
-					return 'Attempted to perform as a reaction from';
-				case 'running':
-					return 'Performing as a reaction from';
-				case 'pending authorization':
-					return 'Pending authorization as a reaction from';
-				default:
-					return 'Performed as a reaction from';
-			}
-		}
-	};
-
-	return (
-		<div className="text-xs text-muted-foreground">
-			{getStatusText()}{' '}
-			<button
-				type="button"
-				className="font-mono hover:text-foreground cursor-pointer underline-offset-2 hover:underline"
-				onClick={handleClick}
-			>
-				{isAuthorCurrentUser ? 'you' : action.author}
-			</button>
-			{action.status === 'skipped' ? ', but skipped.' : '.'}
-		</div>
-	);
-}
-
-function ArgumentsSection({ args }: { args: Record<string, unknown> }) {
-	//
-	const [isOpen, setIsOpen] = useState(false);
-
-	if (!args || Object.keys(args).length === 0) return null;
-
-	return (
-		<div>
-			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-				Arguments
-				<span className="text-muted-foreground font-normal text-xs">({Object.keys(args).length})</span>
-			</DisclosureButton>
-			{isOpen && (
-				<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
-					{Object.entries(args).map(([key, value]) => (
-						<div key={key} className="flex gap-2">
-							<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">{key}:</span>
-							<span className="whitespace-pre-wrap break-words">
-								{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-							</span>
-						</div>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function ReactionItem({ reaction }: { reaction: any }) {
-	//
-	const [isOpen, setIsOpen] = useState(false);
-	const argCount = reaction.args ? Object.keys(reaction.args).length : 0;
-
-	// Format argument count text
-	const getArgumentText = (count: number) => {
-		return count === 1 ? `${count} argument` : `${count} arguments`;
-	};
-
-	return (
-		<div className="ml-4">
-			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-				{reaction.skillKey}
-				<span className="text-muted-foreground font-normal text-xs">({getArgumentText(argCount)})</span>
-			</DisclosureButton>
-			{isOpen &&
-				(argCount > 0 ? (
-					<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
-						{Object.entries(reaction.args).map(([key, value]) => (
-							<div key={key} className="flex gap-2">
-								<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
-									{key}:
-								</span>
-								<span className="whitespace-pre-wrap break-words">
-									{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
-								</span>
-							</div>
-						))}
-					</div>
-				) : (
-					<div className="bg-muted border rounded-lg p-3 text-sm text-muted-foreground italic">
-						No arguments
-					</div>
-				))}
-		</div>
-	);
-}
-
-function ResultSection({ result }: { result: Doc<'actions'>['result'] }) {
-	//
-	const [isOpen, setIsOpen] = useState(false);
-
-	if (!result) return null;
-	const hasText = Boolean(result.text);
-	const hasReactions = Boolean(result.reactions && result.reactions.length > 0);
-
-	// If neither text nor reactions, fallback to JSON
-	if (!hasText && !hasReactions) {
-		const jsonString = JSON.stringify(result, null, 2);
-		return (
-			<div>
-				<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-					Result
-					<span className="text-muted-foreground font-normal text-xs">({jsonString.length} characters)</span>
-				</DisclosureButton>
-				{isOpen && (
-					<textarea
-						value={jsonString}
-						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
-						style={{ fontFamily: 'ui-monospace, monospace' }}
-					/>
-				)}
-			</div>
-		);
-	}
-
-	// Calculate summary for the main header
-	let summary = '';
-	if (hasText && hasReactions) {
-		summary = `(${result.text!.length} characters, ${result.reactions!.length} reactions)`;
-	} else if (hasText) {
-		summary = `(${result.text!.length} characters)`;
-	} else if (hasReactions) {
-		summary = `(${result.reactions!.length} reactions)`;
-	}
-
-	return (
-		<div>
-			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-				Result
-				<span className="text-muted-foreground font-normal text-xs">{summary}</span>
-			</DisclosureButton>
-			{isOpen && (
-				<div className="space-y-3">
-					{/* Text block - no labels, no container, just the text */}
-					{hasText && (
-						<textarea
-							value={result.text!}
-							readOnly
-							className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded-lg resize-y whitespace-pre-wrap"
-							style={{ fontFamily: 'inherit' }}
-						/>
-					)}
-
-					{/* Reactions as individual collapsible blocks */}
-					{hasReactions && (
-						<div className="space-y-2">
-							{result.reactions!.map((reaction, index) => (
-								<ReactionItem key={index} reaction={reaction} />
-							))}
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function CostSection({ action }: { action: Doc<'actions'> }) {
-	//
-	const [isOpen, setIsOpen] = useState(false);
-	const hasEstimatedCost = typeof action.estimatedCost === 'bigint';
-	const hasActualCosts = 'costs' in action && action.costs && action.costs.length > 0;
-
-	if (!hasEstimatedCost && !hasActualCosts) return null;
-	const estimatedAmount = hasEstimatedCost ? action.estimatedCost! : 0n;
-	const actualTotal = hasActualCosts ? action.costs.reduce((total, cost) => total + cost.amount, 0n) : 0n;
-
-	return (
-		<div className="space-y-3">
-			{hasActualCosts && (
-				<div>
-					<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-						Cost Breakdown ${asDollars({ bigInt: actualTotal, precision: 6 })}
-						<span className="text-muted-foreground font-normal text-xs">
-							{actualTotal === estimatedAmount ? (
-								<>(estimated correctly)</>
-							) : estimatedAmount > 0n ? (
-								(() => {
-									const actualFloat = Number(actualTotal) / 1000000; // Convert to dollars
-									const estimatedFloat = Number(estimatedAmount) / 1000000;
-									const percentDiff = Math.abs(
-										((actualFloat - estimatedFloat) / estimatedFloat) * 100,
-									);
-									const isLess = actualTotal < estimatedAmount;
-									return (
-										<>
-											({percentDiff.toFixed(0)}% {isLess ? 'less' : 'greater'} than $
-											{asDollars({ bigInt: estimatedAmount, precision: 6 })} estimated)
-										</>
-									);
-								})()
-							) : (
-								<>(from ${asDollars({ bigInt: estimatedAmount, precision: 6 })} estimated)</>
-							)}
-						</span>
-					</DisclosureButton>
-					{isOpen && (
-						<div className="bg-muted border rounded-lg p-3 space-y-1 text-sm">
-							{action.costs.map((cost, index) => (
-								<div key={index} className="flex justify-between">
-									<span>{cost.description}</span>
-									<span className="font-mono">
-										${asDollars({ bigInt: cost.amount, precision: 6 })} energy
-									</span>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-			)}
-
-			{hasEstimatedCost && !hasActualCosts && (
-				<div>
-					<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-						Estimated Cost
-						<span className="text-muted-foreground font-normal text-xs">
-							(${asDollars({ bigInt: action.estimatedCost!, precision: 6 })})
-						</span>
-					</DisclosureButton>
-					{isOpen && (
-						<div className="bg-muted border rounded-lg p-3 text-sm">
-							<div className="flex justify-between">
-								<span>Estimated:</span>
-								<span className="font-mono">
-									${asDollars({ bigInt: action.estimatedCost!, precision: 6 })} energy
-								</span>
-							</div>
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function MessageHistoryItem({
-	message, //
-	index,
-}: {
-	message: { role: string; content: string };
-	index: number;
-}) {
-	//
-	const [isOpen, setIsOpen] = useState(false);
-
-	const getRoleColor = (role: string) => {
-		switch (role) {
-			case 'system':
-				return 'text-red-600 dark:text-red-400';
-			case 'user':
-				return 'text-blue-600 dark:text-blue-400';
-			case 'assistant':
-				return 'text-green-600 dark:text-green-400';
-			case 'tool':
-				return 'text-purple-600 dark:text-purple-400';
-			case 'function':
-				return 'text-orange-600 dark:text-orange-400';
-			default:
-				return 'text-gray-600 dark:text-gray-400';
-		}
-	};
-
-	const getRoleIcon = (role: string) => {
-		switch (role) {
-			case 'system':
-				return '🔧';
-			case 'user':
-				return '👤';
-			case 'assistant':
-				return '🤖';
-			case 'tool':
-				return '🔨';
-			case 'function':
-				return '⚙️';
-			default:
-				return '💬';
-		}
-	};
-
-	return (
-		<div className="border rounded-3xl p-3 bg-card">
-			<DisclosureButton
-				isOpen={isOpen}
-				onClick={() => setIsOpen(!isOpen)}
-				className="items-center hover:bg-muted/50 rounded-lg p-2 -m-2"
-			>
-				<span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
-				<span className={`text-sm font-medium ${getRoleColor(message.role)}`}>
-					{getRoleIcon(message.role)} {message.role}
-				</span>
-				<div className="flex-1" />
-				<span className="text-xs text-muted-foreground">
-					{/* TODO: use env var CHAR_PER_TOKEN (currently server only) */}
-					{message.content.length} chars (~{Math.ceil(message.content.length / 3.5)} tokens)
-				</span>
-			</DisclosureButton>
-
-			{isOpen && (
-				<div className="mt-3 pt-3 border-t">
-					<textarea
-						value={message.content}
-						readOnly
-						className="w-full min-h-24 max-h-64 p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
-						style={{ fontFamily: 'inherit' }}
-					/>
-				</div>
-			)}
-		</div>
-	);
-}
-
-function MessageHistorySection({
-	messages, //
-}: {
-	messages: Array<{ role: string; content: string }>;
-}) {
-	const [isOpen, setIsOpen] = useState(false);
-
-	if (!messages || messages.length === 0) {
-		return (
-			<div>
-				<div className="text-sm font-medium mb-2">History</div>
-				<div className="text-muted-foreground text-sm italic">No conversation history</div>
-			</div>
-		);
-	}
-
-	return (
-		<div>
-			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
-				History
-				<span className="text-muted-foreground font-normal text-xs">({messages.length} messages)</span>
-			</DisclosureButton>
-
-			{isOpen && (
-				<div className="space-y-3">
-					{messages.map((message, index) => (
-						<MessageHistoryItem key={index} message={message} index={index} />
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function LlmDetailsSection({ actionDetails }: { actionDetails: any }) {
-	//
-	if (!actionDetails.llm) return null;
-
-	const llm = actionDetails.llm;
-
-	return (
-		<div className="space-y-3">
-			<div className="grid grid-cols-4 gap-4 text-sm">
-				<div className="col-span-2">
-					<span className="text-muted-foreground">Model</span>
-					<div className="font-mono truncate" title={`${llm.model} (${llm.temperature || 'N/A'} 🌡️)`}>
-						{llm.model} ({llm.temperature || 'N/A'} 🌡️)
-					</div>
-				</div>
-				<div>
-					<span className="text-muted-foreground">Finish Reason</span>
-					<div className="font-mono truncate" title={llm.finishReason}>
-						{llm.finishReason || 'N/A'}
-					</div>
-				</div>
-				{llm.usage && (
-					<div>
-						<span className="text-muted-foreground">Tokens</span>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="font-mono cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
-									{llm.usage.input.total} → {llm.usage.output.total}
-								</div>
-							</TooltipTrigger>
-							<TooltipContent side="bottom" align="center" className="max-w-sm">
-								<div className="space-y-1 text-xs">
-									<div>Input tokens: {llm.usage.input.total.toLocaleString()}</div>
-									<div>Output tokens: {llm.usage.output.total.toLocaleString()}</div>
-								</div>
-							</TooltipContent>
-						</Tooltip>
-					</div>
-				)}
-			</div>
-
-			<MessageHistorySection messages={llm.history} />
-
-			{llm.availableTools && llm.availableTools.length > 0 && (
-				<div>
-					<div className="text-sm font-medium mb-2">Available Skills</div>
-					<div className="flex flex-wrap gap-1">
-						{llm.availableTools.map((tool: string) => (
-							<Badge key={tool} variant="secondary" className="text-xs font-mono">
-								{tool}
-							</Badge>
-						))}
-					</div>
-				</div>
-			)}
-
-			{llm.systemInstructions && (
-				<div>
-					<div className="flex items-baseline justify-between text-sm font-medium mb-2">
-						<div>System Instructions</div>
-						<span className="text-muted-foreground font-normal text-xs">
-							{/* TODO: use env var CHAR_PER_TOKEN (currently server only) */}(
-							{llm.systemInstructions.length} chars ~{Math.ceil(llm.systemInstructions.length / 3.5)}{' '}
-							tokens)
-						</span>
-					</div>
-					<textarea
-						value={llm.systemInstructions}
-						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
-						style={{ fontFamily: 'inherit' }}
-					/>
-				</div>
-			)}
-
-			{llm.toolCalls && llm.toolCalls.length > 0 && (
-				<div>
-					<div className="text-sm font-medium mb-2">Tool Calls</div>
-					<textarea
-						value={JSON.stringify(llm.toolCalls, null, 2)}
-						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
-						style={{ fontFamily: 'ui-monospace, monospace' }}
-					/>
-				</div>
-			)}
-
-			{llm.text && (
-				<div>
-					<div className="text-sm font-medium mb-2">LLM Response</div>
-					<textarea
-						value={llm.text}
-						readOnly
-						className="w-full min-h-32 max-h-[48rem] p-3 text-sm bg-muted border rounded resize-y whitespace-pre-wrap"
-						style={{ fontFamily: 'inherit' }}
-					/>
-				</div>
-			)}
-		</div>
-	);
-}
-
-// HTTP details section
-function HttpDetailsSection({ actionDetails }: { actionDetails: any }) {
-	//
-	const [searchParamsOpen, setSearchParamsOpen] = useState(false);
-	const [responseBodyOpen, setResponseBodyOpen] = useState(false);
-	const [responseHeadersOpen, setResponseHeadersOpen] = useState(false);
-
-	if (!actionDetails.http) return null;
-
-	const http = actionDetails.http;
-
-	// Parse URL to extract search params
-	let searchParams: Record<string, string> = {};
-	try {
-		const url = new URL(http.url);
-		searchParams = Object.fromEntries(url.searchParams.entries());
-	} catch {
-		// If URL parsing fails, ignore search params
-	}
-
-	return (
-		<div className="space-y-3">
-			<div>
-				<div className="bg-muted border rounded p-3 font-mono text-sm flex justify-between items-center">
-					<div className="flex items-center gap-1 min-w-0 flex-1">
-						<Badge variant="outline" className="text-xs flex-shrink-0">
-							{http.method}
-						</Badge>
-						<span className="text-muted-foreground truncate">{http.url.split('?')[0]}</span>
-					</div>
-					<Badge
-						variant={http.statusCode >= 400 ? 'destructive' : 'default'}
-						className="text-xs ml-2 flex-shrink-0"
-					>
-						{http.statusCode}
-					</Badge>
-				</div>
-			</div>
-
-			{Object.keys(searchParams).length > 0 && (
-				<div>
-					<DisclosureButton
-						isOpen={searchParamsOpen}
-						onClick={() => setSearchParamsOpen(!searchParamsOpen)}
-						className="items-center"
-					>
-						Search Parameters
-						<span className="text-muted-foreground font-normal text-xs">
-							({Object.keys(searchParams).length} parameters)
-						</span>
-					</DisclosureButton>
-					{searchParamsOpen && (
-						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
-							{Object.entries(searchParams).map(([key, value]) => (
-								<div key={key} className="flex gap-2">
-									<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
-										{key}:
-									</span>
-									<span className="whitespace-pre-wrap break-words">{value}</span>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-			)}
-
-			{http.responseBody && (
-				<div>
-					<DisclosureButton
-						isOpen={responseBodyOpen}
-						onClick={() => setResponseBodyOpen(!responseBodyOpen)}
-						className="items-center"
-					>
-						Response Body
-						{http.responseBodySize && (
-							<span className="text-muted-foreground font-normal text-xs">
-								({http.responseBodySize} bytes)
-							</span>
-						)}
-					</DisclosureButton>
-					{responseBodyOpen && (
-						<textarea
-							value={http.responseBody}
-							readOnly
-							className="w-full min-h-32 max-h-[48rem] p-3 text-xs bg-muted border rounded-lg resize-y whitespace-pre-wrap font-mono"
-							style={{ fontFamily: 'ui-monospace, monospace' }}
-						/>
-					)}
-				</div>
-			)}
-
-			{http.responseHeaders && Object.keys(http.responseHeaders).length > 0 && (
-				<div>
-					<DisclosureButton
-						isOpen={responseHeadersOpen}
-						onClick={() => setResponseHeadersOpen(!responseHeadersOpen)}
-						className="items-center"
-					>
-						Response Headers
-						<span className="text-muted-foreground font-normal text-xs">
-							({Object.keys(http.responseHeaders).length} headers)
-						</span>
-					</DisclosureButton>
-					{responseHeadersOpen && (
-						<div className="bg-muted border rounded-lg p-3 text-sm space-y-1 max-h-48 overflow-auto resize-y">
-							{Object.entries(http.responseHeaders).map(([key, value]) => (
-								<div key={key} className="flex gap-2">
-									<span className="text-blue-600 dark:text-blue-400 font-medium flex-shrink-0">
-										{key}:
-									</span>
-									<span className="whitespace-pre-wrap break-words">{String(value)}</span>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
-}
-
-// Action details with suspense loading
-function ActionDetailsContent({
-	action,
-	onDataLoaded,
-}: {
-	action: Doc<'actions'>;
-	onDataLoaded?: (data: any) => void;
-}) {
-	//
-	const { actionDetails } = useActionDetails(action._id);
-
-	useEffect(() => {
-		//
-		if (actionDetails && onDataLoaded) {
-			onDataLoaded(actionDetails);
-		}
-	}, [actionDetails, onDataLoaded]);
-
-	if (!actionDetails) return null;
-
-	return (
-		<>
-			{actionDetails.skillKind === 'soft' && <LlmDetailsSection actionDetails={actionDetails} />}
-			{actionDetails.skillKind === 'hard' && <HttpDetailsSection actionDetails={actionDetails} />}
-		</>
-	);
-}
-
-// Serialize action and details to JSON
-const serializeActionToJSON = (action: Doc<'actions'>, actionDetails?: any) => {
-	//
-	const serializable = {
-		...action,
-		// Convert bigint values to strings for JSON serialization
-		estimatedCost: action.estimatedCost ? action.estimatedCost.toString() : null,
-		costs:
-			'costs' in action
-				? (action as any).costs?.map((cost: any) => ({
-						...cost,
-						amount: cost.amount.toString(),
-					}))
-				: undefined,
-		// Add action details if available
-		details: actionDetails || null,
-	};
-
-	return JSON.stringify(serializable, null, 2);
-};
-
-function ActionRow({
-	action,
-	isExpanded,
-	onToggle,
-	onShowAction,
-	isAuthorCurrentUser,
-}: {
-	action: Doc<'actions'>;
-	isExpanded: boolean;
-	onToggle: () => void;
-	onShowAction: () => void;
-	isAuthorCurrentUser: boolean;
-}) {
-	//
-	const statusDot = getStatusDot(action.status);
-	const [actionDetails, setActionDetails] = useState<any>(null);
-
-	// Calculate total actual cost
-	const isResolvedAction = action.status === 'succeeded' || action.status === 'skipped' || action.status === 'failed';
-	const totalActualCost =
-		isResolvedAction && 'costs' in action && (action as any).costs && (action as any).costs.length > 0
-			? (action as any).costs.reduce((sum: bigint, cost: any) => sum + cost.amount, 0n)
-			: action.estimatedCost || 0n;
-
-	const handleDataLoaded = (data: any) => {
-		//
-		setActionDetails(data);
-	};
-
-	const handleRowKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-		if (event.key !== 'Enter' && event.key !== ' ') return;
-		event.preventDefault();
-		onToggle();
-	};
-
-	return (
-		<TooltipProvider>
-			<div className="border-b">
-				{/* Main row */}
-				<div
-					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- this row contains nested copy controls, so making the whole row a native button would create invalid nested buttons
-					role="button"
-					tabIndex={0}
-					className={cn(
-						'flex items-center py-2 hover:bg-muted/50 cursor-pointer group',
-						!isAuthorCurrentUser && 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
-					)}
-					style={{ paddingLeft: `${16 + action.depth * 4}px` }}
-					onClick={onToggle}
-					onKeyDown={handleRowKeyDown}
-				>
-					<div className="flex items-center gap-2 min-w-0 flex-1">
-						<Button variant="ghost" size="sm" className="h-4 w-4 p-0 opacity-60">
-							{isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-						</Button>
-
-						<div className={`w-2 h-2 rounded-full ${statusDot}`} />
-
-						<div className="min-w-0 flex-1">
-							<div className="flex items-center gap-0.5 font-mono">
-								<span className="text-sm">{action.skillKey} </span>
-								<span className="text-muted-foreground text-xs">({action.depth})</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<button
-									type="button"
-									className="font-mono text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-									onClick={(e) => {
-										e.stopPropagation();
-										copyToClipboard(action._id);
-										toast.success('Copied action ID to clipboard');
-									}}
-									title="Click to copy ID"
-								>
-									{action._id}
-								</button>
-								<div className="flex-1" />
-							</div>
-						</div>
-					</div>
-
-					<div className="flex items-center gap-4 text-sm text-muted-foreground">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<button
-									type="button"
-									className="hover:text-foreground cursor-pointer"
-									onClick={(e) => {
-										e.stopPropagation();
-										copyToClipboard(new Date(action._creationTime).toISOString());
-									}}
-								>
-									<TimeAgo date={action._creationTime} />
-								</button>
-							</TooltipTrigger>
-							<TooltipContent side="top" className="max-w-sm">
-								<div className="space-y-1">
-									<div className="font-mono text-xs">
-										{new Date(action._creationTime).toISOString()}
-									</div>
-									<div className="text-xs">{formatLocalDate(action._creationTime)}</div>
-								</div>
-							</TooltipContent>
-						</Tooltip>
-
-						<div className="text-right min-w-[80px]">
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<div className="text-xs font-mono cursor-pointer hover:text-foreground">
-										${asDollars({ bigInt: totalActualCost, precision: 6 })}
-									</div>
-								</TooltipTrigger>
-								<TooltipContent side="top">
-									<div className="space-y-1 text-xs">
-										{typeof action.estimatedCost === 'bigint' && action.estimatedCost > 0n && (
-											<div>
-												Estimated: ${asDollars({ bigInt: action.estimatedCost, precision: 6 })}
-											</div>
-										)}
-										<div>Actual: ${asDollars({ bigInt: totalActualCost, precision: 6 })}</div>
-									</div>
-								</TooltipContent>
-							</Tooltip>
-						</div>
-
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									className="h-7 w-7 p-0 opacity-60 hover:opacity-100 transition-opacity"
-									onClick={(event) => {
-										event.stopPropagation();
-										onShowAction();
-									}}
-								>
-									<Eye className="h-4 w-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent className="px-2 py-1 text-xs">Show actual action</TooltipContent>
-						</Tooltip>
-
-						<CopyButton
-							textToCopy={serializeActionToJSON(action, actionDetails)}
-							tooltipText="Copy as JSON"
-							className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
-						/>
-					</div>
-				</div>
-
-				{/* Expanded content */}
-				{isExpanded && (
-					<div className="bg-muted/30 border-t">
-						<div className="p-4 space-y-4">
-							<AuthorSection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
-							<ApprovalSection action={action} />
-
-							<ArgumentsSection args={action.args} />
-							<ResultSection result={action.result} />
-							<CostSection action={action} />
-
-							<Suspense fallback={<Loading />}>
-								<ActionDetailsContent action={action} onDataLoaded={handleDataLoaded} />
-							</Suspense>
-						</div>
-					</div>
-				)}
-			</div>
-		</TooltipProvider>
-	);
-}
 
 export function DebugAction({
 	className,
 	action,
 	initialRenderDate,
 	isAuthorCurrentUser,
-	taskId,
+	suppressAnchorId,
+	fileId,
 }: {
 	className?: string;
-	action: Doc<'actions'>;
+	action: ActionDocument;
 	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
-	taskId: Id<'tasks'>;
+	suppressAnchorId?: boolean;
+	fileId: Id<'files'>;
 }) {
 	//
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [isHighlighted, setIsHighlighted] = useState(false);
 	const [isShowingAction, setIsShowingAction] = useState(false);
 
-	// Check if this action is the one in the URL hash
 	useEffect(() => {
 		//
-		const checkIfHighlighted = () => {
-			const hash = window.location.hash;
-			const shouldHighlight = hash === `#action-${action._id}`;
+		const checkHash = () => {
+			const shouldHighlight = window.location.hash === `#action-${action._id}`;
 			setIsHighlighted(shouldHighlight);
-			// Auto-expand if highlighted
-			if (shouldHighlight) {
-				setIsExpanded(true);
-			}
+			if (shouldHighlight) setIsExpanded(true);
 		};
 
-		// Check on mount and whenever the hash changes
-		checkIfHighlighted();
-		window.addEventListener('hashchange', checkIfHighlighted);
+		checkHash();
+		window.addEventListener('hashchange', checkHash);
 
-		return () => {
-			window.removeEventListener('hashchange', checkIfHighlighted);
-		};
+		return () => window.removeEventListener('hashchange', checkHash);
 	}, [action._id]);
 
 	if (isShowingAction) {
 		return (
 			<div
+				id={suppressAnchorId ? undefined : `action-${action._id}`}
 				className={cn(
 					'w-full border-b bg-background/60 p-2',
 					className,
 					isHighlighted && 'ring-2 ring-primary ring-offset-2',
 				)}
-				id={`action-${action._id}`}
 			>
 				<div className="mb-2 flex justify-end">
 					<TooltipProvider>
@@ -1041,10 +78,12 @@ export function DebugAction({
 									type="button"
 									variant="ghost"
 									size="sm"
-									className="h-7 w-7 p-0 opacity-60 hover:opacity-100"
+									className="size-7 p-0 opacity-60 hover:opacity-100"
+									aria-label="Show debug row"
+									title="Show debug row"
 									onClick={() => setIsShowingAction(false)}
 								>
-									<Bug className="h-4 w-4" />
+									<Bug className="size-4" />
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent className="px-2 py-1 text-xs">Show debug row</TooltipContent>
@@ -1056,7 +95,7 @@ export function DebugAction({
 					initialRenderDate={initialRenderDate}
 					isAuthorCurrentUser={isAuthorCurrentUser}
 					suppressAnchorId
-					taskId={taskId}
+					fileId={fileId}
 				/>
 			</div>
 		);
@@ -1064,19 +103,662 @@ export function DebugAction({
 
 	return (
 		<div
+			id={suppressAnchorId ? undefined : `action-${action._id}`}
 			className={cn('w-full', className, isHighlighted && 'ring-2 ring-primary ring-offset-2')}
-			id={`action-${action._id}`}
 		>
 			<ActionRow
 				action={action}
 				isExpanded={isExpanded}
-				onToggle={() => {
-					console.log('Toggle clicked, current state:', isExpanded);
-					setIsExpanded(!isExpanded);
-				}}
+				onToggle={() => setIsExpanded((open) => !open)}
 				onShowAction={() => setIsShowingAction(true)}
 				isAuthorCurrentUser={isAuthorCurrentUser}
+				initialRenderDate={initialRenderDate}
 			/>
 		</div>
+	);
+}
+
+function ActionRow({
+	action,
+	isExpanded,
+	onToggle,
+	onShowAction,
+	isAuthorCurrentUser,
+	initialRenderDate,
+}: {
+	action: ActionDocument;
+	isExpanded: boolean;
+	onToggle: () => void;
+	onShowAction: () => void;
+	isAuthorCurrentUser: boolean;
+	initialRenderDate: Date;
+}) {
+	//
+	const isNew = new Date(action._creationTime) > initialRenderDate;
+	const costTotal = totalCost(action);
+	const [details, setDetails] = useState<ActionDetailsDocument | null>(null);
+
+	const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		onToggle();
+	};
+
+	return (
+		<TooltipProvider>
+			<div
+				className={cn(
+					'border-b bg-background font-mono text-xs',
+					isNew && 'animate-in fade-in duration-100',
+					!isAuthorCurrentUser && 'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
+				)}
+			>
+				<div
+					// this row owns nested copy/show buttons, so a native button would create invalid nested buttons.
+					// oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+					role="button"
+					tabIndex={0}
+					aria-expanded={isExpanded}
+					aria-label={`${isExpanded ? 'Collapse' : 'Expand'} debug details for ${action.skillKey} action ${action.index}`}
+					className="group flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-muted/50"
+					style={{ paddingLeft: `${12 + action.depth * 6}px` }}
+					onClick={onToggle}
+					onKeyDown={handleRowKeyDown}
+				>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						className="size-6 p-0 opacity-70"
+						aria-label={`${isExpanded ? 'Collapse' : 'Expand'} debug details`}
+						title={`${isExpanded ? 'Collapse' : 'Expand'} debug details`}
+						onClick={(event) => {
+							event.stopPropagation();
+							onToggle();
+						}}
+					>
+						{isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+					</Button>
+
+					<div
+						className={cn('size-2 shrink-0 rounded-full blur-[0.5px]', statusDotClasses[action.status])}
+						aria-label={action.status}
+					/>
+
+					<div className="min-w-0 flex-1">
+						<div className="flex flex-wrap items-center gap-1.5">
+							<span className="text-sm font-semibold">{action.skillKey}()</span>
+							<span className="text-muted-foreground">#{action.index}</span>
+							<span className="text-muted-foreground">depth {action.depth}</span>
+							<Badge variant={statusVariant(action.status)} className="font-sans text-[0.65rem]">
+								{action.status}
+							</Badge>
+							{action.loopKey && (
+								<Badge variant="outline" className="font-sans text-[0.65rem]">
+									{action.loopKey}
+								</Badge>
+							)}
+							{action.interruptedAt && (
+								<Badge variant="destructive" className="font-sans text-[0.65rem]">
+									interrupted
+								</Badge>
+							)}
+						</div>
+						<div className="mt-0.5 flex min-w-0 items-center gap-2">
+							<CopyTextButton value={action._id} label="action id" className="truncate" />
+							<span className="text-muted-foreground">
+								<TimeAgo date={action.createdAt} />
+							</span>
+						</div>
+					</div>
+
+					<div className="hidden items-center gap-3 text-muted-foreground sm:flex">
+						{action.maxCost !== undefined && (
+							<CostBadge label="max" value={action.maxCost} tooltip="Reserved spending limit" />
+						)}
+						{action.reservedBudget !== undefined && (
+							<CostBadge label="reserved" value={action.reservedBudget} tooltip="Reserved file budget" />
+						)}
+						<CostBadge label="cost" value={costTotal} tooltip="Settled cost" />
+					</div>
+
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="size-7 p-0 opacity-60 transition-opacity hover:opacity-100"
+								aria-label="Show actual action"
+								title="Show actual action"
+								onClick={(event) => {
+									event.stopPropagation();
+									onShowAction();
+								}}
+							>
+								<Eye className="size-4" />
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent className="px-2 py-1 text-xs">Show actual action</TooltipContent>
+					</Tooltip>
+
+					<CopyButton
+						textToCopy={stringify(actionExport(action, details))}
+						tooltipText="Copy action and details JSON"
+						className="opacity-0 transition-opacity group-hover:opacity-60 hover:opacity-100"
+					/>
+				</div>
+
+				{isExpanded && (
+					<ExpandedAction
+						action={action}
+						isAuthorCurrentUser={isAuthorCurrentUser}
+						onDetailsLoaded={setDetails}
+					/>
+				)}
+			</div>
+		</TooltipProvider>
+	);
+}
+
+function ExpandedAction({
+	action,
+	isAuthorCurrentUser,
+	onDetailsLoaded,
+}: {
+	action: ActionDocument;
+	isAuthorCurrentUser: boolean;
+	onDetailsLoaded: (details: ActionDetailsDocument | null) => void;
+}) {
+	//
+	return (
+		<div className="space-y-4 border-t bg-muted/30 p-4 font-sans text-sm">
+			<CausalitySection action={action} isAuthorCurrentUser={isAuthorCurrentUser} />
+			<LifecycleSection action={action} />
+			<ArgumentsSection args={action.args} />
+			<ResultSection result={action.result} />
+			<PatchSection patch={action.patch} />
+			<CostsSection action={action} />
+			<ActionSelectionSection action={action} />
+			<Suspense fallback={<Loading className="h-24" text="Loading action details..." />}>
+				<ActionDetailsSection actionId={action._id} onDetailsLoaded={onDetailsLoaded} />
+			</Suspense>
+			<RawSection title="Raw action" value={action} defaultOpen={false} />
+		</div>
+	);
+}
+
+function DisclosureButton({
+	isOpen,
+	onClick,
+	children,
+	className,
+}: {
+	isOpen: boolean;
+	onClick: () => void;
+	children: ReactNode;
+	className?: string;
+}) {
+	//
+	return (
+		<button
+			type="button"
+			className={cn(
+				'mb-2 flex cursor-pointer items-baseline gap-2 bg-transparent p-0 text-left text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400',
+				className,
+			)}
+			onClick={onClick}
+		>
+			{isOpen ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+			{children}
+		</button>
+	);
+}
+
+function CausalitySection({ action, isAuthorCurrentUser }: { action: ActionDocument; isAuthorCurrentUser: boolean }) {
+	//
+	return (
+		<div className="space-y-1 text-xs text-muted-foreground">
+			<div>
+				{isAuthorCurrentUser ? 'Authored by ' : 'Caused by '}
+				<CopyTextButton value={action.author} label="author id">
+					{isAuthorCurrentUser ? 'you' : action.author}
+				</CopyTextButton>
+				.
+			</div>
+			{action.spark && (
+				<div>
+					Spark{' '}
+					<CopyTextButton value={action.spark} label="spark action id">
+						{action.spark}
+					</CopyTextButton>
+					.
+				</div>
+			)}
+		</div>
+	);
+}
+
+function LifecycleSection({ action }: { action: ActionDocument }) {
+	//
+	const entries: Array<{ label: string; value: number }> = [];
+	addLifecycleEntry(entries, { label: 'created', value: action.createdAt });
+	addLifecycleEntry(entries, { label: 'authorized', value: action.authorizedAt });
+	addLifecycleEntry(entries, { label: 'claimed', value: action.claimedAt });
+	addLifecycleEntry(entries, { label: 'started', value: action.startedAt });
+	addLifecycleEntry(entries, { label: 'settled', value: action.settledAt });
+	addLifecycleEntry(entries, { label: 'interrupted', value: action.interruptedAt });
+
+	if (entries.length === 0) return null;
+
+	return (
+		<div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-3">
+			{entries.map((entry) => (
+				<div key={entry.label} className="rounded-md border bg-background/80 p-2">
+					<div className="text-muted-foreground">{entry.label}</div>
+					<CopyTextButton value={new Date(entry.value).toISOString()} label={`${entry.label} timestamp`}>
+						<TimeAgo date={entry.value} />
+					</CopyTextButton>
+				</div>
+			))}
+		</div>
+	);
+}
+
+function ArgumentsSection({ args }: { args: ActionDocument['args'] }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	const count = Object.keys(args).length;
+
+	if (count === 0) return null;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Arguments <span className="text-xs font-normal text-muted-foreground">({count})</span>
+			</DisclosureButton>
+			{isOpen && <StructuredBlock value={args} />}
+		</div>
+	);
+}
+
+function ResultSection({ result }: { result: ActionDocument['result'] }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	if (!result) return null;
+
+	const textLength = result.text?.length ?? 0;
+	const files = result.files ?? [];
+	const fileCount = files.length;
+	const metadataCount = Object.keys(result.metadata ?? {}).length;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Result{' '}
+				<span className="text-xs font-normal text-muted-foreground">
+					(
+					{summaryParts([
+						textLength > 0 ? `${textLength} chars` : undefined,
+						fileCount > 0 ? `${fileCount} files` : undefined,
+						metadataCount > 0 ? `${metadataCount} metadata keys` : undefined,
+					])}
+					)
+				</span>
+			</DisclosureButton>
+			{isOpen && (
+				<div className="space-y-3">
+					{result.text && <TextareaBlock value={result.text} className="text-sm" />}
+					{files.length > 0 && <StructuredBlock value={files} />}
+					{result.metadata && <StructuredBlock value={result.metadata} />}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function PatchSection({ patch }: { patch: ActionDocument['patch'] }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	if (!patch) return null;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Patch <span className="text-xs font-normal text-muted-foreground">({patch.length} chars)</span>
+			</DisclosureButton>
+			{isOpen && <TextareaBlock value={patch} className="font-mono text-xs" />}
+		</div>
+	);
+}
+
+function CostsSection({ action }: { action: ActionDocument }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	const costs = action.costs ?? [];
+	const hasEstimatedCost = action.expectedCost !== undefined || action.maxCost !== undefined;
+	const hasActualCosts = costs.length > 0;
+	if (!hasEstimatedCost && !hasActualCosts && action.reservedBudget === undefined) return null;
+
+	const actualTotal = totalCost(action);
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Costs{' '}
+				<span className="text-xs font-normal text-muted-foreground">
+					(${asDollars({ bigInt: actualTotal, precision: 6 })})
+				</span>
+			</DisclosureButton>
+			{isOpen && (
+				<div className="space-y-3">
+					<div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+						<MoneyCell label="expected" value={action.expectedCost} />
+						<MoneyCell label="max" value={action.maxCost} />
+						<MoneyCell label="reserved" value={action.reservedBudget} />
+						<MoneyCell label="actual" value={actualTotal} />
+					</div>
+					{costs.length > 0 && <StructuredBlock value={costs} />}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function ActionSelectionSection({ action }: { action: ActionDocument }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	const value = {
+		loop: action.loopKey,
+		intelligence: action.intelligenceKey,
+	};
+	const count = [action.loopKey, action.intelligenceKey].filter(Boolean).length;
+	if (count === 0) return null;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Action selection{' '}
+				<span className="text-xs font-normal text-muted-foreground">
+					({count} entr{count === 1 ? 'y' : 'ies'})
+				</span>
+			</DisclosureButton>
+			{isOpen && <StructuredBlock value={value} />}
+		</div>
+	);
+}
+
+function ActionDetailsSection({
+	actionId,
+	onDetailsLoaded,
+}: {
+	actionId: Id<'actions'>;
+	onDetailsLoaded: (details: ActionDetailsDocument | null) => void;
+}) {
+	//
+	const { actionDetails } = useActionDetails(actionId);
+	const details = actionDetails?.details ?? null;
+
+	useEffect(() => {
+		//
+		onDetailsLoaded(details);
+	}, [details, onDetailsLoaded]);
+
+	if (!details) {
+		return (
+			<div className="rounded-md border border-dashed bg-background/50 p-3 text-xs text-muted-foreground">
+				No action details persisted yet.
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-4">
+			<ExecutionReceiptSection details={details} />
+			<TextDetailsSection title="Instructions" value={details.instructions} />
+			<StructuredDetailsSection title="Input" value={details.input} />
+			<StructuredDetailsSection title="Output" value={details.output} />
+			<StructuredDetailsSection title="Usage" value={details.usage} />
+			<WarningsSection warnings={details.warnings} />
+			<TextDetailsSection title="Details patch" value={details.patch} />
+			<RawSection title="Raw details" value={details} defaultOpen={false} />
+		</div>
+	);
+}
+
+function ExecutionReceiptSection({ details }: { details: ActionDetailsDocument }) {
+	//
+	const receipt = {
+		provider: details.provider,
+		model: details.model,
+		skill: details.skill,
+		skillFile: details.skillFile,
+		loop: details.loop,
+		costs: details.costs?.length ?? 0,
+		result: details.result ? 'present' : undefined,
+	};
+
+	return (
+		<div>
+			<div className="mb-2 text-sm font-medium">Execution details</div>
+			<div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+				<DebugCell label="provider" value={receipt.provider} />
+				<DebugCell label="model" value={receipt.model} />
+				<DebugCell label="skill" value={receipt.skill} />
+				<DebugCell label="skill file" value={receipt.skillFile} />
+				<DebugCell label="loop" value={receipt.loop} />
+				<DebugCell label="cost rows" value={String(receipt.costs)} />
+				<DebugCell label="result" value={receipt.result} />
+			</div>
+		</div>
+	);
+}
+
+function StructuredDetailsSection({ title, value }: { title: string; value: unknown }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	if (value === undefined) return null;
+
+	const text = stringify(value);
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				{title} <span className="text-xs font-normal text-muted-foreground">({text.length} chars)</span>
+			</DisclosureButton>
+			{isOpen && <StructuredBlock value={value} />}
+		</div>
+	);
+}
+
+function TextDetailsSection({ title, value }: { title: string; value: string | undefined }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	if (!value) return null;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				{title} <span className="text-xs font-normal text-muted-foreground">({value.length} chars)</span>
+			</DisclosureButton>
+			{isOpen && <TextareaBlock value={value} className="text-sm" />}
+		</div>
+	);
+}
+
+function WarningsSection({ warnings }: { warnings: ActionDetailsDocument['warnings'] }) {
+	//
+	const [isOpen, setIsOpen] = useState(false);
+	if (!warnings || warnings.length === 0) return null;
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				Warnings <span className="text-xs font-normal text-muted-foreground">({warnings.length})</span>
+			</DisclosureButton>
+			{isOpen && <StructuredBlock value={warnings} />}
+		</div>
+	);
+}
+
+function RawSection({ title, value, defaultOpen }: { title: string; value: unknown; defaultOpen: boolean }) {
+	//
+	const [isOpen, setIsOpen] = useState(defaultOpen);
+	const text = stringify(value);
+
+	return (
+		<div>
+			<DisclosureButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)}>
+				{title} <span className="text-xs font-normal text-muted-foreground">({text.length} chars)</span>
+			</DisclosureButton>
+			{isOpen && <TextareaBlock value={text} className="font-mono text-xs" />}
+		</div>
+	);
+}
+
+function MoneyCell({ label, value }: { label: string; value: bigint | undefined }) {
+	//
+	return (
+		<DebugCell
+			label={label}
+			value={value === undefined ? undefined : `$${asDollars({ bigInt: value, precision: 6 })}`}
+		/>
+	);
+}
+
+function DebugCell({ label, value }: { label: string; value: string | undefined }) {
+	//
+	return (
+		<div className="min-w-0 rounded-md border bg-background/80 p-2">
+			<div className="truncate text-muted-foreground">{label}</div>
+			<div className="truncate font-mono">{value ?? 'n/a'}</div>
+		</div>
+	);
+}
+
+function CostBadge({ label, value, tooltip }: { label: string; value: bigint; tooltip: string }) {
+	//
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<div className="min-w-20 text-right font-mono text-xs">
+					<span className="text-muted-foreground">{label}</span> ${asDollars({ bigInt: value, precision: 6 })}
+				</div>
+			</TooltipTrigger>
+			<TooltipContent className="px-2 py-1 text-xs">{tooltip}</TooltipContent>
+		</Tooltip>
+	);
+}
+
+function CopyTextButton({
+	value,
+	label,
+	children,
+	className,
+}: {
+	value: string;
+	label: string;
+	children?: ReactNode;
+	className?: string;
+}) {
+	//
+	const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+		event.stopPropagation();
+		await navigator.clipboard.writeText(value);
+		const target = document.getElementById(`action-${value}`);
+		if (target) {
+			target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			window.location.hash = `action-${value}`;
+		}
+		toast.success(`Copied ${label}`);
+	};
+
+	return (
+		<button
+			type="button"
+			className={cn('font-mono underline-offset-2 hover:text-foreground hover:underline', className)}
+			aria-label={`Copy ${label}`}
+			onClick={handleClick}
+			title={`Copy ${label}`}
+		>
+			{children ?? value}
+		</button>
+	);
+}
+
+function StructuredBlock({ value }: { value: unknown }) {
+	//
+	return (
+		<pre className="max-h-96 overflow-auto rounded-lg border bg-background/80 p-3 font-mono text-xs whitespace-pre-wrap break-words">
+			{stringify(value)}
+		</pre>
+	);
+}
+
+function TextareaBlock({ value, className }: { value: string; className?: string }) {
+	//
+	return (
+		<textarea
+			value={value}
+			readOnly
+			className={cn(
+				'w-full min-h-32 max-h-[48rem] resize-y rounded-lg border bg-background/80 p-3 whitespace-pre-wrap',
+				className,
+			)}
+		/>
+	);
+}
+
+function statusVariant(status: ActionDocument['status']) {
+	//
+	if (status === 'failed') return 'destructive';
+	if (status === 'succeeded') return 'secondary';
+	if (status === 'running') return 'default';
+
+	return 'outline';
+}
+
+function totalCost(action: ActionDocument) {
+	//
+	const costs = action.costs ?? [];
+	return costs.reduce((total, cost) => total + cost.amount, 0n);
+}
+
+function addLifecycleEntry(
+	entries: Array<{ label: string; value: number }>,
+	entry: { label: string; value: number | undefined },
+) {
+	//
+	if (entry.value === undefined) return;
+	entries.push({ label: entry.label, value: entry.value });
+}
+
+function summaryParts(parts: Array<string | undefined>) {
+	//
+	const values = parts.filter((part) => part && part.trim());
+	if (values.length === 0) return 'none';
+
+	return values.join(', ');
+}
+
+function actionExport(action: ActionDocument, details: ActionDetailsDocument | null) {
+	//
+	return {
+		action,
+		details,
+	};
+}
+
+function stringify(value: unknown) {
+	//
+	return (
+		JSON.stringify(
+			value,
+			(_key: string, item: unknown) => {
+				if (typeof item === 'bigint') return asDollars({ bigInt: item, precision: 6 });
+				return item;
+			},
+			2,
+		) ?? ''
 	);
 }

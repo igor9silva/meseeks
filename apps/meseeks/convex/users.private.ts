@@ -3,104 +3,26 @@ import { z } from 'zod/v3';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound, Unauthorized } from 'lib/errors';
 import { asBigInt } from 'lib/money';
+import { managedSeedVersion, rootFileNameFor } from 'lib/proDefinitions';
 import { tokenSchema } from 'schemas/topUpSchema';
+import type { Doc } from './_generated/dataModel';
+import { findChildByName, createFile, adjustFileBudget } from './files.private';
+import { seedManagedLoops } from './loops.private';
+import { seedManagedRoutes } from './routes.private';
+import { seedManagedSkills } from './skills.private';
 import { findActiveSubscriptions } from './subscriptions.private';
-import { addTaskWithActions } from './tasks.private';
 import { addFreeCredits } from './transactions.private';
-import { setUserPreference } from './users/preferences.private';
+import { seedManagedLoopTriggers } from './triggers.private';
 import { components } from './_generated/api';
 
-const addInitialTask = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		const initialTaskId = await addTaskWithActions(ctx, {
-			author: userId,
-			owner: userId,
-			title: 'Look at me!',
-			instructions: `I want want to learn about Meseeks, so you can provide me with the best assistance possible. Please collect information about me through our conversation and store it using the setUserInfo skill.
-
-I'd like you to gather details such as:
-- My name and background
-- Where I'm from (birth place, where I grew up, current location)
-- My citizenship/nationality
-- My profession and interests
-- Languages I speak and proficiency levels
-- My social media handles
-- Any other personal information I share that might be helpful for future interactions
-
-Please update my user information each time you learn something new about me, and make sure to never remove information that is still valid when adding new details. Write everything from my perspective, as if I'm describing myself.
-
-I'm also curious about Meseeks and would love to learn more about its capabilities, features, and how it can help me. Feel free to encourage me to ask questions about what Meseeks can do, how it works, or any other aspects I might be interested in exploring.`,
-			skills: [
-				{
-					skillKey: 'increaseBudget',
-					args: {
-						amount: asBigInt({ dollars: 1 }),
-						shouldIterate: false,
-					},
-				},
-				{
-					skillKey: 'lookAtMe',
-					args: {},
-				},
-			],
-		});
-
-		await ctx.db.patch(userId, { initialTaskId });
-
-		return initialTaskId;
-	},
-});
-
-const setDefaultPreferences = defineMutation({
-	args: z.object({
-		userId: zid('users'),
-	}),
-	handler: async (ctx, { userId }) => {
-		//
-		// TODO: unhack
-		const defaultEnabledSkills = [
-			'searchWeb',
-			'valyu_search',
-			'github_search',
-			'twitter_search',
-			'searchIdealista',
-			'scrapeLink',
-			'scrapeTweet',
-			'searchPlaces',
-			'analyze',
-			'compose',
-			'transcribeYouTube',
-			'describeYouTube',
-		];
-
-		// TODO: this also brings idealista_* (inner skills)
-		// const proSkills = await _findAllByOwner(ctx, { owner: 'isPro' });
-		// const defaultEnabledSkills = proSkills.map((skill) => skill.key);
-
-		await setUserPreference(ctx, {
-			userId,
-			key: 'enabledSkills',
-			value: defaultEnabledSkills,
-		});
-	},
-});
-
-export const seedUserIfNeeded = defineMutation({
+export const bootstrapUserWorkspace = defineMutation({
 	args: z.object({
 		userId: zid('users'),
 	}),
 	handler: async (ctx, { userId }) => {
 		//
 		const user = await findUser(ctx, { userId });
-		if (user?.isReady) return;
-
-		console.info('new user!', userId);
-
-		// const isVerified = user?.verificationLevel === 'orb';
+		if (!user) throw NotFound();
 
 		await addFreeCredits(ctx, {
 			owner: userId,
@@ -111,12 +33,97 @@ export const seedUserIfNeeded = defineMutation({
 			description: 'Welcome credits',
 		});
 
-		// TODO: users should be able to spawn their own Convex instance for full isolation and control
+		const rootName = rootFileNameFor({ name: user.name });
+		const existingRoot = await findChildByName(ctx, {
+			owner: userId,
+			name: rootName,
+		});
+		const rootFileId =
+			user.rootFileId ??
+			existingRoot?._id ??
+			(await createFile(ctx, {
+				owner: userId,
+				name: rootName,
+				author: userId,
+				content: `# ${rootName}\n\nThis is your PRO root file. It can have content, children, tags, actions, triggers, routes, and budget.`,
+				tags: [
+					{ key: 'kind', value: 'task' },
+					{ key: 'status', value: 'active' },
+				],
+				shouldAddInboxTag: false,
+			}));
 
-		// await addInitialTask(ctx, { userId });
-		await setDefaultPreferences(ctx, { userId });
+		await ctx.db.patch(userId, { rootFileId });
 
-		await ctx.db.patch(userId, { isReady: true });
+		const index = await findChildByName(ctx, {
+			owner: userId,
+			parent: rootFileId,
+			name: 'index.md',
+		});
+		if (!index) {
+			await createFile(ctx, {
+				owner: userId,
+				parent: rootFileId,
+				name: 'index.md',
+				author: userId,
+				content: `# ${rootName}\n\nPRO reads this file as the preferred main content for your root.`,
+				shouldAddInboxTag: false,
+			});
+		}
+
+		await adjustFileBudget(ctx, {
+			owner: userId,
+			file: rootFileId,
+			author: userId,
+			amount: asBigInt({ dollars: 1 }),
+		});
+
+		return rootFileId;
+	},
+});
+
+export const seedUserIfNeeded = defineMutation({
+	args: z.object({
+		userId: zid('users'),
+	}),
+	handler: async (ctx, { userId }) => {
+		//
+		const user = await findUser(ctx, { userId });
+		if (!user) throw NotFound();
+
+		if (!user.isReady) {
+			console.info('new user', userId);
+
+			await bootstrapUserWorkspace(ctx, { userId });
+			await ctx.db.patch(userId, { isReady: true });
+		}
+	},
+});
+
+export const syncProDefinitions = defineMutation({
+	args: z.object({
+		owner: zid('users'),
+	}),
+	handler: async (ctx, { owner }) => {
+		//
+		const user = await findUser(ctx, { userId: owner });
+		if (!user) throw NotFound();
+		if (!user.rootFileId) throw NotFound();
+
+		const wasCurrent = user.managedSeedVersion === managedSeedVersion;
+		const loops = await seedManagedLoops(ctx, { owner, author: owner, auditFile: user.rootFileId });
+		const triggers = await seedManagedLoopTriggers(ctx, { owner, author: owner, auditFile: user.rootFileId });
+		const routes = await seedManagedRoutes(ctx, { owner, author: owner });
+		const skills = await seedManagedSkills(ctx, { owner, author: owner, parent: user.rootFileId });
+		await ctx.db.patch(owner, { managedSeedVersion });
+
+		return {
+			status: wasCurrent ? 'checked' : 'synced',
+			loops: loops.length,
+			triggers: triggers.length,
+			routes: routes.length,
+			skills: skills.length,
+		};
 	},
 });
 
@@ -159,9 +166,7 @@ export const findUser = defineQuery({
 	args: z.object({
 		userId: zid('users'),
 	}),
-	handler: async (ctx, { userId }) => {
-		return await ctx.db.get(userId);
-	},
+	handler: async (ctx, { userId }) => await ctx.db.get(userId),
 });
 
 export const findUserByAuthUserId = defineQuery({
@@ -244,27 +249,21 @@ export const getCurrentUser = defineQuery({
 	args: z.object({}),
 	handler: async (ctx) => {
 		//
-		// get data from JWT
 		const identity = await ctx.auth.getUserIdentity();
 		if (!identity) throw Unauthorized();
 
 		const authUserId = identity.subject;
 		const { success, data: appUserId } = zid('users').safeParse(identity.userId);
 
-		// grab the user from app users table
 		if (success) {
 			const user = await findUser(ctx, { userId: appUserId });
-			if (user) return user;
+			if (user) return withSpendableBalance(user);
 		}
 
-		// fallback to Better Auth user table if needed;
-		// the first convex jwt after sign-in can be minted before better auth's
-		// `user.userId` bridge shows up in the token payload, so fall back to the
-		// auth user id during that window.
 		const user = await findUserByAuthUserId(ctx, { authUserId });
 		if (!user) throw Unauthorized();
 
-		return user;
+		return withSpendableBalance(user);
 	},
 });
 
@@ -309,6 +308,7 @@ const createUser = defineMutation({
 			image,
 			isReady: false,
 			balanceUSD: 0n,
+			committedBudgetUSD: 0n,
 			isFounder: false,
 		});
 
@@ -318,6 +318,14 @@ const createUser = defineMutation({
 		return userId;
 	},
 });
+
+function withSpendableBalance(user: Doc<'users'>) {
+	//
+	return {
+		...user,
+		spendableBalanceUSD: (user.balanceUSD ?? 0n) - (user.committedBudgetUSD ?? 0n),
+	};
+}
 
 const linkUser = defineMutation({
 	args: updateExistingUserArgs,
@@ -335,6 +343,8 @@ const linkUser = defineMutation({
 			name,
 			image,
 		});
+
+		await seedUserIfNeeded(ctx, { userId });
 
 		return userId;
 	},
@@ -356,6 +366,8 @@ const patchUser = defineMutation({
 			name,
 			image,
 		});
+
+		await seedUserIfNeeded(ctx, { userId });
 
 		return userId;
 	},

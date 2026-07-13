@@ -4,7 +4,7 @@ import { transform } from '@babel/core';
 import { z } from 'zod/v3';
 import { internalAction } from 'lib/convex';
 
-// called by skills/builtIn/render.ts to transpile ai-generated jsx before sandbox iframe execution
+// called by render flows that need jsx transpiled before sandbox iframe execution
 export const _transpileCode = internalAction({
 	args: {
 		code: z.string(),

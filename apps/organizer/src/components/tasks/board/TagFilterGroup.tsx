@@ -1,4 +1,4 @@
-import { cn } from '@reactor/ui';
+import { cn } from '@pro/ui';
 import { formatTagGroupLabel } from '~/lib/taskTags';
 import type { ExplorerFacets } from '../taskExplorerTypes';
 

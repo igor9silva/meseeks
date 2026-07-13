@@ -1,5 +1,5 @@
 import { FileText, X } from 'lucide-react';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { useComposer, type ServerDraft } from '~/hooks/useComposer';
 
 export function DraftStrip() {

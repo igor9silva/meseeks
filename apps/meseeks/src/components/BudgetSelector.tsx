@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ChangeEvent, FocusEvent } from 'react';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
-import { Slider } from '@reactor/ui/slider';
+import { Slider } from '@pro/ui/slider';
 import {
 	BUDGET_STEPS,
 	formatBudget,
@@ -9,7 +9,7 @@ import {
 	hasTrailingBudgetDecimalSeparator,
 	parseBudgetInput,
 } from '~/lib/energyBudget';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 
 type BudgetSelectorProps = {
 	//

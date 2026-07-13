@@ -2,12 +2,7 @@ import { convexQuery } from '@convex-dev/react-query';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { api } from 'convex/_generated/api';
 
-type PreferenceKey =
-	| 'inboxWidthPercent'
-	| 'taskDetailWidthPercentDesktop'
-	| 'enabledSkills'
-	| 'taskListVisible'
-	| 'taskDetailVisible';
+type PreferenceKey = 'inboxWidthPercent' | 'fileDetailWidthPercentDesktop' | 'fileListVisible' | 'fileDetailVisible';
 
 export function usePreferenceValue(key: PreferenceKey) {
 	//

@@ -1,5 +1,5 @@
-import { TextShimmer } from '@reactor/ui/text-shimmer';
-import { cn } from '@reactor/ui/lib/utils';
+import { TextShimmer } from '@pro/ui/text-shimmer';
+import { cn } from '@pro/ui/lib/utils';
 
 export function Loading({ className, text = 'Loading...' }: { className?: string; text?: string }) {
 	return (

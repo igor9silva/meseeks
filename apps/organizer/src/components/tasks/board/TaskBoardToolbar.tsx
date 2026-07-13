@@ -1,17 +1,11 @@
-import { Input } from '@reactor/ui';
+import { Input } from '@pro/ui';
 import { Search } from 'lucide-react';
 import { type ExplorerSort, explorerSortSchema } from '~/lib/explorerSearchParams';
 import { DepthRangeControl } from './DepthRangeControl';
 import type { TaskBoardHeaderActions, TaskBoardHeaderState } from './TaskBoardHeaderTypes';
 import { ViewTabs } from './ViewTabs';
 
-export function TaskBoardToolbar({
-	state,
-	actions,
-}: {
-	state: TaskBoardHeaderState;
-	actions: TaskBoardHeaderActions;
-}) {
+export function TaskBoardToolbar({ state, actions }: { state: TaskBoardHeaderState; actions: TaskBoardHeaderActions }) {
 	//
 	return (
 		<div className="flex flex-wrap items-center gap-2 border-t border-border/80 px-3 py-3">

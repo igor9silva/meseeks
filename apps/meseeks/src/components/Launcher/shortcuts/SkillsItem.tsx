@@ -1,5 +1,5 @@
 import { Sparkles } from 'lucide-react';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 
 export function SkillsItem({ onSelect }: { onSelect: (value: string) => void }) {
 	//

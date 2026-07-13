@@ -1,6 +1,6 @@
 import { compile, run } from '@mdx-js/mdx';
 import { useQuery } from '@tanstack/react-query';
-import * as runtime from 'react/jsx-runtime';
+import { Fragment, jsx, jsxs } from 'react/jsx-runtime';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 
@@ -20,7 +20,9 @@ async function compileMDX(mdx: string, shouldRenderComponents = false) {
 async function runMDX(code: string) {
 	//
 	const { default: content } = await run(code, {
-		...runtime,
+		Fragment,
+		jsx,
+		jsxs,
 		baseUrl: import.meta.url,
 	});
 
@@ -35,7 +37,7 @@ export function useMDX(mdx: string, shouldRenderComponents = false) {
 		isPending,
 	} = useQuery({
 		retry: false,
-		queryKey: ['mdx', mdx],
+		queryKey: ['mdx', shouldRenderComponents ? 'components' : 'markdown', mdx],
 		queryFn: async () => {
 			const code = await compileMDX(mdx, shouldRenderComponents);
 			return await runMDX(code);

@@ -1,8 +1,8 @@
 import { useNavigate } from '@tanstack/react-router';
 import { asDollars } from 'lib/money';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 
 export function Balance({ className }: { className?: string }) {
 	//
@@ -14,10 +14,10 @@ export function Balance({ className }: { className?: string }) {
 			className={cn('p-2 [&_svg]:size-5 gap-1', className)}
 			variant="ghost"
 			size="lg"
-			onClick={() => navigate({ to: '/balance' })}
+			onClick={() => navigate({ to: '/wallet' })}
 		>
 			<span className="mt-0.5">⚡</span>
-			<span className="hidden md:block">{asDollars({ bigInt: user.balanceUSD ?? 0n })}</span>
+			<span className="hidden md:block">{asDollars({ bigInt: user.spendableBalanceUSD })}</span>
 		</Button>
 	);
 }

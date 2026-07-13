@@ -47,6 +47,72 @@ export const env = createEnv({
 			.describe('Maximum HTTP response body size to store in action details (in bytes).')
 			.default('819200'), // 800KiB in bytes
 
+		OBJECT_STORAGE_ENDPOINT: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('S3-compatible endpoint for Reactor object storage.'),
+		OBJECT_STORAGE_BUCKET: z.string().min(1).optional().describe('Bucket for Reactor object storage.'),
+		OBJECT_STORAGE_ACCESS_KEY_ID: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('S3-compatible access key for Reactor object storage.'),
+		OBJECT_STORAGE_SECRET_ACCESS_KEY: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('S3-compatible secret key for Reactor object storage.'),
+		OBJECT_STORAGE_REGION: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('S3-compatible region for Reactor object storage.'),
+		OBJECT_STORAGE_PREFIX: z
+			.string()
+			.optional()
+			.describe('Optional Reactor object storage key prefix. Empty means bucket root.'),
+		PRO_OWNER_USER_ID: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('User id that owns shared public PRO loops, skills, route components, and trigger handlers.'),
+		R2_ENDPOINT: z.string().min(1).optional().describe('Deprecated fallback for OBJECT_STORAGE_ENDPOINT.'),
+		R2_BUCKET: z.string().min(1).optional().describe('Deprecated fallback for OBJECT_STORAGE_BUCKET.'),
+		R2_ACCESS_KEY_ID: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('Deprecated fallback for OBJECT_STORAGE_ACCESS_KEY_ID.'),
+		R2_SECRET_ACCESS_KEY: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('Deprecated fallback for OBJECT_STORAGE_SECRET_ACCESS_KEY.'),
+		R2_REGION: z.string().min(1).optional().describe('Deprecated fallback for OBJECT_STORAGE_REGION.'),
+		R2_PREFIX: z
+			.string()
+			.optional()
+			.describe('Deprecated fallback for OBJECT_STORAGE_PREFIX. Empty means bucket root.'),
+		MAX_REACTOR_OBJECT_READ_BYTES: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number().int().min(1))
+			.default('1048576')
+			.describe('Maximum exact object bytes returned through Reactor cat.'),
+		MAX_REACTOR_PARTIAL_READ_BYTES: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number().int().min(1))
+			.default('262144')
+			.describe('Maximum object bytes fetched for Reactor head/tail.'),
+		MAX_REACTOR_INLINE_CONTENT_BYTES: z
+			.string()
+			.transform((s) => Number.parseInt(s, 10))
+			.pipe(z.number().int().min(1))
+			.default('262144')
+			.describe('Maximum hot text bytes stored inline in Reactor file_contents.'),
+
 		AUTH_GOOGLE_ID: z.string().min(1).describe('Google OAuth client ID.'),
 		AUTH_GOOGLE_SECRET: z.string().min(1).describe('Google OAuth client secret.'),
 
@@ -104,7 +170,7 @@ export const env = createEnv({
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number().int().min(1))
-			.describe('The maximum estimated tokens to keep in model context.')
+			.describe('The maximum estimated tokens to keep in intelligence context.')
 			.default('128000'),
 
 		ACTION_TIMEOUT_BUFFER_MS: z
@@ -118,13 +184,23 @@ export const env = createEnv({
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
-			.describe('Maximum number of active tasks to show in activeTasks variable.')
+			.describe('Maximum number of active files to show in activeFiles variable.')
 			.default('20'),
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
+		DEEPSEEK_API_KEY: z.string().min(1).optional().describe('DeepSeek API key for Reactor DeepSeek intelligences.'),
+		OPENAI_API_KEY: z
+			.string()
+			.min(1)
+			.optional()
+			.describe('OpenAI API key for Reactor stateless intelligence calls.'),
+		DAYTONA_API_KEY: z.string().min(1).optional().describe('Daytona API key for Reactor sandbox execution.'),
+		DAYTONA_API_URL: z.string().url().optional().describe('Daytona API URL for Reactor sandbox execution.'),
+		DAYTONA_TARGET: z.string().min(1).optional().describe('Daytona target for Reactor sandbox execution.'),
+		DAYTONA_IMAGE: z.string().min(1).optional().describe('Daytona image for Reactor sandbox execution.'),
 		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),
 		MISTRAL_API_KEY: z.string().min(1).describe('Mistral API key.'),
-		MOONSHOT_API_KEY: z.string().min(1).describe('Moonshot API key.'),
+		MOONSHOT_API_KEY: z.string().min(1).optional().describe('Moonshot API key for Reactor Kimi intelligences.'),
 
 		NODE_ENV: z.enum(['development', 'production']).default('development').describe('Automatically populated.'),
 	},
@@ -143,3 +219,19 @@ export const env = createEnv({
 	 */
 	emptyStringAsUndefined: true,
 });
+
+export function objectStoragePrefix() {
+	//
+	// createEnv normalizes empty strings for defaults, but object storage needs to distinguish
+	// an explicit empty prefix from an unset prefix because "" means bucket root.
+	return (
+		rawEnvValue('OBJECT_STORAGE_PREFIX') ?? rawEnvValue('R2_PREFIX') ?? env.OBJECT_STORAGE_PREFIX ?? env.R2_PREFIX
+	);
+}
+
+function rawEnvValue(key: 'OBJECT_STORAGE_PREFIX' | 'R2_PREFIX') {
+	//
+	if (!Object.prototype.hasOwnProperty.call(process.env, key)) return undefined;
+
+	return process.env[key] ?? '';
+}

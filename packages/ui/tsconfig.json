@@ -12,10 +12,10 @@
 		"target": "ES2022",
 		"allowJs": false,
 		"paths": {
-			"@reactor/ui": ["./src/index.ts"],
-			"@reactor/ui/*": ["./src/*"],
-			"@reactor/ui/hooks/*": ["./src/hooks/*"],
-			"@reactor/ui/lib/*": ["./src/lib/*"]
+			"@pro/ui": ["./src/index.ts"],
+			"@pro/ui/*": ["./src/*"],
+			"@pro/ui/hooks/*": ["./src/hooks/*"],
+			"@pro/ui/lib/*": ["./src/lib/*"]
 		},
 		"noEmit": true,
 		"strict": true,

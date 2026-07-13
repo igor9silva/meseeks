@@ -1,10 +1,10 @@
 import { Inbox } from 'lucide-react';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 
 export function InboxItem({ onSelect }: { onSelect: (value: string) => void }) {
 	//
 	return (
-		<CommandItem value="/" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
+		<CommandItem value="/inbox" keywords={['inbox', 'index', 'home']} onSelect={onSelect}>
 			<Inbox className="mr-2" />
 			Go to Inbox
 		</CommandItem>

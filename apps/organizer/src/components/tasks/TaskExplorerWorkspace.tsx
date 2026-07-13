@@ -1,4 +1,4 @@
-import { ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
+import { ResizablePanel, ResizablePanelGroup } from '@pro/ui/resizable';
 import type { ReactNode } from 'react';
 import type { TaskSource } from '~/lib/explorerSearchParams';
 import type { TaskConfig } from '~/server/taskIndexSchemas';

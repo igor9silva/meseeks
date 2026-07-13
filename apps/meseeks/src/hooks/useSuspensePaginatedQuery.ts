@@ -1,60 +1,29 @@
 import { usePaginatedQuery } from 'convex/react';
 import type { Id } from 'convex/_generated/dataModel';
-import { useMemo } from 'react';
 import { api } from 'convex/_generated/api';
+import type { FileView } from './query/useFile';
 
 interface UseSuspensePaginatedQueryOptions {
-	parentId?: Id<'tasks'>;
+	parentId?: Id<'files'>;
 	initialNumItems?: number;
 }
 
-/**
- * Specialized hook for paginated subtasks that maintains the same sorting logic
- * as the original useSubtasks hook
- */
-export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions = {}) {
+interface UsePaginatedConventionFilesOptions {
+	convention: 'task';
+	initialNumItems?: number;
+}
+
+export function usePaginatedFiles(options: UseSuspensePaginatedQueryOptions = {}) {
 	//
 	const { parentId, initialNumItems = 20 } = options;
 
 	const { results, status, loadMore, isLoading } = usePaginatedQuery(
-		api.tasks.findAllAtInboxPaginated,
+		api.fileViews.findAllAtInboxPaginated,
 		{ parentId },
 		{ initialNumItems },
 	);
 
-	const sortedResults = useMemo(() => {
-		//
-		if (!results) return [];
-
-		// Apply the same sorting logic as useSubtasks
-		const activeTasks = results.filter((task) => task.isActive);
-		const inactiveTasks = results.filter((task) => !task.isActive);
-
-		// Sort only active tasks by status priority and creation time
-		const sortedActiveTasks = activeTasks.sort((a, b) => {
-			// Status priority: blocked first, then unread, then all others
-			const statusPriority = (status: string) => {
-				if (status === 'blocked') return 0;
-				if (status === 'unread') return 1;
-				return 2;
-			};
-
-			const aPriority = statusPriority(a.status);
-			const bPriority = statusPriority(b.status);
-
-			// If different priorities, sort by priority
-			if (aPriority !== bPriority) {
-				return aPriority - bPriority;
-			}
-
-			// Same priority, sort by creation time (descending - newest first)
-			return b._creationTime - a._creationTime;
-		});
-
-		// Inactive tasks don't need sorting (always "idle"), just append them
-		return sortedActiveTasks.concat(inactiveTasks);
-		//
-	}, [results]);
+	const files = sortFiles(results ?? []);
 
 	return {
 		results,
@@ -64,6 +33,54 @@ export function usePaginatedSubtasks(options: UseSuspensePaginatedQueryOptions =
 		hasMore: status === 'CanLoadMore',
 		isLoadingMore: status === 'LoadingMore',
 		isLoadingFirstPage: status === 'LoadingFirstPage',
-		subtasks: sortedResults,
+		files,
 	};
+}
+
+export function usePaginatedConventionFiles(options: UsePaginatedConventionFilesOptions) {
+	//
+	const { initialNumItems = 20 } = options;
+
+	const { results, status, loadMore, isLoading } = usePaginatedQuery(
+		api.fileViews.findAllPaginated,
+		{},
+		{ initialNumItems },
+	);
+
+	const files = sortFiles(results ?? []);
+
+	return {
+		results,
+		status,
+		loadMore,
+		isLoading,
+		hasMore: status === 'CanLoadMore',
+		isLoadingMore: status === 'LoadingMore',
+		isLoadingFirstPage: status === 'LoadingFirstPage',
+		files,
+	};
+}
+
+function sortFiles(files: FileView[]) {
+	//
+	const activeFiles = files.filter((file) => file.isActive);
+	const inactiveFiles = files.filter((file) => !file.isActive);
+
+	activeFiles.sort((a, b) => {
+		const aPriority = statusPriority(a.status);
+		const bPriority = statusPriority(b.status);
+
+		if (aPriority !== bPriority) return aPriority - bPriority;
+
+		return b._creationTime - a._creationTime;
+	});
+
+	return activeFiles.concat(inactiveFiles);
+}
+
+function statusPriority(status: FileView['status']) {
+	//
+	if (status === 'blocked') return 0;
+	if (status === 'unread') return 1;
+	return 2;
 }

@@ -1,4 +1,4 @@
-import { Button, Input } from '@reactor/ui';
+import { Button, Input } from '@pro/ui';
 import { Trash2 } from 'lucide-react';
 import type { TaskConfigColumn } from '~/server/taskIndexSchemas';
 import { createColumnMatchForType, parseColumnMatchType, parseColumnSource } from './boardColumns';

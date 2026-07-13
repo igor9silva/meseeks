@@ -15,14 +15,16 @@ export const userSchema = z.object({
 	walletChain: z.enum(['worldchain']).optional(),
 	isReady: z.boolean().default(false),
 	balanceUSD: z.bigint().default(0n),
+	committedBudgetUSD: z.bigint().default(0n),
 	isFounder: z.boolean().default(false),
-	initialTaskId: zid('tasks').optional(),
+	rootFileId: zid('files').optional(),
+	managedSeedVersion: z.string().optional(),
 });
 
 export const userPreferencesSchema = z.object({
 	owner: zid('users'),
 	key: z.string(),
-	value: z.any(),
+	value: z.unknown(),
 });
 
 export const userRequestKeySchema = z.enum([
@@ -36,5 +38,5 @@ export const userRequestSchema = z.object({
 	owner: zid('users'),
 	key: userRequestKeySchema,
 	message: z.string().min(1).max(1000),
-	context: z.record(z.any()).optional(),
+	context: z.record(z.unknown()).optional(),
 });

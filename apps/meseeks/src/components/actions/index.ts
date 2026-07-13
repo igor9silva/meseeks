@@ -1,31 +1,10 @@
 import { Doc, Id } from 'convex/_generated/dataModel';
 import { AnalyzeAction } from '~/components/actions/AnalyzeAction';
-import { CancelScheduleAction } from '~/components/actions/CancelScheduleAction';
-import { ComposeAction } from '~/components/actions/ComposeAction';
-import { DiscardAction } from '~/components/actions/DiscardAction';
-import { DoneAction } from '~/components/actions/DoneAction';
-import { GetSkillDetailsAction } from '~/components/actions/GetSkillDetailsAction';
-import { IncreaseBudgetAction } from '~/components/actions/IncreaseBudgetAction';
-import { LearnAction } from '~/components/actions/LearnAction';
-import { MathAction } from '~/components/actions/MathAction';
-import { ReasonAction } from '~/components/actions/ReasonAction';
-import { RenderAction } from '~/components/actions/RenderAction';
-import { ReopenAction } from '~/components/actions/ReopenAction';
-import { RequestBudgetAction } from '~/components/actions/RequestBudgetAction';
-import { ResolveAction } from '~/components/actions/ResolveAction';
+import { ChangeEnergyAction } from '~/components/actions/ChangeEnergyAction';
+import { GenericAction } from '~/components/actions/GenericAction';
 import { SayAction } from '~/components/actions/SayAction';
-import { ScheduleAction } from '~/components/actions/ScheduleAction';
-import { ScrapeLinkAction } from '~/components/actions/ScrapeLinkAction';
-import { ScrapeTweetAction } from '~/components/actions/ScrapeTweetAction';
-import { SearchPlacesAction } from '~/components/actions/SearchPlacesAction';
-import { SearchWebAction } from '~/components/actions/SearchWebAction';
-import { SetUserInfoAction } from '~/components/actions/SetUserInfoAction';
-import { SkillAction } from '~/components/actions/SkillAction';
-import { StopAction } from '~/components/actions/StopAction';
 import { ThinkingAction } from '~/components/actions/ThinkingAction';
-import { TwitterSearchAction } from '~/components/actions/TwitterSearchAction';
-import { UpdateInstructionsAction } from '~/components/actions/UpdateInstructionsAction';
-import { ValyuSearchAction } from '~/components/actions/ValyuSearchAction';
+import { UpdateFileAction } from '~/components/actions/UpdateFileAction';
 
 export type ActionComponentProps = {
 	className?: string;
@@ -33,49 +12,22 @@ export type ActionComponentProps = {
 	initialRenderDate: Date;
 	isAuthorCurrentUser: boolean;
 	suppressAnchorId?: boolean;
-	taskId: Id<'tasks'>;
+	fileId: Id<'files'>;
 };
 
-export default {
-	instruct: ThinkingAction,
-	iterate: ThinkingAction,
-	say: SayAction,
-	render: RenderAction,
-	compose: ComposeAction,
-	justSay: SayAction,
-	requestBudget: RequestBudgetAction,
-	increaseBudget: IncreaseBudgetAction,
-	done: DoneAction,
-	resolve: ResolveAction,
-	discard: DiscardAction,
-	reopen: ReopenAction,
-	askForClarification: SayAction,
-	analyze: AnalyzeAction,
-	searchWeb: SearchWebAction,
-	valyu_search: ValyuSearchAction,
-	twitter_search: TwitterSearchAction,
-	scrapeTweet: ScrapeTweetAction,
-	updateInstructions: UpdateInstructionsAction,
-	scrapeLink: ScrapeLinkAction,
-	searchPlaces: SearchPlacesAction,
-	reason: ReasonAction,
-	schedule: ScheduleAction,
-	cancelSchedule: CancelScheduleAction,
-	setUserInfo: SetUserInfoAction,
-	stop: StopAction,
+export function componentForActionSkill({ skillKey }: { skillKey: string }) {
 	//
-	learnSkill: LearnAction,
-	createSkill: SkillAction,
-	updateSkill: SkillAction,
-	getSkillDetails: GetSkillDetailsAction,
-	//
-	// math skills
-	multiply: MathAction,
-	sum: MathAction,
-	subtract: MathAction,
-	divide: MathAction,
+	if (skillKey === 'think') return ThinkingAction;
+	if (skillKey === 'plan') return UpdateFileAction;
+	if (skillKey === 'iterate') return ThinkingAction;
+	if (skillKey === 'execute') return AnalyzeAction;
+	if (skillKey === 'changeEnergy') return ChangeEnergyAction;
+	if (skillKey === 'updateFileMetadata') return UpdateFileAction;
+	if (skillKey === 'rename') return UpdateFileAction;
+	if (skillKey === 'write') return UpdateFileAction;
+	if (skillKey === 'tag') return UpdateFileAction;
+	if (skillKey === 'move') return UpdateFileAction;
+	if (skillKey === 'say') return SayAction;
 
-	// hidden
-	requestIteration: null,
-	lookAtMe: null,
-};
+	return GenericAction;
+}

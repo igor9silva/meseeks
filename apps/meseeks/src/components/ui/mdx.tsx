@@ -2,22 +2,13 @@ import { useState, type MouseEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useMDX } from '~/hooks/useMDX';
 
-import { ErrorBoundary } from '@reactor/ui/error-boundary';
+import { ErrorBoundary } from '@pro/ui/error-boundary';
 
-import { ActionTest } from '~/components/ActionTest';
-import { AddBudgetButton, AddCustomBudgetButton } from '~/components/AddBudgetButton';
-import { Balance } from '~/components/Balance';
-import { EasterEgg } from '~/components/EasterEgg';
-import { Inbox } from '~/components/Inbox';
-import { Task } from '~/components/layout/Task';
 import { Loading } from '~/components/Loading';
-import { QuickSeek } from '~/components/QuickSeek';
-import { RenderActionTestSuite } from '~/components/RenderActionTestSuite';
-import { TopUpCard } from '~/components/TopUpCard';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@reactor/ui/accordion';
-import { Alert, AlertDescription, AlertTitle } from '@reactor/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
-import { Badge } from '@reactor/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@pro/ui/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@pro/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@pro/ui/avatar';
+import { Badge } from '@pro/ui/badge';
 import {
 	Breadcrumb,
 	BreadcrumbEllipsis,
@@ -26,13 +17,13 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '@reactor/ui/breadcrumb';
-import { Button } from '@reactor/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@reactor/ui/card';
-import { Checkbox } from '@reactor/ui/checkbox';
-import { CodeBlock, CodeBlockCode } from '@reactor/ui/code-block';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@reactor/ui/collapsible';
-import { Combobox } from '@reactor/ui/combobox';
+} from '@pro/ui/breadcrumb';
+import { Button } from '@pro/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@pro/ui/card';
+import { Checkbox } from '@pro/ui/checkbox';
+import { CodeBlock, CodeBlockCode } from '@pro/ui/code-block';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@pro/ui/collapsible';
+import { Combobox } from '@pro/ui/combobox';
 import {
 	Command,
 	CommandDialog,
@@ -43,7 +34,7 @@ import {
 	CommandList,
 	CommandSeparator,
 	CommandShortcut,
-} from '@reactor/ui/command';
+} from '@pro/ui/command';
 import {
 	Dialog,
 	DialogContent,
@@ -52,7 +43,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '@reactor/ui/dialog';
+} from '@pro/ui/dialog';
 import {
 	Drawer,
 	DrawerClose,
@@ -62,7 +53,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 	DrawerTrigger,
-} from '@reactor/ui/drawer';
+} from '@pro/ui/drawer';
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -79,16 +70,16 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
-} from '@reactor/ui/dropdown-menu';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@reactor/ui/form';
-import { Input } from '@reactor/ui/input';
-import { Label } from '@reactor/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@reactor/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@reactor/ui/radio-group';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@reactor/ui/resizable';
-import { ScrollArea, ScrollBar } from '@reactor/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@reactor/ui/select';
-import { Separator } from '@reactor/ui/separator';
+} from '@pro/ui/dropdown-menu';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@pro/ui/form';
+import { Input } from '@pro/ui/input';
+import { Label } from '@pro/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@pro/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@pro/ui/radio-group';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@pro/ui/resizable';
+import { ScrollArea, ScrollBar } from '@pro/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@pro/ui/select';
+import { Separator } from '@pro/ui/separator';
 import {
 	Sheet,
 	SheetClose,
@@ -98,16 +89,15 @@ import {
 	SheetHeader,
 	SheetTitle,
 	SheetTrigger,
-} from '@reactor/ui/sheet';
-import { Skeleton } from '@reactor/ui/skeleton';
-import { Slider } from '@reactor/ui/slider';
-import { Switch } from '@reactor/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@reactor/ui/tabs';
-import { Textarea } from '@reactor/ui/textarea';
-import { Toggle } from '@reactor/ui/toggle';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@reactor/ui/tooltip';
-import { useSetupWindowGlobals } from '~/hooks/useSetupWindowGlobals';
-import { cn } from '@reactor/ui/lib/utils';
+} from '@pro/ui/sheet';
+import { Skeleton } from '@pro/ui/skeleton';
+import { Slider } from '@pro/ui/slider';
+import { Switch } from '@pro/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@pro/ui/tabs';
+import { Textarea } from '@pro/ui/textarea';
+import { Toggle } from '@pro/ui/toggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pro/ui/tooltip';
+import { cn } from '@pro/ui/lib/utils';
 
 function toError(value: unknown): Error {
 	if (value instanceof Error) return value;
@@ -115,9 +105,6 @@ function toError(value: unknown): Error {
 }
 
 const components = {
-	AddBudgetButton,
-	AddCustomBudgetButton,
-	Balance,
 	Separator,
 	Button,
 	Card,
@@ -126,16 +113,7 @@ const components = {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-	// TaskConversation,
-	// TaskDetail,
-	QuickSeek,
-	// TaskDetailAndConversation,
-	Inbox,
-	Task,
 	ScrollArea,
-	EasterEgg,
-	TopUpCard,
-	ActionTest,
 	// UI Components
 	Accordion,
 	AccordionContent,
@@ -245,7 +223,6 @@ const components = {
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
-	RenderActionTestSuite,
 };
 
 export default function MDX({
@@ -253,7 +230,7 @@ export default function MDX({
 	onClickFix,
 	errorFallback,
 	className,
-	shouldRenderComponents = true,
+	shouldRenderComponents = false,
 }: {
 	text: string;
 	onClickFix?: (e: MouseEvent, error: Error) => void;
@@ -262,8 +239,6 @@ export default function MDX({
 	shouldRenderComponents?: boolean;
 }) {
 	//
-	useSetupWindowGlobals();
-
 	const { Component, error, isPending } = useMDX(text.trim(), shouldRenderComponents);
 
 	if (isPending) return <Loading />;
@@ -355,7 +330,7 @@ export default function MDX({
 						strong: ({ children }) => <span className="font-bold">{children}</span>,
 						em: ({ children }) => <span className="italic">{children}</span>,
 						del: ({ children }) => <span className="line-through">{children}</span>,
-						...components,
+						...(shouldRenderComponents ? components : {}),
 					}}
 				/>
 			</ErrorBoundary>

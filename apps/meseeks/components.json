@@ -12,9 +12,9 @@
 	},
 	"aliases": {
 		"components": "~/components",
-		"utils": "@reactor/ui/lib/utils",
-		"ui": "@reactor/ui",
-		"hooks": "@reactor/ui/hooks",
-		"lib": "@reactor/ui/lib"
+		"utils": "@pro/ui/lib/utils",
+		"ui": "@pro/ui",
+		"hooks": "@pro/ui/hooks",
+		"lib": "@pro/ui/lib"
 	}
 }

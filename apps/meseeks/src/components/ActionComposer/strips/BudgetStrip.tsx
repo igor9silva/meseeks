@@ -1,12 +1,12 @@
-import type { Doc } from 'convex/_generated/dataModel';
 import { AddCustomBudgetButton } from '~/components/AddBudgetButton';
-import { TaskBudget } from '~/components/TaskBudget';
+import { FileBudget } from '~/components/FileBudget';
+import type { FileView } from '~/hooks/query/useFile';
 
-export function BudgetStrip({ task }: { task: Doc<'tasks'> }) {
+export function BudgetStrip({ file }: { file: FileView }) {
 	//
 	return (
 		<div className="flex items-center justify-between px-4 py-1.5 text-sm">
-			<TaskBudget task={task} precision={2} showSpent={true} />
+			<FileBudget file={file} precision={2} showSpent={true} />
 			<AddCustomBudgetButton variant="ghost" content="+⚡" />
 		</div>
 	);

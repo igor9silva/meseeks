@@ -8,7 +8,7 @@ export const draftQueueItemSchema = z.object({
 
 export const draftSchema = z.object({
 	owner: zid('users'),
-	taskId: zid('tasks'),
+	fileId: zid('files'),
 	queue: z.array(draftQueueItemSchema),
 	message: z.string(),
 	updatedAt: z.number(),

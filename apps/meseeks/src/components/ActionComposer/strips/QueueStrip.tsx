@@ -1,8 +1,9 @@
 import { ChevronDown, Loader2, Trash2, X } from 'lucide-react';
+import { asDollars } from 'lib/money';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { useComposer } from '~/hooks/useComposer';
-import { cn } from '@reactor/ui/lib/utils';
+import { cn } from '@pro/ui/lib/utils';
 import type { EnqueuedSkill } from '../types';
 
 const MAX_VISIBLE_ITEMS = 5;
@@ -202,23 +203,13 @@ const PendingItem = memo(function PendingItem({ skill }: { skill: EnqueuedSkill 
 function formatSkillLabel(skillKey: string, args: Record<string, unknown>, isPending = false): string {
 	//
 	switch (skillKey) {
-		case 'increaseBudget': {
-			const dollars = args['dollars'] as number | undefined;
-			if (dollars) {
-				return `+⚡${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
-			}
-			return 'Increase budget';
+		case 'changeEnergy': {
+			const energy = formatEnergyChange(skillKey, args);
+			if (energy) return energy;
+			return 'Change energy';
 		}
-		case 'decreaseBudget': {
-			const dollars = args['dollars'] as number | undefined;
-			if (dollars) {
-				return `-⚡${dollars < 1 ? dollars.toFixed(2) : dollars} budget`;
-			}
-			return 'Decrease budget';
-		}
-		case 'say':
-		case 'justSay': {
-			const message = args['message'] as string | undefined;
+		case 'say': {
+			const message = getStringArg(args, 'message');
 			if (message) {
 				const truncated = message.length > 100 ? message.slice(0, 100) + '...' : message;
 				return isPending ? `Saying: "${truncated}"` : `Say: "${truncated}"`;
@@ -228,4 +219,56 @@ function formatSkillLabel(skillKey: string, args: Record<string, unknown>, isPen
 		default:
 			return skillKey;
 	}
+}
+
+function formatEnergyChange(skillKey: string, args: Record<string, unknown>) {
+	//
+	const dollars = getNumberArg(args, 'dollars');
+	if (dollars !== undefined) {
+		const sign = energySign({ skillKey, amount: dollars });
+		const value = Math.abs(dollars);
+		return `${sign}⚡${formatDollarNumber(value)} energy`;
+	}
+
+	const amount = getBigIntArg(args, 'amount');
+	if (amount === undefined) return undefined;
+
+	const sign = energySign({ skillKey, amount });
+	const value = amount < 0n ? -amount : amount;
+
+	return `${sign}⚡${asDollars({ bigInt: value })} energy`;
+}
+
+function energySign(args: { skillKey: string; amount: number | bigint }) {
+	//
+	if (typeof args.amount === 'bigint') {
+		return args.amount < 0n ? '-' : '+';
+	}
+
+	if (args.amount < 0) return '-';
+	return '+';
+}
+
+function formatDollarNumber(dollars: number) {
+	//
+	if (dollars < 1) return dollars.toFixed(2);
+	return String(dollars);
+}
+
+function getNumberArg(args: Record<string, unknown>, key: string) {
+	//
+	const value = args[key];
+	return typeof value === 'number' ? value : undefined;
+}
+
+function getBigIntArg(args: Record<string, unknown>, key: string) {
+	//
+	const value = args[key];
+	return typeof value === 'bigint' ? value : undefined;
+}
+
+function getStringArg(args: Record<string, unknown>, key: string) {
+	//
+	const value = args[key];
+	return typeof value === 'string' ? value : undefined;
 }

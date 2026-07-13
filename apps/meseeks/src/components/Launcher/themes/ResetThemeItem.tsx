@@ -1,6 +1,6 @@
 import { RotateCcw } from 'lucide-react';
 import type { AppThemeId } from '~/lib/themes/catalog';
-import { CommandItem } from '@reactor/ui/command';
+import { CommandItem } from '@pro/ui/command';
 
 interface ResetThemeItemProps {
 	isCurrent: boolean;

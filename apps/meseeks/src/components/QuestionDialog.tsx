@@ -4,7 +4,7 @@ import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v3';
-import { Button } from '@reactor/ui/button';
+import { Button } from '@pro/ui/button';
 import { api } from 'convex/_generated/api';
 import {
 	Dialog,
@@ -14,10 +14,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '@reactor/ui/dialog';
-import { Textarea } from '@reactor/ui/textarea';
-import { useHandleSubmit } from '@reactor/ui/hooks/useHandleSubmit';
-import { useSubmitHotkey } from '@reactor/ui/hooks/useSubmitHotkey';
+} from '@pro/ui/dialog';
+import { Textarea } from '@pro/ui/textarea';
+import { useHandleSubmit } from '@pro/ui/hooks/useHandleSubmit';
+import { useSubmitHotkey } from '@pro/ui/hooks/useSubmitHotkey';
 
 const MESSAGE_MAX_LENGTH = userRequestSchema.shape.message.maxLength || 1000;
 
@@ -88,7 +88,7 @@ export function QuestionDialog({ className }: { className?: string }) {
 					<div className="py-4">
 						<Textarea
 							name="message"
-							placeholder="What would you like to know about Meseeks?"
+							placeholder="What would you like to know about PRO?"
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
 							className="min-h-32"

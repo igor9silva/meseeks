@@ -1,4 +1,4 @@
-import { Button, cn } from '@reactor/ui';
+import { Button, cn } from '@pro/ui';
 import { ArrowLeft, Eye, EyeOff, Inbox, Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { TaskSource } from '~/lib/explorerSearchParams';

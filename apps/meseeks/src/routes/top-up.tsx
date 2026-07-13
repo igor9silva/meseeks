@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { track } from '@vercel/analytics/react';
 import { TopUpCard } from '~/components/TopUpCard';
 import { TopUpItem } from '~/components/TopUpItem';
 import { useTopUpHistory, useWaitingTopUps } from '~/hooks/query/useTopUps';
@@ -11,10 +10,6 @@ export const Route = createFileRoute('/top-up')({
 export function RouteComponent() {
 	//
 	const { waitingTopUps } = useWaitingTopUps();
-
-	track('top-up', {
-		waitingTopUps: waitingTopUps.length,
-	});
 
 	if (waitingTopUps.length > 0) {
 		return (
