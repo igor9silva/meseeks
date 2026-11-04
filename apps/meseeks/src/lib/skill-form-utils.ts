@@ -2,6 +2,9 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
+import { zodToString } from 'lib/zodToString';
+
+const emptyInputSchema = zodToString(z.object({}));
 
 // Extract the individual schemas from newSkillSchema union
 type NewSkillUnion = z.infer<typeof newSkillSchema>;
@@ -9,17 +12,21 @@ type NewSoftSkill = Extract<NewSkillUnion, { kind: 'soft' }>;
 type NewHardSkill = Extract<NewSkillUnion, { kind: 'hard' }>;
 
 // Create form schemas by making the config fields optional for better UX
-export const softSkillFormSchema = softSkillSchema.omit({ author: true, owner: true, cost: true }).extend({
-	// Make config fields optional with good defaults for form handling
-	config: softSkillSchema.shape.config.partial(),
-});
+export const softSkillFormSchema = softSkillSchema
+	.omit({ author: true, owner: true, cost: true, legacyInputSchema: true })
+	.extend({
+		// Make config fields optional with good defaults for form handling
+		config: softSkillSchema.shape.config.partial(),
+	});
 
-export const hardSkillFormSchema = hardSkillSchema.omit({ author: true, owner: true, cost: true }).extend({
-	// Make config fields optional with good defaults for form handling
-	config: hardSkillSchema.shape.config.partial(),
-	// Add bodyTemplate as a required string for easier form handling
-	bodyTemplate: z.string().default('{}'),
-});
+export const hardSkillFormSchema = hardSkillSchema
+	.omit({ author: true, owner: true, cost: true, legacyInputSchema: true })
+	.extend({
+		// Make config fields optional with good defaults for form handling
+		config: hardSkillSchema.shape.config.partial(),
+		// Add bodyTemplate as a required string for easier form handling
+		bodyTemplate: z.string().default('{}'),
+	});
 
 export type SoftSkillFormValues = z.infer<typeof softSkillFormSchema>;
 export type HardSkillFormValues = z.infer<typeof hardSkillFormSchema>;
@@ -34,7 +41,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): SoftSkillFormInput {
 			key: '',
 			description: '',
 			kind: 'soft',
-			inputSchema: '{}',
+			inputSchema: emptyInputSchema,
 			preApprovedCost: 'none',
 			knownReactions: [],
 			config: {
@@ -74,7 +81,7 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): HardSkillFormInput {
 			key: '',
 			description: '',
 			kind: 'hard',
-			inputSchema: '{}',
+			inputSchema: emptyInputSchema,
 			preApprovedCost: 'none',
 			knownReactions: [],
 			config: {

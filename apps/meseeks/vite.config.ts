@@ -15,7 +15,7 @@ export default defineConfig({
 	},
 	ssr: {
 		// don't externalize these packages during ssr; vite needs to transform the react-start entry instead of leaving node to resolve it raw.
-		// bundle zod so ssr uses the same patched validator version as the app.
+		// bundle zod so ssr and the app use the same validator and schema conversion APIs.
 		noExternal: ['@convex-dev/better-auth', 'zod'],
 	},
 	plugins: [

@@ -169,7 +169,13 @@ export const knownReactionsSchema = z
 const coreSkillSchema = z.object({
 	key: z.string().min(3).describe('The key of the skill. Must be unique.'),
 	description: z.string(),
-	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
+	inputSchema: z
+		.string()
+		.describe(
+			'A JSON Schema document for the input parameters. Include "$schema": "https://json-schema.org/draft/2020-12/schema".',
+		), // TODO: enforce that this is a valid zod schema
+	// original document retained during the json schema migration for recovery.
+	legacyInputSchema: z.string().optional(),
 	// outputSchema?: z.string(), // not yet
 	preApprovedCost: preApprovedCostSchema,
 	knownReactions: knownReactionsSchema,
@@ -221,8 +227,8 @@ export const skillSchema = z
 	);
 
 export const newSkillSchema = z.union([
-	hardSkillSchema.omit({ author: true, owner: true }), //
-	softSkillSchema.omit({ author: true, owner: true }),
+	hardSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }), //
+	softSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }),
 ]);
 
 // Instincts/built-in skills
@@ -256,7 +262,7 @@ export const simplifiedDecisionConfigSchema = z.object({
 const simplifiedCoreSkillSchema = z.object({
 	key: z.string(),
 	description: z.string(),
-	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
+	inputSchema: coreSkillSchema.shape.inputSchema, // TODO: enforce that this is a valid zod schema
 	isSafe: z.boolean(),
 	knownReactions: z
 		.array(z.string().describe('The key of the skill to use'))

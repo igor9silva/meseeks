@@ -6,7 +6,7 @@ import { internal } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { hardSkillSchema } from 'schemas/skillSchema';
-import { stringToZod } from 'lib/zodToString';
+import { skillInputSchema } from './inputSchema';
 import { env } from 'schemas/envSchema';
 import type { AITool } from 'schemas/toolSchema';
 import { createReactions } from './createReactions';
@@ -20,7 +20,7 @@ export function createHTTPTool(
 	//
 	return tool({
 		description: skill.description,
-		inputSchema: stringToZod(skill.inputSchema),
+		inputSchema: skillInputSchema(skill.inputSchema),
 		execute: async (args) => {
 			//
 			console.debug('Running skill', skill.key, args);
@@ -59,7 +59,13 @@ export function createHTTPTool(
 				//
 			}, config.body?.template ?? {});
 
-			const requestBody = Object.keys(bodyData).length > 0 ? JSON.stringify(bodyData) : undefined;
+			// decoded bigint arguments cross the http json boundary as exact decimal strings.
+			let requestBody: string | undefined;
+			if (Object.keys(bodyData).length > 0) {
+				requestBody = JSON.stringify(bodyData, (_key, value: unknown) =>
+					typeof value === 'bigint' ? String(value) : value,
+				);
+			}
 			const requestBodySize = requestBody ? new Blob([requestBody]).size : undefined;
 
 			console.debug('requesting', config.method, url.toString());

@@ -1,89 +1,194 @@
 import { z } from 'zod';
-import { dezerialize, zerialize, type ZodTypes } from 'zodex';
+import { convertLegacySkillSchema } from './legacySkillSchema';
+import {
+	bigintCodec,
+	bigintOptionsSchema,
+	fromSkillJsonSchema,
+	explicitConjunctions,
+	schemaVersion,
+	schemaVersionKey,
+	toSkillJsonSchema,
+} from './skillJsonSchema';
 
-const serializedShapeSchema = z.discriminatedUnion('type', [
-	z.looseObject({ type: z.literal('string') }),
-	z.looseObject({ type: z.literal('number') }),
-	z.looseObject({ type: z.literal('boolean') }),
-	z.looseObject({ type: z.literal('nan') }),
-	z.looseObject({ type: z.literal('bigInt') }),
-	z.looseObject({ type: z.literal('date') }),
-	z.looseObject({ type: z.literal('undefined') }),
-	z.looseObject({ type: z.literal('null') }),
-	z.looseObject({ type: z.literal('any') }),
-	z.looseObject({ type: z.literal('unknown') }),
-	z.looseObject({ type: z.literal('never') }),
-	z.looseObject({ type: z.literal('void') }),
-	z.looseObject({ type: z.literal('symbol') }),
-	z.looseObject({
-		type: z.literal('literal'),
-		values: z.array(z.union([z.string(), z.number(), z.boolean(), z.null()])),
-	}),
-	z.looseObject({ type: z.literal('object'), properties: z.record(z.string(), z.unknown()) }),
-	z.looseObject({ type: z.literal('array'), element: z.unknown() }),
-	z.looseObject({ type: z.literal('set'), value: z.unknown() }),
-	z.looseObject({ type: z.literal('promise'), value: z.unknown() }),
-	z.looseObject({ type: z.literal('record'), key: z.unknown(), value: z.unknown() }),
-	z.looseObject({ type: z.literal('map'), key: z.unknown(), value: z.unknown() }),
-	z.looseObject({
-		type: z.literal('enum'),
-		values: z.union([z.array(z.string()), z.record(z.string(), z.union([z.string(), z.number()]))]),
-	}),
-	z.looseObject({ type: z.literal('union'), options: z.array(z.unknown()) }),
-	z.looseObject({ type: z.literal('discriminatedUnion'), discriminator: z.string(), options: z.array(z.unknown()) }),
-	z.looseObject({ type: z.literal('intersection'), left: z.unknown(), right: z.unknown() }),
-	z.looseObject({ type: z.literal('tuple'), items: z.array(z.unknown()) }),
-	z.looseObject({ type: z.literal('catch'), innerType: z.unknown(), value: z.unknown() }),
-	z.looseObject({ type: z.literal('pipe'), inner: z.unknown(), outer: z.unknown() }),
-	z.looseObject({ type: z.literal('transform'), name: z.string() }),
+const jsonObject = z.record(z.string(), z.json());
+const schemaMapKeys = ['$defs', 'definitions', 'properties', 'patternProperties'];
+const schemaArrayKeys = ['allOf', 'anyOf', 'oneOf', 'prefixItems'];
+const schemaKeys = ['additionalProperties', 'additionalItems', 'propertyNames', 'contains', 'not'];
+const countKeys = [
+	'minLength',
+	'maxLength',
+	'minItems',
+	'maxItems',
+	'minProperties',
+	'maxProperties',
+	'minContains',
+	'maxContains',
+];
+const numberKeys = ['minimum', 'maximum', 'multipleOf'];
+const supportedKeywords = new Set([
+	'$schema',
+	'$id',
+	'$ref',
+	'type',
+	'title',
+	'description',
+	'default',
+	'examples',
+	'enum',
+	'const',
+	'format',
+	'pattern',
+	'required',
+	'items',
+	'uniqueItems',
+	'exclusiveMinimum',
+	'exclusiveMaximum',
+	'readOnly',
+	'writeOnly',
+	'deprecated',
+	'$comment',
+	'contentEncoding',
+	'contentMediaType',
+	schemaVersionKey,
+	'x-codec',
+	'x-bigint',
+	'x-zod-strip',
+	'x-zod-optional',
+	'x-zod-readonly',
+	'x-zod-prefault',
+	'x-zod-tuple-length',
+	...schemaMapKeys,
+	...schemaArrayKeys,
+	...schemaKeys,
+	...countKeys,
+	...numberKeys,
 ]);
 
-export function zodToString(schema: ZodTypes) {
-	return JSON.stringify(zerialize(schema));
+export function zodToString(schema: z.ZodType) {
+	return JSON.stringify(toSkillJsonSchema(schema));
 }
 
 export function stringToZod(schema: string): z.ZodType {
-	return dezerialize(serializedShapeSchema.parse(normalizeShape(JSON.parse(schema))));
+	return fromSkillJsonSchema(readSkillSchema(schema));
 }
 
-function normalizeShape(input: unknown): Record<string, unknown> {
+export function isCurrentSkillSchema(schema: string) {
+	return jsonObject.parse(JSON.parse(schema))[schemaVersionKey] === schemaVersion;
+}
+
+export function normalizeSkillSchema(schema: string) {
 	//
-	// stored skill schemas and skill prompts still use zodex 3's wire format.
-	const shape = z.record(z.string(), z.unknown()).parse(input);
-	if ('$ref' in shape) return shape;
+	const json = readSkillSchema(schema);
+	// compile before saving so unsupported documents never silently weaken validation.
+	fromSkillJsonSchema(json);
+	return JSON.stringify(json);
+}
 
-	const normalized = { ...shape };
-	if (shape.type === 'literal' && 'value' in shape) {
-		normalized.values = [shape.value];
-		delete normalized.value;
+export function readSkillSchema(schema: string): z.core.JSONSchema.JSONSchema {
+	//
+	if (schema.length > 1_000_000) throw new Error('Skill schema exceeds 1 MB');
+	const input: unknown = JSON.parse(schema);
+	// bound the raw document before any recursive validator/converter visits it.
+	const pending = [{ value: input, depth: 0 }];
+	let values = 0;
+	while (pending.length) {
+		const item = pending.pop();
+		if (!item) break;
+		if (++values > 50_000 || item.depth > 64) throw new Error('Skill schema is too complex');
+		if (item.value && typeof item.value === 'object') {
+			for (const value of Object.values(item.value)) pending.push({ value, depth: item.depth + 1 });
+		}
 	}
-	if (shape.type === 'number' && shape.int === true) normalized.format = 'safeint';
-	if (shape.type === 'nativeEnum') normalized.type = 'enum';
+	const parsed = jsonObject.parse(input);
+	const version = parsed[schemaVersionKey];
+	if (version !== undefined && version !== schemaVersion)
+		throw new Error(`Unsupported skill schema version: ${version}`);
+	// unmarked documents are zodex. new json schemas identify their dialect explicitly.
+	const document: z.core.JSONSchema.JSONSchema =
+		version !== undefined || '$schema' in parsed ? parsed : convertLegacySkillSchema(parsed);
+	const json = explicitConjunctions(document);
+	validateSkillSchema(json);
+	return {
+		...json,
+		[schemaVersionKey]: schemaVersion,
+		$schema: json.$schema ?? 'https://json-schema.org/draft/2020-12/schema',
+	};
+}
 
-	if (shape.type === 'object') {
-		const properties = z.record(z.string(), z.unknown()).parse(shape.properties);
-		normalized.properties = Object.fromEntries(
-			Object.entries(properties).map(([key, value]) => [key, normalizeShape(value)]),
-		);
-		if (!shape.catchall && shape.unknownKeys === 'strict') normalized.catchall = { type: 'never' };
-		if (!shape.catchall && shape.unknownKeys === 'passthrough') normalized.catchall = { type: 'unknown' };
+function validateSkillSchema(root: z.core.JSONSchema.JSONSchema) {
+	//
+	let nodes = 0;
+	function visit(input: unknown, depth: number) {
+		//
+		if (++nodes > 10_000 || depth > 64) throw new Error('Skill schema is too complex');
+		if (typeof input === 'boolean') return;
+		const node = z.record(z.string(), z.unknown()).parse(input);
+		for (const key of Object.keys(node)) {
+			if (!supportedKeywords.has(key)) throw new Error(`Unsupported JSON Schema keyword: ${key}`);
+		}
+		if (node.$schema !== undefined)
+			z.enum([
+				'https://json-schema.org/draft/2020-12/schema',
+				'http://json-schema.org/draft-07/schema#',
+				'http://json-schema.org/draft-04/schema#',
+			]).parse(node.$schema);
+		if (node.$ref !== undefined && !z.string().parse(node.$ref).startsWith('#'))
+			throw new Error('External schema references are unsupported');
+		if (node.type !== undefined)
+			z.union([
+				z.enum(['object', 'array', 'string', 'number', 'integer', 'boolean', 'null']),
+				z.array(z.enum(['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'])).min(1),
+			]).parse(node.type);
+		if (node.required !== undefined) z.array(z.string()).parse(node.required);
+		const typedConstraints = [
+			'pattern',
+			'format',
+			'properties',
+			'patternProperties',
+			'additionalProperties',
+			'propertyNames',
+			'items',
+			'prefixItems',
+			'contains',
+			'uniqueItems',
+			...countKeys,
+			...numberKeys,
+			'exclusiveMinimum',
+			'exclusiveMaximum',
+		];
+		if (node.type === undefined && typedConstraints.some((key) => key in node))
+			throw new Error('Validation constraints require an explicit JSON Schema type');
+		if (node.$ref !== undefined && typedConstraints.some((key) => key in node))
+			throw new Error('Constraints beside $ref require an explicit allOf');
+		if (node['x-zod-tuple-length'] !== undefined) z.int().nonnegative().parse(node['x-zod-tuple-length']);
+		for (const key of ['pattern', 'format', 'description'])
+			if (node[key] !== undefined) z.string().parse(node[key]);
+		for (const key of countKeys) if (node[key] !== undefined) z.int().nonnegative().parse(node[key]);
+		for (const key of numberKeys) if (node[key] !== undefined) z.number().parse(node[key]);
+		if (node.multipleOf !== undefined) z.number().positive().parse(node.multipleOf);
+		for (const key of ['exclusiveMinimum', 'exclusiveMaximum'])
+			if (node[key] !== undefined) z.union([z.number(), z.boolean()]).parse(node[key]);
+		for (const key of ['x-zod-strip', 'x-zod-optional', 'x-zod-readonly', 'x-zod-prefault', 'uniqueItems'])
+			if (node[key] !== undefined) z.boolean().parse(node[key]);
+		if (node['x-codec'] !== undefined) {
+			z.literal(bigintCodec).parse(node['x-codec']);
+			if (node.type !== 'string') throw new Error('BigInt codecs must use a decimal string schema');
+			bigintOptionsSchema.parse(node['x-bigint'] ?? {});
+		} else if (node['x-bigint'] !== undefined) throw new Error('BigInt constraints require a codec');
+		for (const key of schemaMapKeys) {
+			if (node[key] !== undefined)
+				for (const child of Object.values(z.record(z.string(), z.unknown()).parse(node[key])))
+					visit(child, depth + 1);
+		}
+		for (const key of schemaArrayKeys) {
+			if (node[key] !== undefined)
+				for (const child of z.array(z.unknown()).parse(node[key])) visit(child, depth + 1);
+		}
+		for (const key of schemaKeys) if (node[key] !== undefined) visit(node[key], depth + 1);
+		if (node.items !== undefined) {
+			if (Array.isArray(node.items)) for (const child of node.items) visit(child, depth + 1);
+			else visit(node.items, depth + 1);
+		}
 	}
-
-	for (const key of ['element', 'key', 'innerType', 'inner', 'outer', 'left', 'right', 'rest', 'catchall']) {
-		if (key in shape) normalized[key] = normalizeShape(shape[key]);
-	}
-	if (['record', 'map', 'set', 'promise'].includes(String(shape.type)))
-		normalized.value = normalizeShape(shape.value);
-	for (const key of ['options', 'items']) {
-		if (key in shape) normalized[key] = z.array(z.unknown()).parse(shape[key]).map(normalizeShape);
-	}
-
-	if (shape.type === 'effect') {
-		// the old loader ignored named effects when no implementations were supplied.
-		delete normalized.type;
-		delete normalized.inner;
-		delete normalized.effects;
-		return { ...normalizeShape(shape.inner), ...normalized };
-	}
-	return normalized;
+	visit(root, 0);
 }

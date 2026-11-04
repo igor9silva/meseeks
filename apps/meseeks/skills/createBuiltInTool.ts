@@ -4,6 +4,7 @@ import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { AITool } from 'schemas/toolSchema';
 import { createReactions } from './createReactions';
 import type { defineSkill } from './defineSkill';
+import { skillInputSchema } from './inputSchema';
 
 export function createBuiltInTool(
 	ctx: ActionCtx | MutationCtx,
@@ -14,7 +15,7 @@ export function createBuiltInTool(
 	//
 	return tool({
 		description: skill.description,
-		inputSchema: skill.parameters,
+		inputSchema: skillInputSchema(skill.parameters),
 		execute: async (args) => {
 			//
 			const { text, reactions } = await skill.execute({ ctx, task, action }, args);

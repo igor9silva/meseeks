@@ -1,0 +1,771 @@
+[
+	{
+		"name": "strip and defaults",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"query": {
+					"type": "string",
+					"min": 1
+				},
+				"page": {
+					"type": "number",
+					"int": true,
+					"min": 1,
+					"minInclusive": true,
+					"defaultValue": 1
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {
+					"query": "x",
+					"extra": true
+				},
+				"success": true,
+				"output": {
+					"query": "x",
+					"page": 1
+				}
+			},
+			{
+				"input": {
+					"query": ""
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"query": "x",
+					"page": 1.5
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"query": "x",
+					"page": 9007199254740992
+				},
+				"success": true,
+				"output": {
+					"query": "x",
+					"page": 9007199254740992
+				}
+			}
+		]
+	},
+	{
+		"name": "strict",
+		"legacy": {
+			"type": "object",
+			"unknownKeys": "strict",
+			"properties": {
+				"value": {
+					"type": "string"
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {
+					"value": "a"
+				},
+				"success": true,
+				"output": {
+					"value": "a"
+				}
+			},
+			{
+				"input": {
+					"value": "a",
+					"extra": true
+				},
+				"success": false
+			},
+			{
+				"input": {},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "passthrough",
+		"legacy": {
+			"type": "object",
+			"unknownKeys": "passthrough",
+			"properties": {
+				"value": {
+					"type": "string"
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {
+					"value": "a",
+					"extra": true
+				},
+				"success": true,
+				"output": {
+					"value": "a",
+					"extra": true
+				}
+			},
+			{
+				"input": {},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "catchall",
+		"legacy": {
+			"type": "object",
+			"catchall": {
+				"type": "number"
+			},
+			"properties": {
+				"value": {
+					"type": "string"
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {
+					"value": "a",
+					"extra": 1
+				},
+				"success": true,
+				"output": {
+					"value": "a",
+					"extra": 1
+				}
+			},
+			{
+				"input": {
+					"value": "a",
+					"extra": "x"
+				},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "bigint bounds",
+		"legacy": {
+			"type": "bigInt",
+			"min": "9007199254740992",
+			"max": "9007199254741000",
+			"multipleOf": "3"
+		},
+		"cases": [
+			{
+				"input": {
+					"$bigint": "9007199254740993"
+				},
+				"success": true,
+				"output": {
+					"$bigint": "9007199254740993"
+				}
+			},
+			{
+				"input": {
+					"$bigint": "9007199254740992"
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"$bigint": "9007199254740994"
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"$bigint": "9007199254741000"
+				},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "bigint default",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "bigInt",
+					"min": "0",
+					"minInclusive": true,
+					"defaultValue": "2"
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {},
+				"success": true,
+				"output": {
+					"value": {
+						"$bigint": "2"
+					}
+				}
+			},
+			{
+				"input": {
+					"value": {
+						"$bigint": "3"
+					}
+				},
+				"success": true,
+				"output": {
+					"value": {
+						"$bigint": "3"
+					}
+				}
+			},
+			{
+				"input": {
+					"value": {
+						"$bigint": "-1"
+					}
+				},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "nullable bigint default",
+		"legacy": {
+			"type": "bigInt",
+			"defaultValue": "2",
+			"isNullable": true
+		},
+		"cases": [
+			{
+				"input": null,
+				"success": true,
+				"output": null
+			},
+			{
+				"input": {
+					"$undefined": true
+				},
+				"success": true,
+				"output": {
+					"$bigint": "2"
+				}
+			},
+			{
+				"input": {
+					"$bigint": "3"
+				},
+				"success": true,
+				"output": {
+					"$bigint": "3"
+				}
+			}
+		]
+	},
+	{
+		"name": "optional default",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "string",
+					"defaultValue": "x",
+					"isOptional": true
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {},
+				"success": true,
+				"output": {}
+			},
+			{
+				"input": {
+					"value": {
+						"$undefined": true
+					}
+				},
+				"success": true,
+				"output": {
+					"value": {
+						"$undefined": true
+					}
+				}
+			},
+			{
+				"input": {
+					"value": "y"
+				},
+				"success": true,
+				"output": {
+					"value": "y"
+				}
+			}
+		]
+	},
+	{
+		"name": "invalid default",
+		"legacy": {
+			"type": "string",
+			"min": 3,
+			"defaultValue": "x"
+		},
+		"cases": [
+			{
+				"input": {
+					"$undefined": true
+				},
+				"success": false
+			},
+			{
+				"input": "yes",
+				"success": true,
+				"output": "yes"
+			},
+			{
+				"input": "no",
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "nested default",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"type": "string"
+						}
+					},
+					"defaultValue": {
+						"name": "x",
+						"extra": true
+					}
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {},
+				"success": true,
+				"output": {
+					"value": {
+						"name": "x"
+					}
+				}
+			},
+			{
+				"input": {
+					"value": {
+						"name": "y",
+						"extra": true
+					}
+				},
+				"success": true,
+				"output": {
+					"value": {
+						"name": "y"
+					}
+				}
+			}
+		]
+	},
+	{
+		"name": "array bounds",
+		"legacy": {
+			"type": "array",
+			"element": {
+				"type": "string"
+			},
+			"minLength": 1,
+			"maxLength": 2
+		},
+		"cases": [
+			{
+				"input": [],
+				"success": false
+			},
+			{
+				"input": ["x"],
+				"success": true,
+				"output": ["x"]
+			},
+			{
+				"input": ["x", "y", "z"],
+				"success": false
+			},
+			{
+				"input": [3],
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "tuple",
+		"legacy": {
+			"type": "tuple",
+			"items": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "number",
+					"isOptional": true
+				}
+			]
+		},
+		"cases": [
+			{
+				"input": ["x"],
+				"success": false
+			},
+			{
+				"input": ["x", 1],
+				"success": true,
+				"output": ["x", 1]
+			},
+			{
+				"input": [
+					"x",
+					{
+						"$undefined": true
+					}
+				],
+				"success": true,
+				"output": [
+					"x",
+					{
+						"$undefined": true
+					}
+				]
+			},
+			{
+				"input": ["x", 1, 2],
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "tuple rest",
+		"legacy": {
+			"type": "tuple",
+			"items": [
+				{
+					"type": "string"
+				}
+			],
+			"rest": {
+				"type": "number"
+			}
+		},
+		"cases": [
+			{
+				"input": ["x"],
+				"success": true,
+				"output": ["x"]
+			},
+			{
+				"input": ["x", 1, 2],
+				"success": true,
+				"output": ["x", 1, 2]
+			},
+			{
+				"input": ["x", "y"],
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "record enum keys",
+		"legacy": {
+			"type": "record",
+			"key": {
+				"type": "enum",
+				"values": ["a", "b"]
+			},
+			"value": {
+				"type": "bigInt"
+			}
+		},
+		"cases": [
+			{
+				"input": {},
+				"success": true,
+				"output": {}
+			},
+			{
+				"input": {
+					"a": {
+						"$bigint": "1"
+					}
+				},
+				"success": true,
+				"output": {
+					"a": {
+						"$bigint": "1"
+					}
+				}
+			},
+			{
+				"input": {
+					"a": {
+						"$bigint": "1"
+					},
+					"b": {
+						"$bigint": "2"
+					}
+				},
+				"success": true,
+				"output": {
+					"a": {
+						"$bigint": "1"
+					},
+					"b": {
+						"$bigint": "2"
+					}
+				}
+			},
+			{
+				"input": {
+					"c": {
+						"$bigint": "1"
+					}
+				},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "union",
+		"legacy": {
+			"type": "union",
+			"options": [
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "literal",
+							"value": "n"
+						},
+						"value": {
+							"type": "number"
+						}
+					}
+				},
+				{
+					"type": "object",
+					"properties": {
+						"kind": {
+							"type": "literal",
+							"value": "s"
+						},
+						"value": {
+							"type": "string"
+						}
+					}
+				}
+			]
+		},
+		"cases": [
+			{
+				"input": {
+					"kind": "n",
+					"value": 1,
+					"extra": true
+				},
+				"success": true,
+				"output": {
+					"kind": "n",
+					"value": 1
+				}
+			},
+			{
+				"input": {
+					"kind": "s",
+					"value": "x"
+				},
+				"success": true,
+				"output": {
+					"kind": "s",
+					"value": "x"
+				}
+			},
+			{
+				"input": {
+					"kind": "n",
+					"value": "x"
+				},
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "readonly",
+		"legacy": {
+			"type": "array",
+			"element": {
+				"type": "string"
+			},
+			"readonly": true
+		},
+		"cases": [
+			{
+				"input": [],
+				"success": true,
+				"output": []
+			},
+			{
+				"input": ["x"],
+				"success": true,
+				"output": ["x"]
+			},
+			{
+				"input": [1],
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "string boundaries",
+		"legacy": {
+			"type": "string",
+			"min": 3,
+			"max": 9,
+			"startsWith": "ab",
+			"endsWith": "z",
+			"includes": "c"
+		},
+		"cases": [
+			{
+				"input": "abcz",
+				"success": true,
+				"output": "abcz"
+			},
+			{
+				"input": "abc",
+				"success": false
+			},
+			{
+				"input": "abz",
+				"success": false
+			},
+			{
+				"input": "abcccccccz",
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "uuid",
+		"legacy": {
+			"type": "string",
+			"kind": "uuid"
+		},
+		"cases": [
+			{
+				"input": "00000000-0000-0000-0000-000000000000",
+				"success": true,
+				"output": "00000000-0000-0000-0000-000000000000"
+			},
+			{
+				"input": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+				"success": true,
+				"output": "ffffffff-ffff-ffff-ffff-ffffffffffff"
+			},
+			{
+				"input": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+				"success": true,
+				"output": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+			},
+			{
+				"input": "no",
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "email",
+		"legacy": {
+			"type": "string",
+			"kind": "email"
+		},
+		"cases": [
+			{
+				"input": "a@b.co",
+				"success": true,
+				"output": "a@b.co"
+			},
+			{
+				"input": "a+b@x.co",
+				"success": true,
+				"output": "a+b@x.co"
+			},
+			{
+				"input": "a..b@x.co",
+				"success": false
+			},
+			{
+				"input": "UPPER@EXAMPLE.COM",
+				"success": true,
+				"output": "UPPER@EXAMPLE.COM"
+			},
+			{
+				"input": "a@b.c",
+				"success": false
+			}
+		]
+	},
+	{
+		"name": "unknown default data",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "unknown",
+					"defaultValue": {
+						"type": "literal",
+						"value": "data"
+					}
+				}
+			}
+		},
+		"cases": [
+			{
+				"input": {},
+				"success": true,
+				"output": {
+					"value": {
+						"type": "literal",
+						"value": "data"
+					}
+				}
+			},
+			{
+				"input": {
+					"value": {
+						"type": "literal",
+						"value": "other"
+					}
+				},
+				"success": true,
+				"output": {
+					"value": {
+						"type": "literal",
+						"value": "other"
+					}
+				}
+			}
+		]
+	}
+]

@@ -4,7 +4,8 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
 import { isString } from 'lib/guards';
-import { zodToString } from 'lib/zodToString';
+import { normalizeSkillSchema, zodToString } from 'lib/zodToString';
+import { prepareSkillSchemaMigration } from 'lib/skillSchemaMigration';
 import {
 	builtInSkillSchema,
 	newSkillSchema,
@@ -12,7 +13,6 @@ import {
 	skillOwnerSchema,
 	skillSchema,
 } from 'schemas/skillSchema';
-import { ensureInputSchemaIsValid } from 'skills/builtIn/createSkill';
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
 
@@ -182,13 +182,25 @@ export const createSkill = defineMutation({
 		const existing = await findSkillSafe(ctx, { key: skill.key, owner: userId });
 		if (existing) throw new Error(`Skill key '${skill.key}' in use.`);
 
-		ensureInputSchemaIsValid(skill.inputSchema);
+		const inputSchema = normalizeSkillSchema(skill.inputSchema);
 
 		return await ctx.db.insert('skills', {
 			...skill,
+			inputSchema,
 			owner: userId,
 			author: userId,
 		});
+	},
+});
+
+export const migrateInputSchema = defineMutation({
+	args: z.object({ skillId: zid('skills') }),
+	handler: async (ctx, { skillId }) => {
+		// re-read inside the migration transaction so concurrent edits are never overwritten.
+		const skill = await ctx.db.get(skillId);
+		if (!skill) return;
+		const patch = prepareSkillSchemaMigration(skill);
+		if (patch) await ctx.db.patch(skillId, patch);
 	},
 });
 
@@ -205,10 +217,11 @@ export const updateSkill = defineMutation({
 		if (existing.owner !== userId) throw NotFound();
 		if (!('_id' in existing)) throw NotFound(); // built-in skills do not have an _id
 
-		ensureInputSchemaIsValid(skill.inputSchema);
+		const inputSchema = normalizeSkillSchema(skill.inputSchema);
 
 		return await ctx.db.patch(existing._id, {
 			...skill,
+			inputSchema,
 		});
 	},
 });
@@ -244,10 +257,13 @@ export const replaceProSkills = defineMutation({
 	handler: async (ctx, { skills: rawSkills, deleteUnspecified }) => {
 		//
 		// convert __bigint__ markers back to BigInt
-		const skills = rawSkills.map((skill: unknown) => {
+		const skills = rawSkills.map((rawSkill: unknown) => {
 			//
-			const converted = bigIntFromJSON(skill);
-			return skillSchema.parse(converted);
+			const converted = bigIntFromJSON(rawSkill);
+			const skill = skillSchema.parse(converted);
+			// catalog imports cannot replace the recovery copy owned by the migration.
+			delete skill.legacyInputSchema;
+			return { ...skill, inputSchema: normalizeSkillSchema(skill.inputSchema) };
 		});
 
 		console.info(`Replacing Pro-managed skills (deleteUnspecified: ${deleteUnspecified})`);
