@@ -55,6 +55,45 @@ describe('skill schema migration', () => {
 		expect(stringToZod(invalidDefault).safeParse(undefined).success).toBe(false);
 	});
 
+	test('blocks required lists that contradict legacy optionality', () => {
+		for (const required of [[], ['missing'], ['value', 'value'], ['value', 'optional'], 'value']) {
+			const inputSchema = JSON.stringify({
+				type: 'object',
+				properties: {
+					value: { type: 'string' },
+					optional: { type: 'string', isOptional: true },
+				},
+				required,
+			});
+			expect(inspectSkillSchema(inputSchema).status).toBe('blocked');
+			expect(() => prepareSkillSchemaMigration({ inputSchema })).toThrow();
+		}
+	});
+
+	test('enforces approved legacy string enums while preserving optionality and other constraints', () => {
+		const inputSchema = JSON.stringify({
+			type: 'object',
+			properties: {
+				choice: { type: 'string', enum: ['alpha', 'beta'], min: 5, isOptional: true },
+			},
+		});
+		const patch = prepareSkillSchemaMigration({ inputSchema });
+		if (!patch) throw new Error('Expected a migration');
+		expect(patch.legacyInputSchema).toBe(inputSchema);
+		expect(prepareSkillSchemaMigration(patch)).toBeUndefined();
+		for (const stored of [inputSchema, patch.inputSchema]) {
+			const schema = stringToZod(stored);
+			expect(schema.parse({})).toEqual({});
+			expect(schema.parse({ choice: 'alpha' })).toEqual({ choice: 'alpha' });
+			expect(schema.safeParse({ choice: 'outside' }).success).toBe(false);
+			expect(schema.safeParse({ choice: 'beta' }).success).toBe(false);
+			expect(schema.safeParse({ choice: null }).success).toBe(false);
+		}
+		for (const values of [[], [1], 'alpha']) {
+			expect(inspectSkillSchema(JSON.stringify({ type: 'string', enum: values })).status).toBe('blocked');
+		}
+	});
+
 	test('keeps zod 4 output defaults without revalidating or stripping them', () => {
 		const schema = z.object({ value: z.string().min(5).default('x'), amount: z.bigint().min(10n).default(0n) });
 		expect(stringToZod(zodToString(schema)).parse({})).toEqual(schema.parse({}));

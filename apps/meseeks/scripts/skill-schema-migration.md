@@ -68,6 +68,8 @@ If the completed runner's audit still finds legacy records, identify the remaini
 - `x-zod-strip` preserves stripping of unknown object properties. `x-zod-prefault` preserves legacy default validation; `x-zod-optional` preserves optional-before-default precedence. `x-zod-readonly` preserves readonly outputs. `x-zod-tuple-length` preserves the required input length of legacy tuples with optional elements.
 - AI providers receive standard JSON Schema without application annotations. Validation and decoding remain local. The internal execution path uses the same AI SDK validator.
 - Unsupported keywords, unknown codec/version identifiers, external references and overly complex schemas fail validation. A successful schema conversion is not evidence that arbitrary refinements or executable transforms can be serialized.
+- Hybrid legacy documents may contain a JSON Schema `required` list. It is accepted only when it exactly matches the legacy properties' requiredness; contradictory lists remain blocked. The production audit found redundant lists, and an unpatched Zodex fixture verifies their behavior.
+- The production audit also found a string `enum` that Zodex ignored. The owner explicitly approved enforcing those listed values while retaining the field's optionality. String enums now intersect with the other string constraints, and the original document is preserved in the migration backup. This is an intentional validation tightening, not a claim of identical behavior for that keyword.
 
 ## Recovery and phase 2
 

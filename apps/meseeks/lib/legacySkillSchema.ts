@@ -39,6 +39,7 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 					'regex',
 					'flags',
 					'kind',
+					'enum',
 				];
 				let schema = z.string();
 				if (shape.min !== undefined) schema = schema.min(count.parse(shape.min));
@@ -94,6 +95,10 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 				}
 				json = z.toJSONSchema(schema, { io: 'input' });
 				delete json.$schema;
+				if (shape.enum !== undefined) {
+					// audited hybrid documents used this json schema keyword; enforce it without losing string checks.
+					json = { allOf: [json, { type: 'string', enum: z.array(z.string()).min(1).parse(shape.enum) }] };
+				}
 				break;
 			}
 			case 'number': {
@@ -152,7 +157,7 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 				break;
 			}
 			case 'object': {
-				fields = ['properties', 'unknownKeys', 'catchall'];
+				fields = ['properties', 'unknownKeys', 'catchall', 'required'];
 				const properties = object.parse(shape.properties);
 				json = {
 					type: 'object',
@@ -173,6 +178,17 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 						})
 						.map(([key]) => key),
 				};
+				if (shape.required !== undefined) {
+					// zodex ignored required; only accept redundant lists so optional/default behavior cannot change.
+					const required = z.array(z.string()).parse(shape.required);
+					const inferred = json.required ?? [];
+					if (
+						new Set(required).size !== required.length ||
+						required.length !== inferred.length ||
+						required.some((key) => !inferred.includes(key))
+					)
+						throw new Error(`${path}: required conflicts with legacy property optionality`);
+				}
 				if (shape.catchall) json.additionalProperties = convert(shape.catchall, `${path}/catchall`);
 				else if (shape.unknownKeys === 'strict') json.additionalProperties = false;
 				else if (shape.unknownKeys === 'passthrough') json.additionalProperties = true;

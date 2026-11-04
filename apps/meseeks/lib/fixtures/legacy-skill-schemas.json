@@ -767,5 +767,89 @@
 				}
 			}
 		]
+	},
+	{
+		"name": "redundant hybrid required",
+		"legacy": {
+			"type": "object",
+			"properties": {
+				"title": {
+					"type": "string"
+				},
+				"count": {
+					"type": "number"
+				},
+				"limit": {
+					"type": "number",
+					"isOptional": true,
+					"min": 0,
+					"max": 10
+				}
+			},
+			"required": ["count", "title"]
+		},
+		"cases": [
+			{
+				"input": {
+					"title": "example",
+					"count": 2
+				},
+				"success": true,
+				"output": {
+					"title": "example",
+					"count": 2
+				}
+			},
+			{
+				"input": {
+					"title": "example"
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"count": 2
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"title": "example",
+					"count": 2,
+					"limit": 5,
+					"extra": true
+				},
+				"success": true,
+				"output": {
+					"title": "example",
+					"count": 2,
+					"limit": 5
+				}
+			},
+			{
+				"input": {
+					"title": "example",
+					"count": 2,
+					"limit": 0
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"title": "example",
+					"count": 2,
+					"limit": 10
+				},
+				"success": false
+			},
+			{
+				"input": {
+					"title": "example",
+					"count": 2,
+					"limit": null
+				},
+				"success": false
+			}
+		]
 	}
 ]
