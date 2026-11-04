@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { authorSchema } from './authorSchema';
 import { tokenSchema } from './topUpSchema';
-import { skillCallSchema } from './skillCallSchema';
+import { skillCallSchema } from './skill';
 
 export const newActionSchema = skillCallSchema.extend({
 	taskId: zid('tasks'),

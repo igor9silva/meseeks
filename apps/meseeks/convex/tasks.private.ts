@@ -7,7 +7,7 @@ import { InsufficientAccountFunds, NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
 import { cancelTaskSchedules } from './schedules.private';
 import { authorSchema } from 'schemas/authorSchema';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { findEnabledSkillsWithDetails } from './skills.private';

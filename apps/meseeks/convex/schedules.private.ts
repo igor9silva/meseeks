@@ -5,7 +5,7 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { computeNextRun, isExpressionValid } from 'lib/cron';
 import { authorSchema } from 'schemas/authorSchema';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { scheduleExecution } from './schedule/lifecycle.private';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');

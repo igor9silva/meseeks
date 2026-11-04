@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Doc } from 'convex/_generated/dataModel';
 import { ActionCtx, MutationCtx } from 'convex/_generated/server';
-import { reactionSchema } from 'schemas/skillCallSchema';
+import { reactionSchema } from 'schemas/skill';
 
 export type Skill<T extends z.ZodObject> = {
 	preApprovedCost: bigint | 'none';

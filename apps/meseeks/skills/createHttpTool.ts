@@ -1,11 +1,10 @@
 import { tool } from 'ai';
 import { dset } from 'dset';
 import { z } from 'zod';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema, type hardSkillSchema } from 'schemas/skill';
 import { internal } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
-import type { hardSkillSchema } from 'schemas/skillSchema';
 import { skillInputSchema } from './inputSchema';
 import { env } from 'schemas/envSchema';
 import type { AITool } from 'schemas/toolSchema';

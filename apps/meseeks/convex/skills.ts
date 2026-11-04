@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
-import { newSkillSchema, simplifiedSkillKindSchema } from 'schemas/skillSchema';
+import { newSkillSchema, simplifiedSkillKindSchema } from 'schemas/skill';
 import {
 	buildInSkillToDoc,
 	createSkill,

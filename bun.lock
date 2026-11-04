@@ -11,7 +11,7 @@
         "oxfmt": "^0.48.0",
         "oxlint": "^1.63.0",
         "oxlint-tsgolint": "^0.22.1",
-        "zod": "4.6.7",
+        "zod": "^4.6.7",
       },
     },
     "apps/meseeks": {
@@ -67,7 +67,7 @@
         "tailwindcss-animate": "^1.0.7",
         "use-stick-to-bottom": "^1.0.45",
         "vite": "^7.1.7",
-        "zod": "4.6.7",
+        "zod": "^4.6.7",
       },
       "devDependencies": {
         "@tailwindcss/typography": "^0.5.15",
@@ -162,7 +162,7 @@
         "shiki": "^3.2.1",
         "tailwind-merge": "^2.5.5",
         "vaul": "^1.1.2",
-        "zod": "4.6.7",
+        "zod": "^4.6.7",
       },
       "devDependencies": {
         "@types/react": "^19.2.7",

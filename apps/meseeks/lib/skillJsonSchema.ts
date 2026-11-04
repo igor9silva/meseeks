@@ -25,7 +25,7 @@ export function bigintJsonSchema(options: z.infer<typeof bigintOptionsSchema> = 
 
 export function toSkillJsonSchema(schema: z.ZodType) {
 	//
-	// zod is pinned because bigint checks and hydration below depend on its schema definitions.
+	// bigint checks and hydration below depend on zod's schema definitions; verify them on upgrades.
 	// regression coverage: skills/inputSchema.test.ts and lib/persistedSkillSchema.test.ts.
 	const json = z.toJSONSchema(schema, {
 		io: 'input',

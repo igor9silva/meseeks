@@ -1,8 +1,7 @@
 import { convexObjectSchema, convexValueSchema } from './convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
-import { skillKindSchema } from './skillSchema';
-import { skillCallSchema } from './skillCallSchema';
+import { skillCallSchema, skillKindSchema } from './skill';
 
 const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
 const httpStatusCodeSchema = z.number().min(100).max(599);

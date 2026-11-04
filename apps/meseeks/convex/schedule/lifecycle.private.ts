@@ -7,7 +7,7 @@ import { internal } from '../_generated/api';
 import { defineMutation } from 'lib/convex';
 import { computeNextRun } from 'lib/cron';
 import { authorSchema } from 'schemas/authorSchema';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { updateScheduleJobId, updateScheduleLastRun } from '../schedules.private';
 
 export const executeOneTime = defineMutation({

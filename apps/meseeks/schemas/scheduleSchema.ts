@@ -1,6 +1,6 @@
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
-import { skillCallSchema } from './skillCallSchema';
+import { skillCallSchema } from './skill';
 import { authorSchema } from './authorSchema';
 
 export const timeZoneSchema = z

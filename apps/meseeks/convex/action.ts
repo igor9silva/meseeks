@@ -1,7 +1,7 @@
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks.private';
 import {

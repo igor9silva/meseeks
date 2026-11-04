@@ -4,7 +4,7 @@ import { runNextActionIfNeeded } from './reactor.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { actionStatusSchema, pendingActionStatusSchema } from 'schemas/actionSchema';
-import { skillCallSchema } from 'schemas/skillCallSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { setTaskStatus } from './tasks.private';

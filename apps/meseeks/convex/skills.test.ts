@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { executeTool, safeValidateTypes } from '@ai-sdk/provider-utils';
 import { tool } from 'ai';
 import { normalizeSkillSchema, zodToString } from 'lib/persistedSkillSchema';
-import { newSkillSchema, skillSchema } from 'schemas/skillSchema';
+import { newSkillSchema, skillSchema } from 'schemas/skill';
 import { userSchema } from 'schemas/userSchema';
 import { skillInputSchema } from 'skills/inputSchema';
 import schema from './schema';

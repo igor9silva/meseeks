@@ -13,7 +13,7 @@ Highest-concentration files right now:
 - `convex/tasks.private.ts` (7)
 - `skills/createAITool.ts` (6)
 - `convex/magicRock.private.ts` (6)
-- `schemas/skillSchema.tsx` (4)
+- `schemas/skill.ts` (4)
 - `convex/users.private.ts` (4)
 - `lib/polar.ts` (3)
 
@@ -47,7 +47,7 @@ After that extraction pass, resolve the highest-risk tracked tasks with implemen
 - move static model mapping responsibilities out of ad-hoc code paths
 - implement cached-token handling from provider metadata in persisted usage and cost calculation
 - replace "workaround because async" instruction rendering path with explicit async composition step
-- [ ] Resolve schema-quality markers in `schemas/intelligenceSchema.ts` and `schemas/skillSchema.tsx`:
+- [ ] Resolve schema-quality markers in `schemas/intelligenceSchema.ts` and `schemas/skill.ts`:
 - enforce provider type from known set (not plain `z.string()`)
 - decide and add missing schema fields with defaults (`speed`, deprecation flags)
 - remove stale "move to env/models.dev" placeholders by implementing one source of truth strategy

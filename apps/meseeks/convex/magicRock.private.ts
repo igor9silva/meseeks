@@ -16,7 +16,7 @@ import { isRecord } from 'lib/guards';
 import { asDollars } from 'lib/money';
 import { env } from 'schemas/envSchema';
 import type { IntelligenceKey } from 'schemas/intelligenceSchema';
-import type { instructionVariableSchema, softSkillSchema } from 'schemas/skillSchema';
+import type { instructionVariableSchema, softSkillSchema } from 'schemas/skill';
 import type { AITool } from 'schemas/toolSchema';
 import { modelFrom } from 'skills/createAITool';
 import { _toolsForMagicRock } from 'skills/tools';

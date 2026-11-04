@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { internalMutation } from 'lib/convex';
 import { asBigInt } from 'lib/money';
 import { zodToString } from 'lib/persistedSkillSchema';
-import { skillSchema } from 'schemas/skillSchema';
+import { skillSchema } from 'schemas/skill';
 import type { MutationCtx } from './_generated/server';
 
 const isPro = 'isPro';

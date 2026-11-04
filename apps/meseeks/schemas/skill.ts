@@ -4,7 +4,21 @@ import { z } from 'zod';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 import { intelligenceKeys } from './intelligenceSchema';
-import { reactionSchema } from './skillCallSchema';
+
+export const skillCallSchema = z.object({
+	skillKey: z.string().describe('The key of the skill to use'),
+	args: convexObjectSchema,
+});
+
+export const reactionSchema = skillCallSchema.extend({
+	condition: z
+		.enum([
+			'owner', // only react if the author is the owner
+			'companion', // only react if the author is an action
+			'any', // always react
+		])
+		.optional(),
+});
 
 export const skillOwnerSchema = z.union([
 	z.literal('built-in'), // built-in to Meseeks

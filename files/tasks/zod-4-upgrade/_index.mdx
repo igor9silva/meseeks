@@ -1,7 +1,7 @@
 ---
 title: Upgrade app schemas to native Zod 4 and remove Zodex
 priority: low
-tags: [debt, status:active, class:task]
+tags: [debt, status:completed, class:task]
 ---
 
 # Upgrade app schemas to native Zod 4 and remove Zodex
@@ -17,10 +17,12 @@ Keep one shared Zod 4 schema layer across the app and Convex, with versioned JSO
 - [x] Publish dual-format reads before migrating existing skill schemas.
 - [x] Audit and migrate production and the PR Preview, preserving original schemas.
 - [x] Prepare PR #86 with shared skill-call contracts, strict current-format reads and permanent compatibility tests.
-- [ ] Complete review and explicitly authorized merge/release of PR #86 after its Preview verification.
+
+The cleanup in PR #86 remains in review. Its merge/release requires explicit authorization; the completed upgrade and data migration do not imply that phase 2 is published.
 
 ## Progress Log
 ### 2026-11-04
+- Upgrade and data migration completed. The phase-2 cleanup is tracked in PR #86.
 - The final reader accepted all 35 production schemas, 2 phase-1 Preview schemas and 54 private catalog schemas. Database reads used complete pagination and projected only skill IDs, keys and input schemas; raw records remain private.
 - PR #86 passed 75 local tests, app/Convex typechecks and the app build. Its isolated Preview passed HTTP and synthetic backend checks for creation/editing, catalog imports, legacy rejection and BigInt persistence. Authenticated browser UI and external providers were not exercised. Phase 2 is not merged or published to production.
 - Keep `legacyInputSchema` optional and retain existing backups. Preserve BigInt codecs and migrated `x-zod-*` semantics after removing Zodex. Shared DEV is outside this rollout.
@@ -35,7 +37,7 @@ Keep one shared Zod 4 schema layer across the app and Convex, with versioned JSO
 
 ## Notes
 - Relevant hotspots:
-  - `lib/zodToString.ts`
+  - `schemas/skill.ts`
   - `convex/skills.private.ts`
   - `skills/createAITool.ts`
   - `skills/createHttpTool.ts`

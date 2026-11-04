@@ -415,9 +415,11 @@ One file per hook in `src/hooks/`.
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
-- Avoid unnecessary layers. Only add wrappers or indirection if they do real work or are truly needed.
-  - bad: pointless config/function wrappers that just forward calls
-  - good: direct, honest factories with clear purpose
+- Avoid unnecessary layers. Wrappers must perform real work. Compatibility re-export files and aliases that only rename an existing schema/value are forbidden; update consumers to import the original export from its owning module.
+  - bad: keep `old.ts` containing only `export { serialize } from './current'` after moving the implementation
+  - good: update callers to import `serialize` directly from `./current` and delete `old.ts`
+  - bad: `export const draftQueueItemSchema = skillCallSchema`
+  - good: import and use `skillCallSchema` directly wherever that contract applies
 - Before changing an existing workaround patch or local tooling fix, read why it exists and confirm the current task actually requires touching it. If not, leave it alone.
   - bad: rewrite an existing `patches/*.patch` workaround because a migration regenerated files nearby
   - good: read the existing patch rationale first and only touch it when the task genuinely depends on changing that workaround

@@ -11,7 +11,7 @@ import {
 	simplifiedSkillKindSchema,
 	skillOwnerSchema,
 	skillSchema,
-} from 'schemas/skillSchema';
+} from 'schemas/skill';
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
 
