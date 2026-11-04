@@ -257,7 +257,8 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 			if (Array.isArray(target)) target = target[count.parse(Number(key))];
 			else {
 				const container = object.parse(target);
-				if (!Object.hasOwn(container, key)) throw new Error(`Unresolved legacy reference: ${pointer}`);
+				if (!Object.prototype.hasOwnProperty.call(container, key))
+					throw new Error(`Unresolved legacy reference: ${pointer}`);
 				target = container[key];
 			}
 		}

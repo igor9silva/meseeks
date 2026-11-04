@@ -27,5 +27,6 @@
 		"noEmit": true
 	},
 	"include": ["./**/*"],
-	"exclude": ["./_generated"]
+	// bun tests are checked by the app tsconfig; they are not convex runtime modules.
+	"exclude": ["./_generated", "./**/*.test.ts", "./**/*.spec.ts"]
 }
