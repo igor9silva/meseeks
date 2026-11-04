@@ -12,8 +12,8 @@ Organize the task system directly. Uncluttering means making the repo task syste
 Run `git status --short` before doing anything.
 
 - If the worktree is clean, proceed.
-- If the worktree is dirty, stop and ask Igor for permission to continue on top of the existing changes.
-- Never stage, commit, amend, or reset. Igor reviews everything before committing.
+- If the worktree is dirty, isolate the requested changes and preserve existing work. Ask only if that is not possible.
+- Follow MasterPlan for Git and release authorization.
 
 ## Read First
 
@@ -106,7 +106,7 @@ Inspect broadly, edit directly, and keep going until the requested scope is orga
 
 Ask Igor before:
 
-- continuing in a dirty worktree
+- continuing when user-owned changes cannot be preserved
 - moving private material into public
 - exposing personal, account, security, or sensitive source material
 - deleting something when the intent is not obvious
@@ -136,4 +136,4 @@ Report back in chat with:
 - any privacy or source-traceability concerns
 - exact files changed, moved, created, or deleted
 
-End by explicitly asking Igor to review the working-tree diff before committing. Do not stage anything.
+Present the resulting diff or PR for Igor to review. Follow MasterPlan for Git and release authorization.

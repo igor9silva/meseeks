@@ -353,7 +353,6 @@ export const _setUserRole = internalMutation({
 ## Best Practices
 
 - Never run `npx convex deploy` unless explicitly instructed
-- Never run any git commands unless explicitly instructed
 - Always verify user identity before returning sensitive data
 - Use internal functions for sensitive operations
 - Validate all arguments with strict validators

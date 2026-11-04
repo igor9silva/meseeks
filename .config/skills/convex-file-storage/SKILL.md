@@ -442,7 +442,6 @@ export default defineSchema({
 ## Best Practices
 
 - Never run `npx convex deploy` unless explicitly instructed
-- Never run any git commands unless explicitly instructed
 - Validate file types and sizes on the client before uploading
 - Store file metadata (name, type, size) in your own table
 - Use the `_storage` system table only for Convex metadata

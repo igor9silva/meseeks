@@ -14,7 +14,13 @@ The complete read-only audit on 2026-11-04 projected only `skills._id`, `skills.
 
 Catalog checks evaluated only schema expressions and their constant dependencies, without executing provider configuration. The published phase-1 Preview passed its transactional creation/editing/catalog/BigInt verification and rolled back all synthetic writes. All 23 built-in definitions could be announced through the AI SDK. These checks establish schema and backend compatibility; they do not establish browser UI or external-provider behavior.
 
-These are phase-1 rollout and phase-2 preparation results, not proof that phase 2 is deployed. Validate the new PR in its own Preview before release. Use Vercel CLI/MCP, never personal Chrome. Shared DEV is outside this rollout and is not a completion gate. Merging the exact PR into `main` requires Igor's explicit authorization; implementation, passing checks and a request to continue the rollout do not authorize that merge.
+These audits establish phase-1 migration completion. Phase 2 is published only to its PR Preview, not production. Keep Preview verification tied to the exact PR head before release. Use Vercel CLI/MCP, never personal Chrome. Shared DEV is outside this rollout and is not a completion gate. Merging the exact PR into `main` requires Igor's explicit authorization; implementation, passing checks and a request to continue the rollout do not authorize that merge.
+
+## PR #86 Preview verification
+
+The isolated [PR #86 Preview](https://meseeks-git-skill-schema-cleanup-ispro.vercel.app) uses `wandering-hyena-568`, selected by `preview/skill-schema-cleanup`. The published backend passed synthetic creation/editing, catalog import, rejection of legacy input and exact persisted BigInt checks through its existing endpoints. The catalog was restored to its two seed entries. One synthetic QA user and personal skill remain in this Preview; no production or shared DEV data was changed by these checks.
+
+The home page returned HTTP 200 through Vercel CLI authentication. All 21 visible built-ins returned current schemas; the local suite covers all 23, including hidden definitions. These checks do not cover authenticated browser UI or calls to external providers.
 
 ## Permanent format
 
