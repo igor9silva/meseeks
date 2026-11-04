@@ -2,7 +2,7 @@ import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { z } from 'zod';
-import { zodToString } from 'lib/zodToString';
+import { zodToString } from 'lib/persistedSkillSchema';
 
 const emptyInputSchema = zodToString(z.object({}));
 

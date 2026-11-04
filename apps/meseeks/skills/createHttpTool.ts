@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { dset } from 'dset';
 import { z } from 'zod';
-import { convexValueSchema } from 'schemas/convexValueSchema';
+import { skillCallSchema } from 'schemas/skillCallSchema';
 import { internal } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
@@ -24,7 +24,7 @@ export function createHTTPTool(
 		execute: async (args) => {
 			//
 			console.debug('Running skill', skill.key, args);
-			const parameters = z.record(z.string(), convexValueSchema).parse(args);
+			const parameters = skillCallSchema.shape.args.parse(args);
 
 			const config = skill.config;
 			const url = new URL(config.url);

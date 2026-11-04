@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { asBigInt } from 'lib/money';
-import { stringToZod } from 'lib/zodToString';
+import { stringToZod } from 'lib/persistedSkillSchema';
 import { decisionConfigSchema, httpConfigSchema, newSkillSchema, simplifiedSkillSchema } from 'schemas/skillSchema';
 import { defineSkill, ExecutionResult } from '../defineSkill';
 

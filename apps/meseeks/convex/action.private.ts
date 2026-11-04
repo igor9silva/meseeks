@@ -1,10 +1,10 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { runNextActionIfNeeded } from './reactor.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { actionStatusSchema, pendingActionStatusSchema } from 'schemas/actionSchema';
+import { skillCallSchema } from 'schemas/skillCallSchema';
 import { authorSchema } from 'schemas/authorSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { setTaskStatus } from './tasks.private';
@@ -174,12 +174,7 @@ export const addActions = defineMutation({
 		taskId: zid('tasks'),
 		owner: zid('users'),
 		author: authorSchema,
-		skills: z.array(
-			z.object({
-				skillKey: z.string(),
-				args: z.record(z.string(), convexValueSchema),
-			}),
-		),
+		skills: z.array(skillCallSchema),
 		depth: z.number(),
 		shouldReopen: z.boolean().optional().default(false),
 	}),
@@ -227,12 +222,10 @@ export const addActions = defineMutation({
 });
 
 export const addAction = defineMutation({
-	args: z.object({
+	args: skillCallSchema.extend({
 		taskId: zid('tasks'),
 		owner: zid('users'),
 		author: authorSchema,
-		skillKey: z.string(),
-		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 		shouldReopen: z.boolean().optional().default(false),
 	}),

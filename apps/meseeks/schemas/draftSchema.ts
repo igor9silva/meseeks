@@ -1,11 +1,8 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
+import { skillCallSchema } from './skillCallSchema';
 
-export const draftQueueItemSchema = z.object({
-	skillKey: z.string(),
-	args: z.record(z.string(), convexValueSchema),
-});
+export const draftQueueItemSchema = skillCallSchema;
 
 export const draftSchema = z.object({
 	owner: zid('users'),

@@ -1,10 +1,10 @@
 import { tool, type ModelMessage, type SystemModelMessage, type ToolSet } from 'ai';
 import { z } from 'zod';
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { internal } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { newActionSchema } from 'schemas/actionSchema';
+import { skillCallSchema } from 'schemas/skillCallSchema';
 import type { skillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { asDollars } from 'lib/money';
 import { skillInputSchema } from './inputSchema';
@@ -100,7 +100,7 @@ export function createAITool(
 
 					reactions.push({
 						skillKey: toolCalls[0].toolName,
-						args: z.record(z.string(), convexValueSchema).parse(toolCalls[0].input),
+						args: skillCallSchema.shape.args.parse(toolCalls[0].input),
 						taskId: task._id,
 						author: action._id,
 						owner: task.owner,

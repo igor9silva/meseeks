@@ -1,4 +1,3 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { Id } from './_generated/dataModel';
@@ -6,17 +5,16 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { computeNextRun, isExpressionValid } from 'lib/cron';
 import { authorSchema } from 'schemas/authorSchema';
+import { skillCallSchema } from 'schemas/skillCallSchema';
 import { scheduleExecution } from './schedule/lifecycle.private';
 
 const scheduledFunctionIdSchema = zid('_scheduled_functions');
 
 export const createSchedule = defineMutation({
-	args: z.object({
+	args: skillCallSchema.extend({
 		taskId: zid('tasks'),
 		owner: zid('users'),
 		author: authorSchema,
-		skillKey: z.string(),
-		args: z.record(z.string(), convexValueSchema),
 		depth: z.number().min(0).max(1000),
 		scheduleType: z.enum(['one-time', 'recurring']),
 		timeZone: z.string(),
@@ -229,7 +227,7 @@ function buildRecord(
 		owner: Id<'users'>;
 		author: z.infer<typeof authorSchema>;
 		skillKey: string;
-		args: Record<string, z.output<typeof convexValueSchema>>;
+		args: z.infer<typeof skillCallSchema.shape.args>;
 		depth: number;
 		scheduleType: 'one-time' | 'recurring';
 		timeZone: string;

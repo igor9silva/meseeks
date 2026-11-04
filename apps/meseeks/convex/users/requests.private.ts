@@ -1,16 +1,8 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
-import { zid } from 'convex-helpers/server/zod4';
-import { z } from 'zod';
 import { defineMutation } from 'lib/convex';
-import { userRequestKeySchema } from 'schemas/userSchema';
+import { userRequestSchema } from 'schemas/userSchema';
 
 export const submitUserRequest = defineMutation({
-	args: z.object({
-		owner: zid('users'),
-		key: userRequestKeySchema,
-		message: z.string().min(1).max(1000),
-		context: z.record(z.string(), convexValueSchema).optional(),
-	}),
+	args: userRequestSchema,
 	handler: async (ctx, request) => {
 		//
 		// // Check if a request with the same key already exists for this user

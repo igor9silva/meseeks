@@ -1,4 +1,4 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
+import { convexObjectSchema } from 'schemas/convexValueSchema';
 import { z } from 'zod';
 import { isRecord } from 'lib/guards';
 
@@ -31,7 +31,7 @@ const ValyuResultSchema = z
 		published_date: z.string().nullable().optional(),
 		publication_date: z.string().nullable().optional(),
 		relevance_score: z.number().nullable().optional(),
-		metadata: z.record(z.string(), convexValueSchema).nullable().optional(),
+		metadata: convexObjectSchema.nullable().optional(),
 		description: z.string().nullable().optional(),
 		snippet: z.string().nullable().optional(),
 	})

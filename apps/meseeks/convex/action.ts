@@ -1,7 +1,7 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
+import { skillCallSchema } from 'schemas/skillCallSchema';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks.private';
 import {
@@ -39,14 +39,7 @@ export const _findLastActions = internalQuery({
 export const act = mutation({
 	args: {
 		taskId: zid('tasks'),
-		skills: z
-			.array(
-				z.object({
-					skillKey: z.string(),
-					args: z.record(z.string(), convexValueSchema),
-				}),
-			)
-			.min(1),
+		skills: z.array(skillCallSchema).min(1),
 		shouldReopen: z.boolean().optional().default(true),
 	},
 	handler: async (ctx, { taskId, skills, shouldReopen }) => {

@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { safeValidateTypes } from '@ai-sdk/provider-utils';
 import { z } from 'zod';
-import { normalizeSkillSchema, stringToZod, zodToString } from 'lib/zodToString';
+import { normalizeSkillSchema, stringToZod, zodToString } from 'lib/persistedSkillSchema';
+import { bigintJsonSchema } from 'lib/skillJsonSchema';
 import { skillInputSchema } from './inputSchema';
 import { _builtInSkills } from './builtIn';
 
@@ -54,11 +55,14 @@ describe('skill json codecs', () => {
 			byKey: { first: { amount: 42n, text: '42', unknown: '42' } },
 			choice: 'none',
 		});
-		const legacy = JSON.stringify({
-			type: 'object',
-			properties: { first: { type: 'bigInt' }, second: { $ref: '#/properties/first' } },
+		const document = JSON.stringify({
+			'x-meseeks-schema-version': 1,
+			'type': 'object',
+			'$defs': { amount: bigintJsonSchema() },
+			'properties': { first: { $ref: '#/$defs/amount' }, second: { $ref: '#/$defs/amount' } },
+			'required': ['first', 'second'],
 		});
-		expect(stringToZod(normalizeSkillSchema(legacy)).parse({ first: '42', second: 43n })).toEqual({
+		expect(stringToZod(normalizeSkillSchema(document)).parse({ first: '42', second: 43n })).toEqual({
 			first: 42n,
 			second: 43n,
 		});
@@ -99,6 +103,21 @@ describe('skill json codecs', () => {
 			expect((await safeValidateTypes({ schema, value: [1, 'two'] })).success).toBe(true);
 			expect((await safeValidateTypes({ schema, value: [1, 2, 3] })).success).toBe(false);
 			expect((await schema.jsonSchema).maxItems).toBe(2);
+		}
+	});
+
+	test('preserves sibling constraints beside allOf', async () => {
+		const document = JSON.stringify({
+			$schema: 'https://json-schema.org/draft/2020-12/schema',
+			type: 'string',
+			minLength: 3,
+			allOf: [{ pattern: '^a' }],
+		});
+		for (const stored of [document, normalizeSkillSchema(document)]) {
+			const schema = skillInputSchema(stored);
+			expect((await safeValidateTypes({ schema, value: 'aa' })).success).toBe(false);
+			expect((await safeValidateTypes({ schema, value: 'bbb' })).success).toBe(false);
+			expect((await safeValidateTypes({ schema, value: 'abc' })).success).toBe(true);
 		}
 	});
 });

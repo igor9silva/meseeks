@@ -1,9 +1,10 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
+import { convexObjectSchema } from './convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 import { intelligenceKeys } from './intelligenceSchema';
+import { reactionSchema } from './skillCallSchema';
 
 export const skillOwnerSchema = z.union([
 	z.literal('built-in'), // built-in to Meseeks
@@ -51,10 +52,7 @@ export const httpConfigSchema = z.object({
 	),
 	body: z
 		.object({
-			template: z
-				.record(z.string(), convexValueSchema)
-				.describe('Base JSON object with pre-filled values')
-				.optional(),
+			template: convexObjectSchema.describe('Base JSON object with pre-filled values').optional(),
 		})
 		.optional(),
 });
@@ -152,17 +150,7 @@ export const preApprovedCostSchema = z.union([
 ]);
 
 export const knownReactionsSchema = z
-	.array(
-		z.object({
-			skillKey: z.string().describe('The key of the skill to use'),
-			args: z.record(z.string(), convexValueSchema),
-			condition: z.enum([
-				'owner', // only react if the author is the owner
-				'companion', // only react if the author is a an action (i.e. companion did it)
-				'any', // always react
-			]),
-		}),
-	)
+	.array(reactionSchema.required({ condition: true }))
 	.optional()
 	.describe('Pre-configured actions that will happen as a re-action to the use of this skill.');
 
@@ -298,14 +286,7 @@ export const simplifiedHttpConfigSchema = z.object({
 				),
 		}),
 	),
-	body: z
-		.object({
-			template: z
-				.record(z.string(), convexValueSchema)
-				.describe('Base JSON object with pre-filled values')
-				.optional(),
-		})
-		.optional(),
+	body: httpConfigSchema.shape.body,
 });
 
 export const simplifiedHardSkillSchema = simplifiedCoreSkillSchema.extend({

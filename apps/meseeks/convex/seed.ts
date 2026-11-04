@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { internalMutation } from 'lib/convex';
 import { asBigInt } from 'lib/money';
-import { zodToString } from 'lib/zodToString';
+import { zodToString } from 'lib/persistedSkillSchema';
 import { skillSchema } from 'schemas/skillSchema';
 import type { MutationCtx } from './_generated/server';
 
