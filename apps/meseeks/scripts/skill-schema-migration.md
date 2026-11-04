@@ -6,19 +6,33 @@ Run these commands from `apps/meseeks` using the existing authenticated Convex C
 
 ## Before deployment
 
-Export the current deployment and keep the export private:
+Use the native Convex MCP's `runOneoffQuery` with the deployment selector returned by `status`. It executes a temporary, read-only query without publishing application code. The audit needs only `skills._id`, `skills.key`, and `skills.inputSchema`; do not export the production database or retrieve other tables.
 
-```sh
-bun convex export --prod --path /tmp/meseeks-before-schema-migration.zip
+```js
+import { query } from 'convex:/_system/repl/wrappers.js';
+
+export default query({
+	handler: async (ctx) => {
+		const result = await ctx.db
+			.query('skills')
+			.withIndex('by_owner_kind')
+			.paginate({ cursor: null, numItems: 25 });
+		return {
+			isDone: result.isDone,
+			continueCursor: result.continueCursor,
+			page: result.page.map(({ _id, key, inputSchema }) => ({ _id, key, inputSchema })),
+		};
+	},
+});
 ```
 
-Extract `skills/documents.jsonl` from the export, then audit it locally with the proposed code:
+Follow every page by replacing `cursor` with the previous `continueCursor` until `isDone` is true. Keep the projected records in a private temporary JSONL file, outside the repository, and audit it with the proposed code:
 
 ```sh
-bun scripts/audit-skill-schemas.ts --file /tmp/meseeks-export/skills/documents.jsonl
+bun scripts/audit-skill-schemas.ts --file /tmp/meseeks-skill-schemas.jsonl
 ```
 
-The audit visits every supplied record and reports `current`, `ready`, and `blocked` counts plus the IDs/keys and reasons for blocked records. It does not print schema contents. Resolve every blocked record before rollout. Unsupported transforms, coercions and non-JSON constructs are reported, never replaced with permissive schemas. The checked-in compatibility fixtures establish library behavior; the export audit is still required for the real corpus.
+The audit visits every supplied record and reports `current`, `ready`, and `blocked` counts plus the IDs/keys and reasons for blocked records. It does not print schema contents. Resolve every blocked record before rollout. Unsupported transforms, coercions and non-JSON constructs are reported, never replaced with permissive schemas. The checked-in compatibility fixtures establish library behavior; the targeted audit is still required for the real corpus. Recovery copies are created per record by the migration below.
 
 ## After deploying phase 1
 
