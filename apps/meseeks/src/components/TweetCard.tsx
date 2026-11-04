@@ -1,6 +1,6 @@
 import { Calendar, Heart, MessageCircle, Play, Repeat2, User, Verified } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { isRecord, isString } from 'lib/guards';
 import { Avatar, AvatarFallback, AvatarImage } from '@reactor/ui/avatar';
 import { cn } from '@reactor/ui/lib/utils';

@@ -1,4 +1,5 @@
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { z } from 'zod';
 import { isRecord } from 'lib/guards';
 
 import { ActionComponentProps } from '~/components/actions';
@@ -30,7 +31,7 @@ const ValyuResultSchema = z
 		published_date: z.string().nullable().optional(),
 		publication_date: z.string().nullable().optional(),
 		relevance_score: z.number().nullable().optional(),
-		metadata: z.record(z.unknown()).nullable().optional(),
+		metadata: z.record(z.string(), convexValueSchema).nullable().optional(),
 		description: z.string().nullable().optional(),
 		snippet: z.string().nullable().optional(),
 	})
@@ -46,7 +47,7 @@ const ValyuSearchResponseSchema = z
 		results: z.array(ValyuResultSchema).optional(),
 		total_deduction_dollars: z.number().nullable().optional(),
 		total_characters: z.number().nullable().optional(),
-		results_by_source: z.record(z.number()).nullable().optional(),
+		results_by_source: z.record(z.string(), z.number()).nullable().optional(),
 	})
 	.passthrough();
 

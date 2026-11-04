@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { runNextActionIfNeeded } from './reactor.private';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
@@ -176,7 +177,7 @@ export const addActions = defineMutation({
 		skills: z.array(
 			z.object({
 				skillKey: z.string(),
-				args: z.record(z.unknown()),
+				args: z.record(z.string(), convexValueSchema),
 			}),
 		),
 		depth: z.number(),
@@ -231,7 +232,7 @@ export const addAction = defineMutation({
 		owner: zid('users'),
 		author: authorSchema,
 		skillKey: z.string(),
-		args: z.record(z.unknown()),
+		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 		shouldReopen: z.boolean().optional().default(false),
 	}),

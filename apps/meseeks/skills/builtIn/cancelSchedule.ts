@@ -1,8 +1,8 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { zid } from 'convex-helpers/server/zod3';
+import { zid } from 'convex-helpers/server/zod4';
 import { messageFrom } from 'lib/errors';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const cancelSchedule = defineSkill({
 	preApprovedCost: 0n,
@@ -18,7 +18,7 @@ export const cancelSchedule = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			try {

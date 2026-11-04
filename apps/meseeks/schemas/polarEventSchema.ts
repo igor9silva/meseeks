@@ -1,9 +1,10 @@
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { z } from 'zod';
 
 export const polarEventSchema = z.object({
 	type: z.string(),
 	timestamp: z.string().optional(),
-	data: z.record(z.any()),
+	data: z.record(z.string(), convexValueSchema),
 });
 
 export const orderDataSchema = z.object({

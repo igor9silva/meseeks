@@ -1,6 +1,6 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { asBigInt } from 'lib/money';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const requestBudget = defineSkill({
 	//
@@ -12,7 +12,7 @@ export const requestBudget = defineSkill({
 	}),
 	knownReactions: [],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			console.debug('requesting task budget increase', {

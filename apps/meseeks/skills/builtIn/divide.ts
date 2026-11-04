@@ -1,5 +1,5 @@
-import { z } from 'zod/v3';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { z } from 'zod';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const divide = defineSkill({
 	preApprovedCost: 0n,
@@ -16,7 +16,7 @@ export const divide = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			return {

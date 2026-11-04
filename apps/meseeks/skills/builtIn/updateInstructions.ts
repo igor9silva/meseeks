@@ -1,6 +1,6 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const updateInstructions = defineSkill({
 	preApprovedCost: 0n,
@@ -34,7 +34,7 @@ export const updateInstructions = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const MAX_TITLE_LENGTH = 60;

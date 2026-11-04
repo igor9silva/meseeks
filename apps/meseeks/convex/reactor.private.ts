@@ -1,8 +1,8 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
-import { executeTool } from '@ai-sdk/provider-utils';
+import { executeTool, safeValidateTypes } from '@ai-sdk/provider-utils';
 import { isError, NOT_ENOUGH_BUDGET_ERROR, messageFrom, NotEnoughBudget } from 'lib/errors';
 import { asDollars } from 'lib/money';
 import { prepareContext, type MagicRockContext } from './magicRock.private';
@@ -75,7 +75,7 @@ export async function perform(
 		}
 
 		const tool = createTool(ctx, task, action, skill, context);
-		const args = parseArgs(tool, action.args);
+		const args = await parseArgs(tool, action.args);
 		const execute = tool.execute;
 		if (!execute) throw new Error(`Tool execute is not available for action ${action._id}.`);
 
@@ -133,21 +133,14 @@ export async function perform(
 	}
 }
 
-function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
+async function parseArgs(tool: ReturnType<typeof createTool>, args: unknown) {
 	//
-	// all our tools use Zod schemas, so inputSchema always has safeParse
-	const schema = tool.inputSchema;
-
-	// type guard: check that schema is a Zod schema with safeParse
-	if (!('safeParse' in schema)) {
-		throw new Error('Expected Zod schema but got something else');
-	}
-
-	const parsedArgs = schema.safeParse(args);
+	// use the same validator as ai-sdk tool calls, including persisted schema codecs.
+	const parsedArgs = await safeValidateTypes({ schema: tool.inputSchema, value: args });
 
 	if (!parsedArgs.success) throw new Error(`Invalid skill args: ${parsedArgs.error.message}`);
 
-	return parsedArgs.data;
+	return parsedArgs.value;
 }
 
 async function estimateAndPersistCost(

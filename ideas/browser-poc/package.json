@@ -15,7 +15,7 @@
 		"preview:app": "electron-vite preview",
 		"typecheck": "tsc --noEmit",
 		"lint": "bun run typecheck && bun run lint:lockfiles",
-		"lint:lockfiles": "test ! -f package-lock.json || (echo 'package-lock.json is not allowed. use bun.lockb only.' && exit 1)",
+		"lint:lockfiles": "test ! -f package-lock.json || (echo 'package-lock.json is not allowed. use bun.lock only.' && exit 1)",
 		"format": "echo 'formatting is intentionally deferred while parent standards evolve.'"
 	},
 	"keywords": [],
@@ -30,12 +30,12 @@
 		"@tanstack/start": "^1.120.20",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
-		"electron": "^40.4.0",
+		"electron": "^43.8.7",
 		"lucide-react": "^0.563.0",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tailwind-merge": "^3.4.0",
-		"zod": "^3.25.76"
+		"zod": "^4.6.7"
 	},
 	"devDependencies": {
 		"@swc/core": "^1.15.11",

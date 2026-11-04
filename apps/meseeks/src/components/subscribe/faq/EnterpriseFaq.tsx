@@ -4,7 +4,7 @@ import { userRequestSchema } from 'schemas/userSchema';
 import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { Button } from '@reactor/ui/button';
 import {
 	Dialog,

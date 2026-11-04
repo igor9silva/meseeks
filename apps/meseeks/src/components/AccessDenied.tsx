@@ -1,7 +1,7 @@
 import { useLocation, useRouter } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { signIn } from 'lib/auth-client';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { LoadingButton } from '@reactor/ui/loading-button';
 
 const authErrorSearchSchema = z.object({

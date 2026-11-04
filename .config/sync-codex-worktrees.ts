@@ -5,7 +5,7 @@ import { existsSync, renameSync, watch, writeFileSync } from 'node:fs';
 import type { FSWatcher } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { PROJECT_ROOT, WORKSPACE_FILE, readWorkspaceFileContent } from './workspace-file';
 
 const workspaceFolderSchema = z.object({

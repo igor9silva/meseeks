@@ -1,5 +1,5 @@
-import { z } from 'zod/v3';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { z } from 'zod';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const done = defineSkill({
 	preApprovedCost: 0n,
@@ -14,7 +14,7 @@ export const done = defineSkill({
 	}),
 	knownReactions: [],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			console.debug('done skill completed', {

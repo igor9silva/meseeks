@@ -9,7 +9,7 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { xai } from '@ai-sdk/xai';
 import { openrouter } from '@openrouter/ai-sdk-provider';
 import { type ModelMessage, generateText, type LanguageModel } from 'ai';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
 import type { ActionCtx, MutationCtx } from './_generated/server';
 import { isRecord } from 'lib/guards';

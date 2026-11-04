@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 const translationClientSecretUrl = 'https://api.openai.com/v1/realtime/translations/client_secrets';
 const model = 'gpt-realtime-translate';

@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 // TODO: grab the top-up from the checkout_id and redirect to /top-up/:id
 

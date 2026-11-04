@@ -1,12 +1,13 @@
 import { tool, type ModelMessage, type SystemModelMessage, type ToolSet } from 'ai';
-import type { z } from 'zod/v3';
+import { z } from 'zod';
+import { convexValueSchema } from 'schemas/convexValueSchema';
 import { internal } from 'convex/_generated/api';
 import type { Doc, Id } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { newActionSchema } from 'schemas/actionSchema';
 import type { skillSchema, softSkillSchema } from 'schemas/skillSchema';
 import { asDollars } from 'lib/money';
-import { stringToZod } from 'lib/zodToString';
+import { skillInputSchema } from './inputSchema';
 import { askMagicRock, type MagicRockContext } from 'convex/magicRock.private';
 import { env } from 'schemas/envSchema';
 import { DEFAULT_INTELLIGENCE, INTELLIGENCES, intelligenceKeys } from 'schemas/intelligenceSchema';
@@ -26,7 +27,7 @@ export function createAITool(
 		// _toolsForMagicRock sets execute = undefined on all tools, so this never runs
 		return tool({
 			description: skill.description,
-			inputSchema: stringToZod(skill.inputSchema),
+			inputSchema: skillInputSchema(skill.inputSchema),
 			execute: async (): Promise<AIToolResult> => {
 				throw new Error(`Tool ${skill.key} executed without context`);
 			},
@@ -35,7 +36,7 @@ export function createAITool(
 
 	return tool({
 		description: skill.description,
-		inputSchema: stringToZod(skill.inputSchema),
+		inputSchema: skillInputSchema(skill.inputSchema),
 		execute: async (args) => {
 			//
 			console.debug('Running decision skill', skill.key, args);
@@ -99,7 +100,7 @@ export function createAITool(
 
 					reactions.push({
 						skillKey: toolCalls[0].toolName,
-						args: toolCalls[0].input,
+						args: z.record(z.string(), convexValueSchema).parse(toolCalls[0].input),
 						taskId: task._id,
 						author: action._id,
 						owner: task.owner,

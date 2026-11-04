@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 export const themeModeSchema = z.enum(['dark', 'light']);
 export type ThemeMode = z.infer<typeof themeModeSchema>;
@@ -67,7 +67,7 @@ export const appThemeSchema = z.object({
 
 export type AppTheme = z.infer<typeof appThemeSchema>;
 
-export const BASE_THEME_VARIABLES = z.record(z.string()).parse({
+export const BASE_THEME_VARIABLES = z.record(z.string(), z.string()).parse({
 	'--radius': '1.5rem',
 	'--font-sans': "'Google Sans Flex'",
 	'--font-mono': "'Google Sans Code'",

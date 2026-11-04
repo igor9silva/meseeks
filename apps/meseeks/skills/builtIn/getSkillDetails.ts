@@ -1,8 +1,8 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { skillSchema } from 'schemas/skillSchema';
 import { asDollars } from 'lib/money';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const getSkillDetails = defineSkill({
 	preApprovedCost: 0n,
@@ -18,7 +18,7 @@ export const getSkillDetails = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const skill = await execution.ctx.runQuery(internal.skills._findOne, {

@@ -1,6 +1,6 @@
 import { ActionComponentProps } from '~/components/actions';
 
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { FailedMessage, SimpleMessage } from '~/components/ui/message';
 

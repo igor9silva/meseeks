@@ -3,7 +3,7 @@ import { Id } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { useMutation } from 'convex/react';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { api } from 'convex/_generated/api';
 
 export function useAddTask() {

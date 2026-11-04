@@ -1,9 +1,9 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { asBigInt } from 'lib/money';
 import { stringToZod } from 'lib/zodToString';
 import { decisionConfigSchema, httpConfigSchema, newSkillSchema, simplifiedSkillSchema } from 'schemas/skillSchema';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 const DEFAULT_PRE_APPROVED_COST = asBigInt({ dollars: 0.2 });
 
@@ -21,7 +21,7 @@ export const createSkill = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			console.debug('learning skill', args.skill);

@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { AlignJustify, Bug, Expand, Minimize2, TextQuote } from 'lucide-react';
 import { useState } from 'react';
+import { z } from 'zod';
 import type { MouseEvent, TouchEvent } from 'react';
 import { cn } from '@reactor/ui/lib/utils';
 
@@ -23,6 +24,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 		contentKey = 'message',
 	} = props;
 	const fullscreen = useFullscreenAction();
+	const message = z.string().catch('').parse(action.args[contentKey]);
 
 	const { say, isSaying } = useSay();
 
@@ -48,7 +50,7 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 					isMDX={true}
 					shouldRenderComponents={shouldRenderComponents}
 					onClickMDXFix={shouldRenderComponents ? onClickFix : undefined}
-					text={action.args[contentKey]}
+					text={message}
 					className={cn({
 						'bg-primary text-primary-foreground p-3': isAuthorCurrentUser,
 						'px-0': !isAuthorCurrentUser,
@@ -64,14 +66,14 @@ export function SayAction(props: ActionComponentProps & { shouldRenderComponents
 						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 					/>
 					<CopyButton
-						textToCopy={action.args[contentKey]}
+						textToCopy={message}
 						className="opacity-0 group-hover:opacity-50 hover:!opacity-100 transition-opacity"
 					/>
 				</div>
 			</Message>
 			{fullscreen.isFullscreen && (
 				<FullscreenMessage
-					message={action.args[contentKey]}
+					message={message}
 					onClose={fullscreen.close}
 					onDoubleTap={fullscreen.handleCloseDoubleTap}
 					action={action}

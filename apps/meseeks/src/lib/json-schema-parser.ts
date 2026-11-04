@@ -1,3 +1,6 @@
+import { readSkillSchema } from 'lib/zodToString';
+import { bigintCodec, bigintOptionsSchema } from 'lib/skillJsonSchema';
+
 export interface SchemaProperty {
 	name: string;
 	type: string;
@@ -8,90 +11,62 @@ export interface SchemaProperty {
 
 export function parseJsonSchemaToProperties(schema: string): SchemaProperty[] {
 	//
+	if (!schema.trim() || schema.trim() === '{}') return [];
 	try {
-		const parsed = JSON.parse(schema);
-		const properties: SchemaProperty[] = [];
+		const parsed = readSkillSchema(schema);
+		if (parsed.type !== 'object' || !parsed.properties) return [];
 
-		if (parsed.type === 'object' && parsed.properties) {
-			//
-			// Get explicitly required fields from schema
-			const explicitlyRequired = parsed.required || [];
-
-			Object.entries(parsed.properties).forEach(([name, propSchema]: [string, any]) => {
-				//
-				const constraints: string[] = [];
-
-				// Add type-specific constraints
-				if (propSchema.minimum !== undefined) constraints.push(`min: ${propSchema.minimum}`);
-				if (propSchema.maximum !== undefined) constraints.push(`max: ${propSchema.maximum}`);
-				if (propSchema.min !== undefined) constraints.push(`min: ${propSchema.min}`);
-				if (propSchema.max !== undefined) constraints.push(`max: ${propSchema.max}`);
-				if (propSchema.minLength !== undefined) constraints.push(`min length: ${propSchema.minLength}`);
-				if (propSchema.maxLength !== undefined) constraints.push(`max length: ${propSchema.maxLength}`);
-				if (propSchema.pattern) constraints.push(`pattern: ${propSchema.pattern}`);
-				if (propSchema.enum) constraints.push(`options: ${propSchema.enum.join(', ')}`);
-
-				// Handle both standard JSON Schema default and zodex defaultValue
-				const defaultValue = propSchema.default !== undefined ? propSchema.default : propSchema.defaultValue;
-				if (defaultValue !== undefined) constraints.push(`default: ${JSON.stringify(defaultValue)}`);
-
-				// Determine if property is required:
-				// 1. Check zodex isOptional property first
-				// 2. If there's an explicit required array, use it
-				// 3. If no explicit required array, assume required UNLESS it has a default value or is marked as optional
-				let isRequired: boolean;
-				if (propSchema.isOptional !== undefined) {
-					// zodex format: isOptional: true means NOT required
-					isRequired = !propSchema.isOptional;
-				} else if (explicitlyRequired.length > 0) {
-					// Standard JSON Schema format with required array
-					isRequired = explicitlyRequired.includes(name);
-				} else {
-					// Fallback: assume required unless it has a default value
-					isRequired = defaultValue === undefined;
-				}
-
-				properties.push({
-					name,
-					type: getHumanReadableType(propSchema),
-					description: propSchema.description,
-					required: isRequired,
-					constraints: constraints.length > 0 ? constraints : undefined,
-				});
-			});
-		}
-
-		return properties;
+		return Object.entries(parsed.properties).map(([name, property]) => {
+			if (typeof property === 'boolean')
+				return { name, type: property ? 'any' : 'never', required: parsed.required?.includes(name) ?? false };
+			const constraints: string[] = [];
+			for (const [key, label] of [
+				['minimum', 'min'],
+				['maximum', 'max'],
+				['minLength', 'min length'],
+				['maxLength', 'max length'],
+				['pattern', 'pattern'],
+			]) {
+				if (property[key] !== undefined) constraints.push(`${label}: ${property[key]}`);
+			}
+			if (property.enum) constraints.push(`options: ${property.enum.join(', ')}`);
+			if (property.default !== undefined) constraints.push(`default: ${JSON.stringify(property.default)}`);
+			if (property['x-codec'] === bigintCodec) {
+				const bounds = bigintOptionsSchema.parse(property['x-bigint'] ?? {});
+				if (bounds.minimum !== undefined) constraints.push(`min: ${bounds.minimum}`);
+				if (bounds.maximum !== undefined) constraints.push(`max: ${bounds.maximum}`);
+				if (bounds.exclusiveMinimum !== undefined) constraints.push(`greater than: ${bounds.exclusiveMinimum}`);
+				if (bounds.exclusiveMaximum !== undefined) constraints.push(`less than: ${bounds.exclusiveMaximum}`);
+			}
+			return {
+				name,
+				type: getHumanReadableType(property.type, property['x-codec']),
+				description: property.description,
+				required: parsed.required?.includes(name) ?? false,
+				constraints: constraints.length > 0 ? constraints : undefined,
+			};
+		});
 	} catch (error) {
 		console.error('Failed to parse JSON schema:', error);
 		return [];
 	}
 }
 
-function getHumanReadableType(propSchema: any): string {
-	if (propSchema.type) {
-		switch (propSchema.type) {
-			case 'string':
-				return 'text';
-			case 'number':
-			case 'integer':
-				return 'number';
-			case 'boolean':
-				return 'true or false';
-			case 'array':
-				return 'list';
-			case 'object':
-				return 'complex object';
-			case 'bigInt':
-				return 'number (bigint)';
-			default:
-				return propSchema.type;
-		}
+function getHumanReadableType(type: unknown, codec: unknown): string {
+	if (codec === bigintCodec) return 'number (bigint)';
+	switch (type) {
+		case 'string':
+			return 'text';
+		case 'number':
+		case 'integer':
+			return 'number';
+		case 'boolean':
+			return 'true or false';
+		case 'array':
+			return 'list';
+		case 'object':
+			return 'complex object';
+		default:
+			return typeof type === 'string' ? type : 'Unknown';
 	}
-
-	if (propSchema.enum) {
-		return 'Choice';
-	}
-
-	return 'Unknown';
 }

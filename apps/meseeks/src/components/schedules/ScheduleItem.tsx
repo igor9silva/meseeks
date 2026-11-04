@@ -2,7 +2,7 @@ import { formatDistanceToNow } from 'lib/date';
 import { type Doc } from 'convex/_generated/dataModel';
 import { Trash } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 import { Button } from '@reactor/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@reactor/ui/dialog';

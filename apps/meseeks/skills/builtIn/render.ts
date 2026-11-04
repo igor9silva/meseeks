@@ -1,6 +1,6 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const render = defineSkill({
 	preApprovedCost: 0n,
@@ -16,7 +16,7 @@ export const render = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			// TODO: remove after new reactor (that only takes action ctx)

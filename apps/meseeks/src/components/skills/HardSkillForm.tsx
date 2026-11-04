@@ -11,6 +11,7 @@ import {
 	getDefaultHardSkill,
 	hardSkillFormSchema,
 	HardSkillFormValues,
+	HardSkillFormInput,
 } from '~/lib/skill-form-utils';
 
 interface HardSkillFormProps {
@@ -20,7 +21,7 @@ interface HardSkillFormProps {
 
 export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) {
 	//
-	const form = useForm<HardSkillFormValues>({
+	const form = useForm<HardSkillFormInput, unknown, HardSkillFormValues>({
 		resolver: standardSchemaResolver(hardSkillFormSchema),
 		defaultValues: getDefaultHardSkill(skill),
 		mode: 'onChange',
@@ -44,7 +45,7 @@ export function HardSkillForm({ skill, isEditable = true }: HardSkillFormProps) 
 					onHeadersChange={(headers) => form.setValue('config.headers', headers)}
 					paramMappings={form.watch('config.paramMappings')}
 					onParamMappingsChange={(mappings) => form.setValue('config.paramMappings', mappings)}
-					bodyTemplate={form.watch('bodyTemplate')}
+					bodyTemplate={form.watch('bodyTemplate') ?? '{}'}
 					onBodyTemplateChange={(value) => form.setValue('bodyTemplate', value)}
 					knownReactions={form.watch('knownReactions')}
 					onKnownReactionsChange={(reactions) => form.setValue('knownReactions', reactions)}

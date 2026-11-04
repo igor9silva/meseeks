@@ -66,7 +66,7 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 				name="inputSchema"
 				render={({ field }) => (
 					<FormItem>
-						<LabelWithTooltip tooltip="An OpenAI-compatible JSON Schema that defines the expected input parameters for this skill. This describes what data the skill needs to function properly. You if have no idea what this is, you'll be better served by asking Meseeks to learn it, instead of trying to fill manually.">
+						<LabelWithTooltip tooltip='A JSON Schema describing the input parameters this skill needs. Include "$schema": "https://json-schema.org/draft/2020-12/schema". If you prefer not to edit schemas manually, ask Meseeks to learn the skill.'>
 							Input Schema
 						</LabelWithTooltip>
 						<FormControl>
@@ -74,7 +74,7 @@ export function BasicSkillFields({ form, isEditable, skill }: BasicSkillFieldsPr
 								<Textarea
 									{...field}
 									disabled={!isEditable}
-									placeholder="{}"
+									placeholder='{"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","properties":{}}'
 									rows={3}
 									className="font-mono"
 								/>

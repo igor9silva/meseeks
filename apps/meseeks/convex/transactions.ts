@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internalMutation, query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { addFreeCredits } from './transactions.private';

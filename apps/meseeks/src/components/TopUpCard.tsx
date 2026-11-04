@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { asBigInt } from 'lib/money';
 import { useAction } from 'convex/react';
 import { toast } from 'sonner';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { EnergyTooltip } from '~/components/EnergyTooltip';
 import { Button } from '@reactor/ui/button';
 import { Card, CardContent } from '@reactor/ui/card';
@@ -18,7 +18,7 @@ export function TopUpCard() {
 
 	const handleSubmit = useHandleSubmit({
 		schema: z.object({
-			amount: z.string().pipe(z.coerce.number().min(10)),
+			amount: z.string().pipe(z.coerce.number<string>().min(10)),
 		}),
 		handler: async ({ amount }) => {
 			//

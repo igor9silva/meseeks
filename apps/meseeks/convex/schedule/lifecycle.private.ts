@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
 import { MutationCtx } from '../_generated/server';
 import { addAction, skipPendingAuthorizationByTaskAuthor } from '../action.private';
@@ -16,7 +17,7 @@ export const executeOneTime = defineMutation({
 		owner: zid('users'),
 		author: authorSchema,
 		skillKey: z.string(),
-		args: z.record(z.unknown()),
+		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 	}),
 	handler: async (ctx, { scheduleId, taskId, owner, author, skillKey, args, depth }) => {
@@ -41,7 +42,7 @@ export const executeRecurring = defineMutation({
 		owner: zid('users'),
 		author: authorSchema,
 		skillKey: z.string(),
-		args: z.record(z.unknown()),
+		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 		cronExpression: z.string(),
 		timeZone: z.string(),

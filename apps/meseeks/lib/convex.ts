@@ -1,6 +1,6 @@
 import { NoOp } from 'convex-helpers/server/customFunctions';
-import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zCustomAction, zCustomMutation, zCustomQuery } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import type { ActionCtx, MutationCtx, QueryCtx } from 'convex/_generated/server';
 import {
 	action as actionOG,
@@ -19,7 +19,7 @@ export const internalQuery = zCustomQuery(internalQueryOG, NoOp);
 export const internalAction = zCustomAction(internalActionOG, NoOp);
 
 type AsyncValue<Value> = Value | Promise<Value>;
-type ArgsSchema = z.ZodTypeAny;
+type ArgsSchema = z.ZodType;
 
 type DefinedFn<Ctx, Schema extends ArgsSchema, Result> = ((
 	ctx: Ctx, //

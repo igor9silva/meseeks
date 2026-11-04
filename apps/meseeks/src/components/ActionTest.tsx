@@ -5,7 +5,7 @@ import { Button } from '@reactor/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@reactor/ui/card';
 import { Textarea } from '@reactor/ui/textarea';
 
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { cn } from '@reactor/ui/lib/utils';
 import { actionSchema } from 'schemas/actionSchema';
 

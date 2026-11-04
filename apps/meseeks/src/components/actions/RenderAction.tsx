@@ -2,7 +2,7 @@ import { Suspense, useEffect, useRef } from 'react';
 import { cn } from '@reactor/ui/lib/utils';
 
 import { ErrorBoundary } from '@reactor/ui/error-boundary';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { RenderActionControls } from '~/components/actions/RenderActionControls';

@@ -1,9 +1,9 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { computeNextRun } from 'lib/cron';
 import { formatScheduledTime } from 'lib/date';
 import { timeZoneSchema } from 'schemas/scheduleSchema';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const schedule = defineSkill({
 	preApprovedCost: 0n,
@@ -45,7 +45,7 @@ export const schedule = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const skillKey = 'scheduledIteration';

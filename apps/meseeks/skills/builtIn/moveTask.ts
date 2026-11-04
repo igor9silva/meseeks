@@ -1,7 +1,7 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const moveTask = defineSkill({
 	preApprovedCost: 'none',
@@ -16,7 +16,7 @@ export const moveTask = defineSkill({
 	}),
 	knownReactions: [],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const taskId = zid('tasks').parse(args.taskId);

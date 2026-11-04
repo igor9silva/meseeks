@@ -1,5 +1,5 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { Doc } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
@@ -17,6 +17,8 @@ export const addSubscription = defineMutation({
 		return await ctx.db.insert('subscriptions', {
 			...args,
 			status: 'pending' as const,
+			renewalCount: 0,
+			isFounder: false,
 		});
 	},
 });

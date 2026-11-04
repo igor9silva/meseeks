@@ -2,25 +2,23 @@ import { tool } from 'ai';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { AITool } from 'schemas/toolSchema';
-import type { z } from 'zod/v3';
 import { createReactions } from './createReactions';
-import type { Skill, ToolExecution } from './defineSkill';
+import type { defineSkill } from './defineSkill';
+import { skillInputSchema } from './inputSchema';
 
-export function createBuiltInTool<T extends z.AnyZodObject>(
+export function createBuiltInTool(
 	ctx: ActionCtx | MutationCtx,
 	task: Doc<'tasks'>,
 	action: Doc<'actions'>,
-	skill: Skill<T>,
+	skill: Pick<ReturnType<typeof defineSkill>, 'description' | 'parameters' | 'execute'>,
 ): AITool {
 	//
-	const execution: ToolExecution<T> = { ctx, task, action, skill };
-
 	return tool({
 		description: skill.description,
-		inputSchema: skill.parameters,
+		inputSchema: skillInputSchema(skill.parameters),
 		execute: async (args) => {
 			//
-			const { text, reactions } = await skill.use(execution)(args);
+			const { text, reactions } = await skill.execute({ ctx, task, action }, args);
 
 			return {
 				result: {

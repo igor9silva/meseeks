@@ -1,7 +1,7 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { asDollars } from 'lib/money';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const increaseBudget = defineSkill({
 	preApprovedCost: 'none',
@@ -12,7 +12,7 @@ export const increaseBudget = defineSkill({
 	}),
 	knownReactions: [],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const instruct = {

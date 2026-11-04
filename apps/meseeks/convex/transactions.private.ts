@@ -1,5 +1,5 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { defineMutation } from 'lib/convex';
 import { transactionSchema, valueSchema } from 'schemas/transactionSchema';
 import { adjustUserBalance } from './users.private';

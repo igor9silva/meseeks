@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 import { intelligenceKeys } from './intelligenceSchema';
@@ -32,7 +33,7 @@ export const httpConfigSchema = z.object({
 		'DELETE',
 		'PATCH',
 	]),
-	headers: z.record(z.string()).describe('HTTP headers to send with the request'),
+	headers: z.record(z.string(), z.string()).describe('HTTP headers to send with the request'),
 	paramMappings: z.array(
 		z.object({
 			type: z.enum([
@@ -50,7 +51,10 @@ export const httpConfigSchema = z.object({
 	),
 	body: z
 		.object({
-			template: z.record(z.any()).describe('Base JSON object with pre-filled values').optional(),
+			template: z
+				.record(z.string(), convexValueSchema)
+				.describe('Base JSON object with pre-filled values')
+				.optional(),
 		})
 		.optional(),
 });
@@ -151,7 +155,7 @@ export const knownReactionsSchema = z
 	.array(
 		z.object({
 			skillKey: z.string().describe('The key of the skill to use'),
-			args: z.record(z.any()),
+			args: z.record(z.string(), convexValueSchema),
 			condition: z.enum([
 				'owner', // only react if the author is the owner
 				'companion', // only react if the author is a an action (i.e. companion did it)
@@ -165,7 +169,13 @@ export const knownReactionsSchema = z
 const coreSkillSchema = z.object({
 	key: z.string().min(3).describe('The key of the skill. Must be unique.'),
 	description: z.string(),
-	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
+	inputSchema: z
+		.string()
+		.describe(
+			'A JSON Schema document for the input parameters. Include "$schema": "https://json-schema.org/draft/2020-12/schema".',
+		), // TODO: enforce that this is a valid zod schema
+	// original document retained during the json schema migration for recovery.
+	legacyInputSchema: z.string().optional(),
 	// outputSchema?: z.string(), // not yet
 	preApprovedCost: preApprovedCostSchema,
 	knownReactions: knownReactionsSchema,
@@ -217,8 +227,8 @@ export const skillSchema = z
 	);
 
 export const newSkillSchema = z.union([
-	hardSkillSchema.omit({ author: true, owner: true }), //
-	softSkillSchema.omit({ author: true, owner: true }),
+	hardSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }), //
+	softSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }),
 ]);
 
 // Instincts/built-in skills
@@ -252,7 +262,7 @@ export const simplifiedDecisionConfigSchema = z.object({
 const simplifiedCoreSkillSchema = z.object({
 	key: z.string(),
 	description: z.string(),
-	inputSchema: z.string(), // TODO: enforce that this is a valid zod schema
+	inputSchema: coreSkillSchema.shape.inputSchema, // TODO: enforce that this is a valid zod schema
 	isSafe: z.boolean(),
 	knownReactions: z
 		.array(z.string().describe('The key of the skill to use'))
@@ -270,7 +280,7 @@ export const simplifiedHttpConfigSchema = z.object({
 		'DELETE',
 		'PATCH',
 	]),
-	headers: z.record(z.string()).describe('HTTP headers to send with the request').optional(),
+	headers: z.record(z.string(), z.string()).describe('HTTP headers to send with the request').optional(),
 	paramMappings: z.array(
 		z.object({
 			type: z.enum([
@@ -290,7 +300,10 @@ export const simplifiedHttpConfigSchema = z.object({
 	),
 	body: z
 		.object({
-			template: z.record(z.any()).describe('Base JSON object with pre-filled values').optional(),
+			template: z
+				.record(z.string(), convexValueSchema)
+				.describe('Base JSON object with pre-filled values')
+				.optional(),
 		})
 		.optional(),
 });
