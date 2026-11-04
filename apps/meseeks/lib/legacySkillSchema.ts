@@ -14,6 +14,9 @@ export function convertLegacySkillSchema(input: unknown): z.core.JSONSchema.JSON
 	function convert(value: unknown, path: string): z.core.JSONSchema.JSONSchema {
 		//
 		const shape = object.parse(value);
+		// audited empty root documents meant parameterless skills; this repair was explicitly approved.
+		if (path === '#' && Object.keys(shape).length === 0)
+			return { 'type': 'object', 'properties': {}, 'required': [], 'x-zod-strip': true };
 		if ('$ref' in shape) {
 			const reference = z.string().parse(shape.$ref);
 			if (reference === '#') return { $ref: '#' };

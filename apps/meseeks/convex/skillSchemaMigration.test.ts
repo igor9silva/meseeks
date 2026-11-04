@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, spyOn, test } from 'bun:test';
 import { convexTest } from 'convex-test';
 import { inspectSkillSchema } from 'lib/skillSchemaMigration';
 import { newSkillSchema } from 'schemas/skillSchema';
@@ -96,6 +96,29 @@ describe('stored schema writes and migration', () => {
 		const doc = await t.run((ctx) => ctx.db.get(id));
 		expect(doc?.inputSchema).toBe('{"type":"date"}');
 		expect(doc?.legacyInputSchema).toBeUndefined();
+	});
+
+	test('dry run rolls back one batch with bigint fields without logging documents', async () => {
+		const t = convexTest(schema, modules);
+		const userId = await t.run((ctx) => ctx.db.insert('users', userSchema.parse({})));
+		const ids = await t.run(async (ctx) => {
+			const ids = [];
+			for (let i = 0; i < 26; i++) {
+				ids.push(await ctx.db.insert('skills', { ...skill, key: `dry-${i}`, author: userId, owner: userId }));
+			}
+			return ids;
+		});
+		const before = await t.run((ctx) => Promise.all(ids.map((id) => ctx.db.get(id))));
+		const debug = spyOn(console, 'debug');
+		try {
+			await expect(
+				t.mutation(internal.migrations._runSkillSchemaMigration, { dryRun: true }),
+			).rejects.toMatchObject({ data: { kind: 'DRY RUN', processed: 25, isDone: false } });
+			expect(debug).not.toHaveBeenCalled();
+		} finally {
+			debug.mockRestore();
+		}
+		expect(await t.run((ctx) => Promise.all(ids.map((id) => ctx.db.get(id))))).toEqual(before);
 	});
 
 	test('catalog imports normalize schemas and cannot overwrite recovery copies', async () => {

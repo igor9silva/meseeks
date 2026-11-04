@@ -43,7 +43,7 @@ bun scripts/audit-skill-schemas.ts --prod
 bun convex run migrations:_runSkillSchemaMigration '{"dryRun":true}' --prod
 ```
 
-The migration component intentionally rolls the dry-run transaction back. Once the full audit has zero blocked records and the dry run is satisfactory:
+The app's dry run processes one indexed batch and intentionally throws `ConvexError` with only `kind: "DRY RUN"`, `processed`, and `isDone`, rolling back the transaction. This expected nonzero CLI result is success for the rehearsal; any other error is a failure. The component's built-in dry run is not used because it serializes BigInt-bearing documents with `JSON.stringify` and logs their full before/after contents. Once the full audit has zero blocked records and the dry run is satisfactory:
 
 ```sh
 bun convex run migrations:_runSkillSchemaMigration '{}' --prod
@@ -70,6 +70,7 @@ If the completed runner's audit still finds legacy records, identify the remaini
 - Unsupported keywords, unknown codec/version identifiers, external references and overly complex schemas fail validation. A successful schema conversion is not evidence that arbitrary refinements or executable transforms can be serialized.
 - Hybrid legacy documents may contain a JSON Schema `required` list. It is accepted only when it exactly matches the legacy properties' requiredness; contradictory lists remain blocked. The production audit found redundant lists, and an unpatched Zodex fixture verifies their behavior.
 - The production audit also found a string `enum` that Zodex ignored. The owner explicitly approved enforcing those listed values while retaining the field's optionality. String enums now intersect with the other string constraints, and the original document is preserved in the migration backup. This is an intentional validation tightening, not a claim of identical behavior for that keyword.
+- Five DEV documents had an empty root `{}`, which Zodex interpreted as `z.undefined()` and therefore rejected object arguments. The owner approved repairing empty roots as parameterless skills (`z.object({})`, with unknown properties stripped). Nested missing types remain blocked. This deliberately changes the invalid input contract and retains the original `{}` in `legacyInputSchema`.
 
 ## Recovery and phase 2
 

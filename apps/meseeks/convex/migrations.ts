@@ -1,8 +1,10 @@
 import { Migrations } from '@convex-dev/migrations';
+import { ConvexError } from 'convex/values';
+import { z } from 'zod';
 import { components, internal } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
 import { enableSkill, migrateInputSchema } from './skills.private';
-import { internalQuery } from 'lib/convex';
+import { internalMutation, internalQuery } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { inspectSkillSchema } from 'lib/skillSchemaMigration';
 
@@ -56,15 +58,34 @@ export const runEnableMissingSkillsFour = migrations.runner(internal.migrations.
 export const runBackfillActionDetailsHistory = migrations.runner(internal.migrations.backfillActionDetailsHistory);
 
 // run through the migration runner after _auditSkillSchemas reports no blocked records.
+const skillSchemaBatchSize = 25;
 export const _convertSkillSchemas = migrations.define({
 	table: 'skills',
-	batchSize: 25,
+	batchSize: skillSchemaBatchSize,
 	migrateOne: async (ctx, skill) => {
 		await migrateInputSchema(ctx, { skillId: skill._id });
 	},
 });
 
-export const _runSkillSchemaMigration = migrations.runner(internal.migrations._convertSkillSchemas);
+// called by the rollout CLI; the component's dry run logs full documents and JSON.stringify fails on bigint.
+const skillSchemaRunResult = z.object({ processed: z.number(), isDone: z.boolean(), error: z.string().optional() });
+export const _runSkillSchemaMigration = internalMutation({
+	args: { dryRun: z.boolean().optional(), reset: z.boolean().optional() },
+	returns: skillSchemaRunResult,
+	handler: async (ctx, args): Promise<z.infer<typeof skillSchemaRunResult>> => {
+		if (args.dryRun) {
+			const result = await ctx.db
+				.query('skills')
+				.withIndex('by_owner_kind')
+				.paginate({ cursor: null, numItems: skillSchemaBatchSize });
+			for (const skill of result.page) await migrateInputSchema(ctx, { skillId: skill._id });
+			// an intentional error rolls back every write; return only aggregate metadata through the error.
+			throw new ConvexError({ kind: 'DRY RUN', processed: result.page.length, isDone: result.isDone });
+		}
+		const result = await migrations.runOne(ctx, internal.migrations._convertSkillSchemas, { reset: args.reset });
+		return { processed: result.processed, isDone: result.isDone, error: result.error };
+	},
+});
 
 // used by scripts/audit-skill-schemas.ts before and after the migration; never writes data.
 export const _auditSkillSchemas = internalQuery({

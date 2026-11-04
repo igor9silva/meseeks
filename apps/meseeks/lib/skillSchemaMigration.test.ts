@@ -70,6 +70,22 @@ describe('skill schema migration', () => {
 		}
 	});
 
+	test('repairs approved empty root schemas as parameterless skills and preserves their backups', () => {
+		const patch = prepareSkillSchemaMigration({ inputSchema: '{}' });
+		if (!patch) throw new Error('Expected a migration');
+		expect(patch.legacyInputSchema).toBe('{}');
+		expect(prepareSkillSchemaMigration(patch)).toBeUndefined();
+		for (const stored of ['{}', patch.inputSchema]) {
+			const schema = stringToZod(stored);
+			expect(schema.parse({})).toEqual({});
+			expect(schema.parse({ extra: true })).toEqual({});
+			for (const input of [undefined, null, [], 'text', 1]) expect(schema.safeParse(input).success).toBe(false);
+		}
+		// the repair applies only to empty roots, not arbitrary missing types in nested schemas.
+		expect(inspectSkillSchema('{"type":"object","properties":{"value":{}}}').status).toBe('blocked');
+		expect(inspectSkillSchema('{"description":"missing type"}').status).toBe('blocked');
+	});
+
 	test('enforces approved legacy string enums while preserving optionality and other constraints', () => {
 		const inputSchema = JSON.stringify({
 			type: 'object',
