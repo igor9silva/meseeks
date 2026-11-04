@@ -1,12 +1,134 @@
 import { Migrations } from '@convex-dev/migrations';
 import { ConvexError } from 'convex/values';
 import { z } from 'zod';
+import { executeTool, safeValidateTypes } from '@ai-sdk/provider-utils';
+import { tool } from 'ai';
 import { components, internal } from './_generated/api.js';
 import { DataModel } from './_generated/dataModel.js';
-import { enableSkill, migrateInputSchema } from './skills.private';
+import {
+	createSkill,
+	enableSkill,
+	findSkillByOwner,
+	migrateInputSchema,
+	replaceProSkills,
+	updateSkill,
+} from './skills.private';
 import { internalMutation, internalQuery } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { inspectSkillSchema } from 'lib/skillSchemaMigration';
+import { newSkillSchema } from 'schemas/skillSchema';
+import { skillInputSchema } from 'skills/inputSchema';
+import { _builtInSkills } from 'skills/builtIn';
+import { addUser } from './users.private';
+
+// Temporary rollout check. Every path throws, so no synthetic skills or catalog edits can commit.
+export const _verifySkillSchemaRollout = internalMutation({
+	args: {},
+	returns: z.null(),
+	handler: async (ctx): Promise<null> => {
+		const user = await ctx.db.query('users').withIndex('by_creation_time').first();
+		const key = `schema-rollout-${crypto.randomUUID()}`;
+		let userId = user?._id;
+		if (!userId) {
+			// Empty previews have no account. Both the component fixture and app writes roll back together.
+			const email = `${key}@example.invalid`;
+			const authUser = z.object({ _id: z.string() }).parse(
+				await ctx.runMutation(components.betterAuth.adapter.create, {
+					input: {
+						model: 'user',
+						data: { name: key, email, emailVerified: false, createdAt: Date.now(), updatedAt: Date.now() },
+					},
+				}),
+			);
+			userId = await addUser(ctx, { authUserId: authUser._id, email, name: key });
+		}
+		const original = JSON.stringify({
+			type: 'object',
+			properties: { amount: { type: 'bigInt', min: '9007199254740992', minInclusive: false } },
+		});
+		const skill = newSkillSchema.parse({
+			key,
+			description: 'Temporary schema rollout verification',
+			kind: 'hard',
+			cost: 0n,
+			inputSchema: original,
+			preApprovedCost: 'none',
+			config: {
+				url: 'https://example.invalid',
+				method: 'POST',
+				headers: {},
+				paramMappings: [],
+				body: { template: { amount: 9007199254740993n } },
+			},
+		});
+		const id = await createSkill(ctx, { userId, skill });
+		const created = await ctx.db.get(id);
+		if (!created || inspectSkillSchema(created.inputSchema).status !== 'current') throw new Error('Create failed');
+		await updateSkill(ctx, {
+			userId,
+			skill: { ...skill, description: 'Edited', inputSchema: created.inputSchema },
+		});
+		const edited = await ctx.db.get(id);
+		if (!edited || edited.description !== 'Edited' || inspectSkillSchema(edited.inputSchema).status !== 'current') {
+			throw new Error('Edit failed');
+		}
+		if (edited.kind !== 'hard' || edited.config.body?.template?.amount !== 9007199254740993n) {
+			throw new Error('Persisted bigint changed');
+		}
+		const echo = tool({
+			inputSchema: skillInputSchema(edited.inputSchema),
+			execute: async (args) => String(z.object({ amount: z.bigint() }).parse(args).amount),
+		});
+		for (const value of [{ amount: '9007199254740993' }, edited.config.body.template]) {
+			const parsed = await safeValidateTypes({ schema: echo.inputSchema, value });
+			if (!parsed.success || !echo.execute) throw new Error('Bigint validation failed');
+			let output: unknown;
+			for await (const part of executeTool({
+				execute: echo.execute,
+				input: parsed.value,
+				options: { toolCallId: key, messages: [] },
+			})) {
+				if (part.type === 'final') output = part.output;
+			}
+			if (output !== '9007199254740993') throw new Error('Tool bigint output changed');
+		}
+		for (const amount of ['9007199254740992', 9007199254740992, '1.5']) {
+			if ((await safeValidateTypes({ schema: echo.inputSchema, value: { amount } })).success) {
+				throw new Error('Invalid bigint accepted');
+			}
+		}
+		let builtIns = 0;
+		for (const builtIn of Object.values(_builtInSkills)) {
+			const advertised = await skillInputSchema(builtIn.parameters).jsonSchema;
+			if (advertised.type !== 'object' || JSON.stringify(advertised).includes('"x-codec"')) {
+				throw new Error('Built-in tool schema invalid');
+			}
+			builtIns++;
+		}
+		const catalog = await ctx.db
+			.query('skills')
+			.withIndex('by_owner_kind', (q) => q.eq('owner', 'isPro'))
+			.take(501);
+		if (catalog.length > 500) throw new Error('Catalog exceeds rollout verification bound');
+		await replaceProSkills(ctx, { skills: [...catalog, { ...skill, owner: 'isPro', author: 'built-in' }] });
+		const imported = await findSkillByOwner(ctx, { owner: 'isPro', key });
+		if (!imported || inspectSkillSchema(imported.inputSchema).status !== 'current')
+			throw new Error('Catalog import failed');
+		for (const before of catalog) {
+			const after = await ctx.db.get(before._id);
+			if (!after || after.legacyInputSchema !== before.legacyInputSchema)
+				throw new Error('Catalog backup changed');
+		}
+		throw new ConvexError({
+			kind: 'VERIFIED ROLLBACK',
+			create: true,
+			edit: true,
+			catalog: true,
+			bigintTool: true,
+			builtIns,
+		});
+	},
+});
 
 export const migrations = new Migrations<DataModel>(components.migrations);
 

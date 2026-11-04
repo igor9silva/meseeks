@@ -4,7 +4,8 @@ import { inspectSkillSchema } from 'lib/skillSchemaMigration';
 import { newSkillSchema } from 'schemas/skillSchema';
 import { userSchema } from 'schemas/userSchema';
 import type { FunctionReturnType } from 'convex/server';
-import { internal } from './_generated/api';
+import { components, internal } from './_generated/api';
+import authSchema from '../node_modules/@convex-dev/better-auth/src/component/schema';
 import schema from './schema';
 
 // these mutations do no network i/o, but their transitive imports initialize the app's env schema.
@@ -129,6 +130,59 @@ describe('stored schema writes and migration', () => {
 		const doc = await t.run((ctx) => ctx.db.get(id));
 		expect(doc?.legacyInputSchema).toBe('original');
 		expect(doc && inspectSkillSchema(doc.inputSchema).status).toBe('current');
+	});
+
+	test('deployed rollout verification exercises writes and bigint tools but always rolls back', async () => {
+		const t = convexTest(schema, modules);
+		await t.run((ctx) => ctx.db.insert('users', userSchema.parse({})));
+		const catalog = {
+			...skill,
+			owner: 'isPro' as const,
+			author: 'built-in' as const,
+			legacyInputSchema: 'original',
+		};
+		const id = await t.run((ctx) => ctx.db.insert('skills', catalog));
+		const before = await t.run((ctx) => ctx.db.get(id));
+		if (!before) throw new Error('Missing test skill');
+		await expect(t.mutation(internal.migrations._verifySkillSchemaRollout, {})).rejects.toMatchObject({
+			data: {
+				kind: 'VERIFIED ROLLBACK',
+				create: true,
+				edit: true,
+				catalog: true,
+				bigintTool: true,
+				builtIns: 23,
+			},
+		});
+		expect(await t.run((ctx) => ctx.db.query('skills').collect())).toEqual([before]);
+	});
+
+	test('rollout verification on empty previews rolls back its account fixture across components', async () => {
+		const t = convexTest(schema, modules);
+		t.registerComponent('betterAuth', authSchema, {
+			'./_generated/server.js': () =>
+				import('../node_modules/@convex-dev/better-auth/src/component/_generated/server'),
+			'./adapter.js': () => import('@convex-dev/better-auth/adapter'),
+		});
+		await expect(t.mutation(internal.migrations._verifySkillSchemaRollout, {})).rejects.toMatchObject({
+			data: {
+				kind: 'VERIFIED ROLLBACK',
+				create: true,
+				edit: true,
+				catalog: true,
+				bigintTool: true,
+				builtIns: 23,
+			},
+		});
+		for (const table of ['skills', 'users', 'transactions', 'user_preferences'] as const) {
+			expect(await t.run((ctx) => ctx.db.query(table).collect())).toEqual([]);
+		}
+		expect(
+			await t.query(components.betterAuth.adapter.findMany, {
+				model: 'user',
+				paginationOpts: { cursor: null, numItems: 5 },
+			}),
+		).toMatchObject({ page: [] });
 	});
 
 	test('read-only audit paginates all records and classifies invalid ones', async () => {

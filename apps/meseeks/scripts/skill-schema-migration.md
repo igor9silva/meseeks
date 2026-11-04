@@ -59,6 +59,8 @@ bun scripts/audit-skill-schemas.ts --prod
 
 Completion requires `ready: 0` and `blocked: 0`, plus working skill creation/editing, Pro catalog imports, AI tool calls, and replay of queued actions with BigInt arguments. Repeat for every active environment. The new writers normalize imported legacy schemas, so catalog redeploys cannot reintroduce the old format.
 
+Run `bun convex run migrations:_verifySkillSchemaRollout '{}'` with the same deployment selector to check the published backend. It exercises creation, editing, catalog import with backup preservation, all built-in tool definitions, and execution through the AI SDK with both JSON decimal strings and stored Convex BigInt values. It never calls an external tool or re-executes a real queued action. It intentionally throws `VERIFIED ROLLBACK` with aggregate results; all synthetic data and catalog writes are rolled back. Empty previews use a temporary account fixture through the existing auth and user helpers, also rolled back across components. Any other error is a failed check. This backend check does not establish browser UI or external-provider behavior.
+
 If the completed runner's audit still finds legacy records, identify the remaining old writer first. After fixing it, restart the scan with `bun convex run migrations:_runSkillSchemaMigration '{"reset":true}' --prod`, then audit again. The per-record conversion is idempotent and preserves existing backups.
 
 ## Format and compatibility
