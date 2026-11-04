@@ -1,7 +1,7 @@
 import { ChevronDown, CodeXml, Expand, Minimize2 } from 'lucide-react';
 import { useState } from 'react';
 import type { MouseEvent, TouchEvent } from 'react';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';

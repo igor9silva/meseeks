@@ -1,6 +1,6 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { taskStatusSchema } from 'schemas/taskSchema';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { StatusIndicator } from '~/components/StatusIndicator';
 import { cn } from '@reactor/ui/lib/utils';
 

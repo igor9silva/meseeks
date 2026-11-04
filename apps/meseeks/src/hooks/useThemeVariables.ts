@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { useTheme } from '~/components/ThemeProvider';
 import { BASE_THEME_VARIABLES, themeVariablesSchema } from '~/lib/themes/catalog';
 import { getRequiredTheme } from '~/lib/themes/resolve';

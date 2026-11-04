@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import {
 	APP_THEMES,
 	DEFAULT_LIGHT_THEME_ID,

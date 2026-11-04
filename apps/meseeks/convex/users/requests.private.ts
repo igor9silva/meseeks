@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { defineMutation } from 'lib/convex';
 import { userRequestKeySchema } from 'schemas/userSchema';
 
@@ -8,7 +9,7 @@ export const submitUserRequest = defineMutation({
 		owner: zid('users'),
 		key: userRequestKeySchema,
 		message: z.string().min(1).max(1000),
-		context: z.record(z.unknown()).optional(),
+		context: z.record(z.string(), convexValueSchema).optional(),
 	}),
 	handler: async (ctx, request) => {
 		//

@@ -1,5 +1,5 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { asBigInt } from 'lib/money';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';

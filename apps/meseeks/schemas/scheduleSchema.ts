@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { authorSchema } from './authorSchema';
 
 export const timeZoneSchema = z
@@ -13,7 +14,7 @@ const coreScheduleSchema = z.object({
 	owner: zid('users'),
 	author: authorSchema,
 	skillKey: z.string().describe('The skill to execute when scheduled'),
-	args: z.record(z.any()).describe('Arguments to pass to the skill'),
+	args: z.record(z.string(), convexValueSchema).describe('Arguments to pass to the skill'),
 	timeZone: timeZoneSchema,
 	lastRunAt: z.number().optional().describe('Timestamp of last execution'),
 	nextRunAt: z.number().describe('Timestamp of next scheduled execution'),
@@ -41,7 +42,7 @@ const newCoreScheduleSchema = z.object({
 	owner: zid('users'),
 	author: authorSchema,
 	skillKey: z.string().describe('The skill to execute when scheduled'),
-	args: z.record(z.any()).describe('Arguments to pass to the skill'),
+	args: z.record(z.string(), convexValueSchema).describe('Arguments to pass to the skill'),
 	timeZone: timeZoneSchema,
 });
 

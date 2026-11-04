@@ -1,0 +1,26 @@
+diff --git a/dist/esm/index.js b/dist/esm/index.js
+index 15a3ba8ecb26be89a123ab56078e9c89212e7d78..8ef455939b2e074e32474c7391b2cda8df76fb73 100644
+--- a/dist/esm/index.js
++++ b/dist/esm/index.js
+@@ -556,6 +556,8 @@ var zerializers = {
+       const format = check._zod.def.format;
+       return {
+         ...o,
++        // .int() stores its format in a check, rather than on the number itself.
++        ...chk === "number_format" ? { format } : {},
+         ...chk == "greater_than" ? {
+           min: check._zod.def.value,
+           ...check._zod.def.inclusive ? { minInclusive: true } : {}
+diff --git a/dist/zerialize.js b/dist/zerialize.js
+index 324f12366f58544156a3c3270f9f6d0c64767393..acc3627fd60d782e80e20793373326952331ae75 100644
+--- a/dist/zerialize.js
++++ b/dist/zerialize.js
+@@ -78,6 +78,8 @@ const zerializers = {
+             const format = check._zod.def.format;
+             return {
+                 ...o,
++                // .int() stores its format in a check, rather than on the number itself.
++                ...(chk === "number_format" ? { format } : {}),
+                 ...(chk == "greater_than"
+                     ? {
+                         min: check._zod.def.value,

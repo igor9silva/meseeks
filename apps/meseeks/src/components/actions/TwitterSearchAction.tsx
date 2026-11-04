@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { ActionComponentProps } from '~/components/actions';
 import { GenericAction } from '~/components/actions/GenericAction';
 import { TweetCard, TweetCardSchema } from '~/components/TweetCard';

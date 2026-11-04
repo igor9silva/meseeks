@@ -1,5 +1,5 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { mutation, query } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { findAction } from './action.private';

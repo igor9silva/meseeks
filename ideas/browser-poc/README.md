@@ -17,7 +17,7 @@ bun run dev
 
 ## Project policies
 
-- Bun-only package management (`bun.lockb` is the lockfile, `package-lock.json` is not allowed).
+- Bun-only package management (`bun.lock` is the lockfile, `package-lock.json` is not allowed).
 - Logging policy: `console.error` for fatal paths, `console.warn` for non-breaking issues, `console.info` for important lifecycle traces, `console.debug` for debugging.
 - Environment variables are read through typed schemas (`src/main/schemas/envSchema.ts`) instead of direct `process.env` usage across the codebase.
 

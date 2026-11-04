@@ -1,8 +1,7 @@
 import { Doc } from 'convex/_generated/dataModel';
 import { asBigInt } from 'lib/money';
 import { hardSkillSchema, newSkillSchema, softSkillSchema } from 'schemas/skillSchema';
-import { DefaultValues } from 'react-hook-form';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 // Extract the individual schemas from newSkillSchema union
 type NewSkillUnion = z.infer<typeof newSkillSchema>;
@@ -24,9 +23,11 @@ export const hardSkillFormSchema = hardSkillSchema.omit({ author: true, owner: t
 
 export type SoftSkillFormValues = z.infer<typeof softSkillFormSchema>;
 export type HardSkillFormValues = z.infer<typeof hardSkillFormSchema>;
+export type SoftSkillFormInput = z.input<typeof softSkillFormSchema>;
+export type HardSkillFormInput = z.input<typeof hardSkillFormSchema>;
 
 // Default value generators
-export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSkillFormValues> {
+export function getDefaultSoftSkill(skill?: Doc<'skills'>): SoftSkillFormInput {
 	//
 	if (!skill || skill.kind !== 'soft') {
 		return {
@@ -43,7 +44,7 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 				availableSkills: [],
 				historyMode: 'since last instructed',
 			},
-		} as DefaultValues<SoftSkillFormValues>;
+		};
 	}
 
 	return {
@@ -63,10 +64,10 @@ export function getDefaultSoftSkill(skill?: Doc<'skills'>): DefaultValues<SoftSk
 						availableSkills: [],
 						historyMode: 'since last instructed',
 					},
-	} as DefaultValues<SoftSkillFormValues>;
+	};
 }
 
-export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSkillFormValues> {
+export function getDefaultHardSkill(skill?: Doc<'skills'>): HardSkillFormInput {
 	//
 	if (!skill || skill.kind !== 'hard') {
 		return {
@@ -83,7 +84,7 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSk
 				paramMappings: [],
 			},
 			bodyTemplate: '{}',
-		} as DefaultValues<HardSkillFormValues>;
+		};
 	}
 
 	const config =
@@ -105,7 +106,7 @@ export function getDefaultHardSkill(skill?: Doc<'skills'>): DefaultValues<HardSk
 		knownReactions: skill.knownReactions || [],
 		config,
 		bodyTemplate: JSON.stringify(config.body?.template || {}, null, 2),
-	} as DefaultValues<HardSkillFormValues>;
+	};
 }
 
 // Convert form data to backend schema format

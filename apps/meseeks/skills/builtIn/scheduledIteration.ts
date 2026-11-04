@@ -1,5 +1,5 @@
-import { z } from 'zod/v3';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { z } from 'zod';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const scheduledIteration = defineSkill({
 	preApprovedCost: 0n,
@@ -17,7 +17,7 @@ export const scheduledIteration = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			const scheduleTypeText = args.scheduleType === 'one-time' ? 'one-time' : 'recurring';

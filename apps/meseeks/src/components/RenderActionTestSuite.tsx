@@ -1,5 +1,5 @@
 import { Doc } from 'convex/_generated/dataModel';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { cn } from '@reactor/ui/lib/utils';
 import { RenderAction } from './actions/RenderAction';
 

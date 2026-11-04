@@ -1,5 +1,5 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound, Unauthorized } from 'lib/errors';
 import { asBigInt } from 'lib/money';
@@ -308,6 +308,7 @@ const createUser = defineMutation({
 			name,
 			image,
 			isReady: false,
+			isAnonymous: false,
 			balanceUSD: 0n,
 			isFounder: false,
 		});

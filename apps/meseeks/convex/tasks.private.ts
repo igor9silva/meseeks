@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
 import { addActions } from './action.private';
 import { defineMutation, defineQuery } from 'lib/convex';
@@ -213,7 +214,7 @@ export const addTaskWithActions = defineMutation({
 		skills: z.array(
 			z.object({
 				skillKey: z.string().describe('The key of the skill to use'),
-				args: z.record(z.any()),
+				args: z.record(z.string(), convexValueSchema),
 			}),
 		),
 	}),

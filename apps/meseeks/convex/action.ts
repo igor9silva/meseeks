@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
 import { paginationOptionsSchema } from 'schemas/paginationOptionsSchema';
 import { ensureTaskOwner } from './tasks.private';
@@ -42,7 +43,7 @@ export const act = mutation({
 			.array(
 				z.object({
 					skillKey: z.string(),
-					args: z.record(z.unknown()),
+					args: z.record(z.string(), convexValueSchema),
 				}),
 			)
 			.min(1),

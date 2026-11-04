@@ -1,5 +1,5 @@
 import { createEnv } from '@t3-oss/env-core';
-import { z } from 'zod/v3';
+import { z } from 'zod';
 
 export const env = createEnv({
 	//
@@ -45,7 +45,7 @@ export const env = createEnv({
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('Maximum HTTP response body size to store in action details (in bytes).')
-			.default('819200'), // 800KiB in bytes
+			.prefault('819200'), // 800KiB in bytes
 
 		AUTH_GOOGLE_ID: z.string().min(1).describe('Google OAuth client ID.'),
 		AUTH_GOOGLE_SECRET: z.string().min(1).describe('Google OAuth client secret.'),
@@ -91,35 +91,35 @@ export const env = createEnv({
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The maximum number of consecutive companion actions.')
-			.default('20'),
+			.prefault('20'),
 
 		MAX_CONTEXT_ACTIONS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('The maximum number of actions to load before token-based cropping.')
-			.default('40'),
+			.prefault('40'),
 
 		MAX_CONTEXT_TOKENS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number().int().min(1))
 			.describe('The maximum estimated tokens to keep in model context.')
-			.default('128000'),
+			.prefault('128000'),
 
 		ACTION_TIMEOUT_BUFFER_MS: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number().int().min(1_000).max(590_000))
 			.describe('How much earlier than Convex hard timeout actions should abort, in milliseconds.')
-			.default('120000'),
+			.prefault('120000'),
 
 		ACTIVE_TASKS_RENDER_LIMIT: z
 			.string()
 			.transform((s) => Number.parseInt(s, 10))
 			.pipe(z.number())
 			.describe('Maximum number of active tasks to show in activeTasks variable.')
-			.default('20'),
+			.prefault('20'),
 
 		GROQ_API_KEY: z.string().min(1).describe('Groq API key.'),
 		INCEPTION_API_KEY: z.string().min(1).describe('Inception Labs API key.'),

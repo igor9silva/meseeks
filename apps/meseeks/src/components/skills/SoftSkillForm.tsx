@@ -12,6 +12,7 @@ import {
 	getDefaultSoftSkill,
 	softSkillFormSchema,
 	SoftSkillFormValues,
+	SoftSkillFormInput,
 } from '~/lib/skill-form-utils';
 
 interface SoftSkillFormProps {
@@ -21,7 +22,7 @@ interface SoftSkillFormProps {
 
 export function SoftSkillForm({ skill, isEditable = true }: SoftSkillFormProps) {
 	//
-	const form = useForm<SoftSkillFormValues>({
+	const form = useForm<SoftSkillFormInput, unknown, SoftSkillFormValues>({
 		resolver: standardSchemaResolver(softSkillFormSchema),
 		defaultValues: getDefaultSoftSkill(skill),
 		mode: 'onChange',

@@ -1,4 +1,5 @@
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { z } from 'zod';
 import { mutation } from 'lib/convex';
 import { userRequestKeySchema } from 'schemas/userSchema';
 import { getCurrentUser } from '../users.private';
@@ -8,7 +9,7 @@ export const submit = mutation({
 	args: {
 		key: userRequestKeySchema,
 		message: z.string().min(1).max(1000),
-		context: z.record(z.unknown()).optional(),
+		context: z.record(z.string(), convexValueSchema).optional(),
 	},
 	handler: async (ctx, { key, message, context }) => {
 		//

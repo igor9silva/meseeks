@@ -1,6 +1,6 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 
 export const setUserInfo = defineSkill({
 	preApprovedCost: 0n,
@@ -17,7 +17,7 @@ export const setUserInfo = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			await execution.ctx.runMutation(internal.users.preferences._setUserPreference, {

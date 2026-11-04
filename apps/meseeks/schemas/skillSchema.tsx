@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { asBigInt } from 'lib/money';
 import { authorSchema } from './authorSchema';
 import { intelligenceKeys } from './intelligenceSchema';
@@ -32,7 +33,7 @@ export const httpConfigSchema = z.object({
 		'DELETE',
 		'PATCH',
 	]),
-	headers: z.record(z.string()).describe('HTTP headers to send with the request'),
+	headers: z.record(z.string(), z.string()).describe('HTTP headers to send with the request'),
 	paramMappings: z.array(
 		z.object({
 			type: z.enum([
@@ -50,7 +51,10 @@ export const httpConfigSchema = z.object({
 	),
 	body: z
 		.object({
-			template: z.record(z.any()).describe('Base JSON object with pre-filled values').optional(),
+			template: z
+				.record(z.string(), convexValueSchema)
+				.describe('Base JSON object with pre-filled values')
+				.optional(),
 		})
 		.optional(),
 });
@@ -151,7 +155,7 @@ export const knownReactionsSchema = z
 	.array(
 		z.object({
 			skillKey: z.string().describe('The key of the skill to use'),
-			args: z.record(z.any()),
+			args: z.record(z.string(), convexValueSchema),
 			condition: z.enum([
 				'owner', // only react if the author is the owner
 				'companion', // only react if the author is a an action (i.e. companion did it)
@@ -270,7 +274,7 @@ export const simplifiedHttpConfigSchema = z.object({
 		'DELETE',
 		'PATCH',
 	]),
-	headers: z.record(z.string()).describe('HTTP headers to send with the request').optional(),
+	headers: z.record(z.string(), z.string()).describe('HTTP headers to send with the request').optional(),
 	paramMappings: z.array(
 		z.object({
 			type: z.enum([
@@ -290,7 +294,10 @@ export const simplifiedHttpConfigSchema = z.object({
 	),
 	body: z
 		.object({
-			template: z.record(z.any()).describe('Base JSON object with pre-filled values').optional(),
+			template: z
+				.record(z.string(), convexValueSchema)
+				.describe('Base JSON object with pre-filled values')
+				.optional(),
 		})
 		.optional(),
 });

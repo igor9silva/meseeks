@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { Id } from './_generated/dataModel';
 import { defineMutation, defineQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
@@ -15,7 +16,7 @@ export const createSchedule = defineMutation({
 		owner: zid('users'),
 		author: authorSchema,
 		skillKey: z.string(),
-		args: z.record(z.unknown()),
+		args: z.record(z.string(), convexValueSchema),
 		depth: z.number().min(0).max(1000),
 		scheduleType: z.enum(['one-time', 'recurring']),
 		timeZone: z.string(),
@@ -228,7 +229,7 @@ function buildRecord(
 		owner: Id<'users'>;
 		author: z.infer<typeof authorSchema>;
 		skillKey: string;
-		args: Record<string, unknown>;
+		args: Record<string, z.output<typeof convexValueSchema>>;
 		depth: number;
 		scheduleType: 'one-time' | 'recurring';
 		timeZone: string;

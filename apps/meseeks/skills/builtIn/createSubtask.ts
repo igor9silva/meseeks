@@ -1,6 +1,6 @@
 // import { z } from 'zod';
 // import { internal } from 'convex/_generated/api';
-// import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+// import { defineSkill, ExecutionResult } from '../defineSkill';
 
 // export const createSubtask = defineSkill({
 // 	preApprovedCost: 'none',
@@ -15,7 +15,7 @@
 // 	}),
 // 	knownReactions: [],
 // 	use:
-// 		(execution: ToolExecution) =>
+// 		(execution) =>
 // 		async (args): Promise<ExecutionResult> => {
 // 			//
 // 			await execution.ctx.runMutation(internal.tasks._add, {

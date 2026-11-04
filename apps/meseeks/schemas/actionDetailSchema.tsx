@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { skillKindSchema } from './skillSchema';
 
 const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
@@ -8,7 +9,7 @@ const bodySizeSchema = z.number().min(0);
 
 const toolCallSchema = z.object({
 	toolName: z.string(),
-	input: z.record(z.unknown()),
+	input: z.record(z.string(), convexValueSchema),
 });
 
 const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');
@@ -63,7 +64,7 @@ const httpActionDetailSchema = baseActionDetailSchema
 						'Full HTTP response body (truncated based on MAX_HTTP_RESPONSE_BODY_BYTES env setting for safety within Convex 1MB document limit)',
 					),
 				responseHeaders: z
-					.record(z.string())
+					.record(z.string(), z.string())
 					.optional()
 					.describe('HTTP response headers (generally safe to store)'),
 			})
@@ -121,9 +122,12 @@ const llmActionDetailSchema = baseActionDetailSchema
 				usage: tokenUsageSchema.optional().describe('Detailed token usage breakdown for cost analysis'),
 
 				// warnings and metadata (preserved as-is for debugging)
-				warnings: z.array(z.unknown()).optional().describe('AI SDK warnings (can be complex objects)'),
+				warnings: z.array(convexValueSchema).optional().describe('AI SDK warnings (can be complex objects)'),
 
-				providerMetadata: z.record(z.unknown()).optional().describe('Provider-specific metadata for debugging'),
+				providerMetadata: z
+					.record(z.string(), convexValueSchema)
+					.optional()
+					.describe('Provider-specific metadata for debugging'),
 			})
 			.describe('Comprehensive LLM execution details including model config, context, and results'),
 	})
@@ -138,8 +142,8 @@ const llmUpdateFields = z.object({
 	text: z.string().optional(),
 	toolCalls: z.array(toolCallSchema).optional(),
 	usage: tokenUsageSchema.optional(),
-	warnings: z.array(z.unknown()).optional(),
-	providerMetadata: z.record(z.unknown()).optional(),
+	warnings: z.array(convexValueSchema).optional(),
+	providerMetadata: z.record(z.string(), convexValueSchema).optional(),
 });
 
 const httpUpdateFields = z.object({
@@ -148,7 +152,7 @@ const httpUpdateFields = z.object({
 	statusText: z.string().optional(),
 	responseBodySize: bodySizeSchema.optional(),
 	responseBody: z.string().optional(),
-	responseHeaders: z.record(z.string()).optional(),
+	responseHeaders: z.record(z.string(), z.string()).optional(),
 });
 
 // Update schema - only mutable fields can be updated

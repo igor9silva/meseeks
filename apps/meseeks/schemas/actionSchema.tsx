@@ -1,5 +1,6 @@
-import { zid } from 'convex-helpers/server/zod3';
-import { z } from 'zod/v3';
+import { convexValueSchema } from 'schemas/convexValueSchema';
+import { zid } from 'convex-helpers/server/zod4';
+import { z } from 'zod';
 import { authorSchema } from './authorSchema';
 import { tokenSchema } from './topUpSchema';
 
@@ -8,7 +9,7 @@ export const newActionSchema = z.object({
 	owner: zid('users'),
 	author: authorSchema,
 	skillKey: z.string().describe('The key of the skill to use'),
-	args: z.record(z.any()),
+	args: z.record(z.string(), convexValueSchema),
 	depth: z.number().min(0).max(1000),
 	status: z.enum(['enqueued', 'succeeded']).default('enqueued').optional(),
 	result: z.string().optional(),
@@ -20,7 +21,7 @@ const coreActionSchema = z.object({
 	author: authorSchema,
 	depth: z.number().min(0).max(1000),
 	skillKey: z.string(),
-	args: z.record(z.any()),
+	args: z.record(z.string(), convexValueSchema),
 	// TODO: idea: inherit the argsSchema from the skill, so we can drill types
 	estimatedCost: z.bigint().optional(),
 	startedAt: z.number().optional(),

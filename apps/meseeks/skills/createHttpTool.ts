@@ -1,6 +1,7 @@
 import { tool } from 'ai';
 import { dset } from 'dset';
-import type { z } from 'zod/v3';
+import { z } from 'zod';
+import { convexValueSchema } from 'schemas/convexValueSchema';
 import { internal } from 'convex/_generated/api';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
@@ -23,6 +24,7 @@ export function createHTTPTool(
 		execute: async (args) => {
 			//
 			console.debug('Running skill', skill.key, args);
+			const parameters = z.record(z.string(), convexValueSchema).parse(args);
 
 			const config = skill.config;
 			const url = new URL(config.url);
@@ -31,7 +33,7 @@ export function createHTTPTool(
 			// apply parameter mappings and compute the request body
 			const bodyData = config.paramMappings.reduce((body, { source, target, type }) => {
 				//
-				const value = args[source as keyof typeof args];
+				const value = parameters[source];
 
 				if (value) {
 					switch (type) {

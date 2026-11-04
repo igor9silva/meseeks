@@ -1,8 +1,8 @@
-import { z } from 'zod/v3';
+import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { asBigInt } from 'lib/money';
 import { newSkillSchema, simplifiedSkillSchema } from 'schemas/skillSchema';
-import { defineSkill, ExecutionResult, ToolExecution } from '../defineSkill';
+import { defineSkill, ExecutionResult } from '../defineSkill';
 import { createConfig, createKnownReactions, ensureInputSchemaIsValid } from './createSkill';
 
 export const updateSkill = defineSkill({
@@ -19,7 +19,7 @@ export const updateSkill = defineSkill({
 		},
 	],
 	use:
-		(execution: ToolExecution) =>
+		(execution) =>
 		async (args): Promise<ExecutionResult> => {
 			//
 			console.debug('updating skill', args.skill);
