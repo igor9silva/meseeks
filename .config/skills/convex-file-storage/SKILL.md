@@ -441,7 +441,7 @@ export default defineSchema({
 
 ## Best Practices
 
-- Never run `npx convex deploy` unless explicitly instructed
+- Follow the production release workflow in `.config/MasterPlan.md`; do not deploy production from this skill
 - Validate file types and sizes on the client before uploading
 - Store file metadata (name, type, size) in your own table
 - Use the `_storage` system table only for Convex metadata

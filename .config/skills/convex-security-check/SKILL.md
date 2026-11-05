@@ -352,7 +352,7 @@ export const _setUserRole = internalMutation({
 
 ## Best Practices
 
-- Never run `npx convex deploy` unless explicitly instructed
+- Follow the production release workflow in `.config/MasterPlan.md`; do not deploy production from this skill
 - Always verify user identity before returning sensitive data
 - Use internal functions for sensitive operations
 - Validate all arguments with strict validators
