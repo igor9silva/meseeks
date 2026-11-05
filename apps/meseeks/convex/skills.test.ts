@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { executeTool, safeValidateTypes } from '@ai-sdk/provider-utils';
 import { tool } from 'ai';
 import { normalizeSkillSchema, zodToString } from 'lib/persistedSkillSchema';
-import { newSkillSchema, skillSchema } from 'schemas/skill';
+import { hardSkillSchema, newSkillSchema, skillSchema } from 'schemas/skill';
 import { userSchema } from 'schemas/userSchema';
 import { skillInputSchema } from 'skills/inputSchema';
 import schema from './schema';
@@ -82,16 +82,19 @@ describe('backup removal', () => {
 
 	test('paginates, preserves every other field and is idempotent', async () => {
 		const t = convexTest(schema, modules);
+		const fixture = hardSkillSchema.parse({
+			...skill,
+			owner: 'isPro',
+			author: 'built-in',
+			config: { ...skill.config, body: { template: { amount: 9007199254740993n } } },
+		});
 		const ids = await t.run(async (ctx) => {
 			const ids = [];
 			for (let i = 0; i < 26; i++) {
 				ids.push(
 					await ctx.db.insert('skills', {
-						...skill,
+						...fixture,
 						key: `skill-${i}`,
-						owner: 'isPro',
-						author: 'built-in',
-						cost: 9007199254740993n,
 						inputSchema: normalizeSkillSchema(inputSchema),
 						legacyInputSchema: original,
 					}),
