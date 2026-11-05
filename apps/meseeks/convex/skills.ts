@@ -14,7 +14,6 @@ import {
 	findSkill,
 	isBuiltInSkillKey,
 	replaceProSkills,
-	removeLegacyInputSchemas,
 	updateSkill,
 } from './skills.private';
 import { _builtInSkills } from 'skills/builtIn/index';
@@ -85,12 +84,6 @@ export const _enableSkill = internalMutation({
 export const _replaceProSkills = internalMutation({
 	args: replaceProSkills.args,
 	handler: replaceProSkills,
-});
-
-// invoked by the release operator before deploying the schema that removes the backup field.
-export const _removeLegacyInputSchemas = internalMutation({
-	args: removeLegacyInputSchemas.args,
-	handler: removeLegacyInputSchemas,
 });
 
 export const findAllPublic = query({
