@@ -249,8 +249,6 @@ export const replaceProSkills = defineMutation({
 			//
 			const converted = bigIntFromJSON(rawSkill);
 			const skill = skillSchema.parse(converted);
-			// catalog imports cannot replace the recovery copy owned by the migration.
-			delete skill.legacyInputSchema;
 			return { ...skill, inputSchema: normalizeSkillSchema(skill.inputSchema) };
 		});
 

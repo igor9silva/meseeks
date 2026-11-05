@@ -62,19 +62,16 @@ const skill = newSkillSchema.parse({
 const original = '{"type":"object","properties":{"value":{"type":"string"}}}';
 
 describe('stored skill schema writes', () => {
-	test('creation and editing normalize schemas and preserve recovery copies', async () => {
+	test('creation and editing normalize schemas', async () => {
 		const t = convexTest(schema, modules);
 		const userId = await t.run((ctx) => ctx.db.insert('users', userSchema.parse({})));
 		const id = await t.run((ctx) => createSkill(ctx, { userId, skill }));
 		const created = await t.run((ctx) => ctx.db.get(id));
 		expect(created?.inputSchema).toBe(normalizeSkillSchema(inputSchema));
-		expect(created?.legacyInputSchema).toBeUndefined();
-		await t.run((ctx) => ctx.db.patch(id, { legacyInputSchema: original }));
 		await t.run((ctx) => updateSkill(ctx, { userId, skill: { ...skill, description: 'edited' } }));
 		const edited = await t.run((ctx) => ctx.db.get(id));
 		expect(edited?.description).toBe('edited');
 		expect(edited?.inputSchema).toBe(normalizeSkillSchema(inputSchema));
-		expect(edited?.legacyInputSchema).toBe(original);
 	});
 
 	test('rejects legacy or invalid writes without changing existing documents', async () => {
@@ -85,7 +82,6 @@ describe('stored skill schema writes', () => {
 				...skill,
 				owner: userId,
 				author: userId,
-				legacyInputSchema: original,
 				inputSchema: normalizeSkillSchema(inputSchema),
 			}),
 		);
@@ -113,23 +109,18 @@ describe('stored skill schema writes', () => {
 		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(10))).toEqual([before]);
 	});
 
-	test('catalog imports normalize schemas but cannot insert or overwrite recovery copies', async () => {
+	test('catalog imports normalize schemas atomically', async () => {
 		const t = convexTest(schema, modules);
 		const catalog = skillSchema.parse({ ...skill, owner: 'isPro', author: 'built-in' });
-		const id = await t.run((ctx) => ctx.db.insert('skills', { ...catalog, legacyInputSchema: original }));
+		const id = await t.run((ctx) => ctx.db.insert('skills', catalog));
 		await t.run((ctx) =>
 			replaceProSkills(ctx, {
-				skills: [
-					{ ...catalog, legacyInputSchema: 'incoming' },
-					{ ...catalog, key: 'new-catalog-skill', legacyInputSchema: 'incoming' },
-				],
+				skills: [catalog, { ...catalog, key: 'new-catalog-skill' }],
 			}),
 		);
 		const existing = await t.run((ctx) => ctx.db.get(id));
 		const created = await t.run((ctx) => findSkillByOwner(ctx, { owner: 'isPro', key: 'new-catalog-skill' }));
-		expect(existing?.legacyInputSchema).toBe(original);
 		expect(existing?.inputSchema).toBe(normalizeSkillSchema(inputSchema));
-		expect(created?.legacyInputSchema).toBeUndefined();
 		expect(created?.inputSchema).toBe(normalizeSkillSchema(inputSchema));
 		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(10));
 		await expect(

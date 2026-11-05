@@ -413,7 +413,9 @@ One file per hook in `src/hooks/`.
   - good: search route generation, direct links, analytics, API usage, and docs before removing it
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
-- Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
+- Once a migration is verified and its cleanup is requested, remove its temporary fields, backup copies, preservation logic and runners. Do not retain migration artifacts indefinitely without a concrete reason agreed with Igor. Sequence data cleanup before schema removal, and keep production execution subject to explicit approval.
+  - bad: finish a migration cleanup while retaining unused backup fields as an unspecified future task
+  - good: rehearse data cleanup in the PR Preview, remove all temporary code from the final change, and state the production step still awaiting approval
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
 - Avoid unnecessary layers. Wrappers must perform real work. Compatibility re-export files and aliases that only rename an existing schema/value are forbidden; update consumers to import the original export from its owning module.
   - bad: keep `old.ts` containing only `export { serialize } from './current'` after moving the implementation
