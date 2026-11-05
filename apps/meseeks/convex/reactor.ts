@@ -6,7 +6,7 @@ import { internalAction, internalMutation, internalQuery } from 'lib/convex';
 import { NotFound } from 'lib/errors';
 import { asDollars } from 'lib/money';
 import { newActionSchema, resolvedActionStatusSchema } from 'schemas/actionSchema';
-import { builtInSkillSchema } from 'schemas/skillSchema';
+import { builtInSkillSchema } from 'schemas/skill';
 import { tokenSchema } from 'schemas/topUpSchema';
 import {
 	addActions,

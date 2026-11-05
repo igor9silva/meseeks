@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { convertLegacySkillSchema } from './legacySkillSchema';
 import {
 	bigintCodec,
 	bigintOptionsSchema,
@@ -72,10 +71,6 @@ export function stringToZod(schema: string): z.ZodType {
 	return fromSkillJsonSchema(readSkillSchema(schema));
 }
 
-export function isCurrentSkillSchema(schema: string) {
-	return jsonObject.parse(JSON.parse(schema))[schemaVersionKey] === schemaVersion;
-}
-
 export function normalizeSkillSchema(schema: string) {
 	//
 	const json = readSkillSchema(schema);
@@ -103,10 +98,9 @@ export function readSkillSchema(schema: string): z.core.JSONSchema.JSONSchema {
 	const version = parsed[schemaVersionKey];
 	if (version !== undefined && version !== schemaVersion)
 		throw new Error(`Unsupported skill schema version: ${version}`);
-	// unmarked documents are zodex. new json schemas identify their dialect explicitly.
-	const document: z.core.JSONSchema.JSONSchema =
-		version !== undefined || '$schema' in parsed ? parsed : convertLegacySkillSchema(parsed);
-	const json = explicitConjunctions(document);
+	if (version === undefined && !('$schema' in parsed))
+		throw new Error('Skill schemas must declare $schema or x-meseeks-schema-version');
+	const json = explicitConjunctions(parsed);
 	validateSkillSchema(json);
 	return {
 		...json,

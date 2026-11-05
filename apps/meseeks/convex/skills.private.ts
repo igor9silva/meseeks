@@ -4,15 +4,14 @@ import { defineMutation, defineQuery } from 'lib/convex';
 import { bigIntFromJSON } from 'lib/bigintJson';
 import { NotFound } from 'lib/errors';
 import { isString } from 'lib/guards';
-import { normalizeSkillSchema, zodToString } from 'lib/zodToString';
-import { prepareSkillSchemaMigration } from 'lib/skillSchemaMigration';
+import { normalizeSkillSchema, zodToString } from 'lib/persistedSkillSchema';
 import {
 	builtInSkillSchema,
 	newSkillSchema,
 	simplifiedSkillKindSchema,
 	skillOwnerSchema,
 	skillSchema,
-} from 'schemas/skillSchema';
+} from 'schemas/skill';
 import { _builtInSkills } from 'skills/builtIn/index';
 import { getCurrentUser } from './users.private';
 
@@ -190,17 +189,6 @@ export const createSkill = defineMutation({
 			owner: userId,
 			author: userId,
 		});
-	},
-});
-
-export const migrateInputSchema = defineMutation({
-	args: z.object({ skillId: zid('skills') }),
-	handler: async (ctx, { skillId }) => {
-		// re-read inside the migration transaction so concurrent edits are never overwritten.
-		const skill = await ctx.db.get(skillId);
-		if (!skill) return;
-		const patch = prepareSkillSchemaMigration(skill);
-		if (patch) await ctx.db.patch(skillId, patch);
 	},
 });
 

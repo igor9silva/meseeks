@@ -1,6 +1,6 @@
 import { jsonSchema } from 'ai';
 import { z } from 'zod';
-import { readSkillSchema } from 'lib/zodToString';
+import { readSkillSchema } from 'lib/persistedSkillSchema';
 import { explicitConjunctions, fromSkillJsonSchema, toSkillJsonSchema } from 'lib/skillJsonSchema';
 
 export function skillInputSchema(source: string | z.ZodType) {

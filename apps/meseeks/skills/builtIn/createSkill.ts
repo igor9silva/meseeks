@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
 import { asBigInt } from 'lib/money';
-import { stringToZod } from 'lib/zodToString';
-import { decisionConfigSchema, httpConfigSchema, newSkillSchema, simplifiedSkillSchema } from 'schemas/skillSchema';
+import { stringToZod } from 'lib/persistedSkillSchema';
+import { decisionConfigSchema, httpConfigSchema, newSkillSchema, simplifiedSkillSchema } from 'schemas/skill';
 import { defineSkill, ExecutionResult } from '../defineSkill';
 
 const DEFAULT_PRE_APPROVED_COST = asBigInt({ dollars: 0.2 });

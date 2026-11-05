@@ -45,6 +45,13 @@ export function getPreviewName(args: string[]) {
 	const explicit = readArg(args, '--branch') ?? readArg(args, '--preview-name');
 	if (explicit) return normalizePreviewName(explicit);
 
+	if (process.env.VERCEL === '1') {
+		// vercel's checkout can report master; only its deployment metadata identifies the PR branch.
+		const branch = process.env.VERCEL_GIT_COMMIT_REF?.trim();
+		if (!branch) throw new Error('Missing VERCEL_GIT_COMMIT_REF. Pass --branch <branch-name>.');
+		return normalizePreviewName(branch);
+	}
+
 	const branch = runCapture('git', ['branch', '--show-current']).trim();
 	if (branch) return normalizePreviewName(branch);
 

@@ -1,6 +1,6 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
+import { skillCallSchema } from './skill';
 import { authorSchema } from './authorSchema';
 
 export const timeZoneSchema = z
@@ -9,12 +9,10 @@ export const timeZoneSchema = z
 		'Timezone using the IANA Time Zone Database format. e.g. `America/New_York`, `Europe/Paris`, `Asia/Tokyo`.',
 	);
 
-const coreScheduleSchema = z.object({
+const coreScheduleSchema = skillCallSchema.extend({
 	taskId: zid('tasks'),
 	owner: zid('users'),
 	author: authorSchema,
-	skillKey: z.string().describe('The skill to execute when scheduled'),
-	args: z.record(z.string(), convexValueSchema).describe('Arguments to pass to the skill'),
 	timeZone: timeZoneSchema,
 	lastRunAt: z.number().optional().describe('Timestamp of last execution'),
 	nextRunAt: z.number().describe('Timestamp of next scheduled execution'),
@@ -37,13 +35,13 @@ export const scheduleSchema = z.union([
 ]);
 
 // Separate schemas for new schedule creation (without computed fields)
-const newCoreScheduleSchema = z.object({
-	taskId: zid('tasks'),
-	owner: zid('users'),
-	author: authorSchema,
-	skillKey: z.string().describe('The skill to execute when scheduled'),
-	args: z.record(z.string(), convexValueSchema).describe('Arguments to pass to the skill'),
-	timeZone: timeZoneSchema,
+const newCoreScheduleSchema = coreScheduleSchema.pick({
+	taskId: true,
+	owner: true,
+	author: true,
+	skillKey: true,
+	args: true,
+	timeZone: true,
 });
 
 export const newOneTimeScheduleSchema = newCoreScheduleSchema.extend({

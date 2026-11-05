@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { internal } from 'convex/_generated/api';
-import { skillSchema } from 'schemas/skillSchema';
+import { skillSchema } from 'schemas/skill';
 import { asDollars } from 'lib/money';
 import { defineSkill, ExecutionResult } from '../defineSkill';
 

@@ -1,21 +1,32 @@
 [
 	{
 		"name": "strip and defaults",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"query": {
 					"type": "string",
-					"min": 1
+					"minLength": 1
 				},
 				"page": {
-					"type": "number",
-					"int": true,
-					"min": 1,
-					"minInclusive": true,
-					"defaultValue": 1
+					"default": 1,
+					"x-zod-prefault": true,
+					"allOf": [
+						{
+							"type": "number",
+							"minimum": 1
+						},
+						{
+							"type": "number",
+							"multipleOf": 1
+						}
+					]
 				}
-			}
+			},
+			"required": ["query"],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -57,14 +68,17 @@
 	},
 	{
 		"name": "strict",
-		"legacy": {
+		"schema": {
 			"type": "object",
-			"unknownKeys": "strict",
 			"properties": {
 				"value": {
 					"type": "string"
 				}
-			}
+			},
+			"required": ["value"],
+			"additionalProperties": false,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -91,14 +105,17 @@
 	},
 	{
 		"name": "passthrough",
-		"legacy": {
+		"schema": {
 			"type": "object",
-			"unknownKeys": "passthrough",
 			"properties": {
 				"value": {
 					"type": "string"
 				}
-			}
+			},
+			"required": ["value"],
+			"additionalProperties": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -120,16 +137,19 @@
 	},
 	{
 		"name": "catchall",
-		"legacy": {
+		"schema": {
 			"type": "object",
-			"catchall": {
-				"type": "number"
-			},
 			"properties": {
 				"value": {
 					"type": "string"
 				}
-			}
+			},
+			"required": ["value"],
+			"additionalProperties": {
+				"type": "number"
+			},
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -154,11 +174,17 @@
 	},
 	{
 		"name": "bigint bounds",
-		"legacy": {
-			"type": "bigInt",
-			"min": "9007199254740992",
-			"max": "9007199254741000",
-			"multipleOf": "3"
+		"schema": {
+			"type": "string",
+			"pattern": "^-?(0|[1-9][0-9]*)$",
+			"x-codec": "bigint-decimal-v1",
+			"x-bigint": {
+				"exclusiveMinimum": "9007199254740992",
+				"exclusiveMaximum": "9007199254741000",
+				"multipleOf": ["3"]
+			},
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -192,16 +218,24 @@
 	},
 	{
 		"name": "bigint default",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"value": {
-					"type": "bigInt",
-					"min": "0",
-					"minInclusive": true,
-					"defaultValue": "2"
+					"type": "string",
+					"pattern": "^-?(0|[1-9][0-9]*)$",
+					"x-codec": "bigint-decimal-v1",
+					"x-bigint": {
+						"minimum": "0"
+					},
+					"default": "2",
+					"x-zod-prefault": true
 				}
-			}
+			},
+			"required": [],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -238,10 +272,22 @@
 	},
 	{
 		"name": "nullable bigint default",
-		"legacy": {
-			"type": "bigInt",
-			"defaultValue": "2",
-			"isNullable": true
+		"schema": {
+			"anyOf": [
+				{
+					"type": "string",
+					"pattern": "^-?(0|[1-9][0-9]*)$",
+					"x-codec": "bigint-decimal-v1",
+					"x-bigint": {}
+				},
+				{
+					"type": "null"
+				}
+			],
+			"default": "2",
+			"x-zod-prefault": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -271,15 +317,20 @@
 	},
 	{
 		"name": "optional default",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"value": {
 					"type": "string",
-					"defaultValue": "x",
-					"isOptional": true
+					"default": "x",
+					"x-zod-prefault": true,
+					"x-zod-optional": true
 				}
-			}
+			},
+			"required": [],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -313,10 +364,13 @@
 	},
 	{
 		"name": "invalid default",
-		"legacy": {
+		"schema": {
 			"type": "string",
-			"min": 3,
-			"defaultValue": "x"
+			"minLength": 3,
+			"default": "x",
+			"x-zod-prefault": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -338,7 +392,7 @@
 	},
 	{
 		"name": "nested default",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"value": {
@@ -348,12 +402,19 @@
 							"type": "string"
 						}
 					},
-					"defaultValue": {
+					"required": ["name"],
+					"x-zod-strip": true,
+					"default": {
 						"name": "x",
 						"extra": true
-					}
+					},
+					"x-zod-prefault": true
 				}
-			}
+			},
+			"required": [],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -383,13 +444,15 @@
 	},
 	{
 		"name": "array bounds",
-		"legacy": {
+		"schema": {
 			"type": "array",
-			"element": {
+			"items": {
 				"type": "string"
 			},
-			"minLength": 1,
-			"maxLength": 2
+			"minItems": 1,
+			"maxItems": 2,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -413,17 +476,22 @@
 	},
 	{
 		"name": "tuple",
-		"legacy": {
-			"type": "tuple",
-			"items": [
+		"schema": {
+			"type": "array",
+			"prefixItems": [
 				{
 					"type": "string"
 				},
 				{
 					"type": "number",
-					"isOptional": true
+					"x-zod-optional": true
 				}
-			]
+			],
+			"minItems": 2,
+			"x-zod-tuple-length": 2,
+			"maxItems": 2,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -458,16 +526,20 @@
 	},
 	{
 		"name": "tuple rest",
-		"legacy": {
-			"type": "tuple",
-			"items": [
+		"schema": {
+			"type": "array",
+			"prefixItems": [
 				{
 					"type": "string"
 				}
 			],
-			"rest": {
+			"minItems": 1,
+			"x-zod-tuple-length": 1,
+			"items": {
 				"type": "number"
-			}
+			},
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -488,15 +560,20 @@
 	},
 	{
 		"name": "record enum keys",
-		"legacy": {
-			"type": "record",
-			"key": {
-				"type": "enum",
-				"values": ["a", "b"]
+		"schema": {
+			"type": "object",
+			"propertyNames": {
+				"type": "string",
+				"enum": ["a", "b"]
 			},
-			"value": {
-				"type": "bigInt"
-			}
+			"additionalProperties": {
+				"type": "string",
+				"pattern": "^-?(0|[1-9][0-9]*)$",
+				"x-codec": "bigint-decimal-v1",
+				"x-bigint": {}
+			},
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -548,34 +625,37 @@
 	},
 	{
 		"name": "union",
-		"legacy": {
-			"type": "union",
-			"options": [
+		"schema": {
+			"anyOf": [
 				{
 					"type": "object",
 					"properties": {
 						"kind": {
-							"type": "literal",
-							"value": "n"
+							"const": "n"
 						},
 						"value": {
 							"type": "number"
 						}
-					}
+					},
+					"required": ["kind", "value"],
+					"x-zod-strip": true
 				},
 				{
 					"type": "object",
 					"properties": {
 						"kind": {
-							"type": "literal",
-							"value": "s"
+							"const": "s"
 						},
 						"value": {
 							"type": "string"
 						}
-					}
+					},
+					"required": ["kind", "value"],
+					"x-zod-strip": true
 				}
-			]
+			],
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -612,12 +692,14 @@
 	},
 	{
 		"name": "readonly",
-		"legacy": {
+		"schema": {
 			"type": "array",
-			"element": {
+			"items": {
 				"type": "string"
 			},
-			"readonly": true
+			"x-zod-readonly": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -638,13 +720,29 @@
 	},
 	{
 		"name": "string boundaries",
-		"legacy": {
-			"type": "string",
-			"min": 3,
-			"max": 9,
-			"startsWith": "ab",
-			"endsWith": "z",
-			"includes": "c"
+		"schema": {
+			"allOf": [
+				{
+					"type": "string",
+					"minLength": 3,
+					"maxLength": 9,
+					"format": "includes"
+				},
+				{
+					"pattern": "^ab.*",
+					"type": "string"
+				},
+				{
+					"pattern": ".*z$",
+					"type": "string"
+				},
+				{
+					"pattern": "c",
+					"type": "string"
+				}
+			],
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -668,9 +766,11 @@
 	},
 	{
 		"name": "uuid",
-		"legacy": {
+		"schema": {
 			"type": "string",
-			"kind": "uuid"
+			"pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -696,9 +796,12 @@
 	},
 	{
 		"name": "email",
-		"legacy": {
+		"schema": {
 			"type": "string",
-			"kind": "email"
+			"format": "email",
+			"pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -728,17 +831,21 @@
 	},
 	{
 		"name": "unknown default data",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"value": {
-					"type": "unknown",
-					"defaultValue": {
+					"default": {
 						"type": "literal",
 						"value": "data"
-					}
+					},
+					"x-zod-prefault": true
 				}
-			}
+			},
+			"required": [],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{
@@ -770,7 +877,7 @@
 	},
 	{
 		"name": "redundant hybrid required",
-		"legacy": {
+		"schema": {
 			"type": "object",
 			"properties": {
 				"title": {
@@ -781,12 +888,15 @@
 				},
 				"limit": {
 					"type": "number",
-					"isOptional": true,
-					"min": 0,
-					"max": 10
+					"exclusiveMinimum": 0,
+					"exclusiveMaximum": 10,
+					"x-zod-optional": true
 				}
 			},
-			"required": ["count", "title"]
+			"required": ["title", "count"],
+			"x-zod-strip": true,
+			"x-meseeks-schema-version": 1,
+			"$schema": "https://json-schema.org/draft/2020-12/schema"
 		},
 		"cases": [
 			{

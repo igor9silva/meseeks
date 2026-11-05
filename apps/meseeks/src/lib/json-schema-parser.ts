@@ -1,4 +1,4 @@
-import { readSkillSchema } from 'lib/zodToString';
+import { readSkillSchema } from 'lib/persistedSkillSchema';
 import { bigintCodec, bigintOptionsSchema } from 'lib/skillJsonSchema';
 
 export interface SchemaProperty {

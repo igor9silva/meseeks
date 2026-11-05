@@ -25,6 +25,8 @@ export function bigintJsonSchema(options: z.infer<typeof bigintOptionsSchema> = 
 
 export function toSkillJsonSchema(schema: z.ZodType) {
 	//
+	// bigint checks and hydration below depend on zod's schema definitions; verify them on upgrades.
+	// regression coverage: skills/inputSchema.test.ts and lib/persistedSkillSchema.test.ts.
 	const json = z.toJSONSchema(schema, {
 		io: 'input',
 		unrepresentable: ({ zodSchema }) => {
@@ -63,7 +65,7 @@ export function toSkillJsonSchema(schema: z.ZodType) {
 			return 'throw';
 		},
 		override: ({ zodSchema, jsonSchema }) => {
-			// json schema has no equivalent for zod's "accept then strip" policy.
+			// json schema has no equivalent for zod's "accept then strip" policy (persistedSkillSchema.test.ts).
 			if (zodSchema instanceof z.ZodObject && !zodSchema.def.catchall) jsonSchema['x-zod-strip'] = true;
 		},
 	});
@@ -144,7 +146,7 @@ export function fromSkillJsonSchema(json: z.core.JSONSchema.JSONSchema): z.ZodTy
 			result = z.union([domain.refine((value) => wire.safeParse(String(value)).success), codec]);
 		}
 		if (node instanceof z.ZodDefault) {
-			// zod 3 parsed defaults; zod 4 returns the output-side value directly.
+			// zod 3 parsed defaults; zod 4 returns output directly (persistedSkillSchema.test.ts).
 			if (metadata['x-zod-prefault'] === true) result = result.prefault(node.def.defaultValue);
 			else result = result.default(decodeDefault(node, node.def.defaultValue));
 		}
@@ -195,7 +197,7 @@ export function fromSkillJsonSchema(json: z.core.JSONSchema.JSONSchema): z.ZodTy
 	return hydrate(native);
 }
 
-// the native importer replaces base constraints when it encounters allOf. make each operand explicit.
+// the native importer replaces base constraints for allOf; keep operands explicit (inputSchema.test.ts).
 export function explicitConjunctions(schema: z.core.JSONSchema.JSONSchema): z.core.JSONSchema.JSONSchema {
 	//
 	function visit(input: z.core.JSONSchema._JSONSchema): z.core.JSONSchema._JSONSchema {
@@ -203,7 +205,7 @@ export function explicitConjunctions(schema: z.core.JSONSchema.JSONSchema): z.co
 		return explicitConjunctions(input);
 	}
 	const node = { ...schema };
-	// the native importer applies array bounds only when an item schema is present.
+	// native array bounds need items, including unconstrained items (inputSchema.test.ts).
 	if (node.type === 'array' && node.items === undefined && node.prefixItems === undefined) node.items = {};
 	if (node.definitions !== undefined) {
 		const definitions = z.record(z.string(), z.record(z.string(), z.unknown())).parse(node.definitions);

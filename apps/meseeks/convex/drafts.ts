@@ -2,7 +2,7 @@ import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { mutation, query } from 'lib/convex';
 import { clearDraft, findDraft, saveDraft } from './drafts.private';
-import { draftQueueItemSchema } from 'schemas/draftSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { getCurrentUser } from './users.private';
 
 export const findOne = query({
@@ -19,7 +19,7 @@ export const findOne = query({
 export const save = mutation({
 	args: {
 		taskId: zid('tasks'),
-		queue: z.array(draftQueueItemSchema),
+		queue: z.array(skillCallSchema),
 		message: z.string(),
 	},
 	handler: async (ctx, { taskId, queue, message }) => {

@@ -1,7 +1,7 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
+import { convexObjectSchema, convexValueSchema } from './convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
-import { skillKindSchema } from './skillSchema';
+import { skillCallSchema, skillKindSchema } from './skill';
 
 const httpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH']);
 const httpStatusCodeSchema = z.number().min(100).max(599);
@@ -9,7 +9,7 @@ const bodySizeSchema = z.number().min(0);
 
 const toolCallSchema = z.object({
 	toolName: z.string(),
-	input: z.record(z.string(), convexValueSchema),
+	input: skillCallSchema.shape.args,
 });
 
 const temperatureSchema = z.number().min(0).max(2).describe('Temperature setting for model randomness (0-2)');
@@ -124,10 +124,7 @@ const llmActionDetailSchema = baseActionDetailSchema
 				// warnings and metadata (preserved as-is for debugging)
 				warnings: z.array(convexValueSchema).optional().describe('AI SDK warnings (can be complex objects)'),
 
-				providerMetadata: z
-					.record(z.string(), convexValueSchema)
-					.optional()
-					.describe('Provider-specific metadata for debugging'),
+				providerMetadata: convexObjectSchema.optional().describe('Provider-specific metadata for debugging'),
 			})
 			.describe('Comprehensive LLM execution details including model config, context, and results'),
 	})
@@ -137,13 +134,13 @@ export const actionDetailSchema = z
 	.union([httpActionDetailSchema, llmActionDetailSchema])
 	.describe('Complete action execution details for debugging and transparency');
 
-const llmUpdateFields = z.object({
-	finishReason: z.string().optional(),
-	text: z.string().optional(),
-	toolCalls: z.array(toolCallSchema).optional(),
-	usage: tokenUsageSchema.optional(),
-	warnings: z.array(convexValueSchema).optional(),
-	providerMetadata: z.record(z.string(), convexValueSchema).optional(),
+const llmUpdateFields = llmActionDetailSchema.shape.llm.pick({
+	finishReason: true,
+	text: true,
+	toolCalls: true,
+	usage: true,
+	warnings: true,
+	providerMetadata: true,
 });
 
 const httpUpdateFields = z.object({

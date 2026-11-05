@@ -1,4 +1,4 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
+import { convexObjectSchema } from './convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 
@@ -37,5 +37,5 @@ export const userRequestSchema = z.object({
 	owner: zid('users'),
 	key: userRequestKeySchema,
 	message: z.string().min(1).max(1000),
-	context: z.record(z.string(), convexValueSchema).optional(),
+	context: convexObjectSchema.optional(),
 });

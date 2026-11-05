@@ -13,7 +13,7 @@ Act on the task. Do not stop at planning unless a blocker makes execution unsafe
 2. If Organizer provided task key/source/path context, use that exact task.
 3. Read the target task file in full.
 4. Read nearby context that changes execution: parent `_index.*`, child tasks, linked references, sibling duplicates, repo files named by the task, and relevant source metadata.
-5. Check the current git state before editing. Respect staged/user changes and never stage or commit unless Igor explicitly asks.
+5. Check the current git state before editing. Preserve staged/user changes and follow MasterPlan for Git and release authorization.
 
 ## Decide
 

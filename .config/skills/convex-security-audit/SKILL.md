@@ -515,7 +515,6 @@ export const getAuditLogs = query({
 ## Best Practices
 
 - Never run `npx convex deploy` unless explicitly instructed
-- Never run any git commands unless explicitly instructed
 - Implement defense in depth (multiple security layers)
 - Log all sensitive operations for audit trails
 - Use confirmation codes for destructive actions

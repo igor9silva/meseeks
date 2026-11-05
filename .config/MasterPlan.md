@@ -233,9 +233,16 @@ Always use Zod for any kind of validation.
 
 ## Convex Backend
 
-### CRITICAL: Never deploy directly to production
+### CRITICAL: Production releases require explicit approval
 
-Do not run `bunx convex deploy` - this deploys to production.
+Never publish production manually without Igor explicitly authorizing that release. Use the app-installed Convex CLI; a request to continue PR work does not authorize a production deploy.
+
+### PR environments
+
+- Use the PR's Preview for implementation checks and migration rehearsals. Do not deploy to, migrate, or reconfigure shared DEV as part of PR work, or make DEV readiness a prerequisite for completing the PR.
+  - bad: overwrite DEV to validate a PR because its database contains older records
+  - good: validate the PR in its Preview; production rollout remains a separate, explicitly authorized action
+- Use Vercel CLI/MCP for Vercel operations. Do not use Igor's personal Chrome or ask him to sign in there to unblock deployment automation.
 
 ### File Structure
 
@@ -366,13 +373,15 @@ One file per hook in `src/hooks/`.
 ## Making Changes
 
 - Every line of code has a maintenance cost. Crush unnecessary complexity.
+- Never merge into `main` without Igor explicitly authorizing that exact merge. This includes squash, rebase, auto-merge, and any equivalent update to `main`. Permission to implement, commit, push, open/update a PR, or continue a rollout does not authorize a merge.
+  - bad: merge a green PR after Igor says "continue the work" or "finish the rollout"
+  - good: leave the PR ready for review; merge only after Igor explicitly says to merge it
 - If the requested change, cleanup, check, or task is already satisfied, say so and stop. Do not invent adjacent work just to make a diff.
   - bad: user asks to add a rule that already exists, and the assistant rewrites nearby rules anyway
   - good: verify the rule exists, report where it lives, and leave the tree untouched
-- Git index and commit history are user-owned. Do not run `git add`, `git restore --staged`, `git reset`, commit, amend, or otherwise change staged state unless the user explicitly asks for that exact git action.
-  - bad: user says "one last review pass and we commit", and the assistant runs `git commit`
-  - good: review the staged snapshot, say whether it is ready to commit, and let the user commit
-  - good: only commit when the user explicitly says "commit it", "run git commit", "create the commit", or gives an equally direct instruction
+- Stage, commit, push, create/update PRs and validate their Previews are standing-authorized for the requested work. Do not ask again for these steps. Preserve user-owned staged work and unrelated changes; this authorization does not include rewriting history or discarding work.
+  - bad: stop a completed implementation to ask permission to commit, push and open its PR
+  - good: publish the reviewable PR and validate its Preview; ask before merging into `main` or publishing production manually
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
@@ -406,9 +415,11 @@ One file per hook in `src/hooks/`.
 - For "update/rebase from main" requests, point to local `main`, not origin/main
 - Once a migration is fully run in all environments, prefer deleting the migration code and runner instead of rewriting it into a no-op (in case of type issues, otherwise keep the migration code and runner)
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
-- Avoid unnecessary layers. Only add wrappers or indirection if they do real work or are truly needed.
-  - bad: pointless config/function wrappers that just forward calls
-  - good: direct, honest factories with clear purpose
+- Avoid unnecessary layers. Wrappers must perform real work. Compatibility re-export files and aliases that only rename an existing schema/value are forbidden; update consumers to import the original export from its owning module.
+  - bad: keep `old.ts` containing only `export { serialize } from './current'` after moving the implementation
+  - good: update callers to import `serialize` directly from `./current` and delete `old.ts`
+  - bad: `export const draftQueueItemSchema = skillCallSchema`
+  - good: import and use `skillCallSchema` directly wherever that contract applies
 - Before changing an existing workaround patch or local tooling fix, read why it exists and confirm the current task actually requires touching it. If not, leave it alone.
   - bad: rewrite an existing `patches/*.patch` workaround because a migration regenerated files nearby
   - good: read the existing patch rationale first and only touch it when the task genuinely depends on changing that workaround

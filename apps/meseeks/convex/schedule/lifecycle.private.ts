@@ -1,4 +1,3 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import { Id } from '../_generated/dataModel';
@@ -8,16 +7,15 @@ import { internal } from '../_generated/api';
 import { defineMutation } from 'lib/convex';
 import { computeNextRun } from 'lib/cron';
 import { authorSchema } from 'schemas/authorSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { updateScheduleJobId, updateScheduleLastRun } from '../schedules.private';
 
 export const executeOneTime = defineMutation({
-	args: z.object({
+	args: skillCallSchema.extend({
 		scheduleId: zid('schedules'),
 		taskId: zid('tasks'),
 		owner: zid('users'),
 		author: authorSchema,
-		skillKey: z.string(),
-		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 	}),
 	handler: async (ctx, { scheduleId, taskId, owner, author, skillKey, args, depth }) => {
@@ -36,13 +34,11 @@ export const executeOneTime = defineMutation({
 });
 
 export const executeRecurring = defineMutation({
-	args: z.object({
+	args: skillCallSchema.extend({
 		scheduleId: zid('schedules'),
 		taskId: zid('tasks'),
 		owner: zid('users'),
 		author: authorSchema,
-		skillKey: z.string(),
-		args: z.record(z.string(), convexValueSchema),
 		depth: z.number(),
 		cronExpression: z.string(),
 		timeZone: z.string(),

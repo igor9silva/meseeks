@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { Doc } from 'convex/_generated/dataModel';
 import type { ActionCtx, MutationCtx } from 'convex/_generated/server';
 import type { MagicRockContext } from 'convex/magicRock.private';
-import type { skillSchema } from 'schemas/skillSchema';
+import type { skillSchema } from 'schemas/skill';
 import { _builtInSkills } from './builtIn/index';
 import { createAITool } from './createAITool';
 import { createBuiltInTool } from './createBuiltInTool';

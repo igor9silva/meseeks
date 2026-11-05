@@ -6,7 +6,7 @@ import { componentSchema } from 'schemas/componentSchema';
 import { draftSchema } from 'schemas/draftSchema';
 import { polarEventSchema } from 'schemas/polarEventSchema';
 import { scheduleSchema } from 'schemas/scheduleSchema';
-import { skillSchema } from 'schemas/skillSchema';
+import { skillSchema } from 'schemas/skill';
 import { subscriptionSchema } from 'schemas/subscriptionSchema';
 import { taskSchema } from 'schemas/taskSchema';
 import { topUpSchema } from 'schemas/topUpSchema';

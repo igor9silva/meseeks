@@ -1,7 +1,7 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { z } from 'zod';
 import { Doc } from 'convex/_generated/dataModel';
 import { ActionCtx, MutationCtx } from 'convex/_generated/server';
+import { reactionSchema } from 'schemas/skill';
 
 export type Skill<T extends z.ZodObject> = {
 	preApprovedCost: bigint | 'none';
@@ -20,11 +20,6 @@ export type ToolExecution<T extends z.ZodObject = z.ZodObject> = {
 	skill: Skill<T>;
 };
 
-export const reactionSchema = z.object({
-	skillKey: z.string(),
-	args: z.record(z.string(), convexValueSchema),
-	condition: z.enum(['owner', 'companion', 'any']).optional(),
-});
 export type Reaction = z.infer<typeof reactionSchema>;
 
 export const executionResultSchema = z.object({

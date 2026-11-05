@@ -1,4 +1,3 @@
-import { convexValueSchema } from 'schemas/convexValueSchema';
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
 import type { Doc, Id } from './_generated/dataModel';
@@ -8,6 +7,7 @@ import { InsufficientAccountFunds, NotFound } from 'lib/errors';
 import { asBigInt, asDollars } from 'lib/money';
 import { cancelTaskSchedules } from './schedules.private';
 import { authorSchema } from 'schemas/authorSchema';
+import { skillCallSchema } from 'schemas/skill';
 import { intelligenceKeys } from 'schemas/intelligenceSchema';
 import { taskStatusSchema } from 'schemas/taskSchema';
 import { findEnabledSkillsWithDetails } from './skills.private';
@@ -211,12 +211,7 @@ export const addTaskWithActions = defineMutation({
 		instructions: z.string().optional(),
 		parentId: zid('tasks').optional(),
 		preferredIntelligence: intelligenceKeys.optional(),
-		skills: z.array(
-			z.object({
-				skillKey: z.string().describe('The key of the skill to use'),
-				args: z.record(z.string(), convexValueSchema),
-			}),
-		),
+		skills: z.array(skillCallSchema),
 	}),
 	handler: async (ctx, { author, owner, title, instructions, parentId, preferredIntelligence, skills }) => {
 		//
