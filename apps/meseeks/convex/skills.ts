@@ -1,6 +1,7 @@
 import { zid } from 'convex-helpers/server/zod4';
 import { z } from 'zod';
-import { internalMutation, internalQuery, mutation, query } from 'lib/convex';
+import { internalAction, internalMutation, internalQuery, mutation, query } from 'lib/convex';
+import { internal } from './_generated/api';
 import { NotFound } from 'lib/errors';
 import { newSkillSchema, simplifiedSkillKindSchema } from 'schemas/skill';
 import {
@@ -14,6 +15,7 @@ import {
 	findSkill,
 	isBuiltInSkillKey,
 	replaceProSkills,
+	removeLegacyInputSchemas,
 	updateSkill,
 } from './skills.private';
 import { _builtInSkills } from 'skills/builtIn/index';
@@ -84,6 +86,58 @@ export const _enableSkill = internalMutation({
 export const _replaceProSkills = internalMutation({
 	args: replaceProSkills.args,
 	handler: replaceProSkills,
+});
+
+// called by the deployment cleanup action so each batch has its own transaction.
+export const _removeLegacyInputSchemas = internalMutation({
+	args: removeLegacyInputSchemas.args,
+	returns: z.object({
+		isDone: z.boolean(),
+		continueCursor: z.string(),
+		scanned: z.number(),
+		eligible: z.number(),
+		removed: z.number(),
+	}),
+	handler: removeLegacyInputSchemas,
+});
+
+// the deploy pipeline waits for all pages before reporting success; no scheduled work is left behind.
+export const _cleanupInputSchemaBackups = internalAction({
+	args: { dryRun: z.boolean().default(true) },
+	returns: z.null(),
+	handler: async (ctx, { dryRun }): Promise<null> => {
+		//
+		const visit = async (dryRun: boolean) => {
+			//
+			let cursor: string | null = null;
+			let scanned = 0;
+			let eligible = 0;
+			let removed = 0;
+			for (;;) {
+				// pin this API result to the helper to break the generated function-reference type cycle.
+				const batch: Awaited<ReturnType<typeof removeLegacyInputSchemas>> = await ctx.runMutation(
+					internal.skills._removeLegacyInputSchemas,
+					{ cursor, dryRun },
+				);
+				scanned += batch.scanned;
+				eligible += batch.eligible;
+				removed += batch.removed;
+				if (batch.isDone) return { scanned, eligible, removed };
+				cursor = batch.continueCursor;
+			}
+		};
+
+		// finish the complete audit before the first write, including schemas on later pages.
+		const audit = await visit(true);
+		console.info('Skill schema backup audit', audit);
+		if (dryRun) return null;
+
+		const cleanup = await visit(false);
+		const verification = await visit(true);
+		if (verification.eligible !== 0) throw new Error('Skill schema backups remain after cleanup');
+		console.info('Skill schema backup cleanup complete', { ...cleanup, remaining: verification.eligible });
+		return null;
+	},
 });
 
 export const findAllPublic = query({

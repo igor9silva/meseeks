@@ -12,7 +12,7 @@
 		"dev:db": "convex dev",
 		"dev:web": "vite dev --port 3000",
 		"build": "vite build",
-		"deploy": "bun run test:schemas && bun test scripts/preview-env.test.ts && bun ./scripts/deploy.ts",
+		"deploy": "bun run test:schemas && bun test scripts/preview-env.test.ts scripts/deploy.test.ts && bun ./scripts/deploy.ts",
 		"preview": "bun ./scripts/preview.ts",
 		"preview:dev": "bun ./scripts/preview.ts --dev",
 		"start": "bun .output/server/index.mjs",

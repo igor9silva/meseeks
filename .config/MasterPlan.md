@@ -233,9 +233,11 @@ Always use Zod for any kind of validation.
 
 ## Convex Backend
 
-### CRITICAL: Production releases require explicit approval
+### CRITICAL: Production changes go through PRs
 
-Never publish production manually without Igor explicitly authorizing that release. Use the app-installed Convex CLI; a request to continue PR work does not authorize a production deploy.
+Production changes go through reviewed PRs merged into `main` and the normal deployment pipeline. Do not publish production manually or deploy an intermediate commit to make a PR work. Every PR must deploy successfully from the actual preceding production state. Required migration steps belong in that reviewed rollout; remove fields in a later PR only after their stored data has been cleaned and verified.
+  - bad: ship a PR that removes a field, then ask to deploy an older commit manually because existing documents block the merge's deploy
+  - good: first merge a PR whose pipeline deploys a compatible schema and completes the data cleanup; then remove the temporary field and cleanup code through another reviewed PR
 
 ### PR environments
 
@@ -381,7 +383,7 @@ One file per hook in `src/hooks/`.
   - good: verify the rule exists, report where it lives, and leave the tree untouched
 - Stage, commit, push, create/update PRs and validate their Previews are standing-authorized for the requested work. Do not ask again for these steps. Preserve user-owned staged work and unrelated changes; this authorization does not include rewriting history or discarding work.
   - bad: stop a completed implementation to ask permission to commit, push and open its PR
-  - good: publish the reviewable PR and validate its Preview; ask before merging into `main` or publishing production manually
+  - good: publish the reviewable PR and validate its Preview; ask before merging into `main`, and let its normal pipeline publish production
 - If a file is already staged and you edit it again, preserve the user's staged snapshot and leave your new edits unstaged so the user can review the small follow-up diff with `git diff`.
   - bad: user stages a large prompt rewrite, asks for one small follow-up, and the assistant makes the staged diff include the follow-up too
   - good: the large rewrite stays staged; the follow-up remains an unstaged `MM` delta until the user stages it
@@ -413,9 +415,9 @@ One file per hook in `src/hooks/`.
   - good: search route generation, direct links, analytics, API usage, and docs before removing it
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
-- Once a migration is verified and its cleanup is requested, remove its temporary fields, backup copies, preservation logic and runners. Do not retain migration artifacts indefinitely without a concrete reason agreed with Igor. Sequence data cleanup before schema removal, and keep production execution subject to explicit approval.
+- Once a migration is verified and its cleanup is requested, remove its temporary fields, backup copies, preservation logic and runners. Do not retain migration artifacts indefinitely without a concrete reason agreed with Igor. Sequence data cleanup before schema removal through deployable PRs.
   - bad: finish a migration cleanup while retaining unused backup fields as an unspecified future task
-  - good: rehearse data cleanup in the PR Preview, remove all temporary code from the final change, and state the production step still awaiting approval
+  - good: rehearse the complete deployment and cleanup in the PR Preview, verify the merged pipeline cleaned production, then remove the temporary artifacts through a follow-up PR
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
 - Avoid unnecessary layers. Wrappers must perform real work. Compatibility re-export files and aliases that only rename an existing schema/value are forbidden; update consumers to import the original export from its owning module.
   - bad: keep `old.ts` containing only `export { serialize } from './current'` after moving the implementation
