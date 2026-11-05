@@ -37,7 +37,8 @@ const testEnvironment = {
 };
 const previousEnvironment = new Map(Object.keys(testEnvironment).map((key) => [key, process.env[key]]));
 Object.assign(process.env, testEnvironment);
-const { createSkill, findSkillByOwner, replaceProSkills, updateSkill } = await import('./skills.private');
+const { createSkill, findSkillByOwner, replaceProSkills, removeLegacyInputSchemas, updateSkill } =
+	await import('./skills.private');
 for (const [key, value] of previousEnvironment) {
 	if (value === undefined) delete process.env[key];
 	else process.env[key] = value;
@@ -60,6 +61,80 @@ const skill = newSkillSchema.parse({
 	config: { url: 'https://example.invalid', method: 'POST', headers: {}, paramMappings: [] },
 });
 const original = '{"type":"object","properties":{"value":{"type":"string"}}}';
+
+describe('backup removal', () => {
+	test('defaults to dry run without changing documents', async () => {
+		const t = convexTest(schema, modules);
+		const id = await t.run((ctx) =>
+			ctx.db.insert('skills', {
+				...skill,
+				owner: 'isPro',
+				author: 'built-in',
+				inputSchema: normalizeSkillSchema(inputSchema),
+				legacyInputSchema: original,
+			}),
+		);
+		const before = await t.run((ctx) => ctx.db.get(id));
+		const result = await t.run((ctx) => removeLegacyInputSchemas(ctx, {}));
+		expect(result).toMatchObject({ scanned: 1, eligible: 1, removed: 0, isDone: true });
+		expect(await t.run((ctx) => ctx.db.get(id))).toEqual(before);
+	});
+
+	test('paginates, preserves every other field and is idempotent', async () => {
+		const t = convexTest(schema, modules);
+		const ids = await t.run(async (ctx) => {
+			const ids = [];
+			for (let i = 0; i < 26; i++) {
+				ids.push(
+					await ctx.db.insert('skills', {
+						...skill,
+						key: `skill-${i}`,
+						owner: 'isPro',
+						author: 'built-in',
+						cost: 9007199254740993n,
+						inputSchema: normalizeSkillSchema(inputSchema),
+						legacyInputSchema: original,
+					}),
+				);
+			}
+			return ids;
+		});
+		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30));
+		const first = await t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }));
+		expect(first).toMatchObject({ scanned: 25, removed: 25, isDone: false });
+		const second = await t.run((ctx) =>
+			removeLegacyInputSchemas(ctx, { cursor: first.continueCursor, dryRun: false }),
+		);
+		expect(second).toMatchObject({ scanned: 1, removed: 1, isDone: true });
+		for (const expected of before) {
+			delete expected.legacyInputSchema;
+			expect(await t.run((ctx) => ctx.db.get(expected._id))).toEqual(expected);
+		}
+		const repeated = await t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }));
+		expect(repeated.removed).toBe(0);
+		expect(
+			(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).map((doc) => doc._id),
+		).toEqual(ids);
+	});
+
+	test('rejects an invalid live schema without removing any backups in the batch', async () => {
+		const t = convexTest(schema, modules);
+		await t.run(async (ctx) => {
+			for (const value of [normalizeSkillSchema(inputSchema), '{}']) {
+				await ctx.db.insert('skills', {
+					...skill,
+					owner: 'isPro',
+					author: 'built-in',
+					inputSchema: value,
+					legacyInputSchema: original,
+				});
+			}
+		});
+		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(3));
+		await expect(t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }))).rejects.toThrow();
+		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(3))).toEqual(before);
+	});
+});
 
 describe('stored skill schema writes', () => {
 	test('creation and editing normalize schemas and preserve recovery copies', async () => {
