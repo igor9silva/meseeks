@@ -214,28 +214,33 @@ export const updateSkill = defineMutation({
 	},
 });
 
-export const removeLegacyInputSchemas = defineMutation({
-	args: z.object({
-		cursor: z.string().nullable().default(null),
-		dryRun: z.boolean().default(true),
-	}),
-	handler: async (ctx, { cursor, dryRun }) => {
-		// validate the live schemas before deleting only their unused recovery field.
+export const auditInputSchemas = defineQuery({
+	args: z.object({ cursor: z.string().nullable() }),
+	handler: async (ctx, { cursor }) => {
+		// count backups without returning their contents or modifying any document.
 		const result = await ctx.db.query('skills').withIndex('by_owner_kind').paginate({ cursor, numItems: 25 });
-		let eligible = 0;
+		let backups = 0;
 		for (const skill of result.page) {
 			normalizeSkillSchema(skill.inputSchema);
-			if (skill.legacyInputSchema === undefined) continue;
-			eligible++;
-			if (!dryRun) await ctx.db.patch(skill._id, { legacyInputSchema: undefined });
+			if (skill.legacyInputSchema !== undefined) backups++;
 		}
 		return {
 			isDone: result.isDone,
 			continueCursor: result.continueCursor,
 			scanned: result.page.length,
-			eligible,
-			removed: dryRun ? 0 : eligible,
+			backups,
 		};
+	},
+});
+
+export const removeInputSchemaBackup = defineMutation({
+	args: z.object({ skillId: zid('skills') }),
+	handler: async (ctx, { skillId }) => {
+		// use the live document in the migration transaction and leave every other field untouched.
+		const skill = await ctx.db.get(skillId);
+		if (!skill) return;
+		normalizeSkillSchema(skill.inputSchema);
+		if (skill.legacyInputSchema !== undefined) await ctx.db.patch(skillId, { legacyInputSchema: undefined });
 	},
 });
 

@@ -8,7 +8,9 @@ import { hardSkillSchema, newSkillSchema, skillSchema } from 'schemas/skill';
 import { userSchema } from 'schemas/userSchema';
 import { skillInputSchema } from 'skills/inputSchema';
 import schema from './schema';
-import { internal } from './_generated/api';
+import { components, internal } from './_generated/api';
+import { createFunctionHandle, getFunctionName } from 'convex/server';
+import migrationSchema from '../node_modules/@convex-dev/migrations/src/component/schema';
 
 // these mutations do no network i/o, but their transitive imports initialize the app's env schema.
 const testEnvironment = {
@@ -38,8 +40,7 @@ const testEnvironment = {
 };
 const previousEnvironment = new Map(Object.keys(testEnvironment).map((key) => [key, process.env[key]]));
 Object.assign(process.env, testEnvironment);
-const { createSkill, findSkillByOwner, replaceProSkills, removeLegacyInputSchemas, updateSkill } =
-	await import('./skills.private');
+const { createSkill, findSkillByOwner, replaceProSkills, updateSkill } = await import('./skills.private');
 for (const [key, value] of previousEnvironment) {
 	if (value === undefined) delete process.env[key];
 	else process.env[key] = value;
@@ -47,7 +48,7 @@ for (const [key, value] of previousEnvironment) {
 
 const modules = {
 	'./_generated/server.js': () => import('./_generated/server'),
-	'./skills.ts': () => import('./skills'),
+	'./migrations.ts': () => import('./migrations'),
 };
 const inputSchema = JSON.stringify({
 	$schema: 'https://json-schema.org/draft/2020-12/schema',
@@ -65,125 +66,117 @@ const skill = newSkillSchema.parse({
 	config: { url: 'https://example.invalid', method: 'POST', headers: {}, paramMappings: [] },
 });
 const original = '{"type":"object","properties":{"value":{"type":"string"}}}';
+const migrationName = getFunctionName(internal.migrations._removeSkillSchemaBackups);
 
-describe('backup removal', () => {
-	test('the deployment action audits every page, cleans only backups and can be rerun', async () => {
-		const t = convexTest(schema, modules);
+const migrationSkill = hardSkillSchema.parse({
+	...skill,
+	owner: 'isPro',
+	author: 'built-in',
+	inputSchema: normalizeSkillSchema(inputSchema),
+	legacyInputSchema: original,
+	config: { ...skill.config, body: { template: { amount: 9007199254740993n } } },
+});
+
+function migrationTest() {
+	// bun does not transform the component test helper's import.meta.glob; register its real modules directly.
+	const t = convexTest(schema, modules);
+	t.registerComponent('migrations', migrationSchema, {
+		'./lib.ts': () => import('../node_modules/@convex-dev/migrations/src/component/lib'),
+		'./_generated/server.ts': () =>
+			import('../node_modules/@convex-dev/migrations/src/component/_generated/server'),
+	});
+	return t;
+}
+
+describe('skill schema backup migration', () => {
+	test('the pipeline completes every batch, preserves other fields and does not restart a completed migration', async () => {
+		const t = migrationTest();
 		await t.run(async (ctx) => {
 			for (let i = 0; i < 27; i++) {
-				await ctx.db.insert('skills', {
-					...skill,
-					key: `cleanup-${i}`,
-					owner: 'isPro',
-					author: 'built-in',
-					inputSchema: normalizeSkillSchema(inputSchema),
-					legacyInputSchema: original,
-				});
+				await ctx.db.insert('skills', { ...migrationSkill, key: `cleanup-${i}` });
 			}
 		});
 		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30));
-		await t.action(internal.skills._cleanupInputSchemaBackups, {});
-		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).toEqual(before);
-		await t.action(internal.skills._cleanupInputSchemaBackups, { dryRun: false });
+		await t.action(internal.migrations._runSkillSchemaBackupMigration, {});
 		for (const expected of before) delete expected.legacyInputSchema;
 		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).toEqual(before);
-		await t.action(internal.skills._cleanupInputSchemaBackups, { dryRun: false });
+		const status = await t.query(components.migrations.lib.getStatus, {
+			names: [migrationName],
+		});
+		expect(status).toMatchObject([{ isDone: true, state: 'success', processed: 27 }]);
+		await t.action(internal.migrations._runSkillSchemaBackupMigration, {});
 		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).toEqual(before);
+		expect(await t.query(components.migrations.lib.getStatus, { names: [migrationName] })).toEqual(status);
 	});
 
-	test('an invalid schema on a later page prevents all cleanup writes', async () => {
-		const t = convexTest(schema, modules);
+	test('an invalid schema on a later audit page prevents all migration writes', async () => {
+		const t = migrationTest();
 		await t.run(async (ctx) => {
 			for (let i = 0; i < 26; i++) {
 				const currentSchema = i === 25 ? '{}' : normalizeSkillSchema(inputSchema);
-				await ctx.db.insert('skills', {
-					...skill,
-					key: `blocked-${i}`,
-					owner: 'isPro',
-					author: 'built-in',
-					inputSchema: currentSchema,
-					legacyInputSchema: original,
-				});
+				await ctx.db.insert('skills', { ...migrationSkill, key: `blocked-${i}`, inputSchema: currentSchema });
 			}
 		});
 		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30));
-		await expect(t.action(internal.skills._cleanupInputSchemaBackups, { dryRun: false })).rejects.toThrow();
+		await expect(t.action(internal.migrations._runSkillSchemaBackupMigration, {})).rejects.toThrow();
 		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).toEqual(before);
 	});
 
-	test('defaults to dry run without changing documents', async () => {
-		const t = convexTest(schema, modules);
-		const id = await t.run((ctx) =>
-			ctx.db.insert('skills', {
-				...skill,
-				owner: 'isPro',
-				author: 'built-in',
-				inputSchema: normalizeSkillSchema(inputSchema),
-				legacyInputSchema: original,
-			}),
-		);
-		const before = await t.run((ctx) => ctx.db.get(id));
-		const result = await t.run((ctx) => removeLegacyInputSchemas(ctx, {}));
-		expect(result).toMatchObject({ scanned: 1, eligible: 1, removed: 0, isDone: true });
-		expect(await t.run((ctx) => ctx.db.get(id))).toEqual(before);
-	});
-
-	test('paginates, preserves every other field and is idempotent', async () => {
-		const t = convexTest(schema, modules);
-		const fixture = hardSkillSchema.parse({
-			...skill,
-			owner: 'isPro',
-			author: 'built-in',
-			config: { ...skill.config, body: { template: { amount: 9007199254740993n } } },
-		});
+	test('the component records failure and resumes from the last committed batch', async () => {
+		const t = migrationTest();
 		const ids = await t.run(async (ctx) => {
 			const ids = [];
-			for (let i = 0; i < 26; i++) {
+			for (let i = 0; i < 27; i++) {
+				const currentSchema = i === 26 ? '{}' : normalizeSkillSchema(inputSchema);
 				ids.push(
 					await ctx.db.insert('skills', {
-						...fixture,
-						key: `skill-${i}`,
-						inputSchema: normalizeSkillSchema(inputSchema),
-						legacyInputSchema: original,
+						...migrationSkill,
+						key: `resume-${i}`,
+						inputSchema: currentSchema,
 					}),
 				);
 			}
 			return ids;
 		});
-		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30));
-		const first = await t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }));
-		expect(first).toMatchObject({ scanned: 25, removed: 25, isDone: false });
-		const second = await t.run((ctx) =>
-			removeLegacyInputSchemas(ctx, { cursor: first.continueCursor, dryRun: false }),
-		);
-		expect(second).toMatchObject({ scanned: 1, removed: 1, isDone: true });
-		for (const expected of before) {
-			delete expected.legacyInputSchema;
-			expect(await t.run((ctx) => ctx.db.get(expected._id))).toEqual(expected);
-		}
-		const repeated = await t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }));
-		expect(repeated.removed).toBe(0);
+		const fnHandle = await t.run(() => createFunctionHandle(internal.migrations._removeSkillSchemaBackups));
+		const args = { name: migrationName, fnHandle, oneBatchOnly: true, dryRun: false };
+		// separate component calls reproduce the committed batches of a deployment action.
+		expect(await t.mutation(components.migrations.lib.migrate, args)).toMatchObject({
+			processed: 25,
+			isDone: false,
+		});
+		expect(await t.mutation(components.migrations.lib.migrate, args)).toMatchObject({
+			state: 'failed',
+			processed: 25,
+		});
+		expect(await t.query(components.migrations.lib.getStatus, { names: [migrationName] })).toMatchObject([
+			{ isDone: false, state: 'failed', processed: 25 },
+		]);
 		expect(
-			(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).map((doc) => doc._id),
-		).toEqual(ids);
+			(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).filter(
+				(doc) => doc.legacyInputSchema !== undefined,
+			),
+		).toHaveLength(2);
+		await t.run((ctx) => ctx.db.patch(ids[26], { inputSchema: normalizeSkillSchema(inputSchema) }));
+		await t.action(internal.migrations._runSkillSchemaBackupMigration, {});
+		expect(await t.query(components.migrations.lib.getStatus, { names: [migrationName] })).toMatchObject([
+			{ isDone: true, state: 'success', processed: 27 },
+		]);
+		expect(
+			(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(30))).every(
+				(doc) => doc.legacyInputSchema === undefined,
+			),
+		).toBe(true);
 	});
 
-	test('rejects an invalid live schema without removing any backups in the batch', async () => {
-		const t = convexTest(schema, modules);
-		await t.run(async (ctx) => {
-			for (const value of [normalizeSkillSchema(inputSchema), '{}']) {
-				await ctx.db.insert('skills', {
-					...skill,
-					owner: 'isPro',
-					author: 'built-in',
-					inputSchema: value,
-					legacyInputSchema: original,
-				});
-			}
-		});
-		const before = await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(3));
-		await expect(t.run((ctx) => removeLegacyInputSchemas(ctx, { dryRun: false }))).rejects.toThrow();
-		expect(await t.run((ctx) => ctx.db.query('skills').withIndex('by_owner_kind').take(3))).toEqual(before);
+	test('fails verification instead of silently restarting when a writer reintroduces a backup', async () => {
+		const t = migrationTest();
+		await t.action(internal.migrations._runSkillSchemaBackupMigration, {});
+		const id = await t.run((ctx) => ctx.db.insert('skills', migrationSkill));
+		await expect(t.action(internal.migrations._runSkillSchemaBackupMigration, {})).rejects.toThrow(
+			'Skill schema backups remain after migration',
+		);
+		expect((await t.run((ctx) => ctx.db.get(id)))?.legacyInputSchema).toBe(original);
 	});
 });
 

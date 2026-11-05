@@ -239,6 +239,10 @@ Production changes go through reviewed PRs merged into `main` and the normal dep
   - bad: ship a PR that removes a field, then ask to deploy an older commit manually because existing documents block the merge's deploy
   - good: first merge a PR whose pipeline deploys a compatible schema and completes the data cleanup; then remove the temporary field and cleanup code through another reviewed PR
 
+Use the existing `@convex-dev/migrations` component for data migrations, including its progress tracking and completion runner. Do not replace it with a hand-written mutation loop. A deployment that starts a migration must wait for completion and surface failures.
+  - bad: add a paginated cleanup mutation and an action that invents its own migration runner
+  - good: define the migration with `migrations.define`, keep domain writes in their owning helper, and await `runToCompletion` from the deployment entrypoint
+
 ### PR environments
 
 - Use the PR's Preview for implementation checks and migration rehearsals. Do not deploy to, migrate, or reconfigure shared DEV as part of PR work, or make DEV readiness a prerequisite for completing the PR.

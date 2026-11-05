@@ -43,7 +43,7 @@ test('deploys the PR Preview before cleaning that same Preview', () => {
 	expect(result.status).toBe(0);
 	expect(result.commands).toEqual([
 		'convex deploy --preview-name cleanup-preview --codegen disable --cmd bun run build',
-		'convex run skills:_cleanupInputSchemaBackups {"dryRun":false} --deployment preview/cleanup-preview',
+		'convex run migrations:_runSkillSchemaBackupMigration {} --deployment preview/cleanup-preview',
 	]);
 });
 
@@ -52,7 +52,7 @@ test('the main production pipeline deploys compatible code before cleaning produ
 	expect(result.status).toBe(0);
 	expect(result.commands).toEqual([
 		'convex deploy --cmd bun run build',
-		'convex run skills:_cleanupInputSchemaBackups {"dryRun":false} --prod',
+		'convex run migrations:_runSkillSchemaBackupMigration {} --prod',
 	]);
 });
 

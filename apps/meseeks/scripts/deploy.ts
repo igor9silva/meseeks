@@ -3,7 +3,7 @@ import { assertAppRoot, getPreviewName, getPreviewRun, previewRef, runConvex, ru
 function main() {
 	//
 	assertAppRoot();
-	const cleanupArgs = ['run', 'skills:_cleanupInputSchemaBackups', JSON.stringify({ dryRun: false })];
+	const migrationArgs = ['run', 'migrations:_runSkillSchemaBackupMigration', '{}'];
 
 	if (process.env.VERCEL_ENV === 'preview') {
 		const previewName = getPreviewName(process.argv.slice(2));
@@ -12,7 +12,7 @@ function main() {
 		if (previewRun) args.push('--preview-run', previewRun);
 
 		runConvexDeploy(args);
-		runConvex(cleanupArgs.concat('--deployment', previewRef(previewName)));
+		runConvex(migrationArgs.concat('--deployment', previewRef(previewName)));
 		return;
 	}
 
@@ -26,7 +26,7 @@ function main() {
 
 	runConvex(['deploy', '--cmd', 'bun run build']);
 	// the schema must still accept old fields while the pipeline deletes their stored values.
-	runConvex(cleanupArgs.concat('--prod'));
+	runConvex(migrationArgs.concat('--prod'));
 }
 
 try {
