@@ -233,19 +233,26 @@ Always use Zod for any kind of validation.
 
 ## Convex Backend
 
-### CRITICAL: Production changes go through PRs
+### CRITICAL: Production code and schema changes go through PRs
 
-Production changes go through reviewed PRs merged into `main` and the normal deployment pipeline. Do not publish production manually or deploy an intermediate commit to make a PR work. Every PR must deploy successfully from the actual preceding production state. Required migration steps belong in that reviewed rollout; remove fields in a later PR only after their stored data has been cleaned and verified.
-  - bad: ship a PR that removes a field, then ask to deploy an older commit manually because existing documents block the merge's deploy
-  - good: first merge a PR whose pipeline deploys a compatible schema and completes the data cleanup; then remove the temporary field and cleanup code through another reviewed PR
+Production code and schemas ship only through reviewed PRs merged into `main` and its normal deployment pipeline. Every PR must deploy against the data already in production. Never deploy production manually, including intermediate commits.
 
-Use the existing `@convex-dev/migrations` component for data migrations, including its progress tracking and completion runner. Do not replace it with a hand-written mutation loop. A deployment that starts a migration must wait for completion and surface failures.
-  - bad: add a paginated cleanup mutation and an action that invents its own migration runner
-  - good: define the migration with `migrations.define`, keep domain writes in their owning helper, and await `runToCompletion` from the deployment entrypoint
+### Data migrations run only on Igor's request
+
+Igor runs a data migration himself or explicitly asks the agent to execute it on the intended deployment. Merging the PR publishes the runner. Never start a data migration automatically on any deployment, including PR Previews and production. This rules out CI, build and deploy hooks, Preview seeds, app startup and crons as triggers. CI may run read-only audits and test migrations against an isolated in-memory database.
+
+Field and format changes ship in three steps.
+
+1. **Compatibility PR.** Update every writer, including edits and imports, to use the new format. Read both formats and keep a new field optional while existing documents can omit it. Include an idempotent migration defined with `migrations.define` from `@convex-dev/migrations`. Keep domain writes in their owning helper. Use the component's runner for progress, resumption and completion instead of writing a batch loop.
+2. **Manual execution.** Merge and deploy the compatible version first. When Igor starts the migration or asks the agent to run it, follow it to completion and verify the intended result in the data. Clean obsolete stored fields while the schema still accepts them.
+3. **Cleanup PR.** Once the data permits it, tighten the schema and remove the old reader, temporary fields, backup handling and runner. Retaining recovery copies longer needs a concrete reason agreed with Igor. Convex rejects a schema that drops a field still present in documents. Require a separate pre-merge data check only when the final validator could accept data the new reader cannot use, such as two JSON formats both stored as strings.
+
+  - bad: invoke the migration from `deploy.ts` or `--preview-run`, or treat “merged, next” as permission to run it
+  - good: after the compatibility PR ships, Igor's request to “run the amount migration in production” authorizes that run and its verification
 
 ### PR environments
 
-- Use the PR's Preview for implementation checks and migration rehearsals. Do not deploy to, migrate, or reconfigure shared DEV as part of PR work, or make DEV readiness a prerequisite for completing the PR.
+- Use the PR's Preview for implementation checks and any explicitly requested migration rehearsals. Do not deploy to, migrate, or reconfigure shared DEV as part of PR work, or make DEV readiness a prerequisite for completing the PR.
   - bad: overwrite DEV to validate a PR because its database contains older records
   - good: validate the PR in its Preview; production rollout remains a separate, explicitly authorized action
 - Use Vercel CLI/MCP for Vercel operations. Do not use Igor's personal Chrome or ask him to sign in there to unblock deployment automation.
@@ -419,9 +426,6 @@ One file per hook in `src/hooks/`.
   - good: search route generation, direct links, analytics, API usage, and docs before removing it
 - In fresh worktrees, install dependencies with `bun i` before treating typecheck or tooling errors as code issues
 - For "update/rebase from main" requests, point to local `main`, not origin/main
-- Once a migration is verified and its cleanup is requested, remove its temporary fields, backup copies, preservation logic and runners. Do not retain migration artifacts indefinitely without a concrete reason agreed with Igor. Sequence data cleanup before schema removal through deployable PRs.
-  - bad: finish a migration cleanup while retaining unused backup fields as an unspecified future task
-  - good: rehearse the complete deployment and cleanup in the PR Preview, verify the merged pipeline cleaned production, then remove the temporary artifacts through a follow-up PR
 - If the user marks a file/module as out-of-scope (`stop changing X`, `ignore Y`), treat it as locked until the user explicitly re-opens it.
 - Avoid unnecessary layers. Wrappers must perform real work. Compatibility re-export files and aliases that only rename an existing schema/value are forbidden; update consumers to import the original export from its owning module.
   - bad: keep `old.ts` containing only `export { serialize } from './current'` after moving the implementation
