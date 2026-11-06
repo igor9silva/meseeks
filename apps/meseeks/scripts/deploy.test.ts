@@ -25,7 +25,7 @@ if [ "$MESEEKS_DEPLOY_TEST_FAILURE" = "$2" ]; then exit 1; fi
 				PATH: `${fixture}:${process.env.PATH}`,
 				VERCEL: '1',
 				VERCEL_ENV: 'preview',
-				VERCEL_GIT_COMMIT_REF: 'cleanup-preview',
+				VERCEL_GIT_COMMIT_REF: 'feature-preview',
 				CONVEX_PREVIEW_RUN: 'none',
 				MESEEKS_DEPLOY_TEST_LOG: log,
 				...env,
@@ -38,34 +38,24 @@ if [ "$MESEEKS_DEPLOY_TEST_FAILURE" = "$2" ]; then exit 1; fi
 	}
 }
 
-test('deploys the PR Preview before cleaning that same Preview', () => {
+test('deploys the backend to the PR Preview', () => {
 	const result = runDeploy({});
 	expect(result.status).toBe(0);
 	expect(result.commands).toEqual([
-		'convex deploy --preview-name cleanup-preview --codegen disable --cmd bun run build',
-		'convex run migrations:_runSkillSchemaBackupMigration {} --deployment preview/cleanup-preview',
+		'convex deploy --preview-name feature-preview --codegen disable --cmd bun run build',
 	]);
 });
 
-test('the main production pipeline deploys compatible code before cleaning production', () => {
+test('deploys production from the main Vercel pipeline', () => {
 	const result = runDeploy({ VERCEL_ENV: 'production', VERCEL_GIT_COMMIT_REF: 'main' });
 	expect(result.status).toBe(0);
-	expect(result.commands).toEqual([
-		'convex deploy --cmd bun run build',
-		'convex run migrations:_runSkillSchemaBackupMigration {} --prod',
-	]);
+	expect(result.commands).toEqual(['convex deploy --cmd bun run build']);
 });
 
-test('does not start cleanup after a failed backend deploy', () => {
+test('propagates a backend deploy failure', () => {
 	const result = runDeploy({ MESEEKS_DEPLOY_TEST_FAILURE: 'deploy' });
 	expect(result.status).toBe(1);
 	expect(result.commands).toHaveLength(1);
-});
-
-test('fails the deployment when cleanup fails', () => {
-	const result = runDeploy({ MESEEKS_DEPLOY_TEST_FAILURE: 'run' });
-	expect(result.status).toBe(1);
-	expect(result.commands).toHaveLength(2);
 });
 
 test('rejects local production deploys and production deploys from other branches', () => {
