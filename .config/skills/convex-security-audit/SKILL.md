@@ -514,7 +514,7 @@ export const getAuditLogs = query({
 
 ## Best Practices
 
-- Never run `npx convex deploy` unless explicitly instructed
+- Follow the production release workflow in `.config/MasterPlan.md`; do not deploy production from this skill
 - Implement defense in depth (multiple security layers)
 - Log all sensitive operations for audit trails
 - Use confirmation codes for destructive actions

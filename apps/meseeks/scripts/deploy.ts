@@ -1,7 +1,9 @@
-import { assertAppRoot, getPreviewName, getPreviewRun, runConvex, runConvexDeploy } from './preview-env';
+import { assertAppRoot, getPreviewName, getPreviewRun, previewRef, runConvex, runConvexDeploy } from './preview-env';
 
 function main() {
+	//
 	assertAppRoot();
+	const migrationArgs = ['run', 'migrations:_runSkillSchemaBackupMigration', '{}'];
 
 	if (process.env.VERCEL_ENV === 'preview') {
 		const previewName = getPreviewName(process.argv.slice(2));
@@ -10,10 +12,21 @@ function main() {
 		if (previewRun) args.push('--preview-run', previewRun);
 
 		runConvexDeploy(args);
+		runConvex(migrationArgs.concat('--deployment', previewRef(previewName)));
 		return;
 	}
 
+	if (
+		process.env.VERCEL !== '1' ||
+		process.env.VERCEL_ENV !== 'production' ||
+		process.env.VERCEL_GIT_COMMIT_REF !== 'main'
+	) {
+		throw new Error('Production deploys run only from main in the Vercel pipeline.');
+	}
+
 	runConvex(['deploy', '--cmd', 'bun run build']);
+	// the schema must still accept old fields while the pipeline deletes their stored values.
+	runConvex(migrationArgs.concat('--prod'));
 }
 
 try {
