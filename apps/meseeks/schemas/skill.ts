@@ -176,8 +176,6 @@ const coreSkillSchema = z.object({
 		.describe(
 			'A JSON Schema document for the input parameters. Include "$schema": "https://json-schema.org/draft/2020-12/schema".',
 		), // TODO: enforce that this is a valid zod schema
-	// accepted until the deployment pipeline removes the existing backup fields.
-	legacyInputSchema: z.string().optional(),
 	// outputSchema?: z.string(), // not yet
 	preApprovedCost: preApprovedCostSchema,
 	knownReactions: knownReactionsSchema,
@@ -229,8 +227,8 @@ export const skillSchema = z
 	);
 
 export const newSkillSchema = z.union([
-	hardSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }), //
-	softSkillSchema.omit({ author: true, owner: true, legacyInputSchema: true }),
+	hardSkillSchema.omit({ author: true, owner: true }), //
+	softSkillSchema.omit({ author: true, owner: true }),
 ]);
 
 // Instincts/built-in skills

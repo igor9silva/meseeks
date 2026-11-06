@@ -1,9 +1,8 @@
-import { assertAppRoot, getPreviewName, getPreviewRun, previewRef, runConvex, runConvexDeploy } from './preview-env';
+import { assertAppRoot, getPreviewName, getPreviewRun, runConvex, runConvexDeploy } from './preview-env';
 
 function main() {
 	//
 	assertAppRoot();
-	const migrationArgs = ['run', 'migrations:_runSkillSchemaBackupMigration', '{}'];
 
 	if (process.env.VERCEL_ENV === 'preview') {
 		const previewName = getPreviewName(process.argv.slice(2));
@@ -12,7 +11,6 @@ function main() {
 		if (previewRun) args.push('--preview-run', previewRun);
 
 		runConvexDeploy(args);
-		runConvex(migrationArgs.concat('--deployment', previewRef(previewName)));
 		return;
 	}
 
@@ -25,8 +23,6 @@ function main() {
 	}
 
 	runConvex(['deploy', '--cmd', 'bun run build']);
-	// the schema must still accept old fields while the pipeline deletes their stored values.
-	runConvex(migrationArgs.concat('--prod'));
 }
 
 try {
