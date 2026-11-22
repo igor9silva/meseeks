@@ -35,8 +35,6 @@
 		"**/public/**",
 		"**/data/**",
 		"**/routeTree.gen.ts",
-		// preserve the output of the better auth schema generator.
-		"**/convex/betterAuth/schema.ts",
 		"**/convex/_generated/**",
 		"**/_generated/**",
 		"**/*.md",
