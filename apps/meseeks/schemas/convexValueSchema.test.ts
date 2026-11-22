@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { CommitTsPlaceholder } from 'convex/values';
 import { convexObjectSchema, convexValueSchema } from './convexValueSchema';
 
 test('accepts supported convex values, including nested bigints and bytes', () => {
@@ -10,6 +11,12 @@ test('rejects values that cannot be stored in convex', () => {
 	for (const value of [undefined, () => true, new Date(), { nested: { callback: () => true } }]) {
 		expect(convexValueSchema.safeParse(value).success).toBe(false);
 	}
+});
+
+test('rejects unresolved commit timestamps in stored metadata', () => {
+	const timestamp = new CommitTsPlaceholder();
+	expect(convexValueSchema.safeParse(timestamp).success).toBe(false);
+	expect(convexObjectSchema.safeParse({ nested: [timestamp] }).success).toBe(false);
 });
 
 test('preserves int64 boundaries and special floats while rejecting out-of-range bigints', () => {
