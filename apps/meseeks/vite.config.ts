@@ -21,6 +21,8 @@ export default defineConfig({
 	plugins: [
 		tanstackStart(),
 		nitroV2Plugin({
+			// bun selects this react-dom entry at startup, while nitro traces the node entry by default.
+			externals: { traceInclude: ['react-dom/server.bun'] },
 			// nitro's unimport scan trips on bundled server chunks here and injects h3 helpers
 			// like `getSession`, which collides with the existing bundle output during vercel builds.
 			imports: false,
