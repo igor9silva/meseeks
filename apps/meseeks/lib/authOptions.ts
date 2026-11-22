@@ -1,6 +1,6 @@
 import { convex as convexPlugin } from '@convex-dev/better-auth/plugins';
 import { anonymous } from 'better-auth/plugins';
-import type { AdapterFactory } from 'better-auth/adapters';
+import type { DBAdapterInstance } from 'better-auth';
 import { authBasePath } from 'lib/auth';
 import authConfig from 'convex/auth.config';
 
@@ -13,7 +13,7 @@ type CreateAuthOptionsArgs = {
 	allowAnonymousSignIn: boolean;
 	sessionDurationSeconds: number;
 	sessionUpdateAgeSeconds: number;
-	database?: AdapterFactory;
+	database?: DBAdapterInstance;
 };
 
 const componentSiteUrl = 'https://component.invalid';
