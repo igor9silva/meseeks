@@ -3,6 +3,11 @@ import { z } from 'zod';
 
 const maxValueSize = 1024 * 1024;
 
+// a commit timestamp has already resolved to a bigint in stored metadata.
+type StoredValue = Exclude<Value, object> | ArrayBuffer | StoredArray | { [key: string]: StoredValue | undefined };
+// a named array lets typescript reuse the recursive type when inferring document types from zod.
+interface StoredArray extends Array<StoredValue> {}
+
 // zod 4 preserves record value types in the convex data model, so arbitrary values must be convex values.
 export const convexValueSchema = z.unknown().refine(isConvexValue, 'Invalid Convex value');
 export const convexObjectSchema = z
@@ -15,12 +20,12 @@ export const convexObjectSchema = z
 	)
 	.refine(isConvexValue, 'Invalid Convex object');
 
-function isConvexValue(value: unknown): value is Value {
+function isConvexValue(value: unknown): value is StoredValue {
 	//
 	const ancestors = new WeakSet<object>();
 	let remainingNodes = maxValueSize;
 
-	function visit(input: unknown, depth: number): input is Value {
+	function visit(input: unknown, depth: number): input is StoredValue {
 		// bound traversal before calling the sdk, whose serializer does not detect cycles.
 		if (--remainingNodes < 0 || depth > 16) return false;
 		if (input === null) return true;
