@@ -11,7 +11,7 @@
 		"dev": "concurrently -r 'bun run dev:web' 'bun run dev:db'",
 		"dev:db": "convex dev",
 		"dev:web": "vite dev --port 3000",
-		"auth:schema": "cd schemas/betterAuth && bunx auth@$(bun -p \"require('better-auth/package.json').version\") generate --yes",
+		"auth:schema": "cd convex/betterAuth && bunx auth@$(bun -p \"require('better-auth/package.json').version\") generate --yes",
 		"build": "vite build",
 		"deploy": "bun run test:schemas && bun test scripts/preview-env.test.ts scripts/deploy.test.ts && bun ./scripts/deploy.ts",
 		"preview": "bun ./scripts/preview.ts",
